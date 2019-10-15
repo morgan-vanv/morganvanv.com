@@ -204,13 +204,6 @@
     transition: all ease-in-out 200ms;
 }
 
-.pContent{
-    padding: 2.5vh;
-    margin: 2.5vh;
-    border: 0.125vw solid white;
-    border-radius: 15px;
-    box-shadow: 1px 1px 12px white;
-}
 
 .pContent:hover{
     box-shadow: 1px 1px 17px white;
