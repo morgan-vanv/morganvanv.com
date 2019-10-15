@@ -8,6 +8,7 @@ $(document).ready(function() {
     $('.jInstruct').hide();
     $('.edContent').hide();
     $('.ecContent').hide();
+    $('.pContent').hide();
 
     /* INITIALIZATION STATEMENT */
     console.log( "We are ready for launch, Captain!" );
@@ -66,6 +67,11 @@ $(document).ready(function() {
     /* EXTRA CIRRICULARS */
     $('#ecButton').on('click', () => {
         $('.ecContent').slideToggle(500);
+    })
+
+    /* PORTFOLIO */
+    $('#pButton').on('click', () => {
+        $('.pContent').slideToggle(500);
     })
 
 });
