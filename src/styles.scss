@@ -1,1 +1,22 @@
 /* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+
+
+// Defining variables
+$background-color: #001211;
+$main-color: #ffffff;
+
+// Material theme configuration
+//$theme-primary: mat.define-palette(mat.$background-color, 700, 500, 900);
+//$theme-accent: mat.define-palette(mat.$pink-palette, 500, 300, 700);
+//$theme-warn: mat.define-palette(mat.$red-palette);
+
+body {
+  margin: 0;
+  //font-family: 'JetBrains Mono', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  background-color: $background-color;
+  color: #333;
+}
+
+
