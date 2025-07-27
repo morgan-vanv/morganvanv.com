@@ -1,10 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, Renderer2 } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
+  standalone: true,
   selector: 'app-landing-page',
-  imports: [],
   templateUrl: './landing-page.html',
-  styleUrl: './landing-page.scss'
+  styleUrls: ['./landing-page.scss'],
+  imports: [CommonModule]
 })
 export class LandingPage {
 
