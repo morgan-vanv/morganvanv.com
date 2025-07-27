@@ -1,72 +1,7 @@
-@import '../../styles.scss';
 
-.landing-page-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 100vh;
-}
-
-.landing-page-message-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-
-.title {
-  font-size: 4rem;
-  color: white;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.subtitle {
-  font-size: 1.5rem;
-  color: white;
-  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
-  margin-bottom: 2rem;
-  text-align: center;
-}
-
-.custom-arrow-button {
-  margin-bottom: 1rem;
-  background-color: transparent;
-  color: #fff;
-  border: none;
-  border-radius: 33%;
-  width: 10rem;
-  height: 10rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-
-  transition:
-    transform 0.3s ease,
-    backdrop-filter 0.3s;
-
-  &:hover {
-    backdrop-filter: blur(8px);
-    transform: scale(1.1);
-  }
-
-  &:active {
-    transform: scale(0.75);
-    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-}
-
-.arrow-label {
-  display: block;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-  font-family: 'JetBrains Mono', monospace;
-  color: #fff;
-  text-align: center;
-  width: 100%;
-  pointer-events: none;
-  user-select: none;
-}
-
+//:host {
+//  height: 100dvh;
+//  width: 100vw;
+//  margin: 0;
+//  padding: 0;
+//}

@@ -1,19 +1,11 @@
-import { Component, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
-import {MatIconButton} from '@angular/material/button';
+import { Component } from '@angular/core';
 
 @Component({
-  standalone: true,
   selector: 'app-landing-page',
+  imports: [],
   templateUrl: './landing-page.component.html',
-  styleUrls: ['./landing-page.component.scss'],
-  imports: [CommonModule, MatIconModule, MatIconButton],
+  styleUrl: './landing-page.component.scss'
 })
 export class LandingPageComponent {
-  @Output() proceed = new EventEmitter<void>();
 
-  onProceed() {
-    this.proceed.emit();
-  }
 }

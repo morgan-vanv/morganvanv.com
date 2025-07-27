@@ -1,8 +1,8 @@
-<app-landing-page
-  *ngIf="currentView === 'landing'"
+<app-greeting-page
+  *ngIf="currentView === 'greeting'"
   (proceed)="onLandingComplete()">
-</app-landing-page>
+</app-greeting-page>
 
-<app-splashdown-page
-  *ngIf="currentView === 'splashdown'">
-</app-splashdown-page>
+<app-landing-page
+  *ngIf="currentView === 'landing'">
+</app-landing-page>

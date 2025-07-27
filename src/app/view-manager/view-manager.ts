@@ -1,20 +1,20 @@
 import { Component } from '@angular/core';
-import { LandingPageComponent } from '../landing-page/landing-page.component';
-import { SplashdownPageComponent } from '../splashdown-page/splashdown-page.component';
 import {CommonModule} from '@angular/common';
+import {GreetingPageComponent} from '../greeting-page/greeting-page.component';
+import {LandingPageComponent} from '../landing-page/landing-page.component';
 
 
 @Component({
   selector: 'app-view-manager',
   standalone: true,
-  imports: [CommonModule, LandingPageComponent, SplashdownPageComponent],
+  imports: [CommonModule, GreetingPageComponent, LandingPageComponent],
   templateUrl: './view-manager.html',
   styleUrl: './view-manager.scss'
 })
 export class ViewManager {
-  currentView: 'landing' | 'splashdown' = 'landing';
+  currentView: 'greeting' | 'landing' = 'greeting';
 
   onLandingComplete() {
-    this.currentView = 'splashdown';
+    this.currentView = 'landing';
   }
 }
