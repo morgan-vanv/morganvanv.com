@@ -22,3 +22,22 @@
   margin-bottom: 2rem;
   text-align: center;
 }
+
+.custom-arrow-button {
+  background-color: transparent;
+  color: #fff;
+  border-radius: 33%; // Make it circular
+  width: 10rem; // Set width
+  height: 10rem; // Set height
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); // Add shadow
+  transition: transform 0.3s ease;
+
+  &:hover {
+    background-color: #0056b3; // Darker background on hover
+    transform: scale(1.1); // Slightly enlarge on hover
+  }
+
+  &:active {
+    transform: scale(0.95); // Shrink slightly on click
+  }
+}

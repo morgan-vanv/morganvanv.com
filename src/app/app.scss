@@ -1,5 +1,5 @@
 
-.landing-page-view {
+.canvas-view {
   height: 100dvh;
   width: 100vw;
   margin: 0;
@@ -8,6 +8,16 @@
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+
+  position: absolute;
+  z-index: -1;
+}
+
+.landing-page-view {
+  height: 100dvh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
 
 }
 
