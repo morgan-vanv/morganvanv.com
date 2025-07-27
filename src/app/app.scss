@@ -1,5 +1,5 @@
 
-.canvas-view {
+.canvas {
   height: 100dvh;
   width: 100vw;
   margin: 0;
@@ -13,17 +13,13 @@
   z-index: -1;
 }
 
-.landing-page-view {
+.view-manager {
   height: 100dvh;
   width: 100vw;
   margin: 0;
   padding: 0;
-
+  position: absolute;
+  z-index: 2;
+  //overflow: hidden;
 }
 
-.splashdown-page-view {
-  height: 100dvh;
-  width: 100vw;
-  margin: 0;
-  padding: 0;
-}

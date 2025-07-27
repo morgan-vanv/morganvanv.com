@@ -1,0 +1,8 @@
+<app-landing-page
+  *ngIf="currentView === 'landing'"
+  (proceed)="onLandingComplete()">
+</app-landing-page>
+
+<app-splashdown-page
+  *ngIf="currentView === 'splashdown'">
+</app-splashdown-page>

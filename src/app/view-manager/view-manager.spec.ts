@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Canvas } from './canvas';
+import { ViewManager } from './view-manager';
 
-describe('Canvas', () => {
-  let component: Canvas;
-  let fixture: ComponentFixture<Canvas>;
+describe('ViewManager', () => {
+  let component: ViewManager;
+  let fixture: ComponentFixture<ViewManager>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Canvas]
+      imports: [ViewManager]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Canvas);
+    fixture = TestBed.createComponent(ViewManager);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
