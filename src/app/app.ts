@@ -19,13 +19,13 @@ import { trigger, transition, style, animate, query, group } from '@angular/anim
         group([
           // animate the old view out
           query(':leave', [
-            animate('300ms ease-out', style({ opacity: 0, transform: 'translateY(-120vh)' }))
+            animate('500ms ease-in-out', style({ opacity: 0, transform: 'translateY(-120vh)' }))
           ], { optional: true }),
 
           // animate the new view in
           query(':enter', [
             style({ opacity: 0, transform: 'translateY(120vh)' }),
-            animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+            animate('500ms ease-in-out', style({ opacity: 1, transform: 'translateY(0)' }))
           ], { optional: true }),
         ])
       ])
