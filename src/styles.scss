@@ -24,10 +24,14 @@ html {
 }
 
 body {
+  height: 100dvh;
+  width: 100dvw;
   margin: 0;
   font-family: 'JetBrains Mono', monospace;
-  //font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  //font-size: min(2.5dvh, 1rem);
+  font-size: clamp(2.5dvh, 2.5dvw, 1rem);
   color: $main-color;
-  background-color: $background-color;
+  //background-color: $background-color;
+  background-color: pink; // left for checking styling
 }
 

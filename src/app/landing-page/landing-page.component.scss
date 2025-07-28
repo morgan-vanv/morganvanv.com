@@ -3,16 +3,18 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 100dvh;
+  //min-height: 100dvh;
+  height: 100dvh;
   width: 100%;
+  //margin: 0dvh 20dvw
 }
 
 .landing-page-object-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 80vh;
-  margin: 0vh 20vw;
+  height: 80dvh;
+  margin: 0dvh 20dvw;
   border: white 1px solid;
   border-radius: 5rem;
   backdrop-filter: blur(8px);
@@ -22,7 +24,7 @@
 .landing-page-object-content-container {
   width: 98%;
   height: 80%;
-  padding: 0rem 2rem;
+  padding: 0rem 2dvw;
   box-sizing: border-box;
 
 
@@ -47,8 +49,9 @@
 
 .profile-picture {
   float: left;
-  width: 120px;
-  height: 120px;
+  //width: clamp(80px, 10dvw, 15dvw);
+  width: clamp(20%, 10dvw, 15dvw);
+  height: auto;
   object-fit: cover;
   border-radius: 50%;
   margin-right: 2rem;
@@ -58,4 +61,10 @@
 
 h1 {
   margin: 0;
+  font-size: min(5dvw, 2rem);
+  //font-size: clamp(5dvw, 5dvh, 2rem);
+}
+
+p {
+  //font-size: min(2.5dvw, 1rem);
 }
