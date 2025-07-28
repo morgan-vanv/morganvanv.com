@@ -54,15 +54,20 @@
   height: auto;
   object-fit: cover;
   border-radius: 50%;
-  margin-right: 2rem;
+  margin: auto;
   border: 2px solid #fff;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 h1 {
   margin: 0;
-  font-size: min(5dvw, 2rem);
+  margin-left: 1rem;
+  font-size: clamp(5px, 5dvh, 2rem);
+  //font-size: min(5dvw, 2rem);
   //font-size: clamp(5dvw, 5dvh, 2rem);
+  //white-space: normal;
+  //overflow-wrap: break-word;
+  //word-break: break-word; // optional, for extra safety
 }
 
 p {

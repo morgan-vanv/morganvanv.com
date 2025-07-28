@@ -29,7 +29,7 @@ body {
   margin: 0;
   font-family: 'JetBrains Mono', monospace;
   //font-size: min(2.5dvh, 1rem);
-  font-size: clamp(2.5dvh, 2.5dvw, 1rem);
+  font-size: clamp(2.5dvw, 2.5dvh, 1rem);
   color: $main-color;
   //background-color: $background-color;
   background-color: pink; // left for checking styling
