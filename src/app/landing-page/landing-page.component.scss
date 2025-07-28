@@ -47,10 +47,22 @@
   }
 }
 
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
 .profile-picture {
   float: left;
   //width: clamp(80px, 10dvw, 15dvw);
-  width: clamp(20%, 10dvw, 15dvw);
+  width: clamp(64px, 10dvw, 15dvh);
   height: auto;
   object-fit: cover;
   border-radius: 50%;
@@ -61,8 +73,8 @@
 
 h1 {
   margin: 0;
-  margin-left: 1rem;
-  font-size: clamp(5px, 5dvh, 2rem);
+  margin-left: 10%;
+  //font-size: clamp(2rem, 5dvw, 2rem);
   //font-size: min(5dvw, 2rem);
   //font-size: clamp(5dvw, 5dvh, 2rem);
   //white-space: normal;
