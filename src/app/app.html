@@ -2,5 +2,6 @@
 <!--This is the "canvas" for the website, the background upon which the action happens.-->
 <div class="canvas"></div>
 
-<router-outlet />  <!-- Angular inserts your route content here -->
-
+<main [@routeAnimations]="prepareRoute(outlet)">
+  <router-outlet #outlet="outlet"></router-outlet>
+</main>

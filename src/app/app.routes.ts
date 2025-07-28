@@ -7,12 +7,14 @@ export const routes: Routes = [
     path: '',
     component: GreetingPageComponent,
     title: 'Greetings!',
-    pathMatch: 'full'
+    pathMatch: 'full',
+    data: { animation: 'GreetingPage' }
   },
   {
     path: 'landing',
     component: LandingPageComponent,
-    title: 'About me'
+    title: 'About me',
+    data: { animation: 'LandingPage' }
   },
   {
     path: '**',
