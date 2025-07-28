@@ -1,12 +1,11 @@
+@use '../../styles' as *;
 
 :host {
   display: flex;
   align-items: center;
   justify-content: center;
-  //min-height: 100dvh;
   height: 100dvh;
   width: 100%;
-  //margin: 0dvh 20dvw
 }
 
 .landing-page-object-container {
@@ -14,7 +13,7 @@
   justify-content: center;
   align-items: center;
   height: 80dvh;
-  margin: 0dvh 20dvw;
+  margin: 0dvh clamp(2.5dvw, 2.5dvh, 1rem);
   border: white 1px solid;
   border-radius: 5rem;
   backdrop-filter: blur(8px);
@@ -50,38 +49,43 @@
 .profile-header-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   flex-direction: row;
 
   @media (max-width: 600px) {
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start;
   }
 }
 
 .profile-picture {
   float: left;
-  //width: clamp(80px, 10dvw, 15dvw);
-  width: clamp(64px, 10dvw, 15dvh);
+  width: clamp(64px, 20dvw, 15dvh);
   height: auto;
   object-fit: cover;
   border-radius: 50%;
-  margin: auto;
+  margin: 2rem;
   border: 2px solid #fff;
+  background-color: $background-sky-color;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  @media (max-width: 600px) {
+    width: 50dvw;
+  }
 }
 
 h1 {
-  margin: 0;
-  margin-left: 10%;
-  //font-size: clamp(2rem, 5dvw, 2rem);
-  //font-size: min(5dvw, 2rem);
-  //font-size: clamp(5dvw, 5dvh, 2rem);
-  //white-space: normal;
-  //overflow-wrap: break-word;
-  //word-break: break-word; // optional, for extra safety
+  text-align: center;
+  font-size: clamp(2.5rem, 5dvw, 4rem);
+  white-space: normal;
+  overflow-wrap: break-word;
+  word-break: break-word; // optional, for extra safety
+
+  @media (max-width: 600px) {
+    margin-left: 0;
+    text-align: center;
+    width: 100%;
+  }
 }
 
-p {
-  //font-size: min(2.5dvw, 1rem);
-}
