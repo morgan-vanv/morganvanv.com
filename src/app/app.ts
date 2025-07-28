@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
-import {ViewManager} from './view-manager/view-manager';
+import {RouterOutlet} from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [ViewManager],
+  imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss'
 })
