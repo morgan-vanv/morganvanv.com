@@ -1,7 +1,8 @@
 import { Component, Output, EventEmitter } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
-import {MatIconButton} from '@angular/material/button';
+import { MatIconButton } from '@angular/material/button';
 
 @Component({
   standalone: true,
@@ -11,9 +12,11 @@ import {MatIconButton} from '@angular/material/button';
   imports: [CommonModule, MatIconModule, MatIconButton],
 })
 export class GreetingPageComponent {
-  @Output() proceed = new EventEmitter<void>();
 
-  onProceed() {
-    this.proceed.emit();
+  constructor(private router: Router) {}
+
+  onProceedGreetingMessage() {
+    this.router.navigate(['/landing']);
   }
+
 }
