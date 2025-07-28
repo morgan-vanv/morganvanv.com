@@ -1,14 +1,14 @@
 @use '../../styles' as *;
 
-.landing-page-container {
+.greeting-page-object-container {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-.landing-page-message-container {
+.greeting-page-message-container {
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -1,7 +1,61 @@
 
-//:host {
-//  height: 100dvh;
-//  width: 100vw;
-//  margin: 0;
-//  padding: 0;
-//}
+.landing-page-object-container {
+  display: flex;
+  //flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 80vh;
+
+  margin: 10vh 20vw;
+  border: white 1px solid;
+  border-radius: 5rem;
+  backdrop-filter: blur(8px);
+
+}
+
+.landing-page-object-content-container {
+  width: 98%;
+  height: 80%;
+
+  padding: 0rem 2rem;
+  box-sizing: border-box;
+
+
+  overflow-y: scroll;
+  /* Custom scrollbar styles */
+  &::-webkit-scrollbar {
+    width: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 6px;
+    border: 2px solid rgba(0,0,0,0.1);
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.6);
+  }
+}
+
+.profile-picture {
+  float: left;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-right: 2rem;
+  margin-bottom: 1rem;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.profile-text {
+  //overflow: hidden; // Ensures container clears the float
+}
+
+h1 {
+  margin: 0;
+}
