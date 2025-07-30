@@ -1,59 +1,56 @@
 @use '../../styles' as *;
 @use '../../shared/shared-styles.scss' as shared;
 
-// Include the base page layout
-//@include shared.base-page-layout;
-
 custom-navbar {
   position: relative;
 }
 
 
-//.profile-header-row {
-//  display: flex;
-//  align-items: center;
-//  justify-content: center;
-//  flex-direction: row;
-//
-//  @media (max-width: 600px) {
-//    flex-direction: column;
-//    align-items: center;
-//    justify-content: flex-start;
-//  }
-//}
-//
-//.profile-picture {
-//  float: left;
-//  width: clamp(64px, 20dvw, 15dvh);
-//  height: auto;
-//  object-fit: cover;
-//  border-radius: 50%;
-//  margin: 2rem;
-//  border: 2px solid #fff;
-//  background-color: $background-sky-color;
-//  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-//
-//  @media (max-width: 600px) {
-//    width: 50dvw;
-//  }
-//}
-//
-//h1 {
-//  text-align: center;
-//  font-size: clamp(2.5rem, 5dvw, 4rem);
-//  white-space: normal;
-//  overflow-wrap: break-word;
-//
-//  @media (max-width: 600px) {
-//    margin-left: 0;
-//    text-align: center;
-//    width: 100%;
-//  }
-//}
-//
-//ul {
-//  list-style: none;
-//  padding-left: 0;
-//}
+.profile-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: row;
+
+  @media (max-width: 600px) {
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+  }
+}
+
+.profile-picture {
+  float: left;
+  width: clamp(64px, 20dvw, 15dvh);
+  height: auto;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 2rem;
+  border: 2px solid #fff;
+  background-color: $background-sky-color;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  @media (max-width: 600px) {
+    width: 50dvw;
+  }
+}
+
+h1 {
+  text-align: center;
+  font-size: clamp(2.5rem, 5dvw, 4rem);
+  white-space: normal;
+  overflow-wrap: break-word;
+
+  @media (max-width: 600px) {
+    margin-left: 0;
+    text-align: center;
+    width: 100%;
+  }
+}
+
+ul {
+  list-style: none;
+  padding-left: 0;
+}
 
 
