@@ -1,6 +1,23 @@
 @use '../../styles' as *;
 @use '../../shared/shared-styles.scss' as shared;
 
+custom-navbar {
+  position: relative;
+}
+
+:host {
+  //height: 100dvh;
+  //width: 100dvw;
+  height: 100%;
+  width: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+
 //.profile-header-row {
 //  display: flex;
 //  align-items: center;

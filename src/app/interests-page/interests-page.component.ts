@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 
 @Component({
-  selector: 'app-landing-page',
+  selector: 'app-interests-page',
   imports: [],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss'

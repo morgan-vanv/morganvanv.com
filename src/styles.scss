@@ -24,11 +24,10 @@ html {
 }
 
 body {
-  height: 100dvh;
-  width: 100dvw;
-  margin: 0;
   font-family: 'JetBrains Mono', monospace;
   font-size: clamp(2.5dvh, 2.5dvw, 1rem);
+  box-sizing: border-box;
+  margin: 0;
   color: $main-color;
   //background-color: $background-color;
   background-color: pink; // left for checking styling

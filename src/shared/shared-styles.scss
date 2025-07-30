@@ -1,14 +1,7 @@
 @use '../styles' as *;
 
-:host {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100dvh;
-  width: 100%;
-}
-
 .page-container {
+  box-sizing: content-box;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -26,8 +19,6 @@
 }
 
 .page-content {
-  width: 98%;
-  height: 80%;
   padding: 0rem 2dvw;
   box-sizing: border-box;
   overflow-y: scroll;
