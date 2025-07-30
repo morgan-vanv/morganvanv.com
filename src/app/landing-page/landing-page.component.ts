@@ -1,14 +1,13 @@
 import { Component } from '@angular/core';
-import {CustomNavbarComponent} from '../../shared/custom-navbar/custom-navbar.component';
+import { BasePageComponent} from '../../shared/base-page/base-page.component';
 
 @Component({
   selector: 'app-landing-page',
-  imports: [
-    CustomNavbarComponent
-  ],
   templateUrl: './landing-page.component.html',
-  styleUrl: './landing-page.component.scss'
+  styleUrls: ['./landing-page.component.scss'],
+  standalone: true,
+  imports: [BasePageComponent]
 })
 export class LandingPageComponent {
-
+  profileHeader = 'Your Profile Header';
 }

@@ -1,10 +1,13 @@
 import { Component } from '@angular/core';
+import { CustomNavbarComponent} from '../custom-navbar/custom-navbar.component';
 
 @Component({
-  template: './base-page.component.html',
+  selector: 'app-base-page',
+  templateUrl: './base-page.component.html',
   styleUrls: ['./base-page.component.scss'],
-  standalone: true
+  standalone: true,
+  imports: [CustomNavbarComponent]
 })
-export abstract class BasePageComponent {
+export class BasePageComponent {
   // Common properties and methods for all pages
 }
