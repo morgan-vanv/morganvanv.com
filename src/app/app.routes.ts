@@ -1,8 +1,10 @@
 import { Routes } from '@angular/router';
 import { GreetingPageComponent } from './greeting-page/greeting-page.component';
-import { LandingPageComponent } from './landing-page/landing-page.component';
+import { HomePageComponent } from './landing-page/home-page.component';
 import { ProjectsPageComponent } from './projects-page/projects-page.component';
 import { InterestsPageComponent } from './interests-page/interests-page.component';
+import {BackgroundPageComponent} from './background-page/background-page.component';
+import {BlogPageComponent} from './blog-page/blog-page.component';
 
 export const routes: Routes = [
   {
@@ -10,13 +12,25 @@ export const routes: Routes = [
     component: GreetingPageComponent,
     title: 'Greetings!',
     pathMatch: 'full',
+    data: { animation: 'GreetingPage' }
+  },
+  {
+    path: 'home',
+    component: HomePageComponent,
+    title: 'Home',
     data: { animation: 'HomePage' }
   },
   {
-    path: 'landing',
-    component: LandingPageComponent,
-    title: 'About me',
-    data: { animation: 'LandingPage' }
+    path: 'background',
+    component: BackgroundPageComponent,
+    title: 'Background',
+    data: { animation: 'BackgroundPage' }
+  },
+  {
+    path: 'interests',
+    component: InterestsPageComponent,
+    title: 'Interests',
+    data: { animation: 'InterestsPage' }
   },
   {
     path: 'projects',
@@ -25,10 +39,10 @@ export const routes: Routes = [
     data: { animation: 'ProjectsPage' }
   },
   {
-    path: 'interests',
-    component: InterestsPageComponent,
-    title: 'Interests',
-    data: { animation: 'InterestsPage' }
+    path: 'blog',
+    component: BlogPageComponent,
+    title: 'Blog',
+    data: { animation: 'BlogPage' }
   },
   {
     path: '**',

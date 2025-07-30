@@ -1,5 +1,14 @@
 @use '../../styles' as *;
 
+:host {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
 .greeting-page-object-container {
   display: flex;
   flex-direction: column;
@@ -52,6 +61,7 @@
   }
 
   &:active {
+    color: #c9922a;
     transform: scale(0.75);
     transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -63,10 +73,8 @@
   margin-bottom: 1rem;
   font-size: min(5dvw, 1.5rem);
   font-family: 'JetBrains Mono', monospace;
-  color: #fff;
   text-align: center;
   width: 100%;
-  pointer-events: none;
   user-select: none;
 }
 

@@ -1,8 +1,10 @@
 <nav>
   <ul>
-    <li><a routerLink="/home" [class.active-link]="isActive('/')"><mat-icon>home</mat-icon></a></li>
-    <li><a routerLink="/landing" [class.active-link]="isActive('/landing')">Landing</a></li>
+    <li><a routerLink="/" [class.active-link]="isActive('/')"><mat-icon>exit_to_app</mat-icon></a></li>
+    <li><a routerLink="/home" [class.active-link]="isActive('/home')">Home</a></li>
+    <li><a routerLink="/background" [class.active-link]="isActive('/background')">Background</a></li>
+    <li><a routerLink="/interests" [class.active-link]="isActive('/interests')">Interests</a></li>
     <li><a routerLink="/projects" [class.active-link]="isActive('/projects')">Projects</a></li>
-    <li><a routerLink="/about" [class.active-link]="isActive('/about')">About</a></li>
+    <li><a routerLink="/blog" [class.active-link]="isActive('/blog')">Blog</a></li>
   </ul>
 </nav>

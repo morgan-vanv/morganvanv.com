@@ -16,7 +16,7 @@ export class GreetingPageComponent {
   constructor(private router: Router) {}
 
   onProceedGreetingMessage() {
-    this.router.navigate(['/landing']);
+    this.router.navigate(['/home']);
   }
 
 }
