@@ -2,10 +2,11 @@ import { Component, OnInit } from '@angular/core';
 import {NavigationEnd, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-custom-navbar',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, MatIconModule],
   templateUrl: './custom-navbar.component.html',
   styleUrl: './custom-navbar.component.scss'
 })
