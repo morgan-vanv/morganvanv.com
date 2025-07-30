@@ -9,20 +9,20 @@
   flex-direction: column;
 }
 
-custom-navbar {
-  position: absolute;
+app-custom-navbar {
+  position: fixed;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1000;
+  width: 100%;
+  z-index: 10;
 }
 
 .page-container {
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 80dvw;
   height: 80dvh;
-  margin: 0dvh 20dvw;
+  margin: 2.5dvh 20dvw;
   border: white 1px solid;
   border-radius: 5rem;
   backdrop-filter: blur(8px);
@@ -37,6 +37,7 @@ custom-navbar {
 .page-content {
   width: 98%;
   height: 80%;
+  margin-top: 10vh;
   padding: 0rem 2dvw;
   box-sizing: border-box;
   overflow-y: scroll;
