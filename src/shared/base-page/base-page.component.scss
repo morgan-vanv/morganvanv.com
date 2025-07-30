@@ -19,7 +19,6 @@ app-custom-navbar {
   flex-direction: column;
   width: 80dvw;
   height: 80dvh;
-  margin: 2.5dvh 20dvw;
   border: white 1px solid;
   border-radius: 5rem;
   backdrop-filter: blur(8px);
@@ -33,8 +32,8 @@ app-custom-navbar {
 
 .page-content {
   width: 98%;
-  height: 80%;
-  padding: 0rem 2dvw;
+  height: 90%;
+  padding: 2dvh 2dvw;
   box-sizing: border-box;
   overflow-y: scroll;
 
