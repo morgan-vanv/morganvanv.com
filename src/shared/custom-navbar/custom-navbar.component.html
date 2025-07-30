@@ -1,10 +1,8 @@
 <nav>
   <ul>
-    <li><a routerLink="/">Home</a></li>
-    <li><a routerLink="/about">Background</a></li>
-    <li><a routerLink="/services">Projects</a></li>
-    <li><a routerLink="/services">Interests</a></li>
-    <li><a routerLink="/contact">Contact</a></li>
+    <li><a routerLink="/home">{{ isActive('/') ? '[ Home ]' : 'Home' }}</a></li>
+    <li><a routerLink="/landing">{{ isActive('/landing') ? '[ Landing ]' : 'Landing' }}</a></li>
+    <li><a routerLink="/projects">{{ isActive('/projects') ? '[ Projects ]' : 'Projects' }}</a></li>
+    <li><a routerLink="/about">{{ isActive('/about') ? '[ About ]' : 'About' }}</a></li>
   </ul>
 </nav>
-
