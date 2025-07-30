@@ -16,19 +16,19 @@ export const routes: Routes = [
     path: 'landing',
     component: LandingPageComponent,
     title: 'About me',
-    data: { animation: 'LandingPage' }
+    data: { animation: 'GreetingPage' }
   },
   {
     path: 'projects',
     component: ProjectsPageComponent,
     title: 'Projects',
-    data: { animation: 'LandingPage' }
+    data: { animation: 'GreetingPage' }
   },
   {
     path: 'interests',
     component: InterestsPageComponent,
     title: 'Interests',
-    data: { animation: 'LandingPage' }
+    data: { animation: 'GreetingPage' }
   },
   {
     path: '**',
