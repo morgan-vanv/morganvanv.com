@@ -34,6 +34,7 @@ nav ul {
     text-align: center;
     text-decoration: none;
     color: inherit;
+    transition: all 0.3s ease;
   }
 
   a:hover {
@@ -45,6 +46,13 @@ nav ul {
 
 nav a.active-link {
   font-weight: bold;
-  border-bottom: 2px solid #fff;
   transition: border-bottom 0.3s ease, font-weight 0.3s ease;
+}
+
+a.active-link::before {
+  content: "[ ";
+}
+
+a.active-link::after {
+  content: " ]";
 }

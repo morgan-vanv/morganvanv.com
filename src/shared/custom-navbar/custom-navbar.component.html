@@ -1,8 +1,8 @@
 <nav>
   <ul>
-    <li><a routerLink="/home">{{ isActive('/') ? '[ Home ]' : 'Home' }}</a></li>
-    <li><a routerLink="/landing">{{ isActive('/landing') ? '[ Landing ]' : 'Landing' }}</a></li>
-    <li><a routerLink="/projects">{{ isActive('/projects') ? '[ Projects ]' : 'Projects' }}</a></li>
-    <li><a routerLink="/about">{{ isActive('/about') ? '[ About ]' : 'About' }}</a></li>
+    <li><a routerLink="/home" [class.active-link]="isActive('/')">Home</a></li>
+    <li><a routerLink="/landing" [class.active-link]="isActive('/landing')">Landing</a></li>
+    <li><a routerLink="/projects" [class.active-link]="isActive('/projects')">Projects</a></li>
+    <li><a routerLink="/about" [class.active-link]="isActive('/about')">About</a></li>
   </ul>
 </nav>

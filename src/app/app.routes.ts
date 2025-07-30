@@ -10,25 +10,25 @@ export const routes: Routes = [
     component: GreetingPageComponent,
     title: 'Greetings!',
     pathMatch: 'full',
-    data: { animation: 'GreetingPage' }
+    data: { animation: 'HomePage' }
   },
   {
     path: 'landing',
     component: LandingPageComponent,
     title: 'About me',
-    data: { animation: 'GreetingPage' }
+    data: { animation: 'LandingPage' }
   },
   {
     path: 'projects',
     component: ProjectsPageComponent,
     title: 'Projects',
-    data: { animation: 'GreetingPage' }
+    data: { animation: 'ProjectsPage' }
   },
   {
     path: 'interests',
     component: InterestsPageComponent,
     title: 'Interests',
-    data: { animation: 'GreetingPage' }
+    data: { animation: 'InterestsPage' }
   },
   {
     path: '**',
