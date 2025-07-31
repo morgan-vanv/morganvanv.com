@@ -15,11 +15,16 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: space-between;
   text-align: center;
   width: 33dvw;
   //height: 100%;
+
+  padding-right: 1rem;
+  border-right: white solid 1px;
   @media (max-width: 1000px) {
     width: 100%;
+    border-right: none;
   }
 }
 
@@ -32,6 +37,77 @@
   @extend .scrollbar-styled; // inheriting custom scrollbar styles from base-page
 }
 
+.social-media-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+
+}
+
+// Social media icons styling
+.social-media-container a svg {
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+// Social media icon container styling
+.social-media-container a {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  //box-shadow: 0 8px 23px rgba(0, 0, 0, 0.1);
+}
+.social-media-container a:hover {
+  background-color: var(--accent-color);
+  fill: white;
+}
+
+// BEGINNING OF DYNAMIC BEHAVIOR FOR SOCIAL MEDIA ICONS
+
+// tooltip for hover
+.social-media-container a::before {
+  content: attr(data-tooltip);
+  font-size: 1rem;
+  position: absolute;
+
+  background-color: var(--accent-color);
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 10%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  transform: translate(-50%, -150%);
+  opacity: 0;
+}
+.social-media-container a:hover::before {
+  opacity: 1;
+}
+
+// arrow indicator for hover
+.social-media-container a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid white;
+
+  transform: translate(-50%, -550%);
+  opacity: 0;
+}
+.social-media-container a:hover::after {
+  opacity: 1;
+}
+
+// END OF DYNAMIC BEHAVIOR FOR SOCIAL MEDIA ICONS
+
 .profile-picture {
   object-fit: cover;
   border-radius: 50%;
@@ -39,7 +115,7 @@
   background-color: $background-sky-color;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   height: auto;
-  width: 15dvw;
+  width: 10dvw;
 
   @media (max-width: 1000px) {
     width: 33dvw;
@@ -51,6 +127,7 @@ ul {
   padding-left: 0;
 }
 
-h1 {
+.left-sticky-container h1 {
   font-size: 5dvh;
+  margin-top: 0px;
 }
