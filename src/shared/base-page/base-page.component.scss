@@ -42,6 +42,10 @@ app-custom-navbar {
     border-radius: 6px;
   }
 
+  &::-webkit-scrollbar-track {
+    margin: 20px 0; // This adds padding to top and bottom of the scrollbar
+  }
+
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.4);
     border-radius: 6px;
