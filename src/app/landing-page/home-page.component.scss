@@ -5,6 +5,10 @@
   display: flex;
   flex-direction: row;
   height: 100%;
+  //flex-wrap: wrap; // return to this when working on the mobile layout
+  @media (max-width: 1000px) {
+    flex-wrap: wrap;
+  }
 }
 
 .left-sticky-container {
@@ -12,7 +16,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
-  height: 100%;
+  //height: 100%;
 }
 
 .right-scroll-container {
@@ -20,7 +24,6 @@
   flex-direction: column;
   margin-left: 2dvw;
   overflow-y: scroll !important;
-  height: 100%;
 
   @extend .scrollbar-styled; // inheriting custom scrollbar styles from base-page
 }
@@ -28,6 +31,16 @@
 ul {
   list-style: none;
   padding-left: 0;
+}
+
+.profile-picture {
+  object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background-color: $background-sky-color;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  height: auto;
+  width: 15dvw;
 }
 
 //custom-navbar {
