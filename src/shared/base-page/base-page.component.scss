@@ -20,7 +20,7 @@ app-custom-navbar {
   width: 80dvw;
   height: 80dvh;
   border: white 1px solid;
-  border-radius: 5rem;
+  border-radius: 2rem;
   backdrop-filter: blur(8px);
 
   @media (max-width: 600px) {
@@ -33,7 +33,7 @@ app-custom-navbar {
 .page-content {
   width: 98%;
   height: 90%;
-  padding: 2dvh 2dvw;
+  padding: 2dvh 1dvw;
   box-sizing: border-box;
   overflow-y: scroll;
 

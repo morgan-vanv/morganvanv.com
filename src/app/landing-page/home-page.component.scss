@@ -17,8 +17,6 @@
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  width: 33dvw;
-  //height: 100%;
 
   padding-right: 1rem;
   border-right: white solid 1px;
@@ -26,15 +24,39 @@
     width: 100%;
     border-right: none;
   }
+
+  h1 {
+    font-size: 5dvh;
+    margin-top: 0px;
+    word-break: break-word;
+  }
+
+  .profile-picture {
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background-color: $background-sky-color;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    height: auto;
+    width: 10dvw;
+
+    @media (max-width: 1000px) {
+      width: 33dvw;
+    }
+  }
 }
 
 .right-scroll-container {
+  @extend .scrollbar-styled; // inheriting custom scrollbar styles from base-page
   display: flex;
   flex-direction: column;
   margin-left: 2dvw;
   overflow-y: scroll !important;
 
-  @extend .scrollbar-styled; // inheriting custom scrollbar styles from base-page
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
 }
 
 .social-media-container {
@@ -52,22 +74,21 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  transition: fill 0.3s ease-in-out;
 }
 
-// Social media icon container styling
+// Social media icon container
 .social-media-container a {
   background-color: white;
-  padding: 1rem;
+  padding: 0.75rem;
   border-radius: 50%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  //box-shadow: 0 8px 23px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.15s ease-in-out, fill 0.15s ease-in-out;
 }
 .social-media-container a:hover {
   background-color: var(--accent-color);
   fill: white;
 }
-
-// BEGINNING OF DYNAMIC BEHAVIOR FOR SOCIAL MEDIA ICONS
 
 // tooltip for hover
 .social-media-container a::before {
@@ -106,28 +127,7 @@
   opacity: 1;
 }
 
-// END OF DYNAMIC BEHAVIOR FOR SOCIAL MEDIA ICONS
-
-.profile-picture {
-  object-fit: cover;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  background-color: $background-sky-color;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  height: auto;
-  width: 10dvw;
-
-  @media (max-width: 1000px) {
-    width: 33dvw;
-  }
-}
-
-ul {
-  list-style: none;
-  padding-left: 0;
-}
-
-.left-sticky-container h1 {
-  font-size: 5dvh;
-  margin-top: 0px;
+.social-media-container a::before,
+.social-media-container a::after {
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
 }
