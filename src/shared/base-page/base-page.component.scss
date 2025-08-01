@@ -41,7 +41,7 @@ app-custom-navbar {
   }
 
   &::-webkit-scrollbar-track {
-    margin: 20px 0; // This adds padding to top and bottom of the scrollbar
+    margin-bottom: 20px; // This adds padding to top and bottom of the scrollbar
   }
 
   &::-webkit-scrollbar-thumb {
