@@ -1,6 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 @use '@angular/material' as mat;
-@use '../src/_theme-colors.scss' as my-theme;
+//@use '../src/_theme-colors.scss' as my-theme;
 
 
 // Defining variables
@@ -12,16 +12,16 @@ $main-color: #ffffff;
 // output found in src/_theme-colors.scss
 
 // Create the theme object
-html {
-  @include mat.theme((
-    color: (
-      primary: my-theme.$primary-palette,
-      tertiary: my-theme.$tertiary-palette,
-    ),
-    typography: Roboto,
-    density: 0,
-  ));
-}
+//html {
+//  @include mat.theme((
+//    color: (
+//      primary: my-theme.$primary-palette,
+//      tertiary: my-theme.$tertiary-palette,
+//    ),
+//    typography: Roboto,
+//    density: 0,
+//  ));
+//}
 
 body {
   font-family: 'JetBrains Mono', monospace;
