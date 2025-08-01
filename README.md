@@ -2,6 +2,13 @@
 
 My modern, personal website built with Angular, TypeScript, and SCSS.
 
+## Deployment Process
+
+- `ng build --base-href=/morganvanv.com/`
+- move the contents of `dist/morganvanv.com` to the docs folder of the `morganvanv.com` GitHub repository
+- test by running http server locally `http-server -p 8080`
+- run angular-cli tool to deploy to github pages `npx angular-cli-ghpages --dir=docs`
+
 ## Table of Contents
 
 - [Overview](#overview)
