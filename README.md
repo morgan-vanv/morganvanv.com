@@ -2,7 +2,7 @@
 
 My modern, personal website built with Angular, TypeScript, and SCSS.
 
-## Deployment Process
+## Deployment Process (note -- currently being changed)
 
 - `ng build --base-href=/morganvanv.com/`
 - move the contents of `dist/morganvanv.com` to the docs folder of the `morganvanv.com` GitHub repository
