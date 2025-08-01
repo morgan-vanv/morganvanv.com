@@ -1,0 +1,138 @@
+@use '../../styles' as *;
+@use '../../shared/shared-styles.scss' as shared;
+
+.home-parent-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+
+  @media (max-width: 1000px) {
+    flex-wrap: wrap;
+  }
+}
+
+.left-sticky-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+
+  padding-right: 1rem;
+  border-right: white solid 1px;
+  @media (max-width: 1000px) {
+    width: 100%;
+    border-right: none;
+  }
+
+  h1 {
+    font-size: 5dvh;
+    margin-top: 0px;
+    word-break: break-word;
+  }
+
+  .profile-picture {
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background-color: $background-sky-color;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    height: auto;
+    width: 10dvw;
+
+    @media (max-width: 1000px) {
+      width: 33dvw;
+    }
+  }
+}
+
+.right-scroll-container {
+  @extend .scrollbar-styled; // inheriting custom scrollbar styles from base-page
+  display: flex;
+  flex-direction: column;
+  margin-left: 2dvw;
+  overflow-y: scroll !important;
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  h2 {
+    margin-bottom: 0px;
+  }
+
+}
+
+.social-media-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+
+}
+
+// Social media icons styling
+.social-media-container a svg {
+  height: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: fill 0.3s ease-in-out;
+}
+
+// Social media icon container
+.social-media-container a {
+  background-color: white;
+  padding: 0.75rem;
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: background-color 0.15s ease-in-out, fill 0.15s ease-in-out;
+}
+.social-media-container a:hover {
+  background-color: var(--accent-color);
+  fill: white;
+}
+
+// tooltip for hover
+.social-media-container a::before {
+  content: attr(data-tooltip);
+  font-size: 1rem;
+  position: absolute;
+
+  background-color: var(--accent-color);
+  color: white;
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: 10%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+  transform: translate(-50%, -150%);
+  opacity: 0;
+}
+.social-media-container a:hover::before {
+  opacity: 1;
+}
+
+// arrow indicator for hover
+.social-media-container a::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-top: 8px solid white;
+
+  transform: translate(-50%, -550%);
+  opacity: 0;
+}
+.social-media-container a:hover::after {
+  opacity: 1;
+}
+
+.social-media-container a::before,
+.social-media-container a::after {
+  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+}

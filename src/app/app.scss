@@ -1,0 +1,21 @@
+
+.canvas {
+  height: 100dvh;
+  width: 100dvw;
+  margin: 0;
+  padding: 0;
+  background-image: url('../../public/landing_page_background_2k_optimized.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+  position: absolute;
+  z-index: -1;
+}
+
+main {
+  height: 100dvh;
+  width: 100dvw;
+}
+
+

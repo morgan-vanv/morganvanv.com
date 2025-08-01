@@ -1,0 +1,37 @@
+/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+//@use '../src/_theme-colors.scss' as my-theme;
+
+
+// Defining variables
+$background-color: #001211;
+$background-sky-color: #001d2c;
+$main-color: #ffffff;
+$accent-color: #c9922a;
+
+// Material theme configuration created by running `ng generate @angular/material:theme-color`
+// output found in src/_theme-colors.scss
+
+// Create the theme object
+//html {
+//  @include mat.theme((
+//    color: (
+//      primary: my-theme.$primary-palette,
+//      tertiary: my-theme.$tertiary-palette,
+//    ),
+//    typography: Roboto,
+//    density: 0,
+//  ));
+//}
+
+body {
+  font-family: 'JetBrains Mono', monospace;
+  //font-size: clamp(2.5dvh, 2.5dvw, 1rem); // fix responsive font size. below is a temporary fix
+  font-size: 2.5dvh;
+  box-sizing: border-box;
+  margin: 0;
+  color: $main-color;
+  //background-color: $background-color;
+  background-color: pink; // left for checking styling
+}
+

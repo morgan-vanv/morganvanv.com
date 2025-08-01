@@ -1,0 +1,80 @@
+//@use '../../styles' as *;
+
+:host {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.greeting-page-object-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100dvh;
+}
+
+.greeting-page-message-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.title {
+  font-size: min(10dvw, 4rem);
+  color: white;
+  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.subtitle {
+  font-size: min(5dvw, 1.5rem);
+  color: white;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.custom-arrow-button {
+  margin-bottom: 1rem;
+  background-color: transparent;
+  color: #fff;
+  border: none;
+  border-radius: 33%;
+  width: 10rem;
+  height: 10rem;
+  box-shadow: 0 8px 23px rgba(0, 0, 0, 0.1);
+
+  transition:
+    transform 0.3s ease,
+    backdrop-filter 0.3s;
+
+  &:hover {
+    backdrop-filter: blur(8px);
+    transform: scale(1.1);
+  }
+
+  &:active {
+    color: #c9922a;
+    transform: scale(0.75);
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+.arrow-label {
+  display: block;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: min(5dvw, 1.5rem);
+  font-family: 'JetBrains Mono', monospace;
+  text-align: center;
+  width: 100%;
+  user-select: none;
+}
+
