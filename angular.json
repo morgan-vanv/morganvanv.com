@@ -17,6 +17,7 @@
         "build": {
           "builder": "@angular/build:application",
           "options": {
+            "outputPath": "dist/morganvanv.com",
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
