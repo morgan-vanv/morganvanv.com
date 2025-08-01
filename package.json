@@ -6,7 +6,10 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "predeploy": "ng build --configuration production --base-href=/ --output-path=dist",
+    "prepare-docs": "rm -rf docs && mkdir docs && cp -r dist//browser/* docs/",
+    "deploy": "npm run prepare-docs && gh-pages -d docs"
   },
   "prettier": {
     "overrides": [
@@ -20,6 +23,7 @@
   },
   "private": true,
   "dependencies": {
+    "@angular/animations": "^20.1.3",
     "@angular/common": "^20.1.3",
     "@angular/compiler": "^20.1.3",
     "@angular/core": "^20.1.3",
@@ -27,7 +31,6 @@
     "@angular/material": "^20.1.3",
     "@angular/platform-browser": "^20.1.3",
     "@angular/router": "^20.1.3",
-    "@angular/animations": "^20.1.3",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
@@ -37,7 +40,7 @@
     "@angular/cli": "^20.1.3",
     "@angular/compiler-cli": "^20.1.3",
     "@types/jasmine": "~5.1.0",
-    "angular-cli-ghpages": "^2.0.3",
+    "gh-pages": "^5.0.0",
     "jasmine-core": "~5.8.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
