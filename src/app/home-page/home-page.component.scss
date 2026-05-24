@@ -31,18 +31,25 @@
     word-break: break-word;
   }
 
-  .profile-picture {
-    object-fit: cover;
+  .profile-picture-wrapper {
     border-radius: 50%;
-    border: 2px solid #fff;
-    background-color: $background-sky-color;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    height: auto;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.878), transparent);
+    padding: 2px;
     width: 10dvw;
+    flex-shrink: 0;
 
     @media (max-width: 1000px) {
       width: 33dvw;
     }
+  }
+
+  .profile-picture {
+    object-fit: cover;
+    border-radius: 50%;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
   }
 }
 
