@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+
 import { MatIconModule } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
 
@@ -9,7 +9,7 @@ import { MatIconButton } from '@angular/material/button';
   selector: 'app-greeting-page',
   templateUrl: './greeting-page.component.html',
   styleUrls: ['./greeting-page.component.scss'],
-  imports: [CommonModule, MatIconModule, MatIconButton],
+  imports: [MatIconModule, MatIconButton],
 })
 export class GreetingPageComponent {
 
