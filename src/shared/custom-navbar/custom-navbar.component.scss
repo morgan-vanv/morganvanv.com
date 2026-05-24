@@ -30,7 +30,6 @@ nav ul {
   }
 
   a {
-    position: relative;
     border-radius: 1rem;
     padding: 0.5rem 1rem;
     display: flex;
@@ -48,31 +47,43 @@ nav ul {
     transition: background-color 0.3s ease;
   }
 
+  // Pre-reserve bracket space via color: transparent so brackets never
+  // cause layout shift when they become visible
+  a span {
+    display: inline-block;
+  }
+  a span::before {
+    content: "[ ";
+    color: transparent;
+  }
+  a span::after {
+    content: " ]";
+    color: transparent;
+  }
+
   // a:active = clicking navigation link behavior
   a:active {
     color: $accent-color;
   }
-  a:active::before {
-    content: "{ ";
-    position: absolute;
-    left: 0.4rem;
+  // !important needed: a:active and a.active-link have equal specificity,
+  // so !important ensures :active wins when both apply simultaneously
+  a:active span::before {
+    content: "{ " !important;
+    color: $accent-color !important;
   }
-  a:active::after {
-    content: " }";
-    position: absolute;
-    right: 0.4rem;
+  a:active span::after {
+    content: " }" !important;
+    color: $accent-color !important;
   }
 
   // a.active-link = on current navigation link behavior
-  a.active-link::before {
+  a.active-link span::before {
     content: "[ ";
-    position: absolute;
-    left: 0.4rem;
+    color: $accent-color;
   }
-  a.active-link::after {
+  a.active-link span::after {
     content: " ]";
-    position: absolute;
-    right: 0.4rem;
+    color: $accent-color;
   }
   a.active-link {
     font-weight: bold;
