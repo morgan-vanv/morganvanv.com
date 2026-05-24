@@ -2,12 +2,15 @@
 
 My modern, personal website built with Angular, TypeScript, and SCSS.
 
-## Deployment Process (note -- currently being changed)
+## Deployment Process
 
-- `ng build --base-href=/morganvanv.com/`
-- move the contents of `dist/morganvanv.com` to the docs folder of the `morganvanv.com` GitHub repository
-- test by running http server locally `http-server -p 8080`
-- run angular-cli tool to deploy to github pages `npx angular-cli-ghpages --dir=docs`
+Deployment is fully automated via GitHub Actions. Any push to the `master` branch triggers the [`deploy.yml`](.github/workflows/deploy.yml) workflow, which:
+
+1. Builds the Angular app with `ng build --configuration production`
+2. Uploads the build output as a Pages artifact
+3. Deploys it directly to GitHub Pages
+
+No manual steps required.
 
 ## Table of Contents
 
