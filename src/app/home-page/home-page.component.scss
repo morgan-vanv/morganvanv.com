@@ -27,22 +27,30 @@
 
   h1 {
     font-size: 5dvh;
-    margin-top: 0px;
-    word-break: break-word;
+    margin: 0px;
+    overflow-wrap: normal;
+  }
+
+  .profile-picture-wrapper {
+    border-radius: 50%;
+    background: linear-gradient(to top, rgba(255, 255, 255, 0.878), transparent);
+    padding: 2px;
+    margin-top: 1em;
+    width: 66%;
+    flex-shrink: 0;
+
+    @media (max-width: 1000px) {
+      width: 33dvw;
+    }
   }
 
   .profile-picture {
     object-fit: cover;
     border-radius: 50%;
-    border: 2px solid #fff;
-    background-color: $background-sky-color;
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    height: auto;
-    width: 10dvw;
-
-    @media (max-width: 1000px) {
-      width: 33dvw;
-    }
   }
 }
 
@@ -70,6 +78,7 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 20px;
+  margin-top: 1rem;
 
 }
 
@@ -84,6 +93,7 @@
 
 // Social media icon container
 .social-media-container a {
+  position: relative;
   background-color: white;
   padding: 0.75rem;
   border-radius: 50%;
@@ -91,7 +101,7 @@
   transition: background-color 0.15s ease-in-out, fill 0.15s ease-in-out;
 }
 .social-media-container a:hover {
-  background-color: var(--accent-color);
+  background-color: var(--brand-color);
   fill: white;
 }
 
@@ -100,15 +110,19 @@
   content: attr(data-tooltip);
   font-size: 1rem;
   position: absolute;
+  left: 50%;
+  bottom: calc(100% + 12px);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  pointer-events: none;
 
-  background-color: var(--accent-color);
+  background-color: var(--brand-color);
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 10%;
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 
-  transform: translate(-50%, -150%);
   opacity: 0;
 }
 .social-media-container a:hover::before {
@@ -119,13 +133,16 @@
 .social-media-container a::after {
   content: '';
   position: absolute;
+  left: 50%;
+  bottom: calc(100% + 4px);
+  transform: translateX(-50%);
+  pointer-events: none;
   width: 0;
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 8px solid white;
+  border-top: 8px solid var(--brand-color);
 
-  transform: translate(-50%, -550%);
   opacity: 0;
 }
 .social-media-container a:hover::after {
@@ -134,5 +151,5 @@
 
 .social-media-container a::before,
 .social-media-container a::after {
-  transition: opacity 0.15s ease-in-out, transform 0.15s ease-in-out;
+  transition: opacity 0.15s ease-in-out;
 }
