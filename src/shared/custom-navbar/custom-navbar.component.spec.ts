@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { CustomNavbarComponent } from './custom-navbar.component';
 
@@ -8,7 +9,8 @@ describe('SplashdownPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CustomNavbarComponent]
+      imports: [CustomNavbarComponent],
+      providers: [provideRouter([])],
     })
     .compileComponents();
 
