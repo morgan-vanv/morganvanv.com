@@ -27,15 +27,17 @@
 
   h1 {
     font-size: 5dvh;
-    margin-top: 0px;
-    word-break: break-word;
+    margin: 0px;
+    overflow-wrap: normal;
   }
 
   .profile-picture-wrapper {
     border-radius: 50%;
     background: linear-gradient(to top, rgba(255, 255, 255, 0.878), transparent);
     padding: 2px;
-    width: 10dvw;
+    margin: 1em;
+    // width: 10dvw;
+    width: 75%;
     flex-shrink: 0;
 
     @media (max-width: 1000px) {
@@ -77,6 +79,8 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 20px;
+  margin-top: 1rem;
+  // margin-bottom: 1rem;
 
 }
 
