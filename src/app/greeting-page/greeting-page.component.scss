@@ -41,6 +41,11 @@
   text-align: center;
 }
 
+@keyframes gentle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+
 .custom-arrow-button {
   margin-bottom: 1rem;
   background-color: transparent;
@@ -54,6 +59,10 @@
   transition:
     transform 0.3s ease,
     backdrop-filter 0.3s;
+
+  mat-icon {
+    animation: gentle-bounce 2s ease-in-out infinite;
+  }
 
   &:hover {
     backdrop-filter: blur(8px);
