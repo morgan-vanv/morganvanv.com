@@ -1,6 +1,6 @@
 # Copilot Instructions
 
-Personal website built with Angular 20, Angular Material, and SCSS. Deployed to GitHub Pages via GitHub Actions.
+Personal website built with Angular 21, Angular Material, and SCSS. Deployed to GitHub Pages via GitHub Actions.
 
 ## Commands
 
@@ -35,13 +35,13 @@ src/
   _theme-colors.scss # Angular Material color palettes (generated, edit with caution)
 ```
 
-**Page structure:** Each route has its own folder under `src/app/<name>-page/`. Pages import `BasePageComponent` to get the navbar. The `AppComponent` applies route animations via `@routeAnimations`.
+**Page structure:** Each route has its own folder under `src/app/<name>-page/`. Pages import `BasePageComponent` to get the navbar. The `App` component (`src/app/app.ts`) applies route animations via `@routeAnimations`.
 
 **Routing:** Defined in `src/app/app.routes.ts`. Every route requires a `data: { animation: 'UniqueName' }` property for the slide transition to work.
 
 ## Conventions
 
-**Standalone components:** All components use `standalone: true`. Never use NgModule.
+**Standalone components:** All components are standalone (Angular 19+ default). Never use NgModule. Explicitly setting `standalone: true` is optional but accepted.
 
 **Dependency injection:** Use `inject()` function — not constructor injection.
 ```ts
