@@ -30,6 +30,7 @@ nav ul {
   }
 
   a {
+    position: relative;
     border-radius: 1rem;
     padding: 0.5rem 1rem;
     display: flex;
@@ -52,18 +53,26 @@ nav ul {
     color: $accent-color;
   }
   a:active::before {
-    content: "{ " !important;
+    content: "{ ";
+    position: absolute;
+    left: 0.4rem;
   }
   a:active::after {
-    content: " }" !important;
+    content: " }";
+    position: absolute;
+    right: 0.4rem;
   }
 
   // a.active-link = on current navigation link behavior
   a.active-link::before {
     content: "[ ";
+    position: absolute;
+    left: 0.4rem;
   }
   a.active-link::after {
     content: " ]";
+    position: absolute;
+    right: 0.4rem;
   }
   a.active-link {
     font-weight: bold;
