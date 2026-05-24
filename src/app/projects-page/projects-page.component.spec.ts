@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { ProjectsPageComponent } from './projects-page.component';
 
@@ -8,7 +9,8 @@ describe('SplashdownPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ProjectsPageComponent]
+      imports: [ProjectsPageComponent],
+      providers: [provideRouter([])],
     })
     .compileComponents();
 

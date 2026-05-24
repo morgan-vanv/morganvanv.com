@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { InterestsPageComponent } from './interests-page.component';
 
@@ -8,7 +9,8 @@ describe('SplashdownPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [InterestsPageComponent]
+      imports: [InterestsPageComponent],
+      providers: [provideRouter([])],
     })
     .compileComponents();
 
