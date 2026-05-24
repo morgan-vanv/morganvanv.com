@@ -1,38 +1,40 @@
 # morganvanv.com
 
-My modern, personal website built with Angular, TypeScript, and SCSS.
+My personal website built with Angular, TypeScript, and SCSS — live at [morganvanv.com](https://morganvanv.com).
 
-## Deployment Process
+## Tech Stack
 
-Deployment is fully automated via GitHub Actions. Any push to the `master` branch triggers the [`deploy.yml`](.github/workflows/deploy.yml) workflow, which:
+- **Framework**: Angular 20
+- **UI Library**: Angular Material
+- **Styling**: SCSS
+- **Hosting**: GitHub Pages (deployed via GitHub Actions)
 
-1. Builds the Angular app with `ng build --configuration production`
-2. Uploads the build output as a Pages artifact
-3. Deploys it directly to GitHub Pages
+## Pages
 
-No manual steps required.
+| Route | Status |
+|---|---|
+| `/` | Greeting / landing |
+| `/home` | About me, social links |
+| `/background` | 🚧 Coming soon |
+| `/interests` | 🚧 Coming soon |
+| `/projects` | 🚧 Coming soon |
+| `/blog` | 🚧 Coming soon |
 
-## Table of Contents
+## Development
 
-- [Overview](#overview)
-- [Features](#features)
-- [Getting Started](#getting-started)
-- [Development](#development)
-- [Project Structure](#project-structure)
-- [Scripts](#scripts)
-- [Contributing](#contributing)
-- [License](#license)
+```bash
+npm install
+npm start        # dev server at http://localhost:4200
+npm run build    # production build
+npm test         # unit tests
+npm run lint     # lint
+```
 
-## Overview
+## Deployment
 
-This project is a personal portfolio and blog site. It showcases projects, skills, and contact information with a clean, responsive design.
+Fully automated. Any push to `master` triggers the [deploy workflow](.github/workflows/deploy.yml), which builds the app and deploys it to GitHub Pages. No manual steps required.
 
-## Features
+## CI
 
-- Greeting page to welcome the user
-- Landing page with a brief introduction
-- Projects page to showcase work and portfolio
-- Skills page to highlight technical proficiencies
-- Blog page for articles and updates
-- Fun Demos page with interactive examples (Worst UI Ideas)
-- Contact page with a form to reach out
+Pull requests to `master` run [three parallel checks](.github/workflows/ci.yml): **Lint**, **Build**, and **Test**. All must pass before merging.
+
