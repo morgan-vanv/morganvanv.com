@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import {NavigationEnd, Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs';
@@ -11,9 +11,9 @@ import { MatIconModule } from '@angular/material/icon';
   styleUrl: './custom-navbar.component.scss'
 })
 export class CustomNavbarComponent implements OnInit {
-  currentRoute: string = '';
+  currentRoute = '';
 
-  constructor(private router: Router) {}
+  private router = inject(Router);
 
   ngOnInit() {
     this.router.events

@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
@@ -13,7 +13,7 @@ import { MatIconButton } from '@angular/material/button';
 })
 export class GreetingPageComponent {
 
-  constructor(private router: Router) {}
+  private router = inject(Router);
 
   onProceedGreetingMessage() {
     this.router.navigate(['/home']);
