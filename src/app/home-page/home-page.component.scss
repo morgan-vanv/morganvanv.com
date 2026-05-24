@@ -91,7 +91,7 @@
   transition: background-color 0.15s ease-in-out, fill 0.15s ease-in-out;
 }
 .social-media-container a:hover {
-  background-color: var(--accent-color);
+  background-color: var(--brand-color);
   fill: white;
 }
 
@@ -101,7 +101,7 @@
   font-size: 1rem;
   position: absolute;
 
-  background-color: var(--accent-color);
+  background-color: var(--brand-color);
   color: white;
   text-decoration: none;
   padding: 0.5rem 1rem;
