@@ -4,7 +4,7 @@ My personal website built with Angular, TypeScript, and SCSS — live at [morgan
 
 ## Tech Stack
 
-- **Framework**: Angular 20
+- **Framework**: Angular 21
 - **UI Library**: Angular Material
 - **Styling**: SCSS
 - **Hosting**: GitHub Pages (deployed via GitHub Actions)
