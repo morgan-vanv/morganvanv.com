@@ -1,10 +1,18 @@
 <nav>
   <ul>
-    <li><a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}" aria-label="Greeting"><mat-icon aria-hidden="true">exit_to_app</mat-icon></a></li>
-    <li><a routerLink="/home" routerLinkActive="active-link"><span>Home</span></a></li>
-    <li><a routerLink="/background" routerLinkActive="active-link"><span>Background</span></a></li>
-    <li><a routerLink="/interests" routerLinkActive="active-link"><span>Interests</span></a></li>
-    <li><a routerLink="/projects" routerLinkActive="active-link"><span>Projects</span></a></li>
-    <li><a routerLink="/blog" routerLinkActive="active-link"><span>Blog</span></a></li>
+    @for (link of navLinks; track link.route) {
+      <li>
+        <a [routerLink]="link.route"
+           routerLinkActive="active-link"
+           [routerLinkActiveOptions]="{ exact: !!link.exact }"
+           [attr.aria-label]="link.ariaLabel ?? null">
+          @if (link.icon) {
+            <mat-icon aria-hidden="true">{{ link.icon }}</mat-icon>
+          } @else {
+            <span>{{ link.label }}</span>
+          }
+        </a>
+      </li>
+    }
   </ul>
 </nav>
