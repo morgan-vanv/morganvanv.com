@@ -148,7 +148,8 @@
       opacity: 0;
     }
 
-    &:hover::before {
+    &:hover::before,
+    &:focus-visible::before {
       opacity: 1;
     }
 
@@ -168,7 +169,8 @@
       opacity: 0;
     }
 
-    &:hover::after {
+    &:hover::after,
+    &:focus-visible::after {
       opacity: 1;
     }
   }

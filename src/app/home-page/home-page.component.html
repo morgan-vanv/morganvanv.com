@@ -18,7 +18,7 @@
              [href]="link.href"
              [attr.aria-label]="link.label"
              [attr.target]="link.external ? '_blank' : null"
-             [attr.rel]="link.external ? 'noopener' : null">
+             [attr.rel]="link.external ? 'noopener noreferrer' : null">
             <svg role="img" [attr.viewBox]="link.viewBox" xmlns="http://www.w3.org/2000/svg">
               <title>{{ link.label }}</title>
               <path [attr.d]="link.svgPath"/>
