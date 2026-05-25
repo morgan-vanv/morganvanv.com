@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {BasePageComponent} from '../../shared/base-page/base-page.component';
+import { BasePageComponent } from '../../shared/base-page/base-page.component';
 
 @Component({
   selector: 'app-interests-page',

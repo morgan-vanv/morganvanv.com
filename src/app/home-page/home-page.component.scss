@@ -6,40 +6,48 @@
   flex-direction: row;
   height: 100%;
 
-  @media (max-width: 1000px) {
-    flex-wrap: wrap;
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+    height: auto;
   }
 }
 
 .left-sticky-container {
+  flex: 0 0 40%;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  gap: 1.5rem;
   text-align: center;
 
   padding-right: 1rem;
-  border-right: white solid 1px;
-  @media (max-width: 1000px) {
+  border-right: 1px solid $main-color;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex: none;
     width: 100%;
+    overflow: visible;
     border-right: none;
+    border-bottom: 1px solid $main-color;
+    padding-right: 0;
+    padding-bottom: 1.5rem;
   }
 
   h1 {
-    font-size: 5dvh;
-    margin: 0px;
-    overflow-wrap: normal;
+    font-size: clamp(1.5rem, 5dvh, 3rem);
+    margin: 0;
+    overflow-wrap: break-word;
   }
 
   .profile-picture-wrapper {
     border-radius: 50%;
-    background: linear-gradient(to top, rgba(255, 255, 255, 0.878), transparent);
+    background: linear-gradient(to top, rgba($main-color, 0.878), transparent);
     padding: 2px;
-    margin-top: 1em;
-    width: 66%;
-    flex-shrink: 0;
+    width: min(66%, 22dvh);
 
-    @media (max-width: 1000px) {
+    @media (max-width: $breakpoint-mobile) {
       width: 33dvw;
     }
   }
@@ -50,16 +58,34 @@
     display: block;
     width: 100%;
     aspect-ratio: 1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .profile-minor-text {
+    font-size: 1.5rem;
+    margin: 0.5rem 0 0;
+    opacity: 0.8;
   }
 }
 
 .right-scroll-container {
-  @extend .scrollbar-styled; // inheriting custom scrollbar styles from base-page
+  @include shared.scrollbar-styled;
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  margin-left: 2dvw;
-  overflow-y: scroll !important;
+  padding-left: 1.5rem;
+  overflow-y: auto;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex: none;
+    width: 100%;
+    min-height: auto;
+    overflow-y: visible;
+    padding-left: 0;
+    padding-top: 1.5rem;
+  }
 
   ul {
     list-style: none;
@@ -67,9 +93,8 @@
   }
 
   h2 {
-    margin-bottom: 0px;
+    margin-bottom: 0;
   }
-
 }
 
 .social-media-container {
@@ -77,79 +102,80 @@
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 20px;
+  gap: 1.25rem;
   margin-top: 1rem;
 
-}
+  a {
+    position: relative;
+    background-color: $main-color;
+    padding: 0.75rem;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.15s ease-in-out;
 
-// Social media icons styling
-.social-media-container a svg {
-  height: 32px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  transition: fill 0.3s ease-in-out;
-}
+    &:hover,
+    &:focus-visible {
+      background-color: var(--brand-color);
 
-// Social media icon container
-.social-media-container a {
-  position: relative;
-  background-color: white;
-  padding: 0.75rem;
-  border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: background-color 0.15s ease-in-out, fill 0.15s ease-in-out;
-}
-.social-media-container a:hover {
-  background-color: var(--brand-color);
-  fill: white;
-}
+      svg {
+        fill: $main-color;
+      }
+    }
 
-// tooltip for hover
-.social-media-container a::before {
-  content: attr(data-tooltip);
-  font-size: 1rem;
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 12px);
-  transform: translateX(-50%);
-  white-space: nowrap;
-  pointer-events: none;
+    svg {
+      display: block;
+      width: 32px;
+      height: 32px;
+      transition: fill 0.3s ease-in-out;
+    }
 
-  background-color: var(--brand-color);
-  color: white;
-  text-decoration: none;
-  padding: 0.5rem 1rem;
-  border-radius: 10%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    &::before,
+    &::after {
+      transition: opacity 0.15s ease-in-out;
+    }
 
-  opacity: 0;
-}
-.social-media-container a:hover::before {
-  opacity: 1;
-}
+    // tooltip
+    &::before {
+      content: attr(data-tooltip);
+      font-size: 1rem;
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 12px);
+      transform: translateX(-50%);
+      white-space: nowrap;
+      pointer-events: none;
+      background-color: var(--brand-color);
+      color: $main-color;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      opacity: 0;
+    }
 
-// arrow indicator for hover
-.social-media-container a::after {
-  content: '';
-  position: absolute;
-  left: 50%;
-  bottom: calc(100% + 4px);
-  transform: translateX(-50%);
-  pointer-events: none;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 8px solid var(--brand-color);
+    &:hover::before,
+    &:focus-visible::before {
+      opacity: 1;
+    }
 
-  opacity: 0;
-}
-.social-media-container a:hover::after {
-  opacity: 1;
-}
+    // tooltip arrow
+    &::after {
+      content: '';
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 4px);
+      transform: translateX(-50%);
+      pointer-events: none;
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid var(--brand-color);
+      opacity: 0;
+    }
 
-.social-media-container a::before,
-.social-media-container a::after {
-  transition: opacity 0.15s ease-in-out;
+    &:hover::after,
+    &:focus-visible::after {
+      opacity: 1;
+    }
+  }
 }

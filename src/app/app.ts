@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { defaultRouteTransition } from '../shared/route-transition';
 
@@ -10,9 +10,8 @@ import { defaultRouteTransition } from '../shared/route-transition';
   animations: [ defaultRouteTransition ]
 })
 export class App {
-  protected readonly title = signal('morganvanv.com');
 
-  prepareRoute(outlet: RouterOutlet) {
+  prepareRoute(outlet: RouterOutlet): string | undefined {
     return outlet?.activatedRouteData?.['animation'];
   }
 
