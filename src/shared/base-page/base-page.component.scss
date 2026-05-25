@@ -10,30 +10,28 @@
   flex-direction: column;
 }
 
-app-custom-navbar {
-  width: 100%;
-}
-
 .page-container {
   display: flex;
-  align-items: center;
   flex-direction: column;
+  align-items: stretch;
   width: 80dvw;
   height: 80dvh;
   border: 1px solid white;
   border-radius: 2rem;
   backdrop-filter: blur(8px);
+  overflow: hidden;
 
   @media (max-width: 1000px) {
     width: 95dvw;
-    margin-top: 5%;
-    margin-bottom: 15%;
+    margin: 1.5rem auto 3rem;
   }
 }
 
 .page-content {
-  margin: 2dvh 1dvw;
+  flex: 1;
+  min-height: 0;
+  padding: 1rem 1.5rem;
   box-sizing: border-box;
-  overflow-y: scroll;
+  overflow-y: auto;
   @include shared.scrollbar-styled;
 }
