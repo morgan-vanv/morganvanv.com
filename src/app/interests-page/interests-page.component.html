@@ -1,6 +1,59 @@
 <app-base-page>
 
-  <div>🚧 Under Construction 🚧</div>
+  <div class="interests-container">
+
+    <section class="music-section">
+      <h2>🎵 Music</h2>
+      <p class="section-description">
+        What I've been listening to lately, pulled live from
+        <a href="https://stats.fm/user/morgan.vanv" target="_blank" rel="noopener noreferrer">stats.fm</a>.
+      </p>
+
+      <div class="stats-columns">
+
+        <div class="stats-column">
+          <h3>Top Artists <span class="range-label">· last 4 weeks</span></h3>
+          @if (topArtists$ | async; as artists) {
+            <ol class="stats-list">
+              @for (item of artists.slice(0, 8); track item.artist.id) {
+                <li class="stats-item">
+                  <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
+                  <div class="stats-info">
+                    <span class="stats-name">{{ item.artist.name }}</span>
+                    <span class="stats-meta">{{ item.streams }} streams · {{ formatPlaytime(item.playedMs) }}</span>
+                  </div>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="loading-text">Loading...</p>
+          }
+        </div>
+
+        <div class="stats-column">
+          <h3>Top Tracks <span class="range-label">· last 4 weeks</span></h3>
+          @if (topTracks$ | async; as tracks) {
+            <ol class="stats-list">
+              @for (item of tracks.slice(0, 8); track item.track.id) {
+                <li class="stats-item">
+                  <img [src]="item.track.albums[0]?.image" [alt]="item.track.name" class="stats-thumbnail" />
+                  <div class="stats-info">
+                    <span class="stats-name">{{ item.track.name }}</span>
+                    <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} streams</span>
+                  </div>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="loading-text">Loading...</p>
+          }
+        </div>
+
+      </div>
+    </section>
+
+  </div>
 
 </app-base-page>
+
 
