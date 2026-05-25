@@ -43,7 +43,7 @@
 
   .profile-picture-wrapper {
     border-radius: 50%;
-    background: linear-gradient(to top, rgba(255, 255, 255, 0.878), transparent);
+    background: linear-gradient(to top, rgba($main-color, 0.878), transparent);
     padding: 2px;
     width: min(66%, 22dvh);
 
@@ -107,7 +107,7 @@
 
   a {
     position: relative;
-    background-color: white;
+    background-color: $main-color;
     padding: 0.75rem;
     border-radius: 50%;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -115,7 +115,7 @@
 
     &:hover {
       background-color: var(--brand-color);
-      fill: white;
+      fill: $main-color;
     }
 
     svg {
@@ -141,7 +141,7 @@
       white-space: nowrap;
       pointer-events: none;
       background-color: var(--brand-color);
-      color: white;
+      color: $main-color;
       padding: 0.5rem 1rem;
       border-radius: 0.5rem;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
