@@ -7,7 +7,8 @@
   height: 100%;
 
   @media (max-width: $breakpoint-mobile) {
-    flex-wrap: wrap;
+    flex-direction: column;
+    height: auto;
   }
 }
 
@@ -25,10 +26,13 @@
   border-right: 1px solid white;
 
   @media (max-width: $breakpoint-mobile) {
+    flex: none;
     width: 100%;
+    overflow: visible;
     border-right: none;
+    border-bottom: 1px solid white;
     padding-right: 0;
-    padding-bottom: 1rem;
+    padding-bottom: 1.5rem;
   }
 
   h1 {
@@ -43,7 +47,7 @@
     padding: 2px;
     width: min(66%, 22dvh);
 
-    @media (max-width: 1000px) {
+    @media (max-width: $breakpoint-mobile) {
       width: 33dvw;
     }
   }
@@ -65,7 +69,7 @@
 }
 
 .right-scroll-container {
-  @include shared.scrollbar-styled; // applying shared scrollbar mixin
+  @include shared.scrollbar-styled;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -73,6 +77,14 @@
   flex-direction: column;
   padding-left: 1.5rem;
   overflow-y: auto;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex: none;
+    min-height: auto;
+    overflow-y: visible;
+    padding-left: 0;
+    padding-top: 1.5rem;
+  }
 
   ul {
     list-style: none;
