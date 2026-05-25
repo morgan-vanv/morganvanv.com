@@ -12,7 +12,7 @@
 }
 
 .left-sticky-container {
-  flex: 0 0 50%;
+  flex: 0 0 40%;
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -58,7 +58,7 @@
   }
 
   .profile-minor-text {
-    font-size: 0.85rem;
+    font-size: 1rem;
     margin: 0.5rem 0 0;
     opacity: 0.8;
   }
