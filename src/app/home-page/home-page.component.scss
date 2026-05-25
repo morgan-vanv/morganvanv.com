@@ -12,6 +12,8 @@
 }
 
 .left-sticky-container {
+  flex: 0 0 50%;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
