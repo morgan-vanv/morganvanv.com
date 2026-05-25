@@ -41,9 +41,7 @@
     border-radius: 50%;
     background: linear-gradient(to top, rgba(255, 255, 255, 0.878), transparent);
     padding: 2px;
-    margin-top: 1em;
-    width: 66%;
-    flex-shrink: 0;
+    width: min(66%, 22dvh);
 
     @media (max-width: 1000px) {
       width: 33dvw;
