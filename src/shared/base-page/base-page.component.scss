@@ -8,6 +8,11 @@
   align-items: center;
   justify-content: center;
   flex-direction: column;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 2.5dvw 0;
+    box-sizing: border-box;
+  }
 }
 
 app-custom-navbar {
@@ -27,7 +32,10 @@ app-custom-navbar {
 
   @media (max-width: $breakpoint-mobile) {
     width: 95dvw;
-    margin: 1.5rem auto 3rem;
+    height: auto;
+    flex: 1;
+    min-height: 0;
+    margin: 0 auto;
   }
 }
 
