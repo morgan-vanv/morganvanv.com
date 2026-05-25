@@ -1,5 +1,3 @@
-@use '../styles' as *;
-
 @mixin scrollbar-styled {
   &::-webkit-scrollbar {
     width: 12px;

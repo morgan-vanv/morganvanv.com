@@ -20,12 +20,12 @@ app-custom-navbar {
   align-items: center;
   width: 80dvw;
   height: 80dvh;
-  border: 1px solid white;
+  border: 1px solid $main-color;
   border-radius: 2rem;
   backdrop-filter: blur(8px);
   overflow: hidden;
 
-  @media (max-width: 1000px) {
+  @media (max-width: $breakpoint-mobile) {
     width: 95dvw;
     margin: 1.5rem auto 3rem;
   }
