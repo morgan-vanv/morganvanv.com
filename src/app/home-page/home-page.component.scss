@@ -80,6 +80,7 @@
 
   @media (max-width: $breakpoint-mobile) {
     flex: none;
+    width: 100%;
     min-height: auto;
     overflow-y: visible;
     padding-left: 0;

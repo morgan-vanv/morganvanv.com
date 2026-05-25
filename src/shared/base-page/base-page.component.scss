@@ -38,5 +38,6 @@ app-custom-navbar {
   padding: 1rem 1.5rem;
   box-sizing: border-box;
   overflow-y: auto;
+  overflow-x: hidden;
   @include shared.scrollbar-styled;
 }
