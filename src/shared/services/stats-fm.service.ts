@@ -28,6 +28,18 @@ export interface StatsFmTrack {
   spotifyPreview: string | null;
 }
 
+export interface StatsFmTopAlbum {
+  position: number;
+  streams: number;
+  playedMs: number;
+  album: {
+    id: number;
+    name: string;
+    image: string;
+    artists: StatsFmArtist[];
+  };
+}
+
 export interface StatsFmTopArtist {
   position: number;
   streams: number;
@@ -55,6 +67,12 @@ const BASE_URL = 'https://api.stats.fm/api/v1';
 @Injectable({ providedIn: 'root' })
 export class StatsFmService {
   private http = inject(HttpClient);
+
+  getTopAlbums(username: string, range: StatsFmRange = 'months'): Observable<StatsFmTopAlbum[]> {
+    return this.http
+      .get<{ items: StatsFmTopAlbum[] }>(`${BASE_URL}/users/${username}/top/albums?range=${range}`)
+      .pipe(map(r => r.items));
+  }
 
   getTopArtists(username: string, range: StatsFmRange = 'weeks'): Observable<StatsFmTopArtist[]> {
     return this.http

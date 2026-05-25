@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
-import { StatsFmService, StatsFmTopArtist, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
+import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { Observable } from 'rxjs';
 
 const STATSFM_USERNAME = 'morgan.vanv';
@@ -15,12 +15,14 @@ const STATSFM_USERNAME = 'morgan.vanv';
 export class InterestsPageComponent implements OnInit {
   private statsFm = inject(StatsFmService);
 
-  topArtists$!: Observable<StatsFmTopArtist[]>;
   topTracks$!: Observable<StatsFmTopTrack[]>;
+  topAlbums$!: Observable<StatsFmTopAlbum[]>;
+  topArtists$!: Observable<StatsFmTopArtist[]>;
 
   ngOnInit(): void {
-    this.topArtists$ = this.statsFm.getTopArtists(STATSFM_USERNAME, 'weeks');
     this.topTracks$ = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks');
+    this.topAlbums$ = this.statsFm.getTopAlbums(STATSFM_USERNAME, 'months');
+    this.topArtists$ = this.statsFm.getTopArtists(STATSFM_USERNAME, 'lifetime');
   }
 
   formatPlaytime(ms: number): string {

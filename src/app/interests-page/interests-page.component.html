@@ -12,15 +12,15 @@
       <div class="stats-columns">
 
         <div class="stats-column">
-          <h3>Top Artists <span class="range-label">· last 4 weeks</span></h3>
-          @if (topArtists$ | async; as artists) {
+          <h3>Top Songs <span class="range-label">· this week</span></h3>
+          @if (topTracks$ | async; as tracks) {
             <ol class="stats-list">
-              @for (item of artists.slice(0, 8); track item.artist.id) {
+              @for (item of tracks.slice(0, 8); track item.track.id) {
                 <li class="stats-item">
-                  <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
+                  <img [src]="item.track.albums[0]?.image" [alt]="item.track.name" class="stats-thumbnail" />
                   <div class="stats-info">
-                    <span class="stats-name">{{ item.artist.name }}</span>
-                    <span class="stats-meta">{{ item.streams }} streams · {{ formatPlaytime(item.playedMs) }}</span>
+                    <span class="stats-name">{{ item.track.name }}</span>
+                    <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} streams</span>
                   </div>
                 </li>
               }
@@ -31,15 +31,34 @@
         </div>
 
         <div class="stats-column">
-          <h3>Top Tracks <span class="range-label">· last 4 weeks</span></h3>
-          @if (topTracks$ | async; as tracks) {
+          <h3>Top Albums <span class="range-label">· this month</span></h3>
+          @if (topAlbums$ | async; as albums) {
             <ol class="stats-list">
-              @for (item of tracks.slice(0, 8); track item.track.id) {
+              @for (item of albums.slice(0, 8); track item.album.id) {
                 <li class="stats-item">
-                  <img [src]="item.track.albums[0]?.image" [alt]="item.track.name" class="stats-thumbnail" />
+                  <img [src]="item.album.image" [alt]="item.album.name" class="stats-thumbnail" />
                   <div class="stats-info">
-                    <span class="stats-name">{{ item.track.name }}</span>
-                    <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} streams</span>
+                    <span class="stats-name">{{ item.album.name }}</span>
+                    <span class="stats-meta">{{ item.album.artists[0]?.name }} · {{ item.streams }} streams</span>
+                  </div>
+                </li>
+              }
+            </ol>
+          } @else {
+            <p class="loading-text">Loading...</p>
+          }
+        </div>
+
+        <div class="stats-column">
+          <h3>Top Artists <span class="range-label">· all time</span></h3>
+          @if (topArtists$ | async; as artists) {
+            <ol class="stats-list">
+              @for (item of artists.slice(0, 8); track item.artist.id) {
+                <li class="stats-item">
+                  <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
+                  <div class="stats-info">
+                    <span class="stats-name">{{ item.artist.name }}</span>
+                    <span class="stats-meta">{{ item.streams }} streams · {{ formatPlaytime(item.playedMs) }}</span>
                   </div>
                 </li>
               }
