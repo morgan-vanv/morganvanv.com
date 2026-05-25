@@ -30,9 +30,8 @@ src/
     base-page/       # Shell component wrapping CustomNavbarComponent
     custom-navbar/   # Navigation bar
     route-transition.ts  # Shared animation trigger
-    shared-styles.scss   # Shared utility classes (e.g. .scrollbar-styled)
+    shared-styles.scss   # Shared utility mixins (e.g. scrollbar-styled)
   styles.scss        # Global styles and color variables
-  _theme-colors.scss # Angular Material color palettes (generated, edit with caution)
 ```
 
 **Page structure:** Each route has its own folder under `src/app/<name>-page/`. Pages import `BasePageComponent` to get the navbar. The `App` component (`src/app/app.ts`) applies route animations via `@routeAnimations`.
@@ -56,7 +55,9 @@ private router = inject(Router);
 // Available: $background-color, $background-sky-color, $main-color, $accent-color
 ```
 
-**SCSS — shared utilities:** Use `.scrollbar-styled` from `src/shared/shared-styles.scss` on any scrollable container.
+**SCSS — shared utilities:** Use `@include shared.scrollbar-styled` in any scrollable container's SCSS to apply the shared scrollbar styles. Import it with `@use '../../shared/shared-styles.scss' as shared;`.
+
+**Global layout:** `body` has `overflow: hidden` globally (no page-level scroll). Each page is responsible for its own internal scroll areas.
 
 **ESLint rules:** Component selectors must use `app-` prefix in kebab-case; directive selectors must use `app` prefix in camelCase.
 

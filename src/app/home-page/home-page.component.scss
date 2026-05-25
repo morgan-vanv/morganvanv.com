@@ -19,7 +19,7 @@
   text-align: center;
 
   padding-right: 1rem;
-  border-right: white solid 1px;
+  border-right: 1px solid white;
   @media (max-width: 1000px) {
     width: 100%;
     border-right: none;
@@ -27,7 +27,7 @@
 
   h1 {
     font-size: 5dvh;
-    margin: 0px;
+    margin: 0;
     overflow-wrap: normal;
   }
 
@@ -50,16 +50,16 @@
     display: block;
     width: 100%;
     aspect-ratio: 1;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 }
 
 .right-scroll-container {
-  @extend .scrollbar-styled; // inheriting custom scrollbar styles from base-page
+  @include shared.scrollbar-styled; // applying shared scrollbar mixin
   display: flex;
   flex-direction: column;
   margin-left: 2dvw;
-  overflow-y: scroll !important;
+  overflow-y: scroll;
 
   ul {
     list-style: none;
@@ -97,7 +97,7 @@
   background-color: white;
   padding: 0.75rem;
   border-radius: 50%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: background-color 0.15s ease-in-out, fill 0.15s ease-in-out;
 }
 .social-media-container a:hover {
@@ -121,7 +121,7 @@
   text-decoration: none;
   padding: 0.5rem 1rem;
   border-radius: 10%;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 
   opacity: 0;
 }

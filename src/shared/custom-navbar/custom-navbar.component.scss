@@ -1,5 +1,4 @@
 @use '../../styles' as *;
-@use '../../shared/shared-styles.scss' as shared;
 
 :host {
   box-sizing: border-box;
@@ -44,7 +43,6 @@ nav ul {
 
   a:hover {
     background-color: rgba(255, 255, 255, 0.1);
-    transition: background-color 0.3s ease;
   }
 
   // Pre-reserve bracket space via color: transparent so brackets never
@@ -88,7 +86,6 @@ nav ul {
   a.active-link {
     font-weight: bold;
     color: $accent-color !important;
-    transition: border-bottom 0.3s ease, font-weight 0.3s ease;
   }
 
 }

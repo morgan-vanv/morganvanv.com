@@ -1,7 +1,6 @@
 @use '../styles' as *;
 
-// shared scrollbar styling for any scrollable container
-.scrollbar-styled {
+@mixin scrollbar-styled {
   &::-webkit-scrollbar {
     width: 12px;
     border-radius: 6px;
@@ -14,7 +13,7 @@
   &::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.4);
     border-radius: 6px;
-    border: 2px solid rgba(0,0,0,0.1);
+    border: 2px solid rgba(0, 0, 0, 0.1);
   }
 
   &::-webkit-scrollbar-thumb:hover {
