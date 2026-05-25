@@ -21,7 +21,7 @@
              [attr.rel]="link.external ? 'noopener noreferrer' : null">
             <svg role="img" [attr.viewBox]="link.viewBox" xmlns="http://www.w3.org/2000/svg">
               <title>{{ link.label }}</title>
-              <path [attr.d]="link.svgPath"/>
+              <path [attr.d]="link.svgPath" [attr.fill-rule]="link.fillRule || null"/>
             </svg>
           </a>
         }
@@ -37,9 +37,8 @@
       <section>
         <h2>Background</h2>
         <ul>
-          <li>🎓 Studied Physics & Applied Mathematics @ Ohio University (as well as some Computer Science)</li>
-          <li>💼 Currently Employed as a Software Engineer @ The Home Depot in Supply Chain Data & Analytics</li>
-          <li>⌨️ Employed for Angular, SpringBoot, PostgreSQL, and Google Cloud -- but my true love is Python 💖</li>
+          <li>🎓 Physics & Applied Mathematics @ Ohio University</li>
+          <li>💼 Software Engineer @ The Home Depot (Supply Chain Data & Analytics)</li>
           <li>🎧 Hobbies include collecting vinyl, astrophotography, RaspberryPi tinkering, and Old School RuneScape</li>
         </ul>
       </section>
