@@ -12,37 +12,37 @@ export const routes: Routes = [
     component: GreetingPageComponent,
     title: 'Greetings!',
     pathMatch: 'full',
-    data: { animation: 'GreetingPage' }
+    data: { animation: 0 }
   },
   {
     path: 'home',
     component: HomePageComponent,
     title: 'Home',
-    data: { animation: 'HomePage' }
+    data: { animation: 1 }
   },
   {
     path: 'background',
     component: BackgroundPageComponent,
     title: 'Background',
-    data: { animation: 'BackgroundPage' }
+    data: { animation: 2 }
   },
   {
     path: 'interests',
     component: InterestsPageComponent,
     title: 'Interests',
-    data: { animation: 'InterestsPage' }
+    data: { animation: 3 }
   },
   {
     path: 'projects',
     component: ProjectsPageComponent,
     title: 'Projects',
-    data: { animation: 'ProjectsPage' }
+    data: { animation: 4 }
   },
   {
     path: 'blog',
     component: BlogPageComponent,
     title: 'Blog',
-    data: { animation: 'BlogPage' }
+    data: { animation: 5 }
   },
   {
     path: '**',
