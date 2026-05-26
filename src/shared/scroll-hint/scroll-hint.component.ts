@@ -17,6 +17,8 @@ export class ScrollHintComponent implements OnChanges, OnDestroy {
   private mutationObserver: MutationObserver | null = null;
   private attachedEl: HTMLElement | null = null;
 
+  private static readonly SCROLL_THRESHOLD_PX = 8;
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['scrollEl']) {
       this.detach();
@@ -56,6 +58,6 @@ export class ScrollHintComponent implements OnChanges, OnDestroy {
       return;
     }
     const { scrollTop, scrollHeight, clientHeight } = this.attachedEl;
-    this.canScrollDown.set(scrollHeight - scrollTop - clientHeight > 8);
+    this.canScrollDown.set(scrollHeight - scrollTop - clientHeight > ScrollHintComponent.SCROLL_THRESHOLD_PX);
   }
 }

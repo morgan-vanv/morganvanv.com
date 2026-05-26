@@ -52,7 +52,7 @@
   50%       { transform: translateY(-10px); }
 }
 
-.custom-arrow-button {
+.custom-arrow-button.mat-mdc-icon-button {
   margin-bottom: 1rem;
   background-color: transparent;
   color: #fff;
@@ -61,7 +61,7 @@
   width: 10rem;
   height: 10rem;
   box-shadow: 0 8px 23px rgba(0, 0, 0, 0.1);
-  display: flex !important;
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -88,10 +88,10 @@
   display: flex;
   align-items: center;
   line-height: 1;
-  animation: bounce-down 0.9s ease-in-out infinite;
+  animation: greeting-bounce 0.9s ease-in-out infinite;
 }
 
-@keyframes bounce-down {
+@keyframes greeting-bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(4px); }
 }

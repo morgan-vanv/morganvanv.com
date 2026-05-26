@@ -18,10 +18,10 @@ mat-icon {
   display: flex;
   align-items: center;
   line-height: 1;
-  animation: bounce-down 0.9s ease-in-out infinite;
+  animation: scroll-hint-bounce 0.9s ease-in-out infinite;
 }
 
-@keyframes bounce-down {
+@keyframes scroll-hint-bounce {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(4px); }
 }

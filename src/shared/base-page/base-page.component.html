@@ -3,5 +3,7 @@
   <div class="page-content" #pageContent>
     <ng-content></ng-content>
   </div>
-  <app-scroll-hint [scrollEl]="pageContent" />
+  @if (showScrollHint) {
+    <app-scroll-hint [scrollEl]="pageContent" />
+  }
 </div>
