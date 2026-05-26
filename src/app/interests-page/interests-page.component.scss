@@ -139,6 +139,15 @@
 
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
+
+    .bosses-outer {
+      max-height: 40vh;
+    }
+
+    .bosses-panel {
+      position: static;
+      height: 100%;
+    }
   }
 }
 
