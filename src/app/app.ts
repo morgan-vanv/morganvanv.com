@@ -13,8 +13,9 @@ import { KeyboardNavService } from '../shared/services/keyboard-nav.service';
 export class App {
   private readonly _keyboardNav = inject(KeyboardNavService);
 
-  prepareRoute(outlet: RouterOutlet): string | undefined {
-    return outlet?.activatedRouteData?.['animation'];
+  prepareRoute(outlet: RouterOutlet): number | undefined {
+    const animation = outlet?.activatedRouteData?.['animation'];
+    return typeof animation === 'number' ? animation : undefined;
   }
 
 }
