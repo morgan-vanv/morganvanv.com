@@ -88,7 +88,7 @@ export class StatsFmService {
 
   getRecentStreams(username: string, limit = 10): Observable<StatsFmRecentStream[]> {
     return this.http
-      .get<{ items: StatsFmRecentStream[] }>(`${BASE_URL}/users/${username}/streams/recent?limit=${limit}`)
+      .get<{ items: StatsFmRecentStream[] }>(`${BASE_URL}/users/${encodeURIComponent(username)}/streams/recent?limit=${limit}`)
       .pipe(map(r => r.items));
   }
 }

@@ -83,7 +83,7 @@
 
       @if (player$ | async; as player) {
         <div class="osrs-overview">
-          <span class="osrs-pill">Total Level <strong>{{ player.latestSnapshot.data.skills['overall'].level }}</strong></span>
+          <span class="osrs-pill">Total Level <strong>{{ player.latestSnapshot.data.skills['overall']?.level ?? 0 }}</strong></span>
           <span class="osrs-pill">Combat <strong>{{ player.combatLevel }}</strong></span>
           <span class="osrs-pill">EHP <strong>{{ formatNumber(player.ehp) }}</strong></span>
           <span class="osrs-pill">EHB <strong>{{ formatNumber(player.ehb) }}</strong></span>

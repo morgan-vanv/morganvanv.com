@@ -3,8 +3,7 @@ import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../shared/services/wise-old-man.service';
-import { Observable, tap } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable, tap, map } from 'rxjs';
 
 const STATSFM_USERNAME = 'morgan.vanv';
 const WOM_USERNAME = 'TipodissDong';
@@ -51,6 +50,10 @@ export class InterestsPageComponent implements OnInit {
   topBosses: WomBoss[] = [];
 
   readonly characterBadges = CHARACTER_BADGES;
+  readonly skillOrder = SKILL_ORDER;
+  readonly skillIcons: Record<string, string> = Object.fromEntries(
+    SKILL_ORDER.map(skill => [skill, `osrs/skills/${skill}_icon.png`])
+  );
   readonly womUsername = WOM_USERNAME;
   readonly womProfileUrl = `https://wiseoldman.net/players/${WOM_USERNAME.toLowerCase()}`;
   readonly runeprofileUrl = `https://www.runeprofile.com/${WOM_USERNAME}`;
@@ -76,11 +79,6 @@ export class InterestsPageComponent implements OnInit {
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
   }
-
-  readonly skillOrder = SKILL_ORDER;
-  readonly skillIcons: Record<string, string> = Object.fromEntries(
-    SKILL_ORDER.map(skill => [skill, `osrs/skills/${skill}_icon.png`])
-  );
 
   formatBossName(metric: string): string {
     return metric.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
