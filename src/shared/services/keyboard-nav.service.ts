@@ -1,7 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { fromEvent } from 'rxjs';
-import { filter } from 'rxjs/operators';
 
 const NAV_ROUTES = ['/home', '/background', '/interests', '/projects', '/blog'];
 
@@ -11,15 +10,27 @@ export class KeyboardNavService {
 
   constructor() {
     fromEvent<KeyboardEvent>(document, 'keydown')
-      .pipe(filter(e => e.key === 'ArrowLeft' || e.key === 'ArrowRight'))
-      .subscribe(e => this.onArrowKey(e));
+      .subscribe(e => this.onKeyDown(e));
   }
 
-  private onArrowKey(e: KeyboardEvent): void {
+  private onKeyDown(e: KeyboardEvent): void {
     const active = document.activeElement;
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
 
     const currentPath = '/' + this.router.url.split('/')[1];
+
+    if (currentPath === '/') {
+      if (e.key.startsWith('Arrow')) this.router.navigate(['/home']);
+      return;
+    }
+
+    if (e.key === 'Escape') {
+      this.router.navigate(['/']);
+      return;
+    }
+
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+
     const idx = NAV_ROUTES.indexOf(currentPath);
     if (idx === -1) return;
 
