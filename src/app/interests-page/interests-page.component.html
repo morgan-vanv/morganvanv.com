@@ -1,12 +1,14 @@
-<app-base-page>
+<app-base-page [showScrollHint]="false">
 
-  <div class="interests-container">
+  <div class="interests-wrapper">
+    <div class="interests-container" #interestsEl>
 
     <section class="music-section">
       <h2>🎵 Music</h2>
       <p class="section-description">
-        What I've been listening to lately, pulled live from
+        What I've been listening to lately on Spotify, pulled live from
         <a href="https://stats.fm/user/morgan.vanv" target="_blank" rel="noopener noreferrer">stats.fm</a>.
+        Or, if you are more into vinyl, you can check out my discogs collection <a href="https://www.discogs.com/user/morganvanv/collection" target="_blank" rel="noopener noreferrer">here</a>.
       </p>
 
       <div class="stats-columns">
@@ -141,6 +143,8 @@
       }
     </section>
 
+  </div>
+    <app-scroll-hint [scrollEl]="interestsEl" />
   </div>
 
 </app-base-page>

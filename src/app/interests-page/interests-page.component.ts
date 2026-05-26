@@ -1,6 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
+import { ScrollHintComponent } from '../../shared/scroll-hint/scroll-hint.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../shared/services/wise-old-man.service';
 import { Observable, tap, map, catchError, of } from 'rxjs';
@@ -34,7 +35,7 @@ const CHARACTER_BADGES: CharacterBadge[] = [
 
 @Component({
   selector: 'app-interests-page',
-  imports: [BasePageComponent, AsyncPipe],
+  imports: [BasePageComponent, AsyncPipe, ScrollHintComponent],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss'
 })

@@ -22,9 +22,36 @@ nav ul {
   justify-content: space-evenly;
 
   li {
+    position: relative;
     display: flex;
     align-items: center;
     flex-grow: 1;
+  }
+
+  .nav-arrow {
+    color: $accent-color;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+  }
+
+  .nav-arrow-left {
+    animation: bounce-left 0.9s ease-in-out infinite;
+  }
+
+  .nav-arrow-right {
+    animation: bounce-right 0.9s ease-in-out infinite;
+  }
+
+  @keyframes bounce-left {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(-4px); }
+  }
+
+  @keyframes bounce-right {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
   }
 
   a {

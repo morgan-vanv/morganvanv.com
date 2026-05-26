@@ -1,15 +1,22 @@
 <nav>
   <ul>
-    @for (link of navLinks; track link.route) {
+    @for (link of navLinks; track link.route; let i = $index) {
       <li>
         <a [routerLink]="link.route"
            routerLinkActive="active-link"
+           #rla="routerLinkActive"
            [routerLinkActiveOptions]="{ exact: !!link.exact }"
            [attr.aria-label]="link.ariaLabel ?? null">
+          @if (rla.isActive && i > 1) {
+            <mat-icon class="nav-arrow nav-arrow-left" aria-hidden="true">keyboard_arrow_left</mat-icon>
+          }
           @if (link.icon) {
             <mat-icon aria-hidden="true">{{ link.icon }}</mat-icon>
           } @else {
             <span>{{ link.label }}</span>
+          }
+          @if (rla.isActive && i < navLinks.length - 1) {
+            <mat-icon class="nav-arrow nav-arrow-right" aria-hidden="true">keyboard_arrow_right</mat-icon>
           }
         </a>
       </li>
