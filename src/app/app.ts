@@ -11,7 +11,9 @@ import { KeyboardNavService } from '../shared/services/keyboard-nav.service';
   animations: [ defaultRouteTransition ]
 })
 export class App {
-  private readonly _keyboardNav = inject(KeyboardNavService);
+  constructor() {
+    inject(KeyboardNavService);
+  }
 
   prepareRoute(outlet: RouterOutlet): number | undefined {
     const animation = outlet?.activatedRouteData?.['animation'];

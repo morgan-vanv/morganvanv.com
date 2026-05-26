@@ -37,7 +37,7 @@ export class KeyboardNavService {
       const container = this.getScrollContainer(currentPath);
       if (container) {
         e.preventDefault();
-        container.scrollBy({ top: e.key === 'ArrowDown' ? SCROLL_STEP_PX : -SCROLL_STEP_PX, behavior: 'instant' });
+        container.scrollBy({ top: e.key === 'ArrowDown' ? SCROLL_STEP_PX : -SCROLL_STEP_PX, behavior: 'auto' });
       }
       return;
     }
