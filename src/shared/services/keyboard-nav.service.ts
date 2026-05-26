@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { fromEvent } from 'rxjs';
 
 const NAV_ROUTES = ['/home', '/background', '/interests', '/projects', '/blog'];
+const SCROLL_STEP_PX = 120;
 
 @Injectable({ providedIn: 'root' })
 export class KeyboardNavService {
@@ -29,6 +30,15 @@ export class KeyboardNavService {
       return;
     }
 
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      const container = this.getScrollContainer(currentPath);
+      if (container) {
+        e.preventDefault();
+        container.scrollBy({ top: e.key === 'ArrowDown' ? SCROLL_STEP_PX : -SCROLL_STEP_PX, behavior: 'instant' });
+      }
+      return;
+    }
+
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
 
     const idx = NAV_ROUTES.indexOf(currentPath);
@@ -38,5 +48,17 @@ export class KeyboardNavService {
     if (nextIdx >= 0 && nextIdx < NAV_ROUTES.length) {
       this.router.navigate([NAV_ROUTES[nextIdx]]);
     }
+  }
+
+  private getScrollContainer(currentPath: string): HTMLElement | null {
+    if (currentPath === '/home') {
+      return document.querySelector<HTMLElement>('.right-scroll-container');
+    }
+
+    if (currentPath === '/interests') {
+      return document.querySelector<HTMLElement>('.interests-container');
+    }
+
+    return document.querySelector<HTMLElement>('.page-content');
   }
 }
