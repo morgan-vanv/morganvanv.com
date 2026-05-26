@@ -155,15 +155,11 @@
 
 .character-panel {
   flex-shrink: 0;
-  width: 170px;
   display: flex;
   flex-direction: column;
 
   h3 {
     flex-shrink: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
   }
 }
 
