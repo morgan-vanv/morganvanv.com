@@ -1,6 +1,7 @@
 <app-base-page>
 
-  <div class="interests-container">
+  <div class="interests-wrapper">
+    <div class="interests-container" #interestsEl>
 
     <section class="music-section">
       <h2>🎵 Music</h2>
@@ -142,6 +143,8 @@
       }
     </section>
 
+  </div>
+    <app-scroll-hint [scrollEl]="interestsEl" />
   </div>
 
 </app-base-page>

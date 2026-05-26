@@ -32,7 +32,8 @@
 
     </div>
 
-    <div class="right-scroll-container">
+    <div class="right-scroll-wrapper">
+      <div class="right-scroll-container" #rightScrollEl>
 
       <section>
         <h2>What's going on here?</h2>
@@ -54,6 +55,8 @@
         <p>Feel free to reach out via email at <a href="mailto:website@morganvanv.com">website&#64;morganvanv.com</a> or at any of the platforms linked on the left.</p>
       </section>
 
+      </div>
+      <app-scroll-hint [scrollEl]="rightScrollEl" />
     </div>
 
   </div>

@@ -1,0 +1,27 @@
+@use '../../styles' as *;
+
+:host {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+mat-icon {
+  color: $accent-color;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  animation: bounce-down 0.9s ease-in-out infinite;
+}
+
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
