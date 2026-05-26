@@ -3,7 +3,7 @@ import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../shared/services/wise-old-man.service';
-import { Observable, tap, map } from 'rxjs';
+import { Observable, tap, map, catchError, of } from 'rxjs';
 
 const STATSFM_USERNAME = 'morgan.vanv';
 const WOM_USERNAME = 'TipodissDong';
@@ -45,7 +45,7 @@ export class InterestsPageComponent implements OnInit {
   topTracks$!: Observable<StatsFmTopTrack[]>;
   topAlbums$!: Observable<StatsFmTopAlbum[]>;
   topArtists$!: Observable<StatsFmTopArtist[]>;
-  player$!: Observable<WomPlayer>;
+  player$!: Observable<WomPlayer | null>;
 
   topBosses: WomBoss[] = [];
 
@@ -60,16 +60,20 @@ export class InterestsPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.topTracks$ = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks').pipe(
-      map(items => items.slice(0, STATS_DISPLAY_LIMIT))
+      map(items => items.slice(0, STATS_DISPLAY_LIMIT)),
+      catchError(() => of([]))
     );
     this.topAlbums$ = this.statsFm.getTopAlbums(STATSFM_USERNAME, 'months').pipe(
-      map(items => items.slice(0, STATS_DISPLAY_LIMIT))
+      map(items => items.slice(0, STATS_DISPLAY_LIMIT)),
+      catchError(() => of([]))
     );
     this.topArtists$ = this.statsFm.getTopArtists(STATSFM_USERNAME, 'lifetime').pipe(
-      map(items => items.slice(0, STATS_DISPLAY_LIMIT))
+      map(items => items.slice(0, STATS_DISPLAY_LIMIT)),
+      catchError(() => of([]))
     );
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
-      tap(p => { this.topBosses = this.sortBosses(p); })
+      tap(p => { this.topBosses = this.sortBosses(p); }),
+      catchError(() => of(null))
     );
   }
 
