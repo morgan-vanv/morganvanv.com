@@ -61,14 +61,14 @@
   width: 10rem;
   height: 10rem;
   box-shadow: 0 8px 23px rgba(0, 0, 0, 0.1);
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 
   transition:
     transform 0.3s ease,
     backdrop-filter 0.3s;
-
-  mat-icon {
-    animation: gentle-bounce 2s ease-in-out infinite;
-  }
 
   &:hover {
     backdrop-filter: blur(8px);
@@ -82,11 +82,28 @@
   }
 }
 
+.prompt-arrow {
+  color: $accent-color;
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+  animation: bounce-down 0.9s ease-in-out infinite;
+}
+
+@keyframes bounce-down {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(4px); }
+}
+
 .arrow-label {
   display: block;
   margin-top: 0.5rem;
   margin-bottom: 1rem;
-  font-size: min(5dvw, 1.5rem);
+  font-size: 1rem;
+  font-weight: normal;
+  opacity: 0.6;
+  color: $main-color;
   text-align: center;
   width: 100%;
   user-select: none;
