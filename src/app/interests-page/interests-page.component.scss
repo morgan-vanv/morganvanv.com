@@ -8,7 +8,8 @@
   @include shared.scrollbar-styled;
 }
 
-.music-section {
+.music-section,
+.osrs-section {
   h2 {
     margin-bottom: 0.25rem;
   }
@@ -35,13 +36,18 @@
   }
 }
 
-.stats-column {
-  flex: 1;
-  min-width: 0;
-
+.stats-column,
+.character-panel,
+.skills-panel,
+.bosses-panel {
   h3 {
     margin-bottom: 0.75rem;
   }
+}
+
+.stats-column {
+  flex: 1;
+  min-width: 0;
 }
 
 .stats-list {
@@ -104,12 +110,6 @@
 
 // ── OSRS section ─────────────────────────────────────────────────
 
-.osrs-section {
-  h2 {
-    margin-bottom: 0.25rem;
-  }
-}
-
 .osrs-overview {
   display: flex;
   flex-wrap: wrap;
@@ -151,7 +151,6 @@
   flex-direction: column;
 
   h3 {
-    margin-bottom: 0.75rem;
     flex-shrink: 0;
   }
 }
@@ -221,10 +220,6 @@
 
 .skills-panel {
   flex-shrink: 0;
-
-  h3 {
-    margin-bottom: 0.75rem;
-  }
 }
 
 .skills-grid {
@@ -277,7 +272,6 @@
   flex-direction: column;
 
   h3 {
-    margin-bottom: 0.75rem;
     flex-shrink: 0;
   }
 }

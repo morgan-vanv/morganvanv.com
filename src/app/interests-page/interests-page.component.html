@@ -15,7 +15,7 @@
           <h3>Top Songs <span class="range-label">· this week</span></h3>
           @if (topTracks$ | async; as tracks) {
             <ol class="stats-list">
-              @for (item of tracks.slice(0, 8); track item.track.id) {
+              @for (item of tracks; track item.track.id) {
                 <li class="stats-item">
                   <img [src]="item.track.albums[0]?.image" [alt]="item.track.name" class="stats-thumbnail" />
                   <div class="stats-info">
@@ -34,7 +34,7 @@
           <h3>Top Albums <span class="range-label">· this month</span></h3>
           @if (topAlbums$ | async; as albums) {
             <ol class="stats-list">
-              @for (item of albums.slice(0, 8); track item.album.id) {
+              @for (item of albums; track item.album.id) {
                 <li class="stats-item">
                   <img [src]="item.album.image" [alt]="item.album.name" class="stats-thumbnail" />
                   <div class="stats-info">
@@ -53,7 +53,7 @@
           <h3>Top Artists <span class="range-label">· all time</span></h3>
           @if (topArtists$ | async; as artists) {
             <ol class="stats-list">
-              @for (item of artists.slice(0, 8); track item.artist.id) {
+              @for (item of artists; track item.artist.id) {
                 <li class="stats-item">
                   <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
                   <div class="stats-info">
@@ -77,7 +77,7 @@
       <h2>⚔️ Old School RuneScape</h2>
       <p class="section-description">
         Live stats for
-        <a href="https://wiseoldman.net/players/tipodissdong" target="_blank" rel="noopener noreferrer">TipodissDong</a>,
+        <a [href]="womProfileUrl" target="_blank" rel="noopener noreferrer">{{ womUsername }}</a>,
         pulled from <a href="https://wiseoldman.net" target="_blank" rel="noopener noreferrer">Wise Old Man</a>.
       </p>
 
@@ -92,9 +92,9 @@
         <div class="osrs-panels">
 
           <div class="character-panel">
-            <h3>TipodissDong</h3>
+            <h3>{{ womUsername }}</h3>
             <div class="character-img-wrapper">
-              <img src="osrs-character.png" alt="TipodissDong" class="character-img" />
+              <img src="osrs-character.png" [alt]="womUsername" class="character-img" />
               <div class="character-badges">
                 <div class="character-badge">
                   <img src="https://oldschool.runescape.wiki/images/Group_ironman_chat_badge.png" alt="Group Ironman" class="badge-icon" />
@@ -106,7 +106,7 @@
                 </div>
               </div>
             </div>
-            <a href="https://www.runeprofile.com/TipodissDong" target="_blank" rel="noopener noreferrer" class="character-profile-link">runeprofile.com ↗</a>
+            <a [href]="runeprofileUrl" target="_blank" rel="noopener noreferrer" class="character-profile-link">runeprofile.com ↗</a>
           </div>
 
           <div class="skills-panel">
@@ -125,7 +125,7 @@
             <div class="bosses-panel">
               <h3>Boss Kills</h3>
               <ul class="boss-list">
-                @for (boss of getTopBosses(player.latestSnapshot.data.bosses); track boss.metric) {
+                @for (boss of topBosses; track boss.metric) {
                   <li class="boss-item">
                     <span class="boss-name">{{ formatBossName(boss.metric) }}</span>
                     <span class="boss-kc">{{ formatNumber(boss.kills) }}</span>

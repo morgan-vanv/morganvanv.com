@@ -3,10 +3,12 @@ import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../shared/services/wise-old-man.service';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 const STATSFM_USERNAME = 'morgan.vanv';
 const WOM_USERNAME = 'TipodissDong';
+const STATS_DISPLAY_LIMIT = 8;
 
 // Ordered to match the in-game Skills tab layout (3 columns, top to bottom)
 const SKILL_ORDER = [
@@ -35,13 +37,26 @@ export class InterestsPageComponent implements OnInit {
   topArtists$!: Observable<StatsFmTopArtist[]>;
   player$!: Observable<WomPlayer>;
 
+  topBosses: WomBoss[] = [];
+
   readonly skillOrder = SKILL_ORDER;
+  readonly womUsername = WOM_USERNAME;
+  readonly womProfileUrl = `https://wiseoldman.net/players/${WOM_USERNAME.toLowerCase()}`;
+  readonly runeprofileUrl = `https://www.runeprofile.com/${WOM_USERNAME}`;
 
   ngOnInit(): void {
-    this.topTracks$ = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks');
-    this.topAlbums$ = this.statsFm.getTopAlbums(STATSFM_USERNAME, 'months');
-    this.topArtists$ = this.statsFm.getTopArtists(STATSFM_USERNAME, 'lifetime');
-    this.player$ = this.wom.getPlayer(WOM_USERNAME);
+    this.topTracks$ = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks').pipe(
+      map(items => items.slice(0, STATS_DISPLAY_LIMIT))
+    );
+    this.topAlbums$ = this.statsFm.getTopAlbums(STATSFM_USERNAME, 'months').pipe(
+      map(items => items.slice(0, STATS_DISPLAY_LIMIT))
+    );
+    this.topArtists$ = this.statsFm.getTopArtists(STATSFM_USERNAME, 'lifetime').pipe(
+      map(items => items.slice(0, STATS_DISPLAY_LIMIT))
+    );
+    this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
+      tap(p => { this.topBosses = this.sortBosses(p); })
+    );
   }
 
   formatPlaytime(ms: number): string {
@@ -56,18 +71,18 @@ export class InterestsPageComponent implements OnInit {
     return `https://oldschool.runescape.wiki/images/${name}_icon.png`;
   }
 
-  getTopBosses(bosses: Record<string, WomBoss>): WomBoss[] {
-    return Object.values(bosses)
-      .filter(b => b.kills > 0)
-      .sort((a, b) => b.kills - a.kills);
-  }
-
   formatBossName(metric: string): string {
     return metric.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   }
 
   formatNumber(n: number): string {
     return Math.round(n).toLocaleString();
+  }
+
+  private sortBosses(player: WomPlayer): WomBoss[] {
+    return Object.values(player.latestSnapshot.data.bosses)
+      .filter(b => b.kills > 0)
+      .sort((a, b) => b.kills - a.kills);
   }
 }
 
