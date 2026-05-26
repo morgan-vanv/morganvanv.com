@@ -22,6 +22,17 @@ const SKILL_ORDER = [
   'construction', 'hunter',       'sailing',
 ] as const;
 
+interface CharacterBadge {
+  iconUrl: string;
+  alt: string;
+  label: string;
+}
+
+const CHARACTER_BADGES: CharacterBadge[] = [
+  { iconUrl: 'osrs/badges/group_ironman_badge.png', alt: 'Group Ironman', label: 'SeedSlingers' },
+  { iconUrl: 'osrs/badges/clan_deputy_owner_icon.png', alt: 'Clan', label: 'Ugandans' },
+];
+
 @Component({
   selector: 'app-interests-page',
   imports: [BasePageComponent, AsyncPipe],
@@ -39,7 +50,7 @@ export class InterestsPageComponent implements OnInit {
 
   topBosses: WomBoss[] = [];
 
-  readonly skillOrder = SKILL_ORDER;
+  readonly characterBadges = CHARACTER_BADGES;
   readonly womUsername = WOM_USERNAME;
   readonly womProfileUrl = `https://wiseoldman.net/players/${WOM_USERNAME.toLowerCase()}`;
   readonly runeprofileUrl = `https://www.runeprofile.com/${WOM_USERNAME}`;
@@ -66,10 +77,9 @@ export class InterestsPageComponent implements OnInit {
     return `${minutes}m`;
   }
 
-  getSkillIcon(skill: string): string {
-    const name = skill.charAt(0).toUpperCase() + skill.slice(1);
-    return `https://oldschool.runescape.wiki/images/${name}_icon.png`;
-  }
+  readonly skillIcons: Record<string, string> = Object.fromEntries(
+    SKILL_ORDER.map(skill => [skill, `osrs/skills/${skill}_icon.png`])
+  );
 
   formatBossName(metric: string): string {
     return metric.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
