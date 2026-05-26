@@ -17,7 +17,9 @@
             <ol class="stats-list">
               @for (item of tracks; track item.track.id) {
                 <li class="stats-item">
-                  <img [src]="item.track.albums[0]?.image" [alt]="item.track.name" class="stats-thumbnail" />
+                  @if (item.track.albums[0]?.image; as imgSrc) {
+                    <img [src]="imgSrc" [alt]="item.track.name" class="stats-thumbnail" />
+                  }
                   <div class="stats-info">
                     <span class="stats-name">{{ item.track.name }}</span>
                     <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} streams</span>
@@ -135,7 +137,7 @@
 
         </div>
       } @else {
-        <p class="loading-text">Loading...</p>
+        <p class="loading-text">{{ playerLoadFailed ? 'Could not load OSRS stats.' : 'Loading...' }}</p>
       }
     </section>
 

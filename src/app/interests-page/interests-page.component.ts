@@ -48,6 +48,7 @@ export class InterestsPageComponent implements OnInit {
   player$!: Observable<WomPlayer | null>;
 
   topBosses: WomBoss[] = [];
+  playerLoadFailed = false;
 
   readonly characterBadges = CHARACTER_BADGES;
   readonly skillOrder = SKILL_ORDER;
@@ -73,7 +74,10 @@ export class InterestsPageComponent implements OnInit {
     );
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
       tap(p => { this.topBosses = this.sortBosses(p); }),
-      catchError(() => of(null))
+      catchError(() => {
+        this.playerLoadFailed = true;
+        return of(null);
+      })
     );
   }
 
