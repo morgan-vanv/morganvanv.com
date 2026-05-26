@@ -46,11 +46,11 @@ export class ScrollHintComponent implements OnChanges, OnDestroy {
   }
 
   private checkScroll(): void {
-    if (!this.scrollEl) {
+    if (!this.attachedEl) {
       this.canScrollDown.set(false);
       return;
     }
-    const { scrollTop, scrollHeight, clientHeight } = this.scrollEl;
+    const { scrollTop, scrollHeight, clientHeight } = this.attachedEl;
     this.canScrollDown.set(scrollHeight - scrollTop - clientHeight > 8);
   }
 }
