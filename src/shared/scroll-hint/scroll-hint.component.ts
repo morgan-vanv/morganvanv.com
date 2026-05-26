@@ -14,6 +14,7 @@ export class ScrollHintComponent implements OnChanges, OnDestroy {
 
   private readonly scrollHandler = () => this.checkScroll();
   private resizeObserver: ResizeObserver | null = null;
+  private mutationObserver: MutationObserver | null = null;
   private attachedEl: HTMLElement | null = null;
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -33,6 +34,8 @@ export class ScrollHintComponent implements OnChanges, OnDestroy {
     el.addEventListener('scroll', this.scrollHandler, { passive: true });
     this.resizeObserver = new ResizeObserver(() => this.checkScroll());
     this.resizeObserver.observe(el);
+    this.mutationObserver = new MutationObserver(() => this.checkScroll());
+    this.mutationObserver.observe(el, { childList: true, subtree: true });
     this.checkScroll();
   }
 
@@ -43,6 +46,8 @@ export class ScrollHintComponent implements OnChanges, OnDestroy {
     }
     this.resizeObserver?.disconnect();
     this.resizeObserver = null;
+    this.mutationObserver?.disconnect();
+    this.mutationObserver = null;
   }
 
   private checkScroll(): void {
