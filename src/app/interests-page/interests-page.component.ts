@@ -77,6 +77,7 @@ export class InterestsPageComponent implements OnInit {
     return `${minutes}m`;
   }
 
+  readonly skillOrder = SKILL_ORDER;
   readonly skillIcons: Record<string, string> = Object.fromEntries(
     SKILL_ORDER.map(skill => [skill, `osrs/skills/${skill}_icon.png`])
   );

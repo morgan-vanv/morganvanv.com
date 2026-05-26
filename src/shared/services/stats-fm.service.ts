@@ -70,19 +70,19 @@ export class StatsFmService {
 
   getTopAlbums(username: string, range: StatsFmRange = 'months'): Observable<StatsFmTopAlbum[]> {
     return this.http
-      .get<{ items: StatsFmTopAlbum[] }>(`${BASE_URL}/users/${username}/top/albums?range=${range}`)
+      .get<{ items: StatsFmTopAlbum[] }>(`${BASE_URL}/users/${encodeURIComponent(username)}/top/albums?range=${range}`)
       .pipe(map(r => r.items));
   }
 
   getTopArtists(username: string, range: StatsFmRange = 'weeks'): Observable<StatsFmTopArtist[]> {
     return this.http
-      .get<{ items: StatsFmTopArtist[] }>(`${BASE_URL}/users/${username}/top/artists?range=${range}`)
+      .get<{ items: StatsFmTopArtist[] }>(`${BASE_URL}/users/${encodeURIComponent(username)}/top/artists?range=${range}`)
       .pipe(map(r => r.items));
   }
 
   getTopTracks(username: string, range: StatsFmRange = 'weeks'): Observable<StatsFmTopTrack[]> {
     return this.http
-      .get<{ items: StatsFmTopTrack[] }>(`${BASE_URL}/users/${username}/top/tracks?range=${range}`)
+      .get<{ items: StatsFmTopTrack[] }>(`${BASE_URL}/users/${encodeURIComponent(username)}/top/tracks?range=${range}`)
       .pipe(map(r => r.items));
   }
 

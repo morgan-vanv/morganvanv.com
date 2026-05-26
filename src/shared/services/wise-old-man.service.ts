@@ -40,8 +40,6 @@ export class WiseOldManService {
   private http = inject(HttpClient);
 
   getPlayer(username: string): Observable<WomPlayer> {
-    return this.http.get<WomPlayer>(`${BASE_URL}/players/${username}`, {
-      headers: { 'User-Agent': 'morganvanv.com personal site' },
-    });
+    return this.http.get<WomPlayer>(`${BASE_URL}/players/${encodeURIComponent(username)}`);
   }
 }
