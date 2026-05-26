@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { defaultRouteTransition } from '../shared/route-transition';
+import { KeyboardNavService } from '../shared/services/keyboard-nav.service';
 
 @Component({
   selector: 'app-root',
@@ -10,9 +11,13 @@ import { defaultRouteTransition } from '../shared/route-transition';
   animations: [ defaultRouteTransition ]
 })
 export class App {
+  constructor() {
+    inject(KeyboardNavService);
+  }
 
-  prepareRoute(outlet: RouterOutlet): string | undefined {
-    return outlet?.activatedRouteData?.['animation'];
+  prepareRoute(outlet: RouterOutlet): number | undefined {
+    const animation = outlet?.activatedRouteData?.['animation'];
+    return typeof animation === 'number' ? animation : undefined;
   }
 
 }
