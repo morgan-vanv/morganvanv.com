@@ -8,6 +8,7 @@ const SUBTITLES = [
   'currently testing in production',
   'relentlessly creating shareholder value',
   'now navigable via keyboard! press those arrow keys!',
+  'probably clicking on virtual trees and rocks',
 ];
 
 const CYCLE_INTERVAL_MS = 10000;
