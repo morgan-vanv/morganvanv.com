@@ -42,7 +42,7 @@
       </div>
 
       <div class="completions-panel">
-        <h3>Achievements</h3>
+        <h3>Overview</h3>
         <ul class="completions-list">
 
           <li class="completion-row">
@@ -127,7 +127,7 @@
       </div>
 
       <div class="pets-outer">
-        <h3>Pets <span class="range-label">· {{ petsObtained }}/{{ petsTotal }}</span></h3>
+        <h3>Pets @if (petsTotal > 0) {<span class="range-label">· {{ petsObtained }}/{{ petsTotal }}</span>}</h3>
         @if (pets$ | async; as pets) {
           <ul class="pets-list">
             @for (pet of pets; track pet.id) {

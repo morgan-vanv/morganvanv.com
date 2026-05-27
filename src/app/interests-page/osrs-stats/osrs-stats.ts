@@ -101,7 +101,6 @@ export class OsrsStatsComponent implements OnInit {
   playerLoadFailed = false;
   petsObtained = 0;
   petsTotal = 0;
-  petsLoaded = false;
   petsLoadFailed = false;
   activitiesLoadFailed = false;
 
@@ -112,7 +111,6 @@ export class OsrsStatsComponent implements OnInit {
     SKILL_ORDER.map(skill => [skill, `osrs/skills/${skill}_icon.png`])
   );
   readonly womUsername = WOM_USERNAME;
-  readonly womProfileUrl = `https://wiseoldman.net/players/${WOM_USERNAME.toLowerCase()}`;
 
   ngOnInit(): void {
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
@@ -127,11 +125,9 @@ export class OsrsStatsComponent implements OnInit {
       tap(petsPage => {
         this.petsObtained = petsPage?.obtained ?? 0;
         this.petsTotal = petsPage?.total ?? 0;
-        this.petsLoaded = true;
       }),
       map(petsPage => (petsPage?.items ?? []).filter(item => item.quantity > 0)),
       catchError(() => {
-        this.petsLoaded = true;
         this.petsLoadFailed = true;
         return of([]);
       })

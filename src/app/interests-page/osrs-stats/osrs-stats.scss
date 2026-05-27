@@ -303,19 +303,14 @@
 
 // ── Boss kills ───────────────────────────────────────────────────
 
-// Both .bosses-outer and .activities-outer use the same absolute-fill trick
-// so both panels stretch to the lower-panels row height and scroll internally.
 .bosses-outer,
 .activities-outer {
   flex: 1;
   min-width: 0;
-  position: relative;
 }
 
 .bosses-panel,
 .activities-panel {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
 
@@ -326,11 +321,6 @@
 }
 
 .boss-list {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  @include shared.scrollbar-styled;
-  &::-webkit-scrollbar-track { margin: 0; }
   list-style: none;
   padding: 0;
   margin: 0;
@@ -389,34 +379,16 @@
   display: flex;
   gap: 4rem;
   margin-top: 2.5rem;
-  height: 364px;
-  align-items: stretch;
+  align-items: flex-start;
 
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
-    height: auto;
-
-    .bosses-outer,
-    .activities-outer {
-      height: 40vh;
-    }
-
-    .bosses-panel,
-    .activities-panel {
-      position: static;
-      height: 100%;
-    }
   }
 }
 
 // ── Activities feed ──────────────────────────────────────────────
 
 .activities-list {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  @include shared.scrollbar-styled;
-  &::-webkit-scrollbar-track { margin: 0; }
   list-style: none;
   padding: 0;
   margin: 0;
