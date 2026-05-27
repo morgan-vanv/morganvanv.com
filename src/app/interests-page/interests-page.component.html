@@ -212,13 +212,16 @@
             <h3>Pets <span class="range-label">· {{ petsObtained }}/{{ petsTotal }}</span></h3>
             @if (pets$ | async; as pets) {
               @if (pets.length > 0) {
-                <div class="pets-grid">
+                <ul class="activities-list">
                   @for (pet of pets; track pet.id) {
-                    <div class="pet-cell" [class.obtained]="pet.quantity > 0" [title]="pet.name">
-                      <img [src]="itemImageUrl(pet.id)" [alt]="pet.name" loading="lazy" />
-                    </div>
+                    <li class="activity-item">
+                      <img [src]="itemImageUrl(pet.id)" class="activity-icon" [alt]="pet.name" loading="lazy" />
+                      <div class="activity-info">
+                        <span class="activity-label">{{ pet.name }}</span>
+                      </div>
+                    </li>
                   }
-                </div>
+                </ul>
               } @else {
                 <p class="loading-text">{{ petsLoadFailed ? 'Could not load pets.' : 'Loading...' }}</p>
               }

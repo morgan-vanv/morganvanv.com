@@ -450,39 +450,6 @@
   }
 }
 
-// ── Pets grid ────────────────────────────────────────────────────
-
-.pets-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(36px, 1fr));
-  gap: 4px;
-}
-
-.pet-cell {
-  width: 36px;
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: opacity 0.15s;
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    image-rendering: pixelated;
-  }
-
-  &:not(.obtained) {
-    opacity: 0.15;
-    filter: grayscale(1);
-  }
-
-  &.obtained:hover {
-    opacity: 0.85;
-  }
-}
-
 // ── Activities feed ──────────────────────────────────────────────
 
 .activities-list {

@@ -136,7 +136,7 @@ export class InterestsPageComponent implements OnInit {
         this.petsObtained = petsPage?.obtained ?? 0;
         this.petsTotal = petsPage?.total ?? 0;
       }),
-      map(petsPage => petsPage?.items ?? []),
+      map(petsPage => (petsPage?.items ?? []).filter(item => item.quantity > 0)),
       catchError(() => {
         this.petsLoadFailed = true;
         return of([]);
