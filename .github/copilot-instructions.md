@@ -26,15 +26,16 @@ npm test -- --watch=false --browsers=ChromeHeadless --no-progress
 ```
 src/
   app/               # Page components (one folder per route)
-  shared/            # Reusable components and styles
+  shared/            # Reusable components, services, and styles
     base-page/       # Shell component wrapping CustomNavbarComponent
     custom-navbar/   # Navigation bar
+    services/        # Angular services (e.g. WiseOldManService, RuneProfileService)
     route-transition.ts  # Shared animation trigger
     shared-styles.scss   # Shared utility mixins (e.g. scrollbar-styled)
   styles.scss        # Global styles and color variables
 ```
 
-**Page structure:** Each route has its own folder under `src/app/<name>-page/`. Pages import `BasePageComponent` to get the navbar. The `App` component (`src/app/app.ts`) applies route animations via `@routeAnimations`.
+**Page structure:** Each route has its own folder under `src/app/<name>-page/`. Pages import `BasePageComponent` to get the navbar. The `App` component (`src/app/app.ts`) applies route animations via `@routeAnimations`. Complex pages may contain nested sub-components in subfolders (e.g. `interests-page/osrs-stats/`).
 
 **Routing:** Defined in `src/app/app.routes.ts`. Every route requires a `data: { animation: 'UniqueName' }` property for the slide transition to work.
 
@@ -50,7 +51,7 @@ For navigation, prefer `routerLink` directive over imperative `Router.navigate()
 
 **New pages:** Import `BasePageComponent` (not `CustomNavbarComponent` directly) to get the shared navbar. Register the route in `app.routes.ts` with an `animation` data key.
 
-**Component metadata style:** Use `styleUrl` (singular) and `templateUrl`. Imports should have spaces after `{`.
+**Component metadata style:** Use `styleUrl` (singular) and `templateUrl`. Imports should have spaces after `{`. Top-level page components follow the `*.component.ts/html/scss` naming convention. Sub-components generated via Angular CLI (e.g. `ng generate component`) may omit the `.component.` infix — both patterns exist in the codebase.
 ```ts
 @Component({
   selector: 'app-my-page',
