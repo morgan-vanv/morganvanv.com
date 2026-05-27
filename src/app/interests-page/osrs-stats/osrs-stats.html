@@ -138,7 +138,7 @@
                 </div>
               </li>
             } @empty {
-              <p class="loading-text">{{ petsLoadFailed ? 'Could not load pets.' : 'No pets obtained yet.' }}</p>
+              <li class="loading-text">{{ petsLoadFailed ? 'Could not load pets.' : 'No pets obtained yet.' }}</li>
             }
           </ul>
         } @else {
@@ -169,7 +169,7 @@
                   </div>
                 </li>
               } @empty {
-                <p class="loading-text">{{ achievementsLoadFailed ? 'Could not load achievements.' : 'No achievements yet.' }}</p>
+                <li class="loading-text">{{ achievementsLoadFailed ? 'Could not load achievements.' : 'No achievements yet.' }}</li>
               }
             </ul>
           } @else {
@@ -192,7 +192,7 @@
                   </div>
                 </li>
               } @empty {
-                <p class="loading-text">{{ dropsLoadFailed ? 'Could not load drops.' : 'No drops yet.' }}</p>
+                <li class="loading-text">{{ dropsLoadFailed ? 'Could not load drops.' : 'No drops yet.' }}</li>
               }
             </ul>
           } @else {

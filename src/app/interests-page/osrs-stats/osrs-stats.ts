@@ -6,7 +6,6 @@ import { Observable, tap, map, catchError, of } from 'rxjs';
 
 const WOM_USERNAME = 'TipodissDong';
 const DISPLAY_LIMIT = 20;
-const XP_MILESTONE_THRESHOLD = 100_000_000;
 
 const DROP_ACTIVITY_TYPES: RpActivityType[] = ['valuable_drop', 'new_item_obtained'];
 
@@ -86,7 +85,7 @@ export class OsrsStatsComponent implements OnInit {
   drops$!: Observable<RpActivity[]>;
   achievements$!: Observable<WomAchievement[]>;
   questSummary$!: Observable<QuestSummary | null>;
-  diaryTierTotals$!: Observable<DiaryTierTotal[]>;
+  diaryTierTotals$!: Observable<DiaryTierTotal[] | null>;
   combatSummary$!: Observable<CombatSummary | null>;
   collectionLogSummary$!: Observable<CollectionLogSummary | null>;
 
@@ -165,7 +164,7 @@ export class OsrsStatsComponent implements OnInit {
             sum + (area.tiers.find(t => t.tier === tier)?.total ?? 0), 0),
         }))
       ),
-      catchError(() => of([]))
+      catchError(() => of(null))
     );
     this.combatSummary$ = this.runeProfile.getCombatAchievements(WOM_USERNAME).pipe(
       map(response => ({
@@ -198,13 +197,6 @@ export class OsrsStatsComponent implements OnInit {
     if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M gp`;
     if (value >= 1_000) return `${Math.round(value / 1_000)}K gp`;
     return `${value} gp`;
-  }
-
-  formatXp(xp: number): string {
-    if (xp >= 1_000_000_000) return `${(xp / 1_000_000_000).toFixed(1)}B`;
-    if (xp >= 1_000_000) return `${Math.floor(xp / 1_000_000)}M`;
-    if (xp >= 1_000) return `${Math.round(xp / 1_000)}K`;
-    return `${xp}`;
   }
 
   sumDiaryTotals(tiers: DiaryTierTotal[]): { completed: number; total: number } {
