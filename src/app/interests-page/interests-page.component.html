@@ -83,6 +83,7 @@
         Live stats for
         <a [href]="womProfileUrl" target="_blank" rel="noopener noreferrer">{{ womUsername }}</a>,
         pulled from <a href="https://wiseoldman.net" target="_blank" rel="noopener noreferrer">Wise Old Man</a>.
+        Also, check out my TempleOSRS profile <a href="https://templeosrs.com/player/TipodissDong" target="_blank" rel="noopener noreferrer">here</a>.
       </p>
 
       @if (player$ | async; as player) {
@@ -138,6 +139,58 @@
           </div>
 
         </div>
+
+        <div class="osrs-lower-panels">
+
+          <div class="pets-panel">
+            <h3>Pets <span class="range-label">· {{ petsObtained }}/{{ petsTotal }}</span></h3>
+            @if (pets$ | async; as pets) {
+              @if (pets.length > 0) {
+                <div class="pets-grid">
+                  @for (pet of pets; track pet.id) {
+                    <div class="pet-cell" [class.obtained]="pet.quantity > 0" [title]="pet.name">
+                      <img [src]="itemImageUrl(pet.id)" [alt]="pet.name" loading="lazy" />
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="loading-text">{{ petsLoadFailed ? 'Could not load pets.' : 'Loading...' }}</p>
+              }
+            } @else {
+              <p class="loading-text">Loading...</p>
+            }
+          </div>
+
+          <div class="activities-panel">
+            <h3>Notable Drops & Accomplishments</h3>
+            @if (activities$ | async; as activities) {
+              @if (activities.length > 0) {
+                <ul class="activities-list">
+                  @for (activity of activities; track activity.createdAt) {
+                    <li class="activity-item">
+                      @let icon = activityIcon(activity);
+                      @if (icon.type === 'item') {
+                        <img [src]="itemImageUrl(icon.id)" class="activity-icon" [alt]="formatActivityLabel(activity)" loading="lazy" />
+                      } @else {
+                        <span class="activity-icon-emoji">{{ icon.value }}</span>
+                      }
+                      <div class="activity-info">
+                        <span class="activity-label">{{ formatActivityLabel(activity) }}</span>
+                        <span class="activity-meta">{{ formatRelativeDate(activity.createdAt) }}</span>
+                      </div>
+                    </li>
+                  }
+                </ul>
+              } @else {
+                <p class="loading-text">{{ activitiesLoadFailed ? 'Could not load activities.' : 'No notable activities yet.' }}</p>
+              }
+            } @else {
+              <p class="loading-text">Loading...</p>
+            }
+          </div>
+
+        </div>
+
       } @else {
         <p class="loading-text">{{ playerLoadFailed ? 'Could not load OSRS stats.' : 'Loading...' }}</p>
       }
