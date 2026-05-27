@@ -82,6 +82,12 @@ export interface RpCombatAchievementTierActivity extends RpActivityBase {
   enriched: { tierName: string };
 }
 
+export interface RpCombatAchievementTierReachedActivity extends RpActivityBase {
+  type: 'combat_achievement_tier_reached';
+  data: Record<string, unknown>;
+  enriched: { tierName: string };
+}
+
 export interface RpDiaryTierActivity extends RpActivityBase {
   type: 'achievement_diary_tier_completed';
   data: { tier: number; areaId?: number };
@@ -111,6 +117,7 @@ export type RpActivity =
   | RpNewItemActivity
   | RpQuestActivity
   | RpCombatAchievementTierActivity
+  | RpCombatAchievementTierReachedActivity
   | RpDiaryTierActivity
   | RpMaxedActivity
   | RpXpMilestoneActivity
@@ -136,9 +143,10 @@ export class RuneProfileService {
     );
   }
 
-  getActivities(username: string, cursor?: string): Observable<RpActivitiesResponse> {
+  getActivities(username: string, activityTypes?: RpActivityType[], cursor?: string): Observable<RpActivitiesResponse> {
     const params: Record<string, string> = {};
     if (cursor) params['cursor'] = cursor;
+    if (activityTypes?.length) params['activityTypes'] = activityTypes.join(',');
     return this.http.get<RpActivitiesResponse>(
       `${BASE_URL}/accounts/${encodeURIComponent(username)}/activities`,
       { params }

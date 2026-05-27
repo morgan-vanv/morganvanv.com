@@ -157,14 +157,9 @@
             <ul class="activities-list">
               @for (achievement of achievements; track $index) {
                 <li class="activity-item">
-                  @let icon = achievementIcon(achievement);
-                  @if (icon.type === 'skill') {
-                    <img [src]="icon.src" class="activity-icon" [alt]="achievement.metric" loading="lazy" />
-                  } @else {
-                    <span class="activity-icon-emoji">{{ icon.value }}</span>
-                  }
+                  <img [src]="achievementActivityIcon(achievement)" class="activity-icon" [alt]="achievement.type" loading="lazy" />
                   <div class="activity-info">
-                    <span class="activity-label">{{ achievement.name }}</span>
+                    <span class="activity-label">{{ formatAchievementLabel(achievement) }}</span>
                     <span class="activity-meta">{{ formatDate(achievement.createdAt) }}</span>
                   </div>
                 </li>

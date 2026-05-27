@@ -33,17 +33,6 @@ export interface WomPlayer {
   latestSnapshot: { data: WomSnapshot };
 }
 
-export interface WomAchievement {
-  playerId: number;
-  name: string;
-  metric: string;
-  threshold: number;
-  accuracy: number;
-  createdAt: string;
-  measure: 'experience' | 'kills' | 'score' | 'levels';
-  legacy: boolean;
-}
-
 const BASE_URL = 'https://api.wiseoldman.net/v2';
 
 @Injectable({ providedIn: 'root' })
@@ -52,9 +41,5 @@ export class WiseOldManService {
 
   getPlayer(username: string): Observable<WomPlayer> {
     return this.http.get<WomPlayer>(`${BASE_URL}/players/${encodeURIComponent(username)}`);
-  }
-
-  getAchievements(username: string): Observable<WomAchievement[]> {
-    return this.http.get<WomAchievement[]>(`${BASE_URL}/players/${encodeURIComponent(username)}/achievements`);
   }
 }
