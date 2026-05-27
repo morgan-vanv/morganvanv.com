@@ -124,6 +124,72 @@
             </div>
           </div>
 
+          <div class="completions-panel">
+            <h3>Completions</h3>
+            <ul class="completions-list">
+
+              <li class="completion-row">
+                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/Quests.png" alt="Quests" /></span>
+                <span class="completion-label">Quests</span>
+                @if (questSummary$ | async; as qs) {
+                  <div class="completion-value-group">
+                    <span class="completion-value">{{ qs.completed }}<span class="completion-denom"> / {{ qs.total }}</span></span>
+                    <span class="completion-sub">{{ qs.earnedQp }} QP</span>
+                  </div>
+                } @else {
+                  <span class="loading-text">—</span>
+                }
+              </li>
+
+              <li class="completion-row completion-row--diaries">
+                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/thumb/Achievement_Diaries.png/130px-Achievement_Diaries.png?1e549" alt="Achievement Diaries" /></span>
+                <span class="completion-label">Diaries</span>
+                @if (diaryTierTotals$ | async; as tiers) {
+                  <div class="diary-completion-group">
+                    @let totals = sumDiaryTotals(tiers);
+                    <span class="completion-value diary-total">{{ totals.completed }}<span class="completion-denom"> / {{ totals.total }}</span></span>
+                    <div class="diary-tier-chips">
+                      @for (tier of tiers; track tier.tier) {
+                        <span class="diary-chip"
+                              [class.complete]="tier.completed === tier.total"
+                              [class.in-progress]="tier.completed > 0 && tier.completed < tier.total"
+                              [title]="tier.tier + ': ' + tier.completed + '/' + tier.total">
+                          {{ tier.tier.slice(0, 2) }}
+                        </span>
+                      }
+                    </div>
+                  </div>
+                } @else {
+                  <span class="loading-text">—</span>
+                }
+              </li>
+
+              <li class="completion-row">
+                <span class="completion-icon-slot"><img src="https://www.runeprofile.com/assets/combat-achievements-BEACSSRq.png" alt="Combat Achievements" /></span>
+                <span class="completion-label">Combat</span>
+                @if (combatSummary$ | async; as ca) {
+                  <div class="completion-value-group">
+                    <span class="completion-value">{{ ca.totalCompleted }}<span class="completion-denom"> / {{ ca.totalTasks }}</span></span>
+                    <span class="completion-sub">tasks</span>
+                  </div>
+                } @else {
+                  <span class="loading-text">—</span>
+                }
+              </li>
+
+              <li class="completion-row">
+                <span class="completion-icon-slot"><img src="/osrs/icons/collection-log-icon.png" alt="Collection Log" /></span>
+                <span class="completion-label">Coll. Log</span>
+                @if (collectionLogSummary$ | async; as clog) {
+                  <span class="completion-value">{{ clog.obtained }}<span class="completion-denom"> / {{ clog.total }}</span></span>
+                } @else {
+                  <span class="loading-text">—</span>
+                }
+              </li>
+
+            </ul>
+          </div>
+
           <div class="bosses-outer">
             <div class="bosses-panel">
               <h3>Boss Kills</h3>

@@ -4,7 +4,7 @@ import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { ScrollHintComponent } from '../../shared/scroll-hint/scroll-hint.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../shared/services/wise-old-man.service';
-import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType } from '../../shared/services/rune-profile.service';
+import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType, RpCombatTier } from '../../shared/services/rune-profile.service';
 import { Observable, tap, map, catchError, of } from 'rxjs';
 
 const STATSFM_USERNAME = 'morgan.vanv';
@@ -46,6 +46,32 @@ const CHARACTER_BADGES: CharacterBadge[] = [
   { iconUrl: 'osrs/badges/clan_deputy_owner_icon.png', alt: 'Clan', label: 'Ugandans' },
 ];
 
+interface QuestSummary {
+  completed: number;
+  total: number;
+  earnedQp: number;
+  totalQp: number;
+}
+
+interface DiaryTierTotal {
+  tier: string;
+  completed: number;
+  total: number;
+}
+
+interface CombatSummary {
+  tiers: RpCombatTier[];
+  totalCompleted: number;
+  totalTasks: number;
+}
+
+interface CollectionLogSummary {
+  obtained: number;
+  total: number;
+}
+
+const DIARY_TIERS = ['Easy', 'Medium', 'Hard', 'Elite'] as const;
+
 @Component({
   selector: 'app-interests-page',
   imports: [BasePageComponent, AsyncPipe, ScrollHintComponent],
@@ -63,6 +89,10 @@ export class InterestsPageComponent implements OnInit {
   player$!: Observable<WomPlayer | null>;
   pets$!: Observable<RpCollectionLogItem[]>;
   activities$!: Observable<RpActivity[]>;
+  questSummary$!: Observable<QuestSummary | null>;
+  diaryTierTotals$!: Observable<DiaryTierTotal[]>;
+  combatSummary$!: Observable<CombatSummary | null>;
+  collectionLogSummary$!: Observable<CollectionLogSummary | null>;
 
   topBosses: WomBoss[] = [];
   playerLoadFailed = false;
@@ -125,6 +155,42 @@ export class InterestsPageComponent implements OnInit {
         return of([]);
       })
     );
+    this.questSummary$ = this.runeProfile.getQuests(WOM_USERNAME).pipe(
+      map(response => {
+        const finished = response.data.filter(q => q.state === 'finished');
+        return {
+          completed: finished.length,
+          total: response.data.length,
+          earnedQp: finished.reduce((sum, q) => sum + q.points, 0),
+          totalQp: response.data.reduce((sum, q) => sum + q.points, 0),
+        };
+      }),
+      catchError(() => of(null))
+    );
+    this.diaryTierTotals$ = this.runeProfile.getAchievementDiaries(WOM_USERNAME).pipe(
+      map(response =>
+        DIARY_TIERS.map(tier => ({
+          tier,
+          completed: response.data.reduce((sum, area) =>
+            sum + (area.tiers.find(t => t.tier === tier)?.completed ?? 0), 0),
+          total: response.data.reduce((sum, area) =>
+            sum + (area.tiers.find(t => t.tier === tier)?.total ?? 0), 0),
+        }))
+      ),
+      catchError(() => of([]))
+    );
+    this.combatSummary$ = this.runeProfile.getCombatAchievements(WOM_USERNAME).pipe(
+      map(response => ({
+        tiers: response.data,
+        totalCompleted: response.data.reduce((sum, t) => sum + t.completed, 0),
+        totalTasks: response.data.reduce((sum, t) => sum + t.total, 0),
+      })),
+      catchError(() => of(null))
+    );
+    this.collectionLogSummary$ = this.runeProfile.getCollectionLogSummary(WOM_USERNAME).pipe(
+      map(({ obtained, total }) => ({ obtained, total })),
+      catchError(() => of(null))
+    );
   }
 
   formatPlaytime(ms: number): string {
@@ -158,6 +224,13 @@ export class InterestsPageComponent implements OnInit {
     if (xp >= 1_000_000) return `${Math.floor(xp / 1_000_000)}M`;
     if (xp >= 1_000) return `${Math.round(xp / 1_000)}K`;
     return `${xp}`;
+  }
+
+  sumDiaryTotals(tiers: DiaryTierTotal[]): { completed: number; total: number } {
+    return tiers.reduce(
+      (acc, t) => ({ completed: acc.completed + t.completed, total: acc.total + t.total }),
+      { completed: 0, total: 0 },
+    );
   }
 
   formatRelativeDate(dateStr: string): string {

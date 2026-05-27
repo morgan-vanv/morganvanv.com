@@ -22,6 +22,38 @@ export interface RpCollectionLogTabResponse {
   pages: RpCollectionLogPage[];
 }
 
+export interface RpCollectionLogSummary {
+  obtained: number;
+  total: number;
+}
+
+export interface RpQuest {
+  id: number;
+  name: string;
+  points: number;
+  type: 'free' | 'members' | 'mini';
+  state: 'not_started' | 'in_progress' | 'finished';
+}
+
+export interface RpDiaryTier {
+  tier: string;
+  completed: number;
+  total: number;
+}
+
+export interface RpDiaryArea {
+  areaId: number;
+  area: string;
+  tiers: RpDiaryTier[];
+}
+
+export interface RpCombatTier {
+  id: number;
+  name: string;
+  completed: number;
+  total: number;
+}
+
 export type RpActivityType =
   | 'level_up'
   | 'new_item_obtained'
@@ -63,6 +95,30 @@ export class RuneProfileService {
     return this.http.get<RpActivitiesResponse>(
       `${BASE_URL}/accounts/${encodeURIComponent(username)}/activities`,
       { params }
+    );
+  }
+
+  getQuests(username: string): Observable<{ data: RpQuest[] }> {
+    return this.http.get<{ data: RpQuest[] }>(
+      `${BASE_URL}/accounts/${encodeURIComponent(username)}/quests`
+    );
+  }
+
+  getAchievementDiaries(username: string): Observable<{ data: RpDiaryArea[] }> {
+    return this.http.get<{ data: RpDiaryArea[] }>(
+      `${BASE_URL}/accounts/${encodeURIComponent(username)}/achievement-diaries`
+    );
+  }
+
+  getCombatAchievements(username: string): Observable<{ data: RpCombatTier[] }> {
+    return this.http.get<{ data: RpCombatTier[] }>(
+      `${BASE_URL}/accounts/${encodeURIComponent(username)}/combat-achievements`
+    );
+  }
+
+  getCollectionLogSummary(username: string): Observable<RpCollectionLogSummary> {
+    return this.http.get<RpCollectionLogSummary>(
+      `${BASE_URL}/accounts/${encodeURIComponent(username)}/collection-log`
     );
   }
 }

@@ -269,6 +269,112 @@
   min-width: 2.2ch;
 }
 
+// ── Completions panel ────────────────────────────────────────────
+
+.completions-panel {
+  flex-shrink: 0;
+
+  h3 {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.completions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.completion-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+
+  &--diaries {
+    align-items: center;
+  }
+}
+
+.completion-icon-slot {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    image-rendering: pixelated;
+  }
+}
+
+.completion-label {
+  min-width: 5.5rem;
+  opacity: 0.75;
+}
+
+.completion-value-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.completion-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.completion-denom {
+  opacity: 0.5;
+}
+
+.completion-sub {
+  font-size: 0.75rem;
+  opacity: 0.5;
+}
+
+.diary-tier-chips {
+  display: flex;
+  gap: 4px;
+}
+
+.diary-completion-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.diary-total {
+  font-size: 0.8rem;
+}
+
+.diary-chip {
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 0.02em;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  opacity: 0.25;
+  text-transform: uppercase;
+
+  &.in-progress {
+    opacity: 0.6;
+  }
+
+  &.complete {
+    opacity: 1;
+    color: $osrs-gold;
+    border-color: rgba($osrs-gold, 0.4);
+  }
+}
+
 // ── Boss kills ───────────────────────────────────────────────────
 
 // Wrapper has no natural height (absolutely-positioned child is out of flow),
