@@ -54,22 +54,69 @@ export interface RpCombatTier {
   total: number;
 }
 
-export type RpActivityType =
-  | 'level_up'
-  | 'new_item_obtained'
-  | 'valuable_drop'
-  | 'quest_completed'
-  | 'combat_achievement_tier_completed'
-  | 'achievement_diary_tier_completed'
-  | 'maxed'
-  | 'xp_milestone';
-
-export interface RpActivity {
-  type: RpActivityType;
-  data: Record<string, number | string>;
-  enriched: Record<string, string>;
+interface RpActivityBase {
   createdAt: string;
 }
+
+export interface RpValuableDropActivity extends RpActivityBase {
+  type: 'valuable_drop';
+  data: { itemId: number; value: number };
+  enriched: { itemName: string };
+}
+
+export interface RpNewItemActivity extends RpActivityBase {
+  type: 'new_item_obtained';
+  data: { itemId: number };
+  enriched: { itemName: string };
+}
+
+export interface RpQuestActivity extends RpActivityBase {
+  type: 'quest_completed';
+  data: { questId: number };
+  enriched: { questName: string };
+}
+
+export interface RpCombatAchievementTierActivity extends RpActivityBase {
+  type: 'combat_achievement_tier_completed';
+  data: Record<string, unknown>;
+  enriched: { tierName: string };
+}
+
+export interface RpDiaryTierActivity extends RpActivityBase {
+  type: 'achievement_diary_tier_completed';
+  data: { tier: number; areaId?: number };
+  enriched: { tierName?: string; areaName: string };
+}
+
+export interface RpMaxedActivity extends RpActivityBase {
+  type: 'maxed';
+  data: Record<string, unknown>;
+  enriched: Record<string, unknown>;
+}
+
+export interface RpXpMilestoneActivity extends RpActivityBase {
+  type: 'xp_milestone';
+  data: { name: string; xp: number };
+  enriched: Record<string, unknown>;
+}
+
+export interface RpLevelUpActivity extends RpActivityBase {
+  type: 'level_up';
+  data: { name: string; level: number };
+  enriched: Record<string, unknown>;
+}
+
+export type RpActivity =
+  | RpValuableDropActivity
+  | RpNewItemActivity
+  | RpQuestActivity
+  | RpCombatAchievementTierActivity
+  | RpDiaryTierActivity
+  | RpMaxedActivity
+  | RpXpMilestoneActivity
+  | RpLevelUpActivity;
+
+export type RpActivityType = RpActivity['type'];
 
 export interface RpActivitiesResponse {
   activities: RpActivity[];

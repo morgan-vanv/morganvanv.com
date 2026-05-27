@@ -47,6 +47,17 @@ const CHARACTER_BADGES: CharacterBadge[] = [
   { iconUrl: 'osrs/badges/clan_deputy_owner_icon.png', alt: 'Clan', label: 'Ugandans', href: 'https://wiseoldman.net/groups/7117' },
 ];
 
+interface PoweredByLink {
+  label: string;
+  href: string;
+}
+
+const POWERED_BY_LINKS: PoweredByLink[] = [
+  { label: 'Wise Old Man', href: `https://wiseoldman.net/players/${WOM_USERNAME}` },
+  { label: 'RuneProfile', href: `https://www.runeprofile.com/${WOM_USERNAME}` },
+  { label: 'TempleOSRS', href: `https://templeosrs.com/player/overview.php?player=${WOM_USERNAME.toLowerCase()}` },
+];
+
 interface QuestSummary {
   completed: number;
   total: number;
@@ -99,17 +110,18 @@ export class InterestsPageComponent implements OnInit {
   playerLoadFailed = false;
   petsObtained = 0;
   petsTotal = 0;
+  petsLoaded = false;
   petsLoadFailed = false;
   activitiesLoadFailed = false;
 
   readonly characterBadges = CHARACTER_BADGES;
+  readonly poweredByLinks = POWERED_BY_LINKS;
   readonly skillOrder = SKILL_ORDER;
   readonly skillIcons: Record<string, string> = Object.fromEntries(
     SKILL_ORDER.map(skill => [skill, `osrs/skills/${skill}_icon.png`])
   );
   readonly womUsername = WOM_USERNAME;
   readonly womProfileUrl = `https://wiseoldman.net/players/${WOM_USERNAME.toLowerCase()}`;
-  readonly runeprofileUrl = `https://www.runeprofile.com/${WOM_USERNAME}`;
 
   ngOnInit(): void {
     this.topTracks$ = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks').pipe(
@@ -136,9 +148,11 @@ export class InterestsPageComponent implements OnInit {
       tap(petsPage => {
         this.petsObtained = petsPage?.obtained ?? 0;
         this.petsTotal = petsPage?.total ?? 0;
+        this.petsLoaded = true;
       }),
       map(petsPage => (petsPage?.items ?? []).filter(item => item.quantity > 0)),
       catchError(() => {
+        this.petsLoaded = true;
         this.petsLoadFailed = true;
         return of([]);
       })
@@ -147,7 +161,7 @@ export class InterestsPageComponent implements OnInit {
       map(response => response.activities
         .filter(a =>
           NOTABLE_ACTIVITY_TYPES.includes(a.type) &&
-          (a.type !== 'xp_milestone' || (a.data['xp'] as number) >= XP_MILESTONE_THRESHOLD)
+          (a.type !== 'xp_milestone' || a.data.xp >= XP_MILESTONE_THRESHOLD)
         )
         .slice(0, ACTIVITIES_DISPLAY_LIMIT)
       ),
@@ -247,7 +261,7 @@ export class InterestsPageComponent implements OnInit {
 
   activityIcon(activity: RpActivity): { type: 'item'; id: number } | { type: 'emoji'; value: string } {
     if (activity.type === 'valuable_drop' || activity.type === 'new_item_obtained') {
-      return { type: 'item', id: activity.data['itemId'] as number };
+      return { type: 'item', id: activity.data.itemId };
     }
     const emojiMap: Partial<Record<RpActivityType, string>> = {
       quest_completed: '📜',
@@ -260,28 +274,25 @@ export class InterestsPageComponent implements OnInit {
   }
 
   formatActivityLabel(activity: RpActivity): string {
-    const e = activity.enriched;
-    const d = activity.data;
     switch (activity.type) {
       case 'valuable_drop':
-        return `${e['itemName'] ?? 'Unknown'} — ${this.formatGp(d['value'] as number)}`;
+        return `${activity.enriched.itemName ?? 'Unknown'} — ${this.formatGp(activity.data.value)}`;
       case 'new_item_obtained':
-        return e['itemName'] ?? 'New collection log entry';
+        return activity.enriched.itemName ?? 'New collection log entry';
       case 'quest_completed':
-        return e['questName'] ?? 'Quest completed';
+        return activity.enriched.questName ?? 'Quest completed';
       case 'combat_achievement_tier_completed':
-        return `${e['tierName'] ?? 'Unknown'} Combat Achievements`;
+        return `${activity.enriched.tierName ?? 'Unknown'} Combat Achievements`;
       case 'achievement_diary_tier_completed': {
         const tierLabels = ['Easy', 'Medium', 'Hard', 'Elite'];
-        const tier = tierLabels[d['tier'] as number] ?? e['tierName'] ?? 'Unknown';
-        return `${e['areaName'] ?? 'Unknown'} ${tier} Diary`;
+        const tier = tierLabels[activity.data.tier] ?? activity.enriched.tierName ?? 'Unknown';
+        return `${activity.enriched.areaName ?? 'Unknown'} ${tier} Diary`;
       }
       case 'maxed':
         return 'Achieved max total level!';
       case 'xp_milestone': {
-        const skill = (d['name'] as string);
-        const skillName = skill.charAt(0).toUpperCase() + skill.slice(1);
-        return `${skillName} — ${this.formatXp(d['xp'] as number)} XP`;
+        const skillName = activity.data.name.charAt(0).toUpperCase() + activity.data.name.slice(1);
+        return `${skillName} — ${this.formatXp(activity.data.xp)} XP`;
       }
       default:
         return 'Unknown activity';

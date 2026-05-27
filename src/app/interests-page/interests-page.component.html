@@ -83,10 +83,10 @@
         <h2>Old School RuneScape</h2>
       </div>
       <div class="osrs-description">
-        <span>Live stats for my OSRS character, TipodissDong. Powered by:</span>
-        <a href="https://wiseoldman.net/players/TipodissDong" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">Wise Old Man</a>
-        <a href="https://www.runeprofile.com/TipodissDong" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">RuneProfile</a>
-        <a href="https://templeosrs.com/player/overview.php?player=Tipodissdong" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">TempleOSRS</a>
+        <span>Live stats for my OSRS character, {{ womUsername }}. Powered by:</span>
+        @for (link of poweredByLinks; track link.label) {
+          <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">{{ link.label }}</a>
+        }
       </div>
 
       @if (player$ | async; as player) {
@@ -125,19 +125,19 @@
             <ul class="completions-list">
 
               <li class="completion-row">
-                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/Combat_icon.png" alt="Combat Level" /></span>
+                <span class="completion-icon-slot"><img src="/osrs/icons/combat-icon.png" alt="Combat Level" /></span>
                 <span class="completion-label">Combat Lvl</span>
                 <span class="completion-value">{{ player.combatLevel }}</span>
               </li>
 
               <li class="completion-row">
-                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/Skills_icon.png?a8e9f" alt="Total Lvl" /></span>
+                <span class="completion-icon-slot"><img src="/osrs/icons/skills-icon.png" alt="Total Lvl" /></span>
                 <span class="completion-label">Total Lvl</span>
                 <span class="completion-value">{{ player.latestSnapshot.data.skills['overall']?.level ?? 0 }}</span>
               </li>
 
               <li class="completion-row">
-                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/Quests.png" alt="Quests" /></span>
+                <span class="completion-icon-slot"><img src="/osrs/icons/quests-icon.png" alt="Quests" /></span>
                 <span class="completion-label">Quests</span>
                 @if (questSummary$ | async; as qs) {
                   <div class="completion-value-group">
@@ -150,7 +150,7 @@
               </li>
 
               <li class="completion-row completion-row--diaries">
-                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/thumb/Achievement_Diaries.png/130px-Achievement_Diaries.png?1e549" alt="Achievement Diaries" /></span>
+                <span class="completion-icon-slot"><img src="/osrs/icons/diary-icon.png" alt="Achievement Diaries" /></span>
                 <span class="completion-label">Diaries</span>
                 @if (diaryTierTotals$ | async; as tiers) {
                   <div class="diary-completion-group">
@@ -173,7 +173,7 @@
               </li>
 
               <li class="completion-row">
-                <span class="completion-icon-slot"><img src="https://www.runeprofile.com/assets/combat-achievements-BEACSSRq.png" alt="Combat Achievements" /></span>
+                <span class="completion-icon-slot"><img src="/osrs/icons/combat-achievements-icon.png" alt="Combat Achievements" /></span>
                 <span class="completion-label">Comb. Ach.</span>
                 @if (combatSummary$ | async; as ca) {
                   <div class="completion-value-group">
@@ -208,20 +208,18 @@
           <div class="pets-outer">
             <h3>Pets <span class="range-label">· {{ petsObtained }}/{{ petsTotal }}</span></h3>
             @if (pets$ | async; as pets) {
-              @if (pets.length > 0) {
-                <ul class="pets-list">
-                  @for (pet of pets; track pet.id) {
-                    <li class="activity-item">
-                      <img [src]="itemImageUrl(pet.id)" class="activity-icon" [alt]="pet.name" loading="lazy" />
-                      <div class="activity-info">
-                        <span class="activity-label">{{ pet.name }}</span>
-                      </div>
-                    </li>
-                  }
-                </ul>
-              } @else {
-                <p class="loading-text">{{ petsLoadFailed ? 'Could not load pets.' : 'Loading...' }}</p>
-              }
+              <ul class="pets-list">
+                @for (pet of pets; track pet.id) {
+                  <li class="activity-item">
+                    <img [src]="itemImageUrl(pet.id)" class="activity-icon" [alt]="pet.name" loading="lazy" />
+                    <div class="activity-info">
+                      <span class="activity-label">{{ pet.name }}</span>
+                    </div>
+                  </li>
+                } @empty {
+                  <p class="loading-text">{{ petsLoadFailed ? 'Could not load pets.' : 'No pets obtained yet.' }}</p>
+                }
+              </ul>
             } @else {
               <p class="loading-text">Loading...</p>
             }
@@ -249,26 +247,24 @@
             <div class="activities-panel">
               <h3>Recent Drops & Accomplishments</h3>
               @if (activities$ | async; as activities) {
-                @if (activities.length > 0) {
-                  <ul class="activities-list">
-                    @for (activity of activities; track activity.createdAt) {
-                      <li class="activity-item">
-                        @let icon = activityIcon(activity);
-                        @if (icon.type === 'item') {
-                          <img [src]="itemImageUrl(icon.id)" class="activity-icon" [alt]="formatActivityLabel(activity)" loading="lazy" />
-                        } @else {
-                          <span class="activity-icon-emoji">{{ icon.value }}</span>
-                        }
-                        <div class="activity-info">
-                          <span class="activity-label">{{ formatActivityLabel(activity) }}</span>
-                          <span class="activity-meta">{{ formatRelativeDate(activity.createdAt) }}</span>
-                        </div>
-                      </li>
-                    }
-                  </ul>
-                } @else {
-                  <p class="loading-text">{{ activitiesLoadFailed ? 'Could not load activities.' : 'No notable activities yet.' }}</p>
-                }
+                <ul class="activities-list">
+                  @for (activity of activities; track $index) {
+                    <li class="activity-item">
+                      @let icon = activityIcon(activity);
+                      @if (icon.type === 'item') {
+                        <img [src]="itemImageUrl(icon.id)" class="activity-icon" [alt]="formatActivityLabel(activity)" loading="lazy" />
+                      } @else {
+                        <span class="activity-icon-emoji">{{ icon.value }}</span>
+                      }
+                      <div class="activity-info">
+                        <span class="activity-label">{{ formatActivityLabel(activity) }}</span>
+                        <span class="activity-meta">{{ formatRelativeDate(activity.createdAt) }}</span>
+                      </div>
+                    </li>
+                  } @empty {
+                    <p class="loading-text">{{ activitiesLoadFailed ? 'Could not load activities.' : 'No notable activities yet.' }}</p>
+                  }
+                </ul>
               } @else {
                 <p class="loading-text">Loading...</p>
               }
