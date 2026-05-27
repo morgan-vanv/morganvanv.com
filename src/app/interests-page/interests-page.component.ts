@@ -39,11 +39,12 @@ interface CharacterBadge {
   iconUrl: string;
   alt: string;
   label: string;
+  href: string;
 }
 
 const CHARACTER_BADGES: CharacterBadge[] = [
-  { iconUrl: 'osrs/badges/group_ironman_badge.png', alt: 'Group Ironman', label: 'SeedSlingers' },
-  { iconUrl: 'osrs/badges/clan_deputy_owner_icon.png', alt: 'Clan', label: 'Ugandans' },
+  { iconUrl: 'osrs/badges/group_ironman_badge.png', alt: 'Group Ironman', label: 'SeedSlingers', href: 'https://wiseoldman.net/groups/12982' },
+  { iconUrl: 'osrs/badges/clan_deputy_owner_icon.png', alt: 'Clan', label: 'Ugandans', href: 'https://wiseoldman.net/groups/7117' },
 ];
 
 interface QuestSummary {

@@ -82,20 +82,14 @@
         <img src="/osrs/osrs-icon.png" alt="Old School RuneScape icon" class="osrs-logo" />
         <h2>Old School RuneScape</h2>
       </div>
-      <p class="section-description">
-        Live stats for
-        <a [href]="womProfileUrl" target="_blank" rel="noopener noreferrer">{{ womUsername }}</a>,
-        pulled from <a href="https://wiseoldman.net" target="_blank" rel="noopener noreferrer">Wise Old Man</a>.
-        Also, check out my TempleOSRS profile <a href="https://templeosrs.com/player/TipodissDong" target="_blank" rel="noopener noreferrer">here</a>.
-      </p>
+      <div class="osrs-description">
+        <span>Live stats for my OSRS character, TipodissDong. Powered by:</span>
+        <a href="https://wiseoldman.net/players/TipodissDong" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">Wise Old Man</a>
+        <a href="https://www.runeprofile.com/TipodissDong" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">RuneProfile</a>
+        <a href="https://templeosrs.com/player/overview.php?player=Tipodissdong" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">TempleOSRS</a>
+      </div>
 
       @if (player$ | async; as player) {
-        <div class="osrs-overview">
-          <span class="osrs-pill">Total Level <strong>{{ player.latestSnapshot.data.skills['overall']?.level ?? 0 }}</strong></span>
-          <span class="osrs-pill">Combat <strong>{{ player.combatLevel }}</strong></span>
-          <span class="osrs-pill">EHP <strong>{{ formatNumber(player.ehp) }}</strong></span>
-          <span class="osrs-pill">EHB <strong>{{ formatNumber(player.ehb) }}</strong></span>
-        </div>
 
         <div class="osrs-panels">
 
@@ -105,14 +99,13 @@
               <img src="osrs-character.png" [alt]="womUsername" class="character-img" />
               <div class="character-badges">
                 @for (badge of characterBadges; track badge.label) {
-                  <div class="character-badge">
+                  <a [href]="badge.href" target="_blank" rel="noopener noreferrer" class="character-badge">
                     <img [src]="badge.iconUrl" [alt]="badge.alt" class="badge-icon" />
                     <span>{{ badge.label }}</span>
-                  </div>
+                  </a>
                 }
               </div>
             </div>
-            <a [href]="runeprofileUrl" target="_blank" rel="noopener noreferrer" class="character-profile-link">runeprofile.com ↗</a>
           </div>
 
           <div class="skills-panel">
@@ -128,8 +121,20 @@
           </div>
 
           <div class="completions-panel">
-            <h3>Completions</h3>
+            <h3>Achievements</h3>
             <ul class="completions-list">
+
+              <li class="completion-row">
+                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/Combat_icon.png" alt="Combat Level" /></span>
+                <span class="completion-label">Combat Lvl</span>
+                <span class="completion-value">{{ player.combatLevel }}</span>
+              </li>
+
+              <li class="completion-row">
+                <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/Skills_icon.png?a8e9f" alt="Total Lvl" /></span>
+                <span class="completion-label">Total Lvl</span>
+                <span class="completion-value">{{ player.latestSnapshot.data.skills['overall']?.level ?? 0 }}</span>
+              </li>
 
               <li class="completion-row">
                 <span class="completion-icon-slot"><img src="https://oldschool.runescape.wiki/images/Quests.png" alt="Quests" /></span>
@@ -169,7 +174,7 @@
 
               <li class="completion-row">
                 <span class="completion-icon-slot"><img src="https://www.runeprofile.com/assets/combat-achievements-BEACSSRq.png" alt="Combat Achievements" /></span>
-                <span class="completion-label">Combat</span>
+                <span class="completion-label">Comb. Ach.</span>
                 @if (combatSummary$ | async; as ca) {
                   <div class="completion-value-group">
                     <span class="completion-value">{{ ca.totalCompleted }}<span class="completion-denom"> / {{ ca.totalTasks }}</span></span>
@@ -188,6 +193,15 @@
                 } @else {
                   <span class="loading-text">—</span>
                 }
+              </li>
+
+              <li class="completion-row">
+                <span class="completion-label">EHP</span>
+                <span class="completion-value">{{ formatNumber(player.ehp) }}</span>
+                <span class="completion-denom completion-separator">|
+                </span>
+                <span class="completion-label">EHB</span>
+                <span class="completion-value">{{ formatNumber(player.ehb) }}</span>
               </li>
 
             </ul>

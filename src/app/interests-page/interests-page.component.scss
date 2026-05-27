@@ -134,11 +134,14 @@
   display: block;
 }
 
-.osrs-overview {
+.osrs-description {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 0.5rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 .osrs-pill {
@@ -153,6 +156,18 @@
 
   strong {
     color: $accent-color;
+  }
+
+  &--link {
+    color: inherit;
+    text-decoration: none;
+    opacity: 0.9;
+
+    &:hover {
+      opacity: 1;
+      background: rgba(255, 255, 255, 0.12);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
   }
 }
 
@@ -199,20 +214,6 @@
   display: block;
 }
 
-.character-profile-link {
-  margin-top: 0.75rem;
-  font-size: 0.75rem;
-  opacity: 0.45;
-  text-decoration: none;
-  color: inherit;
-  flex-shrink: 0;
-
-  &:hover {
-    opacity: 0.85;
-    text-decoration: underline;
-  }
-}
-
 .character-badges {
   position: absolute;
   bottom: 0.25rem;
@@ -232,13 +233,20 @@
   background: rgba(0, 0, 0, 0.7);
   border-radius: 3px;
   padding: 0.15rem 0.4rem;
-  font-size: 0.7rem;
+  font-size: 1.2rem;
   letter-spacing: 0.02em;
+  color: inherit;
+  text-decoration: none;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.85);
+    text-decoration: underline;
+  }
 }
 
 .badge-icon {
-  width: 14px;
-  height: 14px;
+  width: 28px;
+  height: 28px;
   object-fit: contain;
   image-rendering: pixelated;
   flex-shrink: 0;
@@ -345,6 +353,11 @@
 
 .completion-denom {
   opacity: 0.5;
+}
+
+.completion-separator {
+  opacity: 0.3;
+  margin: 0 0.15rem;
 }
 
 .completion-sub {
