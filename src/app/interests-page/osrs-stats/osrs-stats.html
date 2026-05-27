@@ -165,7 +165,7 @@
                   }
                   <div class="activity-info">
                     <span class="activity-label">{{ achievement.name }}</span>
-                    <span class="activity-meta">{{ formatRelativeDate(achievement.createdAt) }}</span>
+                    <span class="activity-meta">{{ formatDate(achievement.createdAt) }}</span>
                   </div>
                 </li>
               } @empty {
@@ -188,7 +188,7 @@
                   <img [src]="itemImageUrl(dropIcon(drop))" class="activity-icon" [alt]="formatDropLabel(drop)" loading="lazy" />
                   <div class="activity-info">
                     <span class="activity-label">{{ formatDropLabel(drop) }}</span>
-                    <span class="activity-meta">{{ formatRelativeDate(drop.createdAt) }}</span>
+                    <span class="activity-meta">{{ formatDate(drop.createdAt) }}</span>
                   </div>
                 </li>
               } @empty {

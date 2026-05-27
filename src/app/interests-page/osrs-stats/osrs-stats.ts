@@ -214,15 +214,8 @@ export class OsrsStatsComponent implements OnInit {
     );
   }
 
-  formatRelativeDate(dateStr: string): string {
-    const diffMs = Date.now() - new Date(dateStr).getTime();
-    const days = Math.floor(diffMs / 86_400_000);
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days} days ago`;
-    if (days < 30) return `${Math.floor(days / 7)} week${days < 14 ? '' : 's'} ago`;
-    if (days < 365) return `${Math.floor(days / 30)} month${days < 60 ? '' : 's'} ago`;
-    return `${Math.floor(days / 365)} year${days < 730 ? '' : 's'} ago`;
+  formatDate(dateStr: string): string {
+    return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }
 
   achievementIcon(achievement: WomAchievement): { type: 'skill'; src: string } | { type: 'emoji'; value: string } {
