@@ -150,6 +150,57 @@
 
     <div class="osrs-lower-panels">
 
+      <div class="achievements-outer">
+        <div class="achievements-panel">
+          <h3>Recent Achievements</h3>
+          @if (achievements$ | async; as achievements) {
+            <ul class="activities-list">
+              @for (achievement of achievements; track $index) {
+                <li class="activity-item">
+                  @let icon = achievementIcon(achievement);
+                  @if (icon.type === 'skill') {
+                    <img [src]="icon.src" class="activity-icon" [alt]="achievement.metric" loading="lazy" />
+                  } @else {
+                    <span class="activity-icon-emoji">{{ icon.value }}</span>
+                  }
+                  <div class="activity-info">
+                    <span class="activity-label">{{ achievement.name }}</span>
+                    <span class="activity-meta">{{ formatRelativeDate(achievement.createdAt) }}</span>
+                  </div>
+                </li>
+              } @empty {
+                <p class="loading-text">{{ achievementsLoadFailed ? 'Could not load achievements.' : 'No achievements yet.' }}</p>
+              }
+            </ul>
+          } @else {
+            <p class="loading-text">Loading...</p>
+          }
+        </div>
+      </div>
+
+      <div class="drops-outer">
+        <div class="drops-panel">
+          <h3>Recent Drops</h3>
+          @if (drops$ | async; as drops) {
+            <ul class="activities-list">
+              @for (drop of drops; track $index) {
+                <li class="activity-item">
+                  <img [src]="itemImageUrl(dropIcon(drop))" class="activity-icon" [alt]="formatDropLabel(drop)" loading="lazy" />
+                  <div class="activity-info">
+                    <span class="activity-label">{{ formatDropLabel(drop) }}</span>
+                    <span class="activity-meta">{{ formatRelativeDate(drop.createdAt) }}</span>
+                  </div>
+                </li>
+              } @empty {
+                <p class="loading-text">{{ dropsLoadFailed ? 'Could not load drops.' : 'No drops yet.' }}</p>
+              }
+            </ul>
+          } @else {
+            <p class="loading-text">Loading...</p>
+          }
+        </div>
+      </div>
+
       <div class="bosses-outer">
         <div class="bosses-panel">
           <h3>Boss Kills</h3>
@@ -161,34 +212,6 @@
               </li>
             }
           </ul>
-        </div>
-      </div>
-
-      <div class="activities-outer">
-        <div class="activities-panel">
-          <h3>Recent Drops & Accomplishments</h3>
-          @if (activities$ | async; as activities) {
-            <ul class="activities-list">
-              @for (activity of activities; track $index) {
-                <li class="activity-item">
-                  @let icon = activityIcon(activity);
-                  @if (icon.type === 'item') {
-                    <img [src]="itemImageUrl(icon.id)" class="activity-icon" [alt]="formatActivityLabel(activity)" loading="lazy" />
-                  } @else {
-                    <span class="activity-icon-emoji">{{ icon.value }}</span>
-                  }
-                  <div class="activity-info">
-                    <span class="activity-label">{{ formatActivityLabel(activity) }}</span>
-                    <span class="activity-meta">{{ formatRelativeDate(activity.createdAt) }}</span>
-                  </div>
-                </li>
-              } @empty {
-                <p class="loading-text">{{ activitiesLoadFailed ? 'Could not load activities.' : 'No notable activities yet.' }}</p>
-              }
-            </ul>
-          } @else {
-            <p class="loading-text">Loading...</p>
-          }
         </div>
       </div>
 

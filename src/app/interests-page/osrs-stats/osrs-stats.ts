@@ -1,22 +1,14 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
-import { WiseOldManService, WomPlayer, WomBoss } from '../../../shared/services/wise-old-man.service';
+import { WiseOldManService, WomPlayer, WomBoss, WomAchievement } from '../../../shared/services/wise-old-man.service';
 import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType, RpCombatTier } from '../../../shared/services/rune-profile.service';
 import { Observable, tap, map, catchError, of } from 'rxjs';
 
 const WOM_USERNAME = 'TipodissDong';
-const ACTIVITIES_DISPLAY_LIMIT = 20;
+const DISPLAY_LIMIT = 20;
 const XP_MILESTONE_THRESHOLD = 100_000_000;
 
-const NOTABLE_ACTIVITY_TYPES: RpActivityType[] = [
-  'valuable_drop',
-  'new_item_obtained',
-  'quest_completed',
-  'combat_achievement_tier_completed',
-  'achievement_diary_tier_completed',
-  'maxed',
-  'xp_milestone',
-];
+const DROP_ACTIVITY_TYPES: RpActivityType[] = ['valuable_drop', 'new_item_obtained'];
 
 // Ordered to match the in-game Skills tab layout (3 columns, top to bottom)
 const SKILL_ORDER = [
@@ -91,7 +83,8 @@ export class OsrsStatsComponent implements OnInit {
 
   player$!: Observable<WomPlayer | null>;
   pets$!: Observable<RpCollectionLogItem[]>;
-  activities$!: Observable<RpActivity[]>;
+  drops$!: Observable<RpActivity[]>;
+  achievements$!: Observable<WomAchievement[]>;
   questSummary$!: Observable<QuestSummary | null>;
   diaryTierTotals$!: Observable<DiaryTierTotal[]>;
   combatSummary$!: Observable<CombatSummary | null>;
@@ -102,7 +95,8 @@ export class OsrsStatsComponent implements OnInit {
   petsObtained = 0;
   petsTotal = 0;
   petsLoadFailed = false;
-  activitiesLoadFailed = false;
+  dropsLoadFailed = false;
+  achievementsLoadFailed = false;
 
   readonly characterBadges = CHARACTER_BADGES;
   readonly poweredByLinks = POWERED_BY_LINKS;
@@ -132,16 +126,20 @@ export class OsrsStatsComponent implements OnInit {
         return of([]);
       })
     );
-    this.activities$ = this.runeProfile.getActivities(WOM_USERNAME).pipe(
+    this.drops$ = this.runeProfile.getActivities(WOM_USERNAME).pipe(
       map(response => response.activities
-        .filter(a =>
-          NOTABLE_ACTIVITY_TYPES.includes(a.type) &&
-          (a.type !== 'xp_milestone' || a.data.xp >= XP_MILESTONE_THRESHOLD)
-        )
-        .slice(0, ACTIVITIES_DISPLAY_LIMIT)
+        .filter(a => DROP_ACTIVITY_TYPES.includes(a.type))
+        .slice(0, DISPLAY_LIMIT)
       ),
       catchError(() => {
-        this.activitiesLoadFailed = true;
+        this.dropsLoadFailed = true;
+        return of([]);
+      })
+    );
+    this.achievements$ = this.wom.getAchievements(WOM_USERNAME).pipe(
+      map(items => items.slice(0, DISPLAY_LIMIT)),
+      catchError(() => {
+        this.achievementsLoadFailed = true;
         return of([]);
       })
     );
@@ -227,44 +225,31 @@ export class OsrsStatsComponent implements OnInit {
     return `${Math.floor(days / 365)} year${days < 730 ? '' : 's'} ago`;
   }
 
-  activityIcon(activity: RpActivity): { type: 'item'; id: number } | { type: 'emoji'; value: string } {
-    if (activity.type === 'valuable_drop' || activity.type === 'new_item_obtained') {
-      return { type: 'item', id: activity.data.itemId };
+  achievementIcon(achievement: WomAchievement): { type: 'skill'; src: string } | { type: 'emoji'; value: string } {
+    if (achievement.metric === 'overall') {
+      return { type: 'skill', src: 'osrs/icons/skills-icon.png' };
     }
-    const emojiMap: Partial<Record<RpActivityType, string>> = {
-      quest_completed: '📜',
-      combat_achievement_tier_completed: '⚔️',
-      achievement_diary_tier_completed: '��',
-      maxed: '🏆',
-      xp_milestone: '⭐',
-    };
-    return { type: 'emoji', value: emojiMap[activity.type] ?? '🎯' };
+    if ((SKILL_ORDER as readonly string[]).includes(achievement.metric)) {
+      return { type: 'skill', src: `osrs/skills/${achievement.metric}_icon.png` };
+    }
+    return { type: 'emoji', value: '⚔️' };
   }
 
-  formatActivityLabel(activity: RpActivity): string {
-    switch (activity.type) {
-      case 'valuable_drop':
-        return `${activity.enriched.itemName ?? 'Unknown'} — ${this.formatGp(activity.data.value)}`;
-      case 'new_item_obtained':
-        return activity.enriched.itemName ?? 'New collection log entry';
-      case 'quest_completed':
-        return activity.enriched.questName ?? 'Quest completed';
-      case 'combat_achievement_tier_completed':
-        return `${activity.enriched.tierName ?? 'Unknown'} Combat Achievements`;
-      case 'achievement_diary_tier_completed': {
-        const tierLabels = ['Easy', 'Medium', 'Hard', 'Elite'];
-        const tier = tierLabels[activity.data.tier] ?? activity.enriched.tierName ?? 'Unknown';
-        return `${activity.enriched.areaName ?? 'Unknown'} ${tier} Diary`;
-      }
-      case 'maxed':
-        return 'Achieved max total level!';
-      case 'xp_milestone': {
-        const skillName = activity.data.name.charAt(0).toUpperCase() + activity.data.name.slice(1);
-        return `${skillName} — ${this.formatXp(activity.data.xp)} XP`;
-      }
-      default:
-        return 'Unknown activity';
+  dropIcon(activity: RpActivity): number {
+    if (activity.type === 'valuable_drop' || activity.type === 'new_item_obtained') {
+      return activity.data.itemId;
     }
+    return 0;
+  }
+
+  formatDropLabel(activity: RpActivity): string {
+    if (activity.type === 'valuable_drop') {
+      return `${activity.enriched.itemName ?? 'Unknown'} — ${this.formatGp(activity.data.value)}`;
+    }
+    if (activity.type === 'new_item_obtained') {
+      return activity.enriched.itemName ?? 'New collection log entry';
+    }
+    return 'Unknown drop';
   }
 
   private sortBosses(player: WomPlayer): WomBoss[] {

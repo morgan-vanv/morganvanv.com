@@ -304,13 +304,15 @@
 // ── Boss kills ───────────────────────────────────────────────────
 
 .bosses-outer,
-.activities-outer {
+.drops-outer,
+.achievements-outer {
   flex: 1;
   min-width: 0;
 }
 
 .bosses-panel,
-.activities-panel {
+.drops-panel,
+.achievements-panel {
   display: flex;
   flex-direction: column;
 
