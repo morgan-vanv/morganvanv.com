@@ -196,12 +196,10 @@
               </li>
 
               <li class="completion-row">
-                <span class="completion-label">EHP</span>
-                <span class="completion-value">{{ formatNumber(player.ehp) }}</span>
-                <span class="completion-denom completion-separator">|
-                </span>
-                <span class="completion-label">EHB</span>
-                <span class="completion-value">{{ formatNumber(player.ehb) }}</span>
+                <span class="completion-label">EHP / EHB</span>
+                <div class="completion-value-group">
+                  <span class="completion-value">{{ formatNumber(player.ehp) }} <span class="completion-denom">| {{ formatNumber(player.ehb) }}</span></span>
+                </div>
               </li>
 
             </ul>
