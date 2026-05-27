@@ -157,7 +157,7 @@
             <ul class="activities-list">
               @for (achievement of achievements; track $index) {
                 <li class="activity-item">
-                  <img [src]="achievementActivityIcon(achievement)" class="activity-icon" [alt]="achievement.type" loading="lazy" />
+                  <img [src]="achievementActivityIcon(achievement)" class="activity-icon" [alt]="formatAchievementLabel(achievement)" loading="lazy" />
                   <div class="activity-info">
                     <span class="activity-label">{{ formatAchievementLabel(achievement) }}</span>
                     <span class="activity-meta">{{ formatDate(achievement.createdAt) }}</span>

@@ -252,7 +252,7 @@ export class OsrsStatsComponent implements OnInit {
   private formatXp(xp: number): string {
     if (xp >= 1_000_000_000) return `${(xp / 1_000_000_000).toFixed(1)}B`;
     if (xp >= 1_000_000) return `${Math.floor(xp / 1_000_000)}M`;
-    if (xp >= 1_000) return `${Math.round(xp / 1_000)}K`;
+    if (xp >= 1_000) return `${Math.floor(xp / 1_000)}K`;
     return `${xp}`;
   }
 
