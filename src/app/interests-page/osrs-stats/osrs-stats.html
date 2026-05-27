@@ -1,0 +1,223 @@
+<section class="osrs-section">
+  <div class="osrs-header">
+    <img src="/osrs/osrs-icon.png" alt="Old School RuneScape icon" class="osrs-logo" />
+    <h2>Old School RuneScape</h2>
+  </div>
+  <div class="osrs-description">
+    <span>Live stats for my OSRS character, {{ womUsername }}. Powered by:</span>
+    @for (link of poweredByLinks; track link.label) {
+      <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="osrs-pill osrs-pill--link">{{ link.label }}</a>
+    }
+  </div>
+
+  @if (player$ | async; as player) {
+
+    <div class="osrs-panels">
+
+      <div class="character-panel">
+        <h3>{{ womUsername }}</h3>
+        <div class="character-img-wrapper">
+          <img src="osrs-character.png" [alt]="womUsername" class="character-img" />
+          <div class="character-badges">
+            @for (badge of characterBadges; track badge.label) {
+              <a [href]="badge.href" target="_blank" rel="noopener noreferrer" class="character-badge">
+                <img [src]="badge.iconUrl" [alt]="badge.alt" class="badge-icon" />
+                <span>{{ badge.label }}</span>
+              </a>
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="skills-panel">
+        <h3>Skills</h3>
+        <div class="skills-grid">
+          @for (skillKey of skillOrder; track skillKey) {
+            <div class="skill-cell" [class.maxed]="(player.latestSnapshot.data.skills[skillKey]?.level ?? 1) === 99">
+              <img [src]="skillIcons[skillKey]" [alt]="skillKey" class="skill-icon" />
+              <span class="skill-level">{{ player.latestSnapshot.data.skills[skillKey]?.level ?? 1 }}</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="completions-panel">
+        <h3>Overview</h3>
+        <ul class="completions-list">
+
+          <li class="completion-row">
+            <span class="completion-icon-slot"><img src="/osrs/icons/combat-icon.png" alt="Combat Level" /></span>
+            <span class="completion-label">Combat Lvl</span>
+            <span class="completion-value">{{ player.combatLevel }}</span>
+          </li>
+
+          <li class="completion-row">
+            <span class="completion-icon-slot"><img src="/osrs/icons/skills-icon.png" alt="Total Lvl" /></span>
+            <span class="completion-label">Total Lvl</span>
+            <span class="completion-value">{{ player.latestSnapshot.data.skills['overall']?.level ?? 0 }}</span>
+          </li>
+
+          <li class="completion-row">
+            <span class="completion-icon-slot"><img src="/osrs/icons/quests-icon.png" alt="Quests" /></span>
+            <span class="completion-label">Quests</span>
+            @if (questSummary$ | async; as qs) {
+              <div class="completion-value-group">
+                <span class="completion-value">{{ qs.completed }}<span class="completion-denom"> / {{ qs.total }}</span></span>
+                <span class="completion-sub">{{ qs.earnedQp }} QP</span>
+              </div>
+            } @else {
+              <span class="loading-text">—</span>
+            }
+          </li>
+
+          <li class="completion-row completion-row--diaries">
+            <span class="completion-icon-slot"><img src="/osrs/icons/diary-icon.png" alt="Achievement Diaries" /></span>
+            <span class="completion-label">Diaries</span>
+            @if (diaryTierTotals$ | async; as tiers) {
+              <div class="diary-completion-group">
+                @let totals = sumDiaryTotals(tiers);
+                <span class="completion-value diary-total">{{ totals.completed }}<span class="completion-denom"> / {{ totals.total }}</span></span>
+                <div class="diary-tier-chips">
+                  @for (tier of tiers; track tier.tier) {
+                    <span class="diary-chip"
+                          [class.complete]="tier.completed === tier.total"
+                          [class.in-progress]="tier.completed > 0 && tier.completed < tier.total"
+                          [title]="tier.tier + ': ' + tier.completed + '/' + tier.total">
+                      {{ tier.tier.slice(0, 2) }}
+                    </span>
+                  }
+                </div>
+              </div>
+            } @else {
+              <span class="loading-text">—</span>
+            }
+          </li>
+
+          <li class="completion-row">
+            <span class="completion-icon-slot"><img src="/osrs/icons/combat-achievements-icon.png" alt="Combat Achievements" /></span>
+            <span class="completion-label">Comb. Ach.</span>
+            @if (combatSummary$ | async; as ca) {
+              <div class="completion-value-group">
+                <span class="completion-value">{{ ca.totalCompleted }}<span class="completion-denom"> / {{ ca.totalTasks }}</span></span>
+                <span class="completion-sub">tasks</span>
+              </div>
+            } @else {
+              <span class="loading-text">—</span>
+            }
+          </li>
+
+          <li class="completion-row">
+            <span class="completion-icon-slot"><img src="/osrs/icons/collection-log-icon.png" alt="Collection Log" /></span>
+            <span class="completion-label">Coll. Log</span>
+            @if (collectionLogSummary$ | async; as clog) {
+              <span class="completion-value">{{ clog.obtained }}<span class="completion-denom"> / {{ clog.total }}</span></span>
+            } @else {
+              <span class="loading-text">—</span>
+            }
+          </li>
+
+          <li class="completion-row">
+            <span class="completion-label">EHP / EHB</span>
+            <div class="completion-value-group">
+              <span class="completion-value">{{ formatNumber(player.ehp) }} <span class="completion-denom">| {{ formatNumber(player.ehb) }}</span></span>
+            </div>
+          </li>
+
+        </ul>
+      </div>
+
+      <div class="pets-outer">
+        <h3>Pets @if (petsTotal > 0) {<span class="range-label">· {{ petsObtained }}/{{ petsTotal }}</span>}</h3>
+        @if (pets$ | async; as pets) {
+          <ul class="pets-list">
+            @for (pet of pets; track pet.id) {
+              <li class="activity-item">
+                <img [src]="itemImageUrl(pet.id)" class="activity-icon" [alt]="pet.name" loading="lazy" />
+                <div class="activity-info">
+                  <span class="activity-label">{{ pet.name }}</span>
+                </div>
+              </li>
+            } @empty {
+              <li class="loading-text">{{ petsLoadFailed ? 'Could not load pets.' : 'No pets obtained yet.' }}</li>
+            }
+          </ul>
+        } @else {
+          <p class="loading-text">Loading...</p>
+        }
+      </div>
+
+    </div>
+
+    <div class="osrs-lower-panels">
+
+      <div class="achievements-outer">
+        <div class="achievements-panel">
+          <h3>Recent Achievements</h3>
+          @if (achievements$ | async; as achievements) {
+            <ul class="activities-list">
+              @for (achievement of achievements; track $index) {
+                <li class="activity-item">
+                  @let icon = achievementIcon(achievement);
+                  @if (icon.type === 'skill') {
+                    <img [src]="icon.src" class="activity-icon" [alt]="achievement.metric" loading="lazy" />
+                  } @else {
+                    <span class="activity-icon-emoji">{{ icon.value }}</span>
+                  }
+                  <div class="activity-info">
+                    <span class="activity-label">{{ achievement.name }}</span>
+                    <span class="activity-meta">{{ formatDate(achievement.createdAt) }}</span>
+                  </div>
+                </li>
+              } @empty {
+                <li class="loading-text">{{ achievementsLoadFailed ? 'Could not load achievements.' : 'No achievements yet.' }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="loading-text">Loading...</p>
+          }
+        </div>
+      </div>
+
+      <div class="drops-outer">
+        <div class="drops-panel">
+          <h3>Recent Drops</h3>
+          @if (drops$ | async; as drops) {
+            <ul class="activities-list">
+              @for (drop of drops; track $index) {
+                <li class="activity-item">
+                  <img [src]="itemImageUrl(dropIcon(drop))" class="activity-icon" [alt]="formatDropLabel(drop)" loading="lazy" />
+                  <div class="activity-info">
+                    <span class="activity-label">{{ formatDropLabel(drop) }}</span>
+                    <span class="activity-meta">{{ formatDate(drop.createdAt) }}</span>
+                  </div>
+                </li>
+              } @empty {
+                <li class="loading-text">{{ dropsLoadFailed ? 'Could not load drops.' : 'No drops yet.' }}</li>
+              }
+            </ul>
+          } @else {
+            <p class="loading-text">Loading...</p>
+          }
+        </div>
+      </div>
+
+      <div class="bosses-outer">
+        <div class="bosses-panel">
+          <h3>Boss Kills</h3>
+          <ul class="boss-list">
+            @for (boss of topBosses; track boss.metric) {
+              <li class="boss-item">
+                <span class="boss-name">{{ formatBossName(boss.metric) }}</span>
+                <span class="boss-kc">{{ formatNumber(boss.kills) }}</span>
+              </li>
+            }
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+  } @else {
+    <p class="loading-text">{{ playerLoadFailed ? 'Could not load OSRS stats.' : 'Loading...' }}</p>
+  }
+</section>
