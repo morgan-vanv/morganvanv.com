@@ -16,7 +16,7 @@ My personal website built with Angular, TypeScript, and SCSS — live at [morgan
 | `/` | Greeting / landing |
 | `/home` | About me, social links |
 | `/background` | 🚧 Coming soon |
-| `/interests` | Music (stats.fm) + OSRS stats (Wise Old Man) |
+| `/interests` | Music (stats.fm) + OSRS stats (Wise Old Man, RuneProfile) |
 | `/projects` | 🚧 Coming soon |
 | `/blog` | 🚧 Coming soon |
 

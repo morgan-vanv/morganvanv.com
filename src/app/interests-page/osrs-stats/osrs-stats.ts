@@ -1,6 +1,6 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
-import { WiseOldManService, WomPlayer, WomBoss, WomAchievement } from '../../../shared/services/wise-old-man.service';
+import { WiseOldManService, WomPlayer, WomBoss } from '../../../shared/services/wise-old-man.service';
 import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType, RpCombatTier } from '../../../shared/services/rune-profile.service';
 import { Observable, tap, map, catchError, of } from 'rxjs';
 
@@ -8,6 +8,15 @@ const WOM_USERNAME = 'TipodissDong';
 const DISPLAY_LIMIT = 20;
 
 const DROP_ACTIVITY_TYPES: RpActivityType[] = ['valuable_drop', 'new_item_obtained'];
+
+const ACHIEVEMENT_ACTIVITY_TYPES: RpActivityType[] = [
+  'level_up',
+  'quest_completed',
+  'achievement_diary_tier_completed',
+  'combat_achievement_tier_completed',
+  'combat_achievement_tier_reached',
+  'xp_milestone',
+];
 
 // Ordered to match the in-game Skills tab layout (3 columns, top to bottom)
 const SKILL_ORDER = [
@@ -83,7 +92,7 @@ export class OsrsStatsComponent implements OnInit {
   player$!: Observable<WomPlayer | null>;
   pets$!: Observable<RpCollectionLogItem[]>;
   drops$!: Observable<RpActivity[]>;
-  achievements$!: Observable<WomAchievement[]>;
+  achievements$!: Observable<RpActivity[]>;
   questSummary$!: Observable<QuestSummary | null>;
   diaryTierTotals$!: Observable<DiaryTierTotal[] | null>;
   combatSummary$!: Observable<CombatSummary | null>;
@@ -125,18 +134,15 @@ export class OsrsStatsComponent implements OnInit {
         return of([]);
       })
     );
-    this.drops$ = this.runeProfile.getActivities(WOM_USERNAME).pipe(
-      map(response => response.activities
-        .filter(a => DROP_ACTIVITY_TYPES.includes(a.type))
-        .slice(0, DISPLAY_LIMIT)
-      ),
+    this.drops$ = this.runeProfile.getActivities(WOM_USERNAME, DROP_ACTIVITY_TYPES).pipe(
+      map(response => response.activities.slice(0, DISPLAY_LIMIT)),
       catchError(() => {
         this.dropsLoadFailed = true;
         return of([]);
       })
     );
-    this.achievements$ = this.wom.getAchievements(WOM_USERNAME).pipe(
-      map(items => items.slice(0, DISPLAY_LIMIT)),
+    this.achievements$ = this.runeProfile.getActivities(WOM_USERNAME, ACHIEVEMENT_ACTIVITY_TYPES).pipe(
+      map(response => response.activities.slice(0, DISPLAY_LIMIT)),
       catchError(() => {
         this.achievementsLoadFailed = true;
         return of([]);
@@ -210,14 +216,44 @@ export class OsrsStatsComponent implements OnInit {
     return new Date(dateStr).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   }
 
-  achievementIcon(achievement: WomAchievement): { type: 'skill'; src: string } | { type: 'emoji'; value: string } {
-    if (achievement.metric === 'overall') {
-      return { type: 'skill', src: 'osrs/icons/skills-icon.png' };
+  achievementActivityIcon(activity: RpActivity): string {
+    if (activity.type === 'level_up') {
+      return `osrs/skills/${this.normalizeSkillName(activity.data.name)}_icon.png`;
     }
-    if ((SKILL_ORDER as readonly string[]).includes(achievement.metric)) {
-      return { type: 'skill', src: `osrs/skills/${achievement.metric}_icon.png` };
+    if (activity.type === 'quest_completed') return 'osrs/icons/quests-icon.png';
+    if (activity.type === 'achievement_diary_tier_completed') return 'osrs/icons/diary-icon.png';
+    if (activity.type === 'combat_achievement_tier_completed' ||
+        activity.type === 'combat_achievement_tier_reached') return 'osrs/icons/combat-achievements-icon.png';
+    if (activity.type === 'xp_milestone') return 'osrs/icons/skills-icon.png';
+    return 'osrs/icons/skills-icon.png';
+  }
+
+  formatAchievementLabel(activity: RpActivity): string {
+    if (activity.type === 'level_up') return `${activity.data.name} ${activity.data.level}`;
+    if (activity.type === 'quest_completed') return activity.enriched.questName;
+    if (activity.type === 'achievement_diary_tier_completed') {
+      return `${activity.enriched.areaName} ${activity.enriched.tierName ?? ''} Diary`.trim();
     }
-    return { type: 'emoji', value: '⚔️' };
+    if (activity.type === 'combat_achievement_tier_completed' ||
+        activity.type === 'combat_achievement_tier_reached') {
+      return `${activity.enriched.tierName} Combat Achievements`;
+    }
+    if (activity.type === 'xp_milestone') {
+      return `${activity.data.name} ${this.formatXp(activity.data.xp)} XP`;
+    }
+    return 'Achievement';
+  }
+
+  private normalizeSkillName(name: string): string {
+    const lower = name.toLowerCase();
+    return lower === 'runecraft' ? 'runecrafting' : lower;
+  }
+
+  private formatXp(xp: number): string {
+    if (xp >= 1_000_000_000) return `${(xp / 1_000_000_000).toFixed(1)}B`;
+    if (xp >= 1_000_000) return `${Math.floor(xp / 1_000_000)}M`;
+    if (xp >= 1_000) return `${Math.floor(xp / 1_000)}K`;
+    return `${xp}`;
   }
 
   dropIcon(activity: RpActivity): number {
