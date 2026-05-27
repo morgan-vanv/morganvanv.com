@@ -20,3 +20,14 @@ body {
   --accent-color: #{$accent-color};
 }
 
+.loading-text {
+  font-size: 1rem;
+  opacity: 0.5;
+}
+
+.range-label {
+  font-size: 1rem;
+  opacity: 0.6;
+  font-weight: normal;
+}
+
