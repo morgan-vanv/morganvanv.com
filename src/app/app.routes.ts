@@ -1,7 +1,7 @@
 import { Routes, Route } from '@angular/router';
 import { GREETING_ROUTE_PATH, MAIN_ROUTES, MainRoutePath, getMainRouteAnimation } from '../shared/main-routes';
 
-const lazyRouteComponents: Record<MainRoutePath, () => Promise<any>> = {
+const lazyRouteComponents: Record<MainRoutePath, () => Promise<unknown>> = {
   home: () => import('./home-page/home-page.component').then(m => m.HomePageComponent),
   background: () => import('./background-page/background-page.component').then(m => m.BackgroundPageComponent),
   interests: () => import('./interests-page/interests-page.component').then(m => m.InterestsPageComponent),
