@@ -63,6 +63,8 @@
                     <span class="completion-value">{{ qs.completed }}<span class="completion-denom"> / {{ qs.total }}</span></span>
                     <span class="completion-sub">{{ qs.earnedQp }} QP</span>
                   </div>
+                } @else if (qsState.error) {
+                  <span class="loading-text">!</span>
                 } @else {
                   <span class="loading-text">—</span>
                 }
@@ -88,6 +90,8 @@
                       }
                     </div>
                   </div>
+                } @else if (dtState.error) {
+                  <span class="loading-text">!</span>
                 } @else {
                   <span class="loading-text">—</span>
                 }
@@ -103,6 +107,8 @@
                     <span class="completion-value">{{ ca.totalCompleted }}<span class="completion-denom"> / {{ ca.totalTasks }}</span></span>
                     <span class="completion-sub">tasks</span>
                   </div>
+                } @else if (caState.error) {
+                  <span class="loading-text">!</span>
                 } @else {
                   <span class="loading-text">—</span>
                 }
@@ -115,6 +121,8 @@
               @if (collectionLogSummary$ | async; as clogState) {
                 @if (clogState.data; as clog) {
                   <span class="completion-value">{{ clog.obtained }}<span class="completion-denom"> / {{ clog.total }}</span></span>
+                } @else if (clogState.error) {
+                  <span class="loading-text">!</span>
                 } @else {
                   <span class="loading-text">—</span>
                 }
