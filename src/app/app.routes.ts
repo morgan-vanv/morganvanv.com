@@ -1,37 +1,31 @@
-import { Type } from '@angular/core';
-import { Routes } from '@angular/router';
-import { GreetingPageComponent } from './greeting-page/greeting-page.component';
-import { HomePageComponent } from './home-page/home-page.component';
-import { ProjectsPageComponent } from './projects-page/projects-page.component';
-import { InterestsPageComponent } from './interests-page/interests-page.component';
-import { BackgroundPageComponent } from './background-page/background-page.component';
-import { BlogPageComponent } from './blog-page/blog-page.component';
+import { Routes, Route } from '@angular/router';
 import { GREETING_ROUTE_PATH, MAIN_ROUTES, MainRoutePath, getMainRouteAnimation } from '../shared/main-routes';
 
-const mainRouteComponents: Record<MainRoutePath, Type<unknown>> = {
-  home: HomePageComponent,
-  background: BackgroundPageComponent,
-  interests: InterestsPageComponent,
-  projects: ProjectsPageComponent,
-  blog: BlogPageComponent,
+const lazyRouteComponents: Record<MainRoutePath, () => Promise<any>> = {
+  home: () => import('./home-page/home-page.component').then(m => m.HomePageComponent),
+  background: () => import('./background-page/background-page.component').then(m => m.BackgroundPageComponent),
+  interests: () => import('./interests-page/interests-page.component').then(m => m.InterestsPageComponent),
+  projects: () => import('./projects-page/projects-page.component').then(m => m.ProjectsPageComponent),
+  blog: () => import('./blog-page/blog-page.component').then(m => m.BlogPageComponent),
 };
 
 export const routes: Routes = [
   {
     path: GREETING_ROUTE_PATH,
-    component: GreetingPageComponent,
+    loadComponent: () => import('./greeting-page/greeting-page.component').then(m => m.GreetingPageComponent),
     title: 'Greetings!',
     pathMatch: 'full',
     data: { animation: 0 },
   },
   ...MAIN_ROUTES.map((route) => ({
     path: route.path,
-    component: mainRouteComponents[route.path],
+    loadComponent: lazyRouteComponents[route.path],
     title: route.title,
     data: { animation: getMainRouteAnimation(route.path) },
-  })),
+  } as Route)),
   {
     path: '**',
     redirectTo: GREETING_ROUTE_PATH,
   },
 ];
+

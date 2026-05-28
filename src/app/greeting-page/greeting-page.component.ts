@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatIconButton } from '@angular/material/button';
@@ -19,6 +19,7 @@ const FADE_DURATION_MS = 400;
   imports: [RouterLink, MatIconModule, MatIconButton],
   templateUrl: './greeting-page.component.html',
   styleUrl: './greeting-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GreetingPageComponent implements OnInit, OnDestroy {
   private currentIndex = Math.floor(Math.random() * SUBTITLES.length);

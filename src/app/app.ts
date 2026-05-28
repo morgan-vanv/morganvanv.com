@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { defaultRouteTransition } from '../shared/route-transition';
 import { KeyboardNavService } from '../shared/services/keyboard-nav.service';
@@ -8,7 +8,8 @@ import { KeyboardNavService } from '../shared/services/keyboard-nav.service';
   imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
-  animations: [ defaultRouteTransition ]
+  animations: [ defaultRouteTransition ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   constructor() {
