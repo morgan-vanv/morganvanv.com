@@ -199,19 +199,17 @@
       <div class="bosses-outer">
         <div class="bosses-panel">
           <h3>Boss Kills</h3>
-          <ul class="boss-list">
+          <ul class="boss-grid">
             @for (boss of topBosses; track boss.metric) {
-              <li class="boss-item">
-                <span class="boss-name">{{ formatBossName(boss.metric) }}</span>
+              <li class="boss-item" [title]="formatBossName(boss.metric)">
+                <img [src]="getBossIconUrl(boss.metric)" class="boss-icon" [alt]="formatBossName(boss.metric)" loading="lazy" />
                 <span class="boss-kc">{{ formatNumber(boss.kills) }}</span>
               </li>
             }
           </ul>
         </div>
       </div>
-
     </div>
-
   } @else {
     <p class="loading-text">{{ playerLoadFailed ? 'Could not load OSRS stats.' : 'Loading...' }}</p>
   }

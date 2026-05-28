@@ -275,7 +275,10 @@ export class OsrsStatsComponent implements OnInit {
 
   private sortBosses(player: WomPlayer): WomBoss[] {
     return Object.values(player.latestSnapshot.data.bosses)
-      .filter(b => b.kills > 0)
-      .sort((a, b) => b.kills - a.kills);
+      .sort((a, b) => this.formatBossName(a.metric).localeCompare(this.formatBossName(b.metric)));
+  }
+
+  getBossIconUrl(metric: string): string {
+    return `osrs/bosses/${metric}.png`;
   }
 }
