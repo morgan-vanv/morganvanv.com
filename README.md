@@ -15,8 +15,8 @@ My personal website built with Angular, TypeScript, and SCSS — live at [morgan
 |---|---|
 | `/` | Greeting / landing |
 | `/home` | About me, social links |
-| `/background` | 🚧 Coming soon |
-| `/interests` | Music (stats.fm) + OSRS stats (Wise Old Man, RuneProfile) |
+| `/background` | Background info and pictures of Ada the cat |
+| `/interests` | Music (stats.fm) + OSRS stats (Wise Old Man, RuneProfile, Official Boss Icons) |
 | `/projects` | 🚧 Coming soon |
 | `/blog` | 🚧 Coming soon |
 

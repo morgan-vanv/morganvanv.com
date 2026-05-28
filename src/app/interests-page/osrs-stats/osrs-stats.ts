@@ -98,7 +98,7 @@ export class OsrsStatsComponent implements OnInit {
   combatSummary$!: Observable<CombatSummary | null>;
   collectionLogSummary$!: Observable<CollectionLogSummary | null>;
 
-  topBosses: WomBoss[] = [];
+  bosses: WomBoss[] = [];
   playerLoadFailed = false;
   petsObtained = 0;
   petsTotal = 0;
@@ -116,7 +116,7 @@ export class OsrsStatsComponent implements OnInit {
 
   ngOnInit(): void {
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
-      tap(p => { this.topBosses = this.sortBosses(p); }),
+      tap(p => { this.bosses = this.sortBosses(p); }),
       catchError(() => {
         this.playerLoadFailed = true;
         return of(null);

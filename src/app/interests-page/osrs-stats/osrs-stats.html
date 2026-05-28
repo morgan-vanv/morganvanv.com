@@ -200,7 +200,7 @@
         <div class="bosses-panel">
           <h3>Boss Kills</h3>
           <ul class="boss-grid">
-            @for (boss of topBosses; track boss.metric) {
+            @for (boss of bosses; track boss.metric) {
               <li class="boss-item" [title]="formatBossName(boss.metric)">
                 <img [src]="getBossIconUrl(boss.metric)" class="boss-icon" [alt]="formatBossName(boss.metric)" loading="lazy" />
                 <span class="boss-kc">{{ formatNumber(boss.kills) }}</span>
