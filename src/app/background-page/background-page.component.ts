@@ -9,6 +9,6 @@ import { BasePageComponent } from '../../shared/base-page/base-page.component';
   templateUrl: './background-page.component.html',
   styleUrl: './background-page.component.scss'
 })
-export class BackgroundPageComponent {
 
+export class BackgroundPageComponent {
 }
