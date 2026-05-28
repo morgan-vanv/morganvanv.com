@@ -1,7 +1,7 @@
 import { Routes, Route } from '@angular/router';
 import { GREETING_ROUTE_PATH, MAIN_ROUTES, MainRoutePath, getMainRouteAnimation } from '../shared/main-routes';
 
-const lazyRouteComponents: Record<MainRoutePath, () => Promise<unknown>> = {
+const lazyRouteComponents: Record<MainRoutePath, Route['loadComponent']> = {
   home: () => import('./home-page/home-page.component').then(m => m.HomePageComponent),
   background: () => import('./background-page/background-page.component').then(m => m.BackgroundPageComponent),
   interests: () => import('./interests-page/interests-page.component').then(m => m.InterestsPageComponent),
@@ -22,7 +22,7 @@ export const routes: Routes = [
     loadComponent: lazyRouteComponents[route.path],
     title: route.title,
     data: { animation: getMainRouteAnimation(route.path) },
-  } as Route)),
+  })),
   {
     path: '**',
     redirectTo: GREETING_ROUTE_PATH,
