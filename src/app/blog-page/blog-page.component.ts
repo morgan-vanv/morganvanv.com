@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 
@@ -6,7 +6,8 @@ import { UnderConstructionComponent } from '../../shared/under-construction/unde
   selector: 'app-blog-page',
   imports: [BasePageComponent, UnderConstructionComponent],
   templateUrl: './blog-page.component.html',
-  styleUrl: './blog-page.component.scss'
+  styleUrl: './blog-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BlogPageComponent {
 

@@ -1,10 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../../shared/services/wise-old-man.service';
 import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType, RpCombatTier } from '../../../shared/services/rune-profile.service';
-import { Observable, tap, map, catchError, of } from 'rxjs';
+import { Observable, tap, map, catchError, of, startWith } from 'rxjs';
+import { WOM_USERNAME, CHARACTER_BADGES, POWERED_BY_LINKS, SKILL_ORDER, DIARY_TIERS } from '../../../shared/constants/osrs-stats.const';
 
-const WOM_USERNAME = 'TipodissDong';
 const DISPLAY_LIMIT = 20;
 
 const DROP_ACTIVITY_TYPES: RpActivityType[] = ['valuable_drop', 'new_item_obtained'];
@@ -18,40 +18,19 @@ const ACHIEVEMENT_ACTIVITY_TYPES: RpActivityType[] = [
   'xp_milestone',
 ];
 
-// Ordered to match the in-game Skills tab layout (3 columns, top to bottom)
-const SKILL_ORDER = [
-  'attack',       'hitpoints',    'mining',
-  'strength',     'agility',      'smithing',
-  'defence',      'herblore',     'fishing',
-  'ranged',       'thieving',     'cooking',
-  'prayer',       'crafting',     'firemaking',
-  'magic',        'fletching',    'woodcutting',
-  'runecrafting', 'slayer',       'farming',
-  'construction', 'hunter',       'sailing',
-] as const;
-
-interface CharacterBadge {
-  iconUrl: string;
-  alt: string;
-  label: string;
-  href: string;
+interface ResourceState<T> {
+  data: T | null;
+  loading: boolean;
+  error: boolean;
 }
 
-const CHARACTER_BADGES: CharacterBadge[] = [
-  { iconUrl: 'osrs/badges/group_ironman_badge.png', alt: 'Group Ironman', label: 'SeedSlingers', href: 'https://wiseoldman.net/groups/12982' },
-  { iconUrl: 'osrs/badges/clan_deputy_owner_icon.png', alt: 'Clan', label: 'Ugandans', href: 'https://wiseoldman.net/groups/7117' },
-];
-
-interface PoweredByLink {
-  label: string;
-  href: string;
+function toResourceState<T>(): (source: Observable<T>) => Observable<ResourceState<T>> {
+  return source => source.pipe(
+    map(data => ({ data, loading: false, error: false })),
+    catchError(() => of({ data: null, loading: false, error: true })),
+    startWith({ data: null, loading: true, error: false })
+  );
 }
-
-const POWERED_BY_LINKS: PoweredByLink[] = [
-  { label: 'Wise Old Man', href: `https://wiseoldman.net/players/${WOM_USERNAME}` },
-  { label: 'RuneProfile', href: `https://www.runeprofile.com/${WOM_USERNAME}` },
-  { label: 'TempleOSRS', href: `https://templeosrs.com/player/overview.php?player=${WOM_USERNAME.toLowerCase()}` },
-];
 
 interface QuestSummary {
   completed: number;
@@ -77,34 +56,29 @@ interface CollectionLogSummary {
   total: number;
 }
 
-const DIARY_TIERS = ['Easy', 'Medium', 'Hard', 'Elite'] as const;
-
 @Component({
   selector: 'app-osrs-stats',
   imports: [AsyncPipe],
   templateUrl: './osrs-stats.html',
-  styleUrl: './osrs-stats.scss'
+  styleUrl: './osrs-stats.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OsrsStatsComponent implements OnInit {
   private wom = inject(WiseOldManService);
   private runeProfile = inject(RuneProfileService);
 
-  player$!: Observable<WomPlayer | null>;
-  pets$!: Observable<RpCollectionLogItem[]>;
-  drops$!: Observable<RpActivity[]>;
-  achievements$!: Observable<RpActivity[]>;
-  questSummary$!: Observable<QuestSummary | null>;
-  diaryTierTotals$!: Observable<DiaryTierTotal[] | null>;
-  combatSummary$!: Observable<CombatSummary | null>;
-  collectionLogSummary$!: Observable<CollectionLogSummary | null>;
+  player$!: Observable<ResourceState<WomPlayer>>;
+  pets$!: Observable<ResourceState<RpCollectionLogItem[]>>;
+  drops$!: Observable<ResourceState<RpActivity[]>>;
+  achievements$!: Observable<ResourceState<RpActivity[]>>;
+  questSummary$!: Observable<ResourceState<QuestSummary>>;
+  diaryTierTotals$!: Observable<ResourceState<DiaryTierTotal[]>>;
+  combatSummary$!: Observable<ResourceState<CombatSummary>>;
+  collectionLogSummary$!: Observable<ResourceState<CollectionLogSummary>>;
 
-  topBosses: WomBoss[] = [];
-  playerLoadFailed = false;
+  bosses: WomBoss[] = [];
   petsObtained = 0;
   petsTotal = 0;
-  petsLoadFailed = false;
-  dropsLoadFailed = false;
-  achievementsLoadFailed = false;
 
   readonly characterBadges = CHARACTER_BADGES;
   readonly poweredByLinks = POWERED_BY_LINKS;
@@ -116,12 +90,10 @@ export class OsrsStatsComponent implements OnInit {
 
   ngOnInit(): void {
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
-      tap(p => { this.topBosses = this.sortBosses(p); }),
-      catchError(() => {
-        this.playerLoadFailed = true;
-        return of(null);
-      })
+      tap(p => { this.bosses = this.sortBosses(p); }),
+      toResourceState()
     );
+
     this.pets$ = this.runeProfile.getCollectionLogTab(WOM_USERNAME, 'Other').pipe(
       map(response => response.pages.find(p => p.name === 'All Pets')),
       tap(petsPage => {
@@ -129,25 +101,19 @@ export class OsrsStatsComponent implements OnInit {
         this.petsTotal = petsPage?.total ?? 0;
       }),
       map(petsPage => (petsPage?.items ?? []).filter(item => item.quantity > 0)),
-      catchError(() => {
-        this.petsLoadFailed = true;
-        return of([]);
-      })
+      toResourceState()
     );
+
     this.drops$ = this.runeProfile.getActivities(WOM_USERNAME, DROP_ACTIVITY_TYPES).pipe(
       map(response => response.activities.slice(0, DISPLAY_LIMIT)),
-      catchError(() => {
-        this.dropsLoadFailed = true;
-        return of([]);
-      })
+      toResourceState()
     );
+
     this.achievements$ = this.runeProfile.getActivities(WOM_USERNAME, ACHIEVEMENT_ACTIVITY_TYPES).pipe(
       map(response => response.activities.slice(0, DISPLAY_LIMIT)),
-      catchError(() => {
-        this.achievementsLoadFailed = true;
-        return of([]);
-      })
+      toResourceState()
     );
+
     this.questSummary$ = this.runeProfile.getQuests(WOM_USERNAME).pipe(
       map(response => {
         const finished = response.data.filter(q => q.state === 'finished');
@@ -158,8 +124,9 @@ export class OsrsStatsComponent implements OnInit {
           totalQp: response.data.reduce((sum, q) => sum + q.points, 0),
         };
       }),
-      catchError(() => of(null))
+      toResourceState()
     );
+
     this.diaryTierTotals$ = this.runeProfile.getAchievementDiaries(WOM_USERNAME).pipe(
       map(response =>
         DIARY_TIERS.map(tier => ({
@@ -170,19 +137,21 @@ export class OsrsStatsComponent implements OnInit {
             sum + (area.tiers.find(t => t.tier === tier)?.total ?? 0), 0),
         }))
       ),
-      catchError(() => of(null))
+      toResourceState()
     );
+
     this.combatSummary$ = this.runeProfile.getCombatAchievements(WOM_USERNAME).pipe(
       map(response => ({
         tiers: response.data,
         totalCompleted: response.data.reduce((sum, t) => sum + t.completed, 0),
         totalTasks: response.data.reduce((sum, t) => sum + t.total, 0),
       })),
-      catchError(() => of(null))
+      toResourceState()
     );
+
     this.collectionLogSummary$ = this.runeProfile.getCollectionLogSummary(WOM_USERNAME).pipe(
       map(({ obtained, total }) => ({ obtained, total })),
-      catchError(() => of(null))
+      toResourceState()
     );
   }
 
@@ -275,7 +244,10 @@ export class OsrsStatsComponent implements OnInit {
 
   private sortBosses(player: WomPlayer): WomBoss[] {
     return Object.values(player.latestSnapshot.data.bosses)
-      .filter(b => b.kills > 0)
-      .sort((a, b) => b.kills - a.kills);
+      .sort((a, b) => this.formatBossName(a.metric).localeCompare(this.formatBossName(b.metric)));
+  }
+
+  getBossIconUrl(metric: string): string {
+    return `osrs/bosses/${metric}.png`;
   }
 }

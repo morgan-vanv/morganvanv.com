@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 
 @Component({
@@ -7,8 +7,9 @@ import { BasePageComponent } from '../../shared/base-page/base-page.component';
     BasePageComponent
   ],
   templateUrl: './background-page.component.html',
-  styleUrl: './background-page.component.scss'
+  styleUrl: './background-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BackgroundPageComponent {
 
+export class BackgroundPageComponent {
 }

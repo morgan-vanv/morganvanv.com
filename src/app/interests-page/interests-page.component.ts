@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { ScrollHintComponent } from '../../shared/scroll-hint/scroll-hint.component';
@@ -13,7 +13,8 @@ const STATS_DISPLAY_LIMIT = 8;
   selector: 'app-interests-page',
   imports: [BasePageComponent, AsyncPipe, ScrollHintComponent, OsrsStatsComponent],
   templateUrl: './interests-page.component.html',
-  styleUrl: './interests-page.component.scss'
+  styleUrl: './interests-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InterestsPageComponent {
   private statsFm = inject(StatsFmService);

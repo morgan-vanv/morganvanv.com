@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 
@@ -6,7 +6,8 @@ import { UnderConstructionComponent } from '../../shared/under-construction/unde
   selector: 'app-projects-page',
   imports: [BasePageComponent, UnderConstructionComponent],
   templateUrl: './projects-page.component.html',
-  styleUrl: './projects-page.component.scss'
+  styleUrl: './projects-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ProjectsPageComponent {
 
