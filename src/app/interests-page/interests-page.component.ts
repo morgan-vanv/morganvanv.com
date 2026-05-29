@@ -20,11 +20,11 @@ export class InterestsPageComponent {
   private statsFm = inject(StatsFmService);
 
   topTracks$: Observable<StatsFmTopTrack[]> = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks').pipe(
-    map(items => items.slice(0, STATS_DISPLAY_LIMIT)),
+    map(items => [...items].sort((a, b) => b.streams - a.streams).slice(0, STATS_DISPLAY_LIMIT)),
     catchError(() => of([]))
   );
   topAlbums$: Observable<StatsFmTopAlbum[]> = this.statsFm.getTopAlbums(STATSFM_USERNAME, 'months').pipe(
-    map(items => items.slice(0, STATS_DISPLAY_LIMIT)),
+    map(items => [...items].sort((a, b) => b.streams - a.streams).slice(0, STATS_DISPLAY_LIMIT)),
     catchError(() => of([]))
   );
   topArtists$: Observable<StatsFmTopArtist[]> = this.statsFm.getTopArtists(STATSFM_USERNAME, 'lifetime').pipe(

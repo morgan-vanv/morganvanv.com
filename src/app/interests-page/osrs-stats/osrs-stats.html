@@ -98,6 +98,27 @@
               }
             </li>
 
+            <li class="completion-row completion-row--clues">
+              <span class="completion-icon-slot"><img src="/osrs/icons/clue-icon.png" alt="Clue Scrolls" /></span>
+              <span class="completion-label">Clues</span>
+              <div class="clue-completion-group">
+                <span class="completion-value clue-total">
+                  {{ player.latestSnapshot.data.activities['clue_scrolls_all']?.score ?? 0 }}
+                </span>
+                <div class="clue-tier-chips">
+                  @for (tier of clueTiers; track tier.key) {
+                    @let activity = player.latestSnapshot.data.activities[tier.key];
+                    @let score = activity?.score ?? 0;
+                    <span class="clue-chip"
+                          [class.complete]="score > 0"
+                          [title]="tier.label + ': ' + formatNumber(score) + (activity && activity.rank > 0 ? ' (Rank ' + formatNumber(activity.rank) + ')' : '')">
+                      {{ tier.abbr }}
+                    </span>
+                  }
+                </div>
+              </div>
+            </li>
+
             <li class="completion-row">
               <span class="completion-icon-slot"><img src="/osrs/icons/combat-achievements-icon.png" alt="Combat Achievements" /></span>
               <span class="completion-label">Comb. Ach.</span>

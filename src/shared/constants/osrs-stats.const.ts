@@ -36,3 +36,18 @@ export const SKILL_ORDER = [
 ] as const;
 
 export const DIARY_TIERS = ['Easy', 'Medium', 'Hard', 'Elite'] as const;
+
+export interface ClueTier {
+  key: string;
+  label: string;
+  abbr: string;
+}
+
+export const CLUE_TIERS: ClueTier[] = [
+  { key: 'clue_scrolls_beginner', label: 'Beginner', abbr: 'Bg' },
+  { key: 'clue_scrolls_easy', label: 'Easy', abbr: 'Ez' },
+  { key: 'clue_scrolls_medium', label: 'Medium', abbr: 'Md' },
+  { key: 'clue_scrolls_hard', label: 'Hard', abbr: 'Hd' },
+  { key: 'clue_scrolls_elite', label: 'Elite', abbr: 'El' },
+  { key: 'clue_scrolls_master', label: 'Master', abbr: 'Ms' },
+];

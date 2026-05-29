@@ -210,7 +210,8 @@
     border-bottom: none;
   }
 
-  &--diaries {
+  &--diaries,
+  &--clues {
     align-items: center;
   }
 }
@@ -263,12 +264,14 @@
   opacity: 0.5;
 }
 
-.diary-tier-chips {
+.diary-tier-chips,
+.clue-tier-chips {
   display: flex;
   gap: 4px;
 }
 
-.diary-completion-group {
+.diary-completion-group,
+.clue-completion-group {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -276,11 +279,13 @@
   align-items: flex-end;
 }
 
-.diary-total {
+.diary-total,
+.clue-total {
   font-size: 0.8rem;
 }
 
-.diary-chip {
+.diary-chip,
+.clue-chip {
   font-size: 0.7rem;
   font-weight: bold;
   letter-spacing: 0.02em;
