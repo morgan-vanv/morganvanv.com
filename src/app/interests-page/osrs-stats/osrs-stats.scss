@@ -37,28 +37,7 @@
   opacity: 0.8;
 }
 
-.osrs-pill {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 999px;
-  padding: 0.3rem 0.85rem;
-  font-size: 1.2rem;
 
-  &--link {
-    color: inherit;
-    text-decoration: none;
-    opacity: 0.9;
-
-    &:hover {
-      opacity: 1;
-      background: rgba(255, 255, 255, 0.12);
-      border-color: rgba(255, 255, 255, 0.25);
-    }
-  }
-}
 
 .osrs-panels {
   display: flex;
@@ -210,7 +189,8 @@
     border-bottom: none;
   }
 
-  &--diaries {
+  &--diaries,
+  &--clues {
     align-items: center;
   }
 }
@@ -263,12 +243,14 @@
   opacity: 0.5;
 }
 
-.diary-tier-chips {
+.diary-tier-chips,
+.clue-tier-chips {
   display: flex;
   gap: 4px;
 }
 
-.diary-completion-group {
+.diary-completion-group,
+.clue-completion-group {
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -276,11 +258,13 @@
   align-items: flex-end;
 }
 
-.diary-total {
+.diary-total,
+.clue-total {
   font-size: 0.8rem;
 }
 
-.diary-chip {
+.diary-chip,
+.clue-chip {
   font-size: 0.7rem;
   font-weight: bold;
   letter-spacing: 0.02em;

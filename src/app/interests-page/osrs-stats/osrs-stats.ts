@@ -3,7 +3,7 @@ import { AsyncPipe } from '@angular/common';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../../shared/services/wise-old-man.service';
 import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType, RpCombatTier } from '../../../shared/services/rune-profile.service';
 import { Observable, tap, map, catchError, of, startWith } from 'rxjs';
-import { WOM_USERNAME, CHARACTER_BADGES, POWERED_BY_LINKS, SKILL_ORDER, DIARY_TIERS } from '../../../shared/constants/osrs-stats.const';
+import { WOM_USERNAME, CHARACTER_BADGES, POWERED_BY_LINKS, SKILL_ORDER, DIARY_TIERS, CLUE_TIERS } from '../../../shared/constants/osrs-stats.const';
 
 const DISPLAY_LIMIT = 20;
 
@@ -87,6 +87,7 @@ export class OsrsStatsComponent implements OnInit {
     SKILL_ORDER.map(skill => [skill, `osrs/skills/${skill}_icon.png`])
   );
   readonly womUsername = WOM_USERNAME;
+  readonly clueTiers = CLUE_TIERS;
 
   ngOnInit(): void {
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(

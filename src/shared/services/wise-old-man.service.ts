@@ -17,9 +17,16 @@ export interface WomBoss {
   ehb: number;
 }
 
+export interface WomActivity {
+  metric: string;
+  score: number;
+  rank: number;
+}
+
 export interface WomSnapshot {
   skills: Record<string, WomSkill>;
   bosses: Record<string, WomBoss>;
+  activities: Record<string, WomActivity>;
 }
 
 export interface WomPlayer {
