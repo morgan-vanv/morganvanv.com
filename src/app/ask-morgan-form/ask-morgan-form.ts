@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
@@ -14,13 +14,16 @@ export class AskMorganForm {
   isSubmitting = false;
   successMessage = '';
   errorMessage = '';
+  isSuccess = false;
+
+  constructor(private cdr: ChangeDetectorRef) {}
 
   async submitForm() {
     if (!this.question.trim()) return;
     
     this.isSubmitting = true;
-    this.successMessage = '';
     this.errorMessage = '';
+    this.cdr.detectChanges();
 
     try {
       const response = await fetch('https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit', {
@@ -33,9 +36,8 @@ export class AskMorganForm {
       });
 
       if (response.ok) {
-        this.successMessage = 'Message sent successfully!';
-        this.question = '';
-        this.username_honey = '';
+        this.successMessage = 'Thanks for reaching out! Your message was sent anonymously.';
+        this.isSuccess = true;
       } else {
         this.errorMessage = 'Failed to send message. Please try again later.';
       }
@@ -43,6 +45,15 @@ export class AskMorganForm {
       this.errorMessage = 'Network error occurred. Please try again later.';
     } finally {
       this.isSubmitting = false;
+      this.cdr.detectChanges();
     }
+  }
+
+  resetForm() {
+    this.isSuccess = false;
+    this.successMessage = '';
+    this.question = '';
+    this.username_honey = '';
+    this.cdr.detectChanges();
   }
 }
