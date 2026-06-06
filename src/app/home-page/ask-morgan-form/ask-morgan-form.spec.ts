@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { AskMorganForm } from './ask-morgan-form';
+import { AskMorganFormComponent } from './ask-morgan-form';
 
-describe('AskMorganForm', () => {
-  let component: AskMorganForm;
-  let fixture: ComponentFixture<AskMorganForm>;
+describe('AskMorganFormComponent', () => {
+  let component: AskMorganFormComponent;
+  let fixture: ComponentFixture<AskMorganFormComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AskMorganForm]
+      imports: [AskMorganFormComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(AskMorganForm);
+    fixture = TestBed.createComponent(AskMorganFormComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
