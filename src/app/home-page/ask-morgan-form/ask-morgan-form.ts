@@ -12,7 +12,7 @@ import { firstValueFrom } from 'rxjs';
 })
 export class AskMorganFormComponent {
   question = '';
-  username_honey = '';
+  usernameHoney = '';
   isSubmitting = false;
   successMessage = '';
   errorMessage = '';
@@ -25,21 +25,19 @@ export class AskMorganFormComponent {
     if (!this.question.trim()) return;
     
     // Honeypot short-circuit: fail silently to prevent spam
-    if (this.username_honey.trim()) {
+    if (this.usernameHoney.trim()) {
       this.successMessage = 'Thanks for reaching out! Your message was sent anonymously.';
       this.isSuccess = true;
-      this.cdr.detectChanges();
       return;
     }
 
     this.isSubmitting = true;
     this.errorMessage = '';
-    this.cdr.detectChanges();
 
     try {
       const payload = {
         question: this.question,
-        username_honey: this.username_honey
+        username_honey: this.usernameHoney
       };
       
       await firstValueFrom(
@@ -52,7 +50,7 @@ export class AskMorganFormComponent {
       this.errorMessage = 'Network error occurred. Please try again later.';
     } finally {
       this.isSubmitting = false;
-      this.cdr.detectChanges();
+      this.cdr.markForCheck();
     }
   }
 
@@ -60,7 +58,6 @@ export class AskMorganFormComponent {
     this.isSuccess = false;
     this.successMessage = '';
     this.question = '';
-    this.username_honey = '';
-    this.cdr.detectChanges();
+    this.usernameHoney = '';
   }
 }
