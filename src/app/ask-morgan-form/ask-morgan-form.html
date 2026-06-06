@@ -1,12 +1,12 @@
 <div class="ask-morgan-container" [class.success-state]="isSuccess">
   <div *ngIf="!isSuccess">
 
-    <div *ngIf="errorMessage" class="error-message">
+    <div *ngIf="errorMessage" class="error-message" aria-live="assertive">
       {{ errorMessage }}
     </div>
 
     <form (ngSubmit)="submitForm()" #askForm="ngForm">
-      <div class="honey-pot">
+      <div class="honey-pot" aria-hidden="true">
         <label for="username_honey">Leave this field blank if you are human:</label>
         <input type="text" id="username_honey" name="username_honey" [(ngModel)]="username_honey" tabindex="-1" autocomplete="off">
       </div>
@@ -20,10 +20,14 @@
           maxlength="500"
           rows="4"
           placeholder="What's on your mind?"
+          aria-label="Your anonymous submission"
           required
           [disabled]="isSubmitting"
         ></textarea>
-        <div class="char-counter">
+        <div class="char-counter" [ngClass]="{
+          'warning': question.length >= 400 && question.length < 480,
+          'danger': question.length >= 480
+        }">
           {{ question.length }} / 500
         </div>
       </div>
@@ -34,8 +38,8 @@
     </form>
   </div>
 
-  <div *ngIf="isSuccess" class="success-feedback">
-    <div class="success-icon">
+  <div *ngIf="isSuccess" class="success-feedback" aria-live="polite">
+    <div class="success-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
         <polyline points="22 4 12 14.01 9 11.01"></polyline>
