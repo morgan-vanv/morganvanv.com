@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
+const SUBMIT_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit';
+
 @Component({
   selector: 'app-ask-morgan-form',
   imports: [FormsModule, CommonModule],
@@ -36,18 +38,18 @@ export class AskMorganFormComponent {
 
     try {
       const payload = {
-        question: this.question,
+        question: this.question.trim(),
         username_honey: this.usernameHoney
       };
       
       await firstValueFrom(
-        this.http.post('https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit', payload)
+        this.http.post(SUBMIT_URL, payload)
       );
 
       this.successMessage = 'Thanks for reaching out! Your message was sent anonymously.';
       this.isSuccess = true;
     } catch {
-      this.errorMessage = 'Network error occurred. Please try again later.';
+      this.errorMessage = 'An error occurred while sending your message. Please try again later.';
     } finally {
       this.isSubmitting = false;
       this.cdr.markForCheck();
