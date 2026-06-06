@@ -1,0 +1,56 @@
+<div class="ask-morgan-container" [class.success-state]="isSuccess">
+  @if (!isSuccess) {
+
+    @if (errorMessage) {
+      <div class="error-message" aria-live="assertive">
+        {{ errorMessage }}
+      </div>
+    }
+
+    <form (ngSubmit)="submitForm()">
+      <div class="honey-pot" aria-hidden="true">
+        <label for="username_honey">Leave this field blank if you are human:</label>
+        <input type="text" id="username_honey" name="username_honey" [(ngModel)]="usernameHoney" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="form-group">
+        <label for="question">Your Submission (anonymous)</label>
+        <textarea
+          id="question"
+          name="question"
+          [(ngModel)]="question"
+          maxlength="500"
+          rows="4"
+          placeholder="What's on your mind?"
+          aria-label="Your anonymous submission"
+          required
+          [disabled]="isSubmitting"
+        ></textarea>
+        <div class="char-counter" [ngClass]="{
+          'warning': question.length >= 400 && question.length < 480,
+          'danger': question.length >= 480
+        }">
+          {{ question.length }} / 500
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn" [disabled]="isSubmitting || !question.trim()">
+        {{ isSubmitting ? 'Sending...' : 'Submit' }}
+      </button>
+    </form>
+  }
+
+  @if (isSuccess) {
+    <div class="success-feedback" aria-live="polite">
+    <div class="success-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+      </svg>
+    </div>
+    <h4>Message Sent</h4>
+    <p>{{ successMessage }}</p>
+    <button type="button" class="reset-btn" (click)="resetForm()">Ask Another Question</button>
+    </div>
+  }
+</div>

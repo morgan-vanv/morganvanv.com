@@ -1,0 +1,202 @@
+@use '../../../styles' as *;
+
+.ask-morgan-container {
+  box-sizing: border-box;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 1.5rem;
+  padding: 2rem;
+  margin-top: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 1.5rem;
+    border-radius: 1rem;
+    margin-top: 1rem;
+  }
+
+  &.success-state {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 250px;
+    background: rgba(76, 175, 80, 0.05);
+    border-color: rgba(76, 175, 80, 0.3);
+  }
+
+  h3 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: $main-color;
+    font-weight: 600;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.5rem;
+
+  label {
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.8);
+  }
+
+  textarea {
+    resize: vertical;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(0, 0, 0, 0.2);
+    color: $main-color;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+    min-height: 100px;
+
+    &:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+      background: rgba(0, 0, 0, 0.3);
+    }
+    
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.char-counter {
+  text-align: right;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 0.5rem;
+  transition: color 0.3s ease;
+
+  &.warning {
+    color: #ff9800;
+  }
+
+  &.danger {
+    color: #ff6b6b;
+  }
+}
+
+.honey-pot {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 0;
+  width: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+button.submit-btn, button.reset-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: $main-color;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.75rem 2rem;
+  border-radius: 999px; /* Pill shape to match website */
+  cursor: pointer;
+  font-weight: 500;
+  font-family: inherit;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+
+  &:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.4);
+    transform: translateY(-1px);
+  }
+
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+
+  &:disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    width: 100%;
+  }
+}
+
+.error-message {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.1);
+  padding: 1rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid rgba(255, 107, 107, 0.2);
+  font-size: 0.95rem;
+}
+
+/* Success Feedback Animation & Styles */
+.success-feedback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  animation: fadeIn 0.5s ease forwards;
+
+  h4 {
+    margin: 1rem 0 0.5rem;
+    font-size: 1.5rem;
+    color: #4caf50;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 2rem;
+  }
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(76, 175, 80, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #4caf50;
+  animation: scaleIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+
+  svg {
+    width: 32px;
+    height: 32px;
+
+    path, polyline {
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: drawCheck 0.6s cubic-bezier(0.65, 0, 0.45, 1) forwards 0.3s;
+    }
+  }
+}
+
+@keyframes drawCheck {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0); }
+  to { transform: scale(1); }
+}
