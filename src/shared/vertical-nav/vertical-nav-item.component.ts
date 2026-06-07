@@ -13,11 +13,12 @@ export class VerticalNavItemComponent {
   @Input({ required: true }) title!: string;
   @Input({ required: true }) description!: string;
   @Input() isUnderConstruction = false;
+  @Input() iconUrl?: string;
 
   private container = inject(VerticalNavContainerComponent);
 
   isHighlighted = computed(() => {
-    const index = this.container.itemsList?.toArray().indexOf(this);
+    const index = this.container.itemsList().indexOf(this);
     return index !== -1 && index === this.container.highlightedIndex();
   });
 
@@ -30,8 +31,8 @@ export class VerticalNavItemComponent {
     this.container.expandItem(this);
   }
 
-  @HostListener('mouseenter')
-  onHover() {
+  @HostListener('mousemove')
+  onMouseMove() {
     this.container.setHighlight(this);
   }
 }

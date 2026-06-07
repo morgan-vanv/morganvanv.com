@@ -4,7 +4,12 @@
 
   <div class="item-card" #cardEl>
     <div class="item-header">
-      <h2>{{ title }}</h2>
+      <div class="title-container">
+        @if (iconUrl) {
+          <img [src]="iconUrl" [alt]="title + ' icon'" class="item-icon" />
+        }
+        <h2>{{ title }}</h2>
+      </div>
       @if (!isExpanded()) {
         <p class="item-description">{{ description }}</p>
       }

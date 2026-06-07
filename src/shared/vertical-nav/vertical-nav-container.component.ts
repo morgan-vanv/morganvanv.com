@@ -1,4 +1,4 @@
-import { Component, ContentChildren, QueryList, HostListener, forwardRef, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, HostListener, ChangeDetectionStrategy, signal, contentChildren } from '@angular/core';
 import { VerticalNavItemComponent } from './vertical-nav-item.component';
 
 @Component({
@@ -8,7 +8,7 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class VerticalNavContainerComponent {
-  @ContentChildren(forwardRef(() => VerticalNavItemComponent)) itemsList!: QueryList<VerticalNavItemComponent>;
+  itemsList = contentChildren(VerticalNavItemComponent);
 
   highlightedIndex = signal(0);
   isExpanded = signal(false);
@@ -23,7 +23,8 @@ export class VerticalNavContainerComponent {
       return;
     }
 
-    const itemsCount = this.itemsList?.length || 0;
+    const items = this.itemsList();
+    const itemsCount = items.length;
     if (itemsCount === 0) return;
 
     if (event.key === 'ArrowUp') {
@@ -39,7 +40,7 @@ export class VerticalNavContainerComponent {
   }
 
   setHighlight(item: VerticalNavItemComponent) {
-    const index = this.itemsList.toArray().indexOf(item);
+    const index = this.itemsList().indexOf(item);
     if (index !== -1) {
       this.highlightedIndex.set(index);
     }
