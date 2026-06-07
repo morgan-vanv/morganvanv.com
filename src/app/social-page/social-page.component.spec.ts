@@ -9,7 +9,7 @@ describe('SocialPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SocialPageComponent],
-      providers: [provideRouter([])]
+      providers: [provideRouter([])],
     })
     .compileComponents();
     
