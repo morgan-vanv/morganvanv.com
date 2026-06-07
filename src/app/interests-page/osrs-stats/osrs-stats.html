@@ -1,11 +1,4 @@
 <section class="osrs-section">
-  <div class="osrs-description">
-    <span>Live stats for my OSRS character, {{ womUsername }}. Powered by:</span>
-    @for (link of poweredByLinks; track link.label) {
-      <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="pill">{{ link.label }}</a>
-    }
-  </div>
-
   @if (player$ | async; as playerState) {
     @if (playerState.data; as player) {
       <div class="osrs-panels">

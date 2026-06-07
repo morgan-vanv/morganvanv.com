@@ -1,6 +1,7 @@
 <div class="item-card-wrapper" 
      [class.highlighted]="isHighlighted()"
-     [class.expanded]="isExpanded()">
+     [class.expanded]="isExpanded()"
+     [class.hidden-sibling]="isHiddenSibling()">
 
   <div class="item-card" #cardEl>
     <div class="item-header">
@@ -10,9 +11,10 @@
         }
         <h2>{{ title }}</h2>
       </div>
-      @if (!isExpanded()) {
+      @if (description) {
         <p class="item-description">{{ description }}</p>
       }
+      <ng-content select="[description]"></ng-content>
     </div>
 
     @if (isExpanded()) {
@@ -20,7 +22,10 @@
         @if (isUnderConstruction) {
           <div class="construction-notice">
             <p>🚧 UNDER CONSTRUCTION 🚧</p>
-            <p>{{ description }}</p>
+            @if (description) {
+              <p>{{ description }}</p>
+            }
+            <ng-content select="[description]"></ng-content>
           </div>
         } @else {
           <ng-content></ng-content>
@@ -30,6 +35,9 @@
   </div>
 
   @if (isExpanded()) {
+    <button class="close-button" [class.active]="isEscapeActive()" (click)="onClose($event)">
+      <span>Esc</span>
+    </button>
     <app-scroll-hint [scrollEl]="cardEl" />
   }
 </div>

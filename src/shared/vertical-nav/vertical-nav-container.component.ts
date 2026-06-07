@@ -6,6 +6,9 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
   template: `<ng-content></ng-content>`,
   styleUrl: './vertical-nav-container.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.has-expanded-item]': 'isExpanded()'
+  }
 })
 export class VerticalNavContainerComponent {
   itemsList = contentChildren(VerticalNavItemComponent);
@@ -17,7 +20,7 @@ export class VerticalNavContainerComponent {
   handleKeyDown(event: KeyboardEvent) {
     if (this.isExpanded()) {
       if (event.key === 'Escape') {
-        this.isExpanded.set(false);
+        this.collapseActiveItem();
         event.preventDefault();
       }
       return;
@@ -49,5 +52,14 @@ export class VerticalNavContainerComponent {
   expandItem(item: VerticalNavItemComponent) {
     this.setHighlight(item);
     this.isExpanded.set(true);
+  }
+
+  collapseActiveItem() {
+    const activeItem = this.itemsList()[this.highlightedIndex()];
+    if (activeItem) {
+      activeItem.triggerClose();
+    } else {
+      this.isExpanded.set(false);
+    }
   }
 }

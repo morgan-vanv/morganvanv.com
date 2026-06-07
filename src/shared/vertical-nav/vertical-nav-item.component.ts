@@ -1,4 +1,4 @@
-import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed } from '@angular/core';
+import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed, signal } from '@angular/core';
 import { VerticalNavContainerComponent } from './vertical-nav-container.component';
 import { ScrollHintComponent } from '../scroll-hint/scroll-hint.component';
 
@@ -8,12 +8,17 @@ import { ScrollHintComponent } from '../scroll-hint/scroll-hint.component';
   templateUrl: './vertical-nav-item.component.html',
   styleUrl: './vertical-nav-item.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.hidden-sibling]': 'isHiddenSibling()'
+  }
 })
 export class VerticalNavItemComponent {
   @Input({ required: true }) title!: string;
-  @Input({ required: true }) description!: string;
+  @Input() description?: string;
   @Input() isUnderConstruction = false;
   @Input() iconUrl?: string;
+
+  isEscapeActive = signal(false);
 
   private container = inject(VerticalNavContainerComponent);
 
@@ -26,6 +31,10 @@ export class VerticalNavItemComponent {
     return this.isHighlighted() && this.container.isExpanded();
   });
 
+  isHiddenSibling = computed(() => {
+    return this.container.isExpanded() && !this.isExpanded();
+  });
+
   @HostListener('click')
   onClick() {
     this.container.expandItem(this);
@@ -34,5 +43,18 @@ export class VerticalNavItemComponent {
   @HostListener('mousemove')
   onMouseMove() {
     this.container.setHighlight(this);
+  }
+
+  triggerClose() {
+    this.isEscapeActive.set(true);
+    setTimeout(() => {
+      this.container.isExpanded.set(false);
+      this.isEscapeActive.set(false);
+    }, 150);
+  }
+
+  onClose(event: MouseEvent) {
+    event.stopPropagation();
+    this.triggerClose();
   }
 }

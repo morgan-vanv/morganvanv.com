@@ -6,6 +6,7 @@ import { VerticalNavItemComponent } from '../../shared/vertical-nav/vertical-nav
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { OsrsStatsComponent } from './osrs-stats/osrs-stats';
 import { Observable, map, catchError, of } from 'rxjs';
+import { WOM_USERNAME, POWERED_BY_LINKS } from '../../shared/constants/osrs-stats.const';
 
 const STATSFM_USERNAME = 'morgan.vanv';
 const STATS_DISPLAY_LIMIT = 8;
@@ -18,6 +19,9 @@ const STATS_DISPLAY_LIMIT = 8;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InterestsPageComponent {
+  readonly womUsername = WOM_USERNAME;
+  readonly poweredByLinks = POWERED_BY_LINKS;
+
   private statsFm = inject(StatsFmService);
 
   topTracks$: Observable<StatsFmTopTrack[]> = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks').pipe(

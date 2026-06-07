@@ -3,9 +3,13 @@
   <div class="interests-wrapper">
     <app-vertical-nav-container>
 
-      <app-vertical-nav-item 
-        title="🎵 Music" 
-        description="What I've been listening to lately on Spotify, pulled live from stats.fm. Or, if you are more into vinyl, you can check out my Discogs.">
+      <app-vertical-nav-item title="🎵 Music">
+        <span description>
+          What I've been listening to lately on Spotify, pulled live from
+          <a href="https://stats.fm/user/morgan.vanv" target="_blank" rel="noopener noreferrer" class="pill">stats.fm</a>.
+          Or, if you are more into vinyl, you can check out my
+          <a href="https://www.discogs.com/user/morganvanv/collection" target="_blank" rel="noopener noreferrer" class="pill">Discogs</a>.
+        </span>
         
         <div class="stats-columns">
 
@@ -74,8 +78,13 @@
 
       <app-vertical-nav-item 
         title="Old School RuneScape" 
-        iconUrl="/osrs/osrs-icon.png"
-        description="My OSRS stats, achievements, and boss logs pulled via Wise Old Man.">
+        iconUrl="/osrs/osrs-icon.png">
+        <span description>
+          Live stats for my OSRS character, {{ womUsername }}. Powered by:
+          @for (link of poweredByLinks; track link.label) {
+            <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="pill">{{ link.label }}</a>
+          }
+        </span>
         <app-osrs-stats />
       </app-vertical-nav-item>
 

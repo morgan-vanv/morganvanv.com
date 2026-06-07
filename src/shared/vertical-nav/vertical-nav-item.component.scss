@@ -3,6 +3,13 @@
 
 :host {
   display: block;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+
+  &.hidden-sibling {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
 }
 
 .item-card-wrapper {
@@ -23,7 +30,9 @@
     inset: 0; // Fixes clipping since it matches parent size
     z-index: 10;
     cursor: default;
-    background: $background-color;
+    background: rgba(0, 18, 17, 0.5);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: none;
     border-radius: 0;
   }
@@ -40,11 +49,13 @@
   .expanded & {
     overflow-y: auto;
     @include shared.scrollbar-styled;
+    padding-top: 4.5rem;
   }
 }
 
 .item-header {
-  .item-description {
+  .item-description, [description] {
+    display: block;
     margin: 0;
     opacity: 0.8;
   }
@@ -101,5 +112,35 @@
   p {
     margin: 0.5rem 0;
     font-size: 1.25rem;
+  }
+}
+
+.close-button {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  background: transparent;
+  color: #ff4d4d;
+  border: 2px solid #ff4d4d;
+  border-radius: 4px;
+  padding: 0.4rem 0.8rem;
+  font-family: inherit;
+  font-weight: bold;
+  font-size: 0.85rem;
+  cursor: pointer;
+  z-index: 20;
+  transition: all 0.15s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover, &.active {
+    background: #ff4d4d;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(255, 77, 77, 0.4);
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
