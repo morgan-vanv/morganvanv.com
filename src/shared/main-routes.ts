@@ -4,6 +4,7 @@ export const GREETING_ROUTE = '/';
 export const MAIN_ROUTES = [
   { path: 'home', title: 'Home' },
   { path: 'background', title: 'Background' },
+  { path: 'social', title: 'Social' },
   { path: 'interests', title: 'Interests' },
   { path: 'projects', title: 'Projects' },
   { path: 'blog', title: 'Blog' },
