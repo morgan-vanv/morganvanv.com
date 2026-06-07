@@ -4,6 +4,7 @@ import { GREETING_ROUTE_PATH, MAIN_ROUTES, MainRoutePath, getMainRouteAnimation 
 const lazyRouteComponents: Record<MainRoutePath, Route['loadComponent']> = {
   home: () => import('./home-page/home-page.component').then(m => m.HomePageComponent),
   background: () => import('./background-page/background-page.component').then(m => m.BackgroundPageComponent),
+  social: () => import('./social-page/social-page.component').then(m => m.SocialPageComponent),
   interests: () => import('./interests-page/interests-page.component').then(m => m.InterestsPageComponent),
   projects: () => import('./projects-page/projects-page.component').then(m => m.ProjectsPageComponent),
   blog: () => import('./blog-page/blog-page.component').then(m => m.BlogPageComponent),

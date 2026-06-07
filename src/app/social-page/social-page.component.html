@@ -1,0 +1,32 @@
+<app-base-page>
+  <section>
+    <h2>Community Photo Wall</h2>
+    <p>
+      If you would like to submit a photo to the wall, please email it to me (with an optional caption) at
+      <a href="mailto:website@morganvanv.com" class="pill">website&#64;morganvanv.com</a>
+    </p>
+
+    <div class="photo-wall">
+      @for (photo of photos; track photo.id) {
+        <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null">
+          <div class="polaroid-image-container">
+            @if (photo.imageUrl) {
+              <img [src]="photo.imageUrl" [alt]="photo.caption || 'Community submitted photo'" class="polaroid-image" loading="lazy" decoding="async" />
+            } @else {
+              <div class="polaroid-placeholder">{{ photo.placeholderText }}</div>
+            }
+          </div>
+          <!-- Blank space or annotation/caption -->
+          <div class="polaroid-caption">
+            {{ photo.caption || '' }}
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section>
+    <h2>IRC Shoutbox</h2>
+    <app-under-construction></app-under-construction>
+  </section>
+</app-base-page>

@@ -38,7 +38,7 @@
 .form-group {
   display: flex;
   flex-direction: column;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0.75rem;
 
   label {
     margin-bottom: 0.75rem;
@@ -127,7 +127,13 @@ button.submit-btn, button.reset-btn {
     cursor: not-allowed;
     border-color: rgba(255, 255, 255, 0.1);
   }
+}
 
+button.submit-btn {
+  width: 100%;
+}
+
+button.reset-btn {
   @media (max-width: $breakpoint-mobile) {
     width: 100%;
   }

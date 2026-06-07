@@ -22,6 +22,7 @@ export class CustomNavbarComponent {
     { route: '/', icon: 'exit_to_app', ariaLabel: 'Greeting', exact: true },
     { route: '/home', label: 'Home' },
     { route: '/background', label: 'Background' },
+    { route: '/social', label: 'Social' },
     { route: '/interests', label: 'Interests' },
     { route: '/projects', label: 'Projects' },
     { route: '/blog', label: 'Blog' },
