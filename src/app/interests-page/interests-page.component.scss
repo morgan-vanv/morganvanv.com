@@ -6,25 +6,7 @@
   height: 100%;
   position: relative;
   overflow: hidden;
-}
-
-.interests-container {
-  width: 100%;
-  height: 100%;
-  overflow-y: auto;
-  @include shared.scrollbar-styled;
-}
-
-.music-section {
-  h2 {
-    margin-bottom: 0.25rem;
-  }
-}
-
-.section-description {
-  font-size: 1.5rem;
-  margin: 0 0 1.5rem;
-  opacity: 0.8;
+  padding: 1rem;
 }
 
 .stats-columns {
@@ -90,10 +72,3 @@
   text-overflow: ellipsis;
 }
 
-// ── Section divider ──────────────────────────────────────────────
-
-.section-divider {
-  border: none;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  margin: 2.5rem 0;
-}

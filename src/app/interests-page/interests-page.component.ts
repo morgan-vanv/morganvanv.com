@@ -1,7 +1,8 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
-import { ScrollHintComponent } from '../../shared/scroll-hint/scroll-hint.component';
+import { VerticalNavContainerComponent } from '../../shared/vertical-nav/vertical-nav-container.component';
+import { VerticalNavItemComponent } from '../../shared/vertical-nav/vertical-nav-item.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { OsrsStatsComponent } from './osrs-stats/osrs-stats';
 import { Observable, map, catchError, of } from 'rxjs';
@@ -11,7 +12,7 @@ const STATS_DISPLAY_LIMIT = 8;
 
 @Component({
   selector: 'app-interests-page',
-  imports: [BasePageComponent, AsyncPipe, ScrollHintComponent, OsrsStatsComponent],
+  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

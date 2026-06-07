@@ -1,0 +1,23 @@
+<div class="item-card" 
+     [class.highlighted]="isHighlighted()"
+     [class.expanded]="isExpanded()">
+  <div class="item-header">
+    <h2>{{ title }}</h2>
+    @if (!isExpanded()) {
+      <p class="item-description">{{ description }}</p>
+    }
+  </div>
+
+  @if (isExpanded()) {
+    <div class="item-content">
+      @if (isUnderConstruction) {
+        <div class="construction-notice">
+          <p>🚧 UNDER CONSTRUCTION 🚧</p>
+          <p>{{ description }}</p>
+        </div>
+      } @else {
+        <ng-content></ng-content>
+      }
+    </div>
+  }
+</div>
