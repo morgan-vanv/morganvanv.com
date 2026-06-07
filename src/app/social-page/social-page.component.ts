@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 
@@ -14,11 +14,11 @@ export interface PhotoSpot {
   imports: [BasePageComponent, UnderConstructionComponent],
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SocialPageComponent {
   readonly photos: PhotoSpot[] = Array.from({ length: 12 }, (_, i) => ({
     id: i,
-    placeholderText: 'Your Photo Here',
-    caption: undefined
+    placeholderText: 'Your Photo Here'
   }));
 }
