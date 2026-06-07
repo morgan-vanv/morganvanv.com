@@ -1,4 +1,4 @@
-import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed, signal } from '@angular/core';
+import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed, signal, DestroyRef } from '@angular/core';
 import { VerticalNavContainerComponent } from './vertical-nav-container.component';
 import { ScrollHintComponent } from '../scroll-hint/scroll-hint.component';
 
@@ -21,6 +21,7 @@ export class VerticalNavItemComponent {
   isEscapeActive = signal(false);
 
   private container = inject(VerticalNavContainerComponent);
+  private destroyRef = inject(DestroyRef);
 
   isHighlighted = computed(() => {
     const index = this.container.itemsList().indexOf(this);
@@ -42,15 +43,18 @@ export class VerticalNavItemComponent {
 
   @HostListener('mousemove')
   onMouseMove() {
-    this.container.setHighlight(this);
+    if (!this.isHighlighted()) {
+      this.container.setHighlight(this);
+    }
   }
 
   triggerClose() {
     this.isEscapeActive.set(true);
-    setTimeout(() => {
+    const timeoutId = window.setTimeout(() => {
       this.container.isExpanded.set(false);
       this.isEscapeActive.set(false);
     }, 150);
+    this.destroyRef.onDestroy(() => window.clearTimeout(timeoutId));
   }
 
   onClose(event: MouseEvent) {

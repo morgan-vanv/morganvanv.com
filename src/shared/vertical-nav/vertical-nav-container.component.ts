@@ -16,7 +16,7 @@ export class VerticalNavContainerComponent {
   highlightedIndex = signal(0);
   isExpanded = signal(false);
 
-  @HostListener('window:keydown', ['$event'])
+  @HostListener('document:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (this.isExpanded()) {
       if (event.key === 'Escape') {

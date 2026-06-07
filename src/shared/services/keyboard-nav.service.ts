@@ -11,11 +11,12 @@ export class KeyboardNavService {
   private readonly router = inject(Router);
 
   constructor() {
-    fromEvent<KeyboardEvent>(document, 'keydown')
+    fromEvent<KeyboardEvent>(window, 'keydown')
       .subscribe(e => this.onKeyDown(e));
   }
 
   private onKeyDown(e: KeyboardEvent): void {
+    if (e.defaultPrevented) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (this.isEditableTarget(document.activeElement)) return;
 
@@ -29,9 +30,6 @@ export class KeyboardNavService {
     }
 
     if (e.key === 'Escape') {
-      if (document.querySelector('.expanded')) {
-        return;
-      }
       this.router.navigate([GREETING_ROUTE]);
       return;
     }
