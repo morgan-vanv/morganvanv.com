@@ -32,7 +32,7 @@ export class VerticalNavContainerComponent {
     } else if (event.key === 'ArrowDown') {
       this.highlightedIndex.update(i => Math.min(itemsCount - 1, i + 1));
       event.preventDefault();
-    } else if (event.key === 'Enter') {
+    } else if (event.key === 'Enter' || event.key === ' ') {
       this.isExpanded.set(true);
       event.preventDefault();
     }

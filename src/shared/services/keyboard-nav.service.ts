@@ -29,6 +29,9 @@ export class KeyboardNavService {
     }
 
     if (e.key === 'Escape') {
+      if (document.querySelector('.expanded')) {
+        return;
+      }
       this.router.navigate([GREETING_ROUTE]);
       return;
     }
@@ -59,7 +62,9 @@ export class KeyboardNavService {
     }
 
     if (currentPath === '/interests') {
-      return document.querySelector<HTMLElement>('.interests-container');
+      const expandedItem = document.querySelector<HTMLElement>('.expanded .item-card');
+      if (expandedItem) return expandedItem;
+      return null;
     }
 
     return document.querySelector<HTMLElement>('.page-content');

@@ -1,8 +1,10 @@
 import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed } from '@angular/core';
 import { VerticalNavContainerComponent } from './vertical-nav-container.component';
+import { ScrollHintComponent } from '../scroll-hint/scroll-hint.component';
 
 @Component({
   selector: 'app-vertical-nav-item',
+  imports: [ScrollHintComponent],
   templateUrl: './vertical-nav-item.component.html',
   styleUrl: './vertical-nav-item.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
