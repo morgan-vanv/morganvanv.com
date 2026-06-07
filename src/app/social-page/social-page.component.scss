@@ -1,4 +1,5 @@
 @use '../../styles' as *;
+@use "sass:math";
 
 section {
   margin-bottom: 3rem;
@@ -34,24 +35,14 @@ section {
   }
 
   // Add some static randomness to the rotation
-  &:nth-child(even) {
-    transform: rotate(1.5deg);
-    &:hover {
-      transform: scale(1.05) rotate(-2deg);
-    }
-  }
-  
-  &:nth-child(3n) {
-    transform: rotate(-1.5deg);
-    &:hover {
-      transform: scale(1.05) rotate(1deg);
-    }
-  }
-  
-  &:nth-child(5n) {
-    transform: rotate(-2.5deg);
-    &:hover {
-      transform: scale(1.05) rotate(2deg);
+  @for $i from 1 through 24 {
+    $rot: math.div(math.random(60) - 30, 10); // between -3.0 and 3.0
+    $hover-rot: math.div(math.random(80) - 40, 10); // between -4.0 and 4.0
+    &:nth-child(#{$i}) {
+      transform: rotate(#{$rot}deg);
+      &:hover {
+        transform: scale(1.05) rotate(#{$hover-rot}deg);
+      }
     }
   }
 }

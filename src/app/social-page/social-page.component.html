@@ -8,7 +8,7 @@
 
     <div class="photo-wall">
       @for (photo of photos; track photo.id) {
-        <div class="polaroid">
+        <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null">
           <div class="polaroid-image-container">
             @if (photo.imageUrl) {
               <img [src]="photo.imageUrl" alt="Community submitted photo" class="polaroid-image" />
