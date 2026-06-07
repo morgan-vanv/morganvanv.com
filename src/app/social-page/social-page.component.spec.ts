@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { SocialPageComponent } from './social-page.component';
 
 describe('SocialPageComponent', () => {
@@ -7,7 +8,8 @@ describe('SocialPageComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SocialPageComponent]
+      imports: [SocialPageComponent],
+      providers: [provideRouter([])]
     })
     .compileComponents();
     

@@ -34,10 +34,10 @@ section {
     z-index: 10;
   }
 
-  // Add some static randomness to the rotation
+  // Add some static randomness to the rotation (deterministic modulo-based formula)
   @for $i from 1 through 24 {
-    $rot: math.div(math.random(60) - 30, 10); // between -3.0 and 3.0
-    $hover-rot: math.div(math.random(80) - 40, 10); // between -4.0 and 4.0
+    $rot: math.div((($i * 37 + 13) % 60) - 30, 10); // between -3.0 and 3.0
+    $hover-rot: math.div((($i * 43 + 29) % 80) - 40, 10); // between -4.0 and 4.0
     &:nth-child(#{$i}) {
       transform: rotate(#{$rot}deg);
       &:hover {

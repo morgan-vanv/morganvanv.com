@@ -11,7 +11,7 @@
         <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null">
           <div class="polaroid-image-container">
             @if (photo.imageUrl) {
-              <img [src]="photo.imageUrl" [alt]="photo.caption || 'Community submitted photo'" class="polaroid-image" />
+              <img [src]="photo.imageUrl" [alt]="photo.caption || 'Community submitted photo'" class="polaroid-image" loading="lazy" decoding="async" />
             } @else {
               <div class="polaroid-placeholder">{{ photo.placeholderText }}</div>
             }
