@@ -1,4 +1,6 @@
 <div class="item-card-wrapper" 
+     role="button"
+     [attr.aria-expanded]="isExpanded()"
      [class.highlighted]="isHighlighted()"
      [class.expanded]="isExpanded()"
      [class.hidden-sibling]="isHiddenSibling()">

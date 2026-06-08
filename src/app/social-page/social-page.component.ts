@@ -9,6 +9,11 @@ interface PhotoSpot {
   caption?: string;
 }
 
+const SUBMITTED_PHOTOS: Omit<PhotoSpot, 'id'>[] = [
+  { imageUrl: 'images/community-wall/img-8938.webp', caption: 'a beast or demon of some sort' },
+  { imageUrl: 'images/community-wall/img-20250303.webp', caption: 'Richard & Bernie <3' },
+];
+
 @Component({
   selector: 'app-social-page',
   imports: [BasePageComponent, UnderConstructionComponent],
@@ -20,10 +25,9 @@ export class SocialPageComponent {
   readonly selectedPhoto = signal<PhotoSpot | null>(null);
 
   readonly photos: PhotoSpot[] = Array.from({ length: 12 }, (_, i) => {
-    if (i === 0) {
-      return { id: i, imageUrl: 'images/community-wall/img-8938.webp', caption: 'a beast or demon of some sort' };
-    } else if (i === 1) {
-      return { id: i, imageUrl: 'images/community-wall/img-20250303.webp', caption: 'Richard & Bernie <3' };
+    const submitted = SUBMITTED_PHOTOS[i];
+    if (submitted) {
+      return { id: i, ...submitted };
     }
     return { id: i, placeholderText: 'Your Photo Here' };
   });

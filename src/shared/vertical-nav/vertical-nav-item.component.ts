@@ -41,19 +41,21 @@ export class VerticalNavItemComponent {
     this.container.expandItem(this);
   }
 
-  @HostListener('mousemove')
-  onMouseMove() {
+  @HostListener('mouseenter')
+  onMouseEnter() {
     if (!this.isHighlighted()) {
       this.container.setHighlight(this);
     }
   }
+
+  private readonly ANIMATION_DURATION_MS = 150;
 
   triggerClose() {
     this.isEscapeActive.set(true);
     const timeoutId = window.setTimeout(() => {
       this.container.isExpanded.set(false);
       this.isEscapeActive.set(false);
-    }, 150);
+    }, this.ANIMATION_DURATION_MS);
     this.destroyRef.onDestroy(() => window.clearTimeout(timeoutId));
   }
 
