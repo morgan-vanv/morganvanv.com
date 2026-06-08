@@ -85,11 +85,9 @@
     overflow-y: auto;
     overflow-x: hidden;
     @include shared.scrollbar-styled;
-    padding-top: 4.5rem;
 
     @media (max-width: $breakpoint-mobile) {
       overflow-y: visible;
-      padding-top: 4rem;
       height: auto;
     }
   }
@@ -176,9 +174,8 @@
 }
 
 .close-button {
-  position: absolute;
-  top: 1.5rem;
-  left: 1.5rem;
+  align-self: flex-start;
+  margin-bottom: 1.5rem;
   background: transparent;
   color: #ff4d4d;
   border: 2px solid #ff4d4d;
@@ -188,7 +185,6 @@
   font-weight: bold;
   font-size: 0.85rem;
   cursor: pointer;
-  z-index: 20;
   transition: all 0.15s ease-in-out;
   display: flex;
   align-items: center;

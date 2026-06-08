@@ -8,6 +8,12 @@
      [class.expanded]="isExpanded()">
 
   <div class="item-card" #cardEl>
+    @if (isExpanded()) {
+      <button type="button" class="close-button" aria-label="Close section" [class.active]="isEscapeActive()" (click)="onClose($event)">
+        <span>Esc</span>
+      </button>
+    }
+
     <div class="item-header">
       <div class="title-container">
         <h2>
@@ -43,9 +49,6 @@
   </div>
 
   @if (isExpanded()) {
-    <button type="button" class="close-button" aria-label="Close section" [class.active]="isEscapeActive()" (click)="onClose($event)">
-      <span>Esc</span>
-    </button>
     <app-scroll-hint [scrollEl]="cardEl" />
   }
 </div>
