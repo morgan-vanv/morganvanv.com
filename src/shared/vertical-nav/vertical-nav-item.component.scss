@@ -3,8 +3,6 @@
 
 :host {
   display: block;
-  flex: 1;
-  min-height: 0;
   transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
 
   @media (max-width: 1000px) {
@@ -103,6 +101,23 @@
 
   h2 {
     margin: 0;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      &::before, &::after {
+        color: transparent;
+        transition: color 0.3s ease;
+      }
+      &::before { content: "[ "; }
+      &::after { content: " ]"; }
+    }
+  }
+
+  .highlighted &, .expanded & {
+    h2 span::before, h2 span::after {
+      color: $accent-color;
+    }
   }
 
   .expanded & {
@@ -117,12 +132,13 @@
 .item-icon {
   height: 2.5rem;
   width: auto;
-  display: block;
   object-fit: contain;
   transition: height 0.2s ease-in-out;
+  margin-right: 0.75rem;
 
   .expanded & {
     height: 5rem;
+    margin-right: 1.25rem;
   }
 }
 

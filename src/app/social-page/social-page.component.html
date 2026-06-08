@@ -8,7 +8,9 @@
 
     <div class="photo-wall">
       @for (photo of photos; track photo.id) {
-        <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null">
+        <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null"
+             [class.clickable]="!!photo.imageUrl"
+             (click)="openFullscreen(photo)">
           <div class="polaroid-image-container">
             @if (photo.imageUrl) {
               <img [src]="photo.imageUrl" [alt]="photo.caption || 'Community submitted photo'" class="polaroid-image" loading="lazy" decoding="async" />
@@ -23,6 +25,18 @@
         </div>
       }
     </div>
+
+    @if (selectedPhoto()) {
+      <div class="fullscreen-overlay" (click)="closeFullscreen()">
+        <button class="close-button" (click)="closeFullscreen(); $event.stopPropagation()">
+          <span>Esc</span>
+        </button>
+        <img [src]="selectedPhoto()?.imageUrl" [alt]="selectedPhoto()?.caption || 'Fullscreen photo'" class="fullscreen-image" (click)="$event.stopPropagation()" />
+        @if (selectedPhoto()?.caption) {
+          <div class="fullscreen-caption" (click)="$event.stopPropagation()">{{ selectedPhoto()?.caption }}</div>
+        }
+      </div>
+    }
   </section>
 
   <section>

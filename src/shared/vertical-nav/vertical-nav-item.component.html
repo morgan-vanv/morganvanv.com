@@ -6,10 +6,14 @@
   <div class="item-card" #cardEl>
     <div class="item-header">
       <div class="title-container">
-        @if (iconUrl) {
-          <img [src]="iconUrl" [alt]="title + ' icon'" class="item-icon" />
-        }
-        <h2>{{ title }}</h2>
+        <h2>
+          <span>
+            @if (iconUrl) {
+              <img [src]="iconUrl" [alt]="title + ' icon'" class="item-icon" />
+            }
+            {{ title }}
+          </span>
+        </h2>
       </div>
       @if (description) {
         <p class="item-description">{{ description }}</p>
