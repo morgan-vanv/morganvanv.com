@@ -1,4 +1,4 @@
-import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed, signal, DestroyRef } from '@angular/core';
+import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed, signal, DestroyRef, ElementRef } from '@angular/core';
 import { VerticalNavContainerComponent } from './vertical-nav-container.component';
 import { ScrollHintComponent } from '../scroll-hint/scroll-hint.component';
 
@@ -22,6 +22,12 @@ export class VerticalNavItemComponent {
 
   private container = inject(VerticalNavContainerComponent);
   private destroyRef = inject(DestroyRef);
+  private readonly elementRef = inject(ElementRef);
+
+  focus() {
+    const wrapper = this.elementRef.nativeElement.querySelector('.item-card-wrapper');
+    wrapper?.focus();
+  }
 
   isHighlighted = computed(() => {
     const index = this.container.itemsList().indexOf(this);
@@ -43,6 +49,13 @@ export class VerticalNavItemComponent {
 
   @HostListener('mouseenter')
   onMouseEnter() {
+    if (!this.isHighlighted()) {
+      this.container.setHighlight(this);
+    }
+  }
+
+  @HostListener('focusin')
+  onFocusIn() {
     if (!this.isHighlighted()) {
       this.container.setHighlight(this);
     }

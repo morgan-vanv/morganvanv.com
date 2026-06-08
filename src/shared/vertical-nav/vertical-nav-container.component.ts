@@ -17,6 +17,13 @@ export class VerticalNavContainerComponent {
   highlightedIndex = signal(0);
   isExpanded = signal(false);
 
+  focusHighlightedItem() {
+    setTimeout(() => {
+      const activeItem = this.itemsList()[this.highlightedIndex()];
+      activeItem?.focus();
+    }, 0);
+  }
+
   @HostListener('document:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
@@ -28,7 +35,7 @@ export class VerticalNavContainerComponent {
     }
 
     const target = event.target;
-    if (!(target instanceof HTMLElement) || !this.elementRef.nativeElement.contains(target)) {
+    if (target !== document.body && (!(target instanceof HTMLElement) || !this.elementRef.nativeElement.contains(target))) {
       return;
     }
 
@@ -46,9 +53,11 @@ export class VerticalNavContainerComponent {
 
     if (event.key === 'ArrowUp') {
       this.highlightedIndex.update(i => Math.max(0, i - 1));
+      this.focusHighlightedItem();
       event.preventDefault();
     } else if (event.key === 'ArrowDown') {
       this.highlightedIndex.update(i => Math.min(itemsCount - 1, i + 1));
+      this.focusHighlightedItem();
       event.preventDefault();
     } else if (event.key === 'Enter' || event.key === ' ') {
       this.isExpanded.set(true);

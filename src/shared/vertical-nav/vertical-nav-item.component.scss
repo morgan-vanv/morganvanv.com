@@ -30,14 +30,16 @@
   cursor: pointer;
   height: 100%;
   box-sizing: border-box;
+  outline: none;
 
   @media (max-width: $breakpoint-mobile) {
     height: auto;
   }
 
-  &.highlighted {
+  &.highlighted, &:focus-visible {
     border-color: $osrs-gold;
     background: rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
   }
 
   &.expanded {
@@ -50,6 +52,14 @@
     -webkit-backdrop-filter: none;
     border: none;
     border-radius: 0;
+    box-shadow: none;
+    outline: none;
+
+    &:focus-visible {
+      border: none;
+      box-shadow: none;
+      outline: none;
+    }
 
     @media (max-width: $breakpoint-mobile) {
       position: relative;
