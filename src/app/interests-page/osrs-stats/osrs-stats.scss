@@ -295,7 +295,6 @@
   min-width: 0;
 }
 
-.bosses-panel,
 .drops-panel,
 .achievements-panel {
   display: flex;
@@ -304,6 +303,21 @@
   h3 {
     flex-shrink: 0;
     margin-bottom: 0.75rem;
+  }
+}
+
+.bosses-panel {
+  display: flex;
+  flex-direction: column;
+  padding-right: 1.5rem;
+
+  h3 {
+    flex-shrink: 0;
+    margin-bottom: 0.75rem;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    padding-right: 0;
   }
 }
 
