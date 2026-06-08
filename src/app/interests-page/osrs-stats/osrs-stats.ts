@@ -193,7 +193,7 @@ export class OsrsStatsComponent implements OnInit {
     if (activity.type === 'quest_completed') return 'osrs/icons/quests-icon.png';
     if (activity.type === 'achievement_diary_tier_completed') return 'osrs/icons/diary-icon.png';
     if (activity.type === 'combat_achievement_tier_completed' ||
-        activity.type === 'combat_achievement_tier_reached') return 'osrs/icons/combat-achievements-icon.png';
+        activity.type === 'combat_achievement_tier_reached') return 'osrs/icons/combat-achievements-icon.webp';
     if (activity.type === 'xp_milestone') return 'osrs/icons/skills-icon.png';
     return 'osrs/icons/skills-icon.png';
   }
