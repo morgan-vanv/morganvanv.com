@@ -5,7 +5,14 @@
         <div class="character-panel">
           <h3>{{ womUsername }}</h3>
           <div class="character-img-wrapper">
-            <img src="osrs-character.png" [alt]="womUsername" class="character-img" />
+            <model-viewer
+              src="tipodissdong.glb"
+              poster="osrs-character.png"
+              auto-rotate
+              camera-controls
+              shadow-intensity="1"
+              class="character-model">
+            </model-viewer>
             <div class="character-badges">
               @for (badge of characterBadges; track badge.label) {
                 <a [href]="badge.href" target="_blank" rel="noopener noreferrer" class="character-badge">
