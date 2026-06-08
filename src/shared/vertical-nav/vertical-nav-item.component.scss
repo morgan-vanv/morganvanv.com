@@ -141,13 +141,7 @@
   height: 2.5rem;
   width: auto;
   object-fit: contain;
-  transition: height 0.2s ease-in-out;
   margin-right: 0.75rem;
-
-  .expanded & {
-    height: 5rem;
-    margin-right: 1.25rem;
-  }
 }
 
 .item-content {

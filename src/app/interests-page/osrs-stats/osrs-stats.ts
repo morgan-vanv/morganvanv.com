@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectionStrategy, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { WiseOldManService, WomPlayer, WomBoss } from '../../../shared/services/wise-old-man.service';
 import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType, RpCombatTier } from '../../../shared/services/rune-profile.service';
@@ -62,6 +62,7 @@ interface CollectionLogSummary {
   templateUrl: './osrs-stats.html',
   styleUrl: './osrs-stats.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA]
 })
 export class OsrsStatsComponent implements OnInit {
   private wom = inject(WiseOldManService);
@@ -90,6 +91,9 @@ export class OsrsStatsComponent implements OnInit {
   readonly clueTiers = CLUE_TIERS;
 
   ngOnInit(): void {
+    if (typeof window !== 'undefined' && !window.customElements?.get('model-viewer')) {
+      void import('@google/model-viewer').catch(() => undefined);
+    }
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
       tap(p => { this.bosses = this.sortBosses(p); }),
       toResourceState()

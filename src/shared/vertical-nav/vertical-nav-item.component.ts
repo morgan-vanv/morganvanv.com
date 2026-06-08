@@ -46,8 +46,13 @@ export class VerticalNavItemComponent {
   onClick(event?: MouseEvent) {
     if (event) {
       const target = event.target;
-      if (target instanceof HTMLElement && target.closest('a, button, input, select, textarea, [role="button"]')) {
-        return;
+      if (target instanceof HTMLElement) {
+        const interactiveEl = target.closest('a, button, input, select, textarea, [role="button"]');
+        // Ignore the outer card wrapper itself, which has role="button" when collapsed
+        const wrapper = this.elementRef.nativeElement.querySelector('.item-card-wrapper');
+        if (interactiveEl && interactiveEl !== wrapper) {
+          return;
+        }
       }
     }
     this.container.expandItem(this);
