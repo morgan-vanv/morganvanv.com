@@ -1,5 +1,5 @@
 <div class="item-card-wrapper" 
-     role="button"
+     [attr.role]="isExpanded() ? null : 'button'"
      [attr.tabindex]="isExpanded() ? -1 : 0"
      (keydown.enter)="onClick()"
      (keydown.space)="onClick(); $event.preventDefault()"
@@ -36,10 +36,6 @@
         @if (isUnderConstruction) {
           <div class="construction-notice">
             <p>🚧 UNDER CONSTRUCTION 🚧</p>
-            @if (description) {
-              <p>{{ description }}</p>
-            }
-            <ng-content select="[description]"></ng-content>
           </div>
         } @else {
           <ng-content></ng-content>

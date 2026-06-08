@@ -30,8 +30,9 @@ export class VerticalNavContainerComponent {
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     
     const active = document.activeElement;
-    if (active instanceof HTMLElement && (active.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName))) {
-      return;
+    if (active instanceof HTMLElement) {
+      if (active.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName)) return;
+      if (active.closest('a, button')) return;
     }
 
     const target = event.target;

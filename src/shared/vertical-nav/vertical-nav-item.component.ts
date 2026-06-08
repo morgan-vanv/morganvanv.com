@@ -42,8 +42,14 @@ export class VerticalNavItemComponent {
     return this.container.isExpanded() && !this.isExpanded();
   });
 
-  @HostListener('click')
-  onClick() {
+  @HostListener('click', ['$event'])
+  onClick(event?: MouseEvent) {
+    if (event) {
+      const target = event.target;
+      if (target instanceof HTMLElement && target.closest('a, button, input, select, textarea, [role="button"]')) {
+        return;
+      }
+    }
     this.container.expandItem(this);
   }
 
@@ -68,6 +74,7 @@ export class VerticalNavItemComponent {
     const timeoutId = window.setTimeout(() => {
       this.container.isExpanded.set(false);
       this.isEscapeActive.set(false);
+      this.focus();
     }, this.ANIMATION_DURATION_MS);
     this.destroyRef.onDestroy(() => window.clearTimeout(timeoutId));
   }

@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, signal, HostListener } from '@angular/core';
+import { A11yModule } from '@angular/cdk/a11y';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 
@@ -16,13 +17,14 @@ const SUBMITTED_PHOTOS: Omit<PhotoSpot, 'id'>[] = [
 
 @Component({
   selector: 'app-social-page',
-  imports: [BasePageComponent, UnderConstructionComponent],
+  imports: [BasePageComponent, UnderConstructionComponent, A11yModule],
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SocialPageComponent {
   readonly selectedPhoto = signal<PhotoSpot | null>(null);
+  private lastFocusedElement: HTMLElement | null = null;
 
   readonly photos: PhotoSpot[] = Array.from({ length: 12 }, (_, i) => {
     const submitted = SUBMITTED_PHOTOS[i];
@@ -34,6 +36,7 @@ export class SocialPageComponent {
 
   openFullscreen(photo: PhotoSpot) {
     if (photo.imageUrl) {
+      this.lastFocusedElement = document.activeElement as HTMLElement;
       this.selectedPhoto.set(photo);
       setTimeout(() => {
         const closeBtn = document.querySelector<HTMLButtonElement>('.fullscreen-overlay .close-button');
@@ -44,6 +47,10 @@ export class SocialPageComponent {
 
   closeFullscreen() {
     this.selectedPhoto.set(null);
+    if (this.lastFocusedElement) {
+      this.lastFocusedElement.focus();
+      this.lastFocusedElement = null;
+    }
   }
 
   onOverlayClick(event: MouseEvent) {
@@ -57,6 +64,7 @@ export class SocialPageComponent {
     if (this.selectedPhoto()) {
       this.closeFullscreen();
       event.preventDefault();
+      event.stopPropagation();
     }
   }
 }

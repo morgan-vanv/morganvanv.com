@@ -177,8 +177,8 @@
   align-self: flex-start;
   margin-bottom: 1.5rem;
   background: transparent;
-  color: #ff4d4d;
-  border: 2px solid #ff4d4d;
+  color: $danger-color;
+  border: 2px solid $danger-color;
   border-radius: 4px;
   padding: 0.4rem 0.8rem;
   font-family: inherit;
@@ -191,9 +191,9 @@
   justify-content: center;
 
   &:hover, &.active {
-    background: #ff4d4d;
+    background: $danger-color;
     color: #ffffff;
-    box-shadow: 0 0 10px rgba(255, 77, 77, 0.4);
+    box-shadow: 0 0 10px rgba($danger-color, 0.4);
   }
 
   &:active {
