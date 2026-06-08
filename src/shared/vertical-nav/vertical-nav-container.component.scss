@@ -1,4 +1,4 @@
-@use '../shared-styles.scss' as shared;
+@use '../../styles' as *;
 
 :host {
   display: flex;
@@ -8,7 +8,7 @@
   height: 100%;
   position: relative;
 
-  @media (max-width: 1000px) {
+  @media (max-width: $breakpoint-mobile) {
     gap: 0.5rem;
     height: auto;
   }

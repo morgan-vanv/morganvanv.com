@@ -1,6 +1,9 @@
 <div class="item-card-wrapper" 
-     role="button"
-     [attr.aria-expanded]="isExpanded()"
+     [attr.role]="isExpanded() ? null : 'button'"
+     [attr.tabindex]="isExpanded() ? null : 0"
+     (keydown.enter)="onClick()"
+     (keydown.space)="onClick(); $event.preventDefault()"
+     [attr.aria-expanded]="isExpanded() ? 'true' : 'false'"
      [class.highlighted]="isHighlighted()"
      [class.expanded]="isExpanded()"
      [class.hidden-sibling]="isHiddenSibling()">

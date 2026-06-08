@@ -18,6 +18,12 @@ export class VerticalNavContainerComponent {
 
   @HostListener('document:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
+    if (event.defaultPrevented) return;
+    const active = document.activeElement;
+    if (active instanceof HTMLElement && (active.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName))) {
+      return;
+    }
+
     if (this.isExpanded()) {
       if (event.key === 'Escape') {
         this.collapseActiveItem();
