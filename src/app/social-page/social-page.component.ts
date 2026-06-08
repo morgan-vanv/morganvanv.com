@@ -13,6 +13,7 @@ interface PhotoSpot {
 const SUBMITTED_PHOTOS: Omit<PhotoSpot, 'id'>[] = [
   { imageUrl: 'images/community-wall/img-8938.webp', caption: 'a beast or demon of some sort' },
   { imageUrl: 'images/community-wall/img-20250303.webp', caption: 'Richard & Bernie <3' },
+  { imageUrl: 'images/community-wall/gup.webp', caption: 'gup' },
 ];
 
 @Component({
