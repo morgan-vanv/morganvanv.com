@@ -1,87 +1,106 @@
 <app-base-page [showScrollHint]="false">
 
   <div class="interests-wrapper">
-    <div class="interests-container" #interestsEl>
+    <app-vertical-nav-container>
 
-    <section class="music-section">
-      <h2>🎵 Music</h2>
-      <p class="section-description">
-        What I've been listening to lately on Spotify, pulled live from
-        <a href="https://stats.fm/user/morgan.vanv" target="_blank" rel="noopener noreferrer" class="pill">stats.fm</a>.
-        Or, if you are more into vinyl, you can check out my
-        <a href="https://www.discogs.com/user/morganvanv/collection" target="_blank" rel="noopener noreferrer" class="pill">Discogs</a>.
-      </p>
+      <app-vertical-nav-item title="🎵 Music">
+        <span description>
+          What I've been listening to lately on Spotify, pulled live from
+          <a href="https://stats.fm/user/morgan.vanv" target="_blank" rel="noopener noreferrer" class="pill">stats.fm</a>.
+          Or, if you are more into vinyl, you can check out my
+          <a href="https://www.discogs.com/user/morganvanv/collection" target="_blank" rel="noopener noreferrer" class="pill">Discogs</a>.
+        </span>
+        
+        <div class="stats-columns">
 
-      <div class="stats-columns">
+          <div class="stats-column">
+            <h3>Top Songs <span class="range-label">· this week</span></h3>
+            @if (topTracks$ | async; as tracks) {
+              <ol class="stats-list">
+                @for (item of tracks; track item.track.id) {
+                  <li class="stats-item">
+                    @if (item.track.albums[0]?.image; as imgSrc) {
+                      <img [src]="imgSrc" [alt]="item.track.name" class="stats-thumbnail" />
+                    }
+                    <div class="stats-info">
+                      <span class="stats-name">{{ item.track.name }}</span>
+                      <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} streams</span>
+                    </div>
+                  </li>
+                }
+              </ol>
+            } @else {
+              <p class="loading-text">Loading...</p>
+            }
+          </div>
 
-        <div class="stats-column">
-          <h3>Top Songs <span class="range-label">· this week</span></h3>
-          @if (topTracks$ | async; as tracks) {
-            <ol class="stats-list">
-              @for (item of tracks; track item.track.id) {
-                <li class="stats-item">
-                  @if (item.track.albums[0]?.image; as imgSrc) {
-                    <img [src]="imgSrc" [alt]="item.track.name" class="stats-thumbnail" />
-                  }
-                  <div class="stats-info">
-                    <span class="stats-name">{{ item.track.name }}</span>
-                    <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} streams</span>
-                  </div>
-                </li>
-              }
-            </ol>
-          } @else {
-            <p class="loading-text">Loading...</p>
-          }
+          <div class="stats-column">
+            <h3>Top Albums <span class="range-label">· this month</span></h3>
+            @if (topAlbums$ | async; as albums) {
+              <ol class="stats-list">
+                @for (item of albums; track item.album.id) {
+                  <li class="stats-item">
+                    <img [src]="item.album.image" [alt]="item.album.name" class="stats-thumbnail" />
+                    <div class="stats-info">
+                      <span class="stats-name">{{ item.album.name }}</span>
+                      <span class="stats-meta">{{ item.album.artists[0]?.name }} · {{ item.streams }} streams</span>
+                    </div>
+                  </li>
+                }
+              </ol>
+            } @else {
+              <p class="loading-text">Loading...</p>
+            }
+          </div>
+
+          <div class="stats-column">
+            <h3>Top Artists <span class="range-label">· all time</span></h3>
+            @if (topArtists$ | async; as artists) {
+              <ol class="stats-list">
+                @for (item of artists; track item.artist.id) {
+                  <li class="stats-item">
+                    <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
+                    <div class="stats-info">
+                      <span class="stats-name">{{ item.artist.name }}</span>
+                      <span class="stats-meta">{{ item.streams }} streams · {{ formatPlaytime(item.playedMs) }}</span>
+                    </div>
+                  </li>
+                }
+              </ol>
+            } @else {
+              <p class="loading-text">Loading...</p>
+            }
+          </div>
+
         </div>
 
-        <div class="stats-column">
-          <h3>Top Albums <span class="range-label">· this month</span></h3>
-          @if (topAlbums$ | async; as albums) {
-            <ol class="stats-list">
-              @for (item of albums; track item.album.id) {
-                <li class="stats-item">
-                  <img [src]="item.album.image" [alt]="item.album.name" class="stats-thumbnail" />
-                  <div class="stats-info">
-                    <span class="stats-name">{{ item.album.name }}</span>
-                    <span class="stats-meta">{{ item.album.artists[0]?.name }} · {{ item.streams }} streams</span>
-                  </div>
-                </li>
-              }
-            </ol>
-          } @else {
-            <p class="loading-text">Loading...</p>
+      </app-vertical-nav-item>
+
+      <app-vertical-nav-item 
+        title="Old School RuneScape" 
+        iconUrl="/osrs/osrs-icon.webp">
+        <span description>
+          Live stats for my OSRS character, {{ womUsername }}. Powered by:
+          @for (link of poweredByLinks; track link.label) {
+            <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="pill">{{ link.label }}</a>
           }
-        </div>
+        </span>
+        <app-osrs-stats />
+      </app-vertical-nav-item>
 
-        <div class="stats-column">
-          <h3>Top Artists <span class="range-label">· all time</span></h3>
-          @if (topArtists$ | async; as artists) {
-            <ol class="stats-list">
-              @for (item of artists; track item.artist.id) {
-                <li class="stats-item">
-                  <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
-                  <div class="stats-info">
-                    <span class="stats-name">{{ item.artist.name }}</span>
-                    <span class="stats-meta">{{ item.streams }} streams · {{ formatPlaytime(item.playedMs) }}</span>
-                  </div>
-                </li>
-              }
-            </ol>
-          } @else {
-            <p class="loading-text">Loading...</p>
-          }
-        </div>
+      <app-vertical-nav-item 
+        title="📺 Favorite Media" 
+        description="Movies, TV shows, and books I love."
+        [isUnderConstruction]="true">
+      </app-vertical-nav-item>
 
-      </div>
-    </section>
+      <app-vertical-nav-item 
+        title="📸 My Photos" 
+        description="Photography and memories."
+        [isUnderConstruction]="true">
+      </app-vertical-nav-item>
 
-    <hr class="section-divider" />
-
-    <app-osrs-stats />
-
-  </div>
-    <app-scroll-hint [scrollEl]="interestsEl" />
+    </app-vertical-nav-container>
   </div>
 
 </app-base-page>

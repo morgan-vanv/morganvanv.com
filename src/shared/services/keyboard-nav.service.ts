@@ -11,11 +11,12 @@ export class KeyboardNavService {
   private readonly router = inject(Router);
 
   constructor() {
-    fromEvent<KeyboardEvent>(document, 'keydown')
+    fromEvent<KeyboardEvent>(window, 'keydown')
       .subscribe(e => this.onKeyDown(e));
   }
 
   private onKeyDown(e: KeyboardEvent): void {
+    if (e.defaultPrevented) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (this.isEditableTarget(document.activeElement)) return;
 
@@ -59,7 +60,9 @@ export class KeyboardNavService {
     }
 
     if (currentPath === '/interests') {
-      return document.querySelector<HTMLElement>('.interests-container');
+      const expandedItem = document.querySelector<HTMLElement>('.expanded .item-card');
+      if (expandedItem) return expandedItem;
+      return null;
     }
 
     return document.querySelector<HTMLElement>('.page-content');

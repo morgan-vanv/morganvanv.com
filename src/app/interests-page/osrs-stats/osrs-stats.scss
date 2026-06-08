@@ -47,6 +47,7 @@
 
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
+    gap: 1.5rem;
 
     .pets-outer {
       height: 40vh;
@@ -313,6 +314,10 @@
   list-style: none;
   padding: 0;
   margin: 0;
+
+  @media (max-width: $breakpoint-mobile) {
+    gap: 0.5rem;
+  }
 }
 
 .boss-item {
@@ -381,6 +386,8 @@
 
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
   }
 }
 

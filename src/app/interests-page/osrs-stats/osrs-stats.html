@@ -1,15 +1,4 @@
 <section class="osrs-section">
-  <div class="osrs-header">
-    <img src="/osrs/osrs-icon.png" alt="Old School RuneScape icon" class="osrs-logo" />
-    <h2>Old School RuneScape</h2>
-  </div>
-  <div class="osrs-description">
-    <span>Live stats for my OSRS character, {{ womUsername }}. Powered by:</span>
-    @for (link of poweredByLinks; track link.label) {
-      <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="pill">{{ link.label }}</a>
-    }
-  </div>
-
   @if (player$ | async; as playerState) {
     @if (playerState.data; as player) {
       <div class="osrs-panels">
@@ -120,7 +109,7 @@
             </li>
 
             <li class="completion-row">
-              <span class="completion-icon-slot"><img src="/osrs/icons/combat-achievements-icon.png" alt="Combat Achievements" /></span>
+              <span class="completion-icon-slot"><img src="/osrs/icons/combat-achievements-icon.webp" alt="Combat Achievements" /></span>
               <span class="completion-label">Comb. Ach.</span>
               @if (combatSummary$ | async; as caState) {
                 @if (caState.data; as ca) {
@@ -137,7 +126,7 @@
             </li>
 
             <li class="completion-row">
-              <span class="completion-icon-slot"><img src="/osrs/icons/collection-log-icon.png" alt="Collection Log" /></span>
+              <span class="completion-icon-slot"><img src="/osrs/icons/collection-log-icon.webp" alt="Collection Log" /></span>
               <span class="completion-label">Coll. Log</span>
               @if (collectionLogSummary$ | async; as clogState) {
                 @if (clogState.data; as clog) {

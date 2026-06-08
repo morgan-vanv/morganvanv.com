@@ -1,22 +1,27 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
-import { ScrollHintComponent } from '../../shared/scroll-hint/scroll-hint.component';
+import { VerticalNavContainerComponent } from '../../shared/vertical-nav/vertical-nav-container.component';
+import { VerticalNavItemComponent } from '../../shared/vertical-nav/vertical-nav-item.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { OsrsStatsComponent } from './osrs-stats/osrs-stats';
 import { Observable, map, catchError, of } from 'rxjs';
+import { WOM_USERNAME, POWERED_BY_LINKS } from '../../shared/constants/osrs-stats.const';
 
 const STATSFM_USERNAME = 'morgan.vanv';
 const STATS_DISPLAY_LIMIT = 8;
 
 @Component({
   selector: 'app-interests-page',
-  imports: [BasePageComponent, AsyncPipe, ScrollHintComponent, OsrsStatsComponent],
+  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class InterestsPageComponent {
+  readonly womUsername = WOM_USERNAME;
+  readonly poweredByLinks = POWERED_BY_LINKS;
+
   private statsFm = inject(StatsFmService);
 
   topTracks$: Observable<StatsFmTopTrack[]> = this.statsFm.getTopTracks(STATSFM_USERNAME, 'weeks').pipe(

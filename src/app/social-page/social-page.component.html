@@ -8,7 +8,13 @@
 
     <div class="photo-wall">
       @for (photo of photos; track photo.id) {
-        <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null">
+        <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null"
+             [attr.role]="photo.imageUrl ? 'button' : null"
+             [attr.tabindex]="photo.imageUrl ? 0 : null"
+             [class.clickable]="!!photo.imageUrl"
+             (click)="openFullscreen(photo)"
+             (keydown.enter)="openFullscreen(photo)"
+             (keydown.space)="openFullscreen(photo); $event.preventDefault()">
           <div class="polaroid-image-container">
             @if (photo.imageUrl) {
               <img [src]="photo.imageUrl" [alt]="photo.caption || 'Community submitted photo'" class="polaroid-image" loading="lazy" decoding="async" />
@@ -23,6 +29,18 @@
         </div>
       }
     </div>
+
+    @if (selectedPhoto()) {
+      <div class="fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Fullscreen photo" tabindex="-1" (click)="onOverlayClick($event)" (keydown.escape)="onEscape($event)" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+        <button type="button" class="close-button" aria-label="Close fullscreen photo" (click)="closeFullscreen()">
+          <span>Esc</span>
+        </button>
+        <img [src]="selectedPhoto()?.imageUrl" [alt]="selectedPhoto()?.caption || 'Fullscreen photo'" class="fullscreen-image" />
+        @if (selectedPhoto()?.caption) {
+          <div class="fullscreen-caption">{{ selectedPhoto()?.caption }}</div>
+        }
+      </div>
+    }
   </section>
 
   <section>

@@ -1,0 +1,50 @@
+<div class="item-card-wrapper" 
+     [attr.role]="isExpanded() ? null : 'button'"
+     [attr.tabindex]="isExpanded() ? -1 : 0"
+     (keydown.enter)="onClick()"
+     (keydown.space)="onClick(); $event.preventDefault()"
+     [attr.aria-expanded]="isExpanded() ? 'true' : 'false'"
+     [class.highlighted]="isHighlighted()"
+     [class.expanded]="isExpanded()">
+
+  <div class="item-card" #cardEl>
+    @if (isExpanded()) {
+      <button type="button" class="close-button" aria-label="Close section" [class.active]="isEscapeActive()" (click)="onClose($event)">
+        <span>Esc</span>
+      </button>
+    }
+
+    <div class="item-header">
+      <div class="title-container">
+        <h2>
+          <span>
+            @if (iconUrl) {
+              <img [src]="iconUrl" [alt]="title + ' icon'" class="item-icon" />
+            }
+            {{ title }}
+          </span>
+        </h2>
+      </div>
+      @if (description) {
+        <p class="item-description">{{ description }}</p>
+      }
+      <ng-content select="[description]"></ng-content>
+    </div>
+
+    @if (isExpanded()) {
+      <div class="item-content">
+        @if (isUnderConstruction) {
+          <div class="construction-notice">
+            <p>🚧 UNDER CONSTRUCTION 🚧</p>
+          </div>
+        } @else {
+          <ng-content></ng-content>
+        }
+      </div>
+    }
+  </div>
+
+  @if (isExpanded()) {
+    <app-scroll-hint [scrollEl]="cardEl" />
+  }
+</div>

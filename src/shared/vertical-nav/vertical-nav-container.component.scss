@@ -1,0 +1,15 @@
+@use '../../styles' as *;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  position: relative;
+
+  @media (max-width: $breakpoint-mobile) {
+    gap: 0.5rem;
+    height: auto;
+  }
+}
