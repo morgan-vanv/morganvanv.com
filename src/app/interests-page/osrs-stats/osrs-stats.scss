@@ -83,6 +83,7 @@
   display: block;
   --poster-color: transparent;
   background-color: transparent;
+  touch-action: pan-y;
 }
 
 .character-badges {

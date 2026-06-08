@@ -4,7 +4,6 @@ import { WiseOldManService, WomPlayer, WomBoss } from '../../../shared/services/
 import { RuneProfileService, RpCollectionLogItem, RpActivity, RpActivityType, RpCombatTier } from '../../../shared/services/rune-profile.service';
 import { Observable, tap, map, catchError, of, startWith } from 'rxjs';
 import { WOM_USERNAME, CHARACTER_BADGES, POWERED_BY_LINKS, SKILL_ORDER, DIARY_TIERS, CLUE_TIERS } from '../../../shared/constants/osrs-stats.const';
-import '@google/model-viewer';
 
 const DISPLAY_LIMIT = 20;
 
@@ -92,6 +91,7 @@ export class OsrsStatsComponent implements OnInit {
   readonly clueTiers = CLUE_TIERS;
 
   ngOnInit(): void {
+    import('@google/model-viewer');
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
       tap(p => { this.bosses = this.sortBosses(p); }),
       toResourceState()
