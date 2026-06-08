@@ -91,7 +91,9 @@ export class OsrsStatsComponent implements OnInit {
   readonly clueTiers = CLUE_TIERS;
 
   ngOnInit(): void {
-    import('@google/model-viewer');
+    if (typeof window !== 'undefined' && !window.customElements?.get('model-viewer')) {
+      void import('@google/model-viewer').catch(() => undefined);
+    }
     this.player$ = this.wom.getPlayer(WOM_USERNAME).pipe(
       tap(p => { this.bosses = this.sortBosses(p); }),
       toResourceState()
