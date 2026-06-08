@@ -1,4 +1,4 @@
-import { Component, HostListener, ChangeDetectionStrategy, signal, contentChildren } from '@angular/core';
+import { Component, HostListener, ChangeDetectionStrategy, signal, contentChildren, ElementRef, inject } from '@angular/core';
 import { VerticalNavItemComponent } from './vertical-nav-item.component';
 
 @Component({
@@ -11,6 +11,7 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
   }
 })
 export class VerticalNavContainerComponent {
+  private readonly elementRef = inject(ElementRef);
   itemsList = contentChildren(VerticalNavItemComponent);
 
   highlightedIndex = signal(0);
@@ -19,8 +20,15 @@ export class VerticalNavContainerComponent {
   @HostListener('document:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
+    if (event.metaKey || event.ctrlKey || event.altKey) return;
+    
     const active = document.activeElement;
     if (active instanceof HTMLElement && (active.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(active.tagName))) {
+      return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof HTMLElement) || !this.elementRef.nativeElement.contains(target)) {
       return;
     }
 

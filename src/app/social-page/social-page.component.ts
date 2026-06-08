@@ -35,11 +35,21 @@ export class SocialPageComponent {
   openFullscreen(photo: PhotoSpot) {
     if (photo.imageUrl) {
       this.selectedPhoto.set(photo);
+      setTimeout(() => {
+        const closeBtn = document.querySelector<HTMLButtonElement>('.fullscreen-overlay .close-button');
+        closeBtn?.focus();
+      }, 0);
     }
   }
 
   closeFullscreen() {
     this.selectedPhoto.set(null);
+  }
+
+  onOverlayClick(event: MouseEvent) {
+    if (event.target === event.currentTarget) {
+      this.closeFullscreen();
+    }
   }
 
   @HostListener('document:keydown.escape', ['$event'])

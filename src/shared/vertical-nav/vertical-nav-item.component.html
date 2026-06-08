@@ -1,12 +1,11 @@
 <div class="item-card-wrapper" 
-     [attr.role]="isExpanded() ? null : 'button'"
-     [attr.tabindex]="isExpanded() ? null : 0"
+     role="button"
+     [attr.tabindex]="isExpanded() ? -1 : 0"
      (keydown.enter)="onClick()"
      (keydown.space)="onClick(); $event.preventDefault()"
      [attr.aria-expanded]="isExpanded() ? 'true' : 'false'"
      [class.highlighted]="isHighlighted()"
-     [class.expanded]="isExpanded()"
-     [class.hidden-sibling]="isHiddenSibling()">
+     [class.expanded]="isExpanded()">
 
   <div class="item-card" #cardEl>
     <div class="item-header">
@@ -44,7 +43,7 @@
   </div>
 
   @if (isExpanded()) {
-    <button class="close-button" [class.active]="isEscapeActive()" (click)="onClose($event)">
+    <button type="button" class="close-button" aria-label="Close section" [class.active]="isEscapeActive()" (click)="onClose($event)">
       <span>Esc</span>
     </button>
     <app-scroll-hint [scrollEl]="cardEl" />
