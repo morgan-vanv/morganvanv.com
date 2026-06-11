@@ -11,10 +11,12 @@ interface PhotoSpot {
 }
 
 const SUBMITTED_PHOTOS: Omit<PhotoSpot, 'id'>[] = [
-  { imageUrl: 'images/community-wall/img-8938.webp', caption: 'a beast or demon of some sort' },
-  { imageUrl: 'images/community-wall/img-20250303.webp', caption: 'Richard & Bernie <3' },
+  { imageUrl: 'images/community-wall/stobi.webp', caption: 'a beast or demon of some sort' },
+  { imageUrl: 'images/community-wall/richard_and_bernie.webp', caption: 'Richard & Bernie <3' },
   { imageUrl: 'images/community-wall/gup.webp', caption: 'gup' },
   { imageUrl: 'images/community-wall/dirty_dan.webp', caption: 'Dirty Dan' },
+  { imageUrl: 'images/community-wall/atlas.webp', caption: 'atlas gains knowledge of self' },
+  { imageUrl: 'images/community-wall/gerbie.webp', caption: 'gerbie' },
 ];
 
 @Component({
