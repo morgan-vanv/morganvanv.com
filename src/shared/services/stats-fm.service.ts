@@ -60,6 +60,13 @@ export interface StatsFmRecentStream {
   track: StatsFmTrack;
 }
 
+export interface StatsFmCurrentStream {
+  date: string;
+  isPlaying: boolean;
+  progressMs: number;
+  track: StatsFmTrack;
+}
+
 export type StatsFmRange = 'weeks' | 'months' | 'lifetime';
 
 const BASE_URL = 'https://api.stats.fm/api/v1';
@@ -86,9 +93,19 @@ export class StatsFmService {
       .pipe(map(r => r.items));
   }
 
-  getRecentStreams(username: string, limit = 10): Observable<StatsFmRecentStream[]> {
+  getRecentStreams(username: string, limit = 10, ttlMs?: number): Observable<StatsFmRecentStream[]> {
     return this.http
-      .get<{ items: StatsFmRecentStream[] }>(`${BASE_URL}/users/${encodeURIComponent(username)}/streams/recent?limit=${limit}`)
-      .pipe(map(r => r.items));
+      .get<{ items: StatsFmRecentStream[] }>(`${BASE_URL}/users/${encodeURIComponent(username)}/streams/recent?limit=${limit}`, ttlMs)
+      .pipe(map(r => r.items ?? []));
+  }
+
+  /**
+   * What's playing right now, or null when nothing is (the API answers with
+   * an empty body) or the user keeps it private. Never cached.
+   */
+  getCurrentStream(username: string): Observable<StatsFmCurrentStream | null> {
+    return this.http
+      .get<{ item?: StatsFmCurrentStream | null } | null>(`${BASE_URL}/users/${encodeURIComponent(username)}/streams/current`, 0)
+      .pipe(map(r => r?.item ?? null));
   }
 }

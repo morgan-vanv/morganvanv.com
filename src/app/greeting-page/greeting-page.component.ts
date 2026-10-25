@@ -1,8 +1,9 @@
-import { Component, DestroyRef, afterNextRender, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, DestroyRef, afterNextRender, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/icon/icon.component';
+import { RecentStreamService } from '../../shared/services/recent-stream.service';
 
-const SUBTITLES = [
+export const SUBTITLES = [
   'a real human man',
   'currently testing in production',
   'relentlessly creating shareholder value',
@@ -21,11 +22,22 @@ const FADE_DURATION_MS = 400;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GreetingPageComponent {
+  private readonly recentStream = inject(RecentStreamService);
+
   // The prerendered page always shows the first subtitle so hydration matches;
   // the browser then picks a random one and starts cycling.
-  private currentIndex = 0;
+  private readonly currentIndex = signal(0);
 
-  protected readonly subtitle = signal(SUBTITLES[this.currentIndex]);
+  /** The static jokes plus, once known, a live "last listened" line that rotates in with them. */
+  protected readonly subtitles = computed(() => {
+    const live = this.recentStream.summary();
+    return live ? [...SUBTITLES, live] : SUBTITLES;
+  });
+
+  protected readonly subtitle = computed(() => {
+    const list = this.subtitles();
+    return list[this.currentIndex() % list.length];
+  });
   protected readonly subtitleVisible = signal(true);
 
   private intervalId?: ReturnType<typeof setInterval>;
@@ -33,8 +45,7 @@ export class GreetingPageComponent {
 
   constructor() {
     afterNextRender(() => {
-      this.currentIndex = Math.floor(Math.random() * SUBTITLES.length);
-      this.subtitle.set(SUBTITLES[this.currentIndex]);
+      this.currentIndex.set(Math.floor(Math.random() * SUBTITLES.length));
       this.intervalId = setInterval(() => this.cycleSubtitle(), CYCLE_INTERVAL_MS);
     });
     inject(DestroyRef).onDestroy(() => {
@@ -46,8 +57,7 @@ export class GreetingPageComponent {
   private cycleSubtitle(): void {
     this.subtitleVisible.set(false);
     this.timeoutId = setTimeout(() => {
-      this.currentIndex = (this.currentIndex + 1) % SUBTITLES.length;
-      this.subtitle.set(SUBTITLES[this.currentIndex]);
+      this.currentIndex.update(i => (i + 1) % this.subtitles().length);
       this.subtitleVisible.set(true);
     }, FADE_DURATION_MS);
   }

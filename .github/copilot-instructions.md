@@ -71,7 +71,9 @@ For navigation, prefer `routerLink` over imperative `Router.navigate()` whenever
 
 **Scroll regions:** Put `appScrollRegion` on the element arrow keys should scroll (`[appScrollRegion]="false"` withdraws it). The innermost registered region wins.
 
-**Config:** External handles, usernames, URLs and the Ask Morgan endpoint live in `SITE_CONFIG` (`src/shared/config/site.config.ts`). API clients go through `ApiCacheService.get()` (sessionStorage, 10-minute TTL).
+**Config:** External handles, usernames, URLs and the Ask Morgan endpoint live in `SITE_CONFIG` (`src/shared/config/site.config.ts`). API clients go through `ApiCacheService.get(url, ttlMs?)` (sessionStorage, 10-minute TTL by default; `0` bypasses the cache).
+
+**Live data that must stay fresh** (anything a visitor would notice going stale) polls from a root service while the tab is visible — see `RecentStreamService` for the pattern (`visibilitychange` + `timer`, `switchMap` to the fetch, errors → `null`, nothing rendered). Components only read its signals.
 
 **Component metadata style:** Use `styleUrl` (singular) and `templateUrl`. Imports should have spaces after `{`. Top-level page components follow the `*.component.ts/html/scss` naming convention. Sub-components may omit the `.component.` infix — both patterns exist.
 ```ts

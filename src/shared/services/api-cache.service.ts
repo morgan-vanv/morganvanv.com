@@ -21,9 +21,11 @@ export class ApiCacheService {
   private readonly http = inject(HttpClient);
   private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
 
+  /** GET `url`, serving a cached copy younger than `ttlMs`. A TTL of 0 bypasses the cache. */
   get<T>(url: string, ttlMs = DEFAULT_TTL_MS): Observable<T> {
     // Prerendered pages show the loading state; live data is fetched in the browser.
     if (this.isServer) return EMPTY;
+    if (ttlMs <= 0) return this.http.get<T>(url);
     const cached = this.read<T>(url);
     if (cached !== undefined) return of(cached);
     return this.http.get<T>(url).pipe(tap(data => this.write(url, data, ttlMs)));
