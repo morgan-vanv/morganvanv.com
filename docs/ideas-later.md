@@ -4,48 +4,33 @@ The parking lot for morganvanv.com. Nothing here is a commitment. When something
 
 **Legend** — effort: `S` an evening · `M` a weekend · `L` several sessions. `backend` = needs a serverless function (the site itself stays static). `data` = needs a scheduled data-fetching GitHub Action (see "Patterns" at the bottom).
 
-Last big refresh: 2026-10-25 (audit of the repo at `4890dba`).
+Last big refresh: 2026-10-25 (audit of the repo at `4890dba`; sections 1–2 executed in PR #74 the same day).
 
 ---
 
 ## 1. Tech debt & housekeeping
 
-Found during the 2026-10-25 audit. Roughly ordered by payoff-per-effort.
+Most of the 2026-10-25 audit list shipped in PR #74 (fonts, icons/Material, view transitions, reduced motion, zoneless, signal inputs, derived navbar, scroll regions, `site.config.ts`, API cache, OsrsStats split, type clamp, h1s, webp, Dependabot groups, `npm run check`, Vitest + real tests, Lighthouse CI). What's left:
 
-- **Self-host Caveat; drop the Google Fonts `<link>`.** `S` — `index.html` loads JetBrains Mono from Google Fonts *and* bundles it via `@fontsource`; Caveat only comes from Google. Worse, the production build does a network fetch to `fonts.googleapis.com` to inline that CSS, so the build fails anywhere Google Fonts is unreachable (confirmed in a sandbox: `Inlining of fonts failed … 403`). Add `@fontsource/caveat`, remove the `<link>` + preconnects. Build becomes offline-deterministic and visitors stop pinging Google.
-- **Replace Material icons with inline SVG, then probably drop Angular Material.** `M` — The site uses exactly four glyphs (`keyboard_arrow_down/left/right`, `exit_to_app`) and one `mat-icon-button`. For that it ships ~2 MB of icon font files to `dist/media` (10 woff/woff2 variants; browsers actually download ~280 kB of the regular + outlined woff2). Inline SVG chevrons + a plain `<button>` would let `@angular/material` and `material-icons` go (keep `@angular/cdk` for `cdkTrapFocus`, or hand-roll the trap), shrinking the 268 kB vendor chunk.
-- **Migrate off `@angular/animations`.** `M` — Deprecated since Angular 20.2. The documented replacement for route transitions is the View Transitions API via `withViewTransitions()` — the thing `decisions.md` says we avoid, but only because it conflicted with `@routeAnimations`; once the trigger is gone, the conflict is gone. Directional slides: in `onViewTransitionCreated`, compare from/to route indexes (reuse `getMainRouteAnimation`) and set `data-transition="left|right|vertical"` on `<html>`; animate `::view-transition-old/new(root)` in CSS. Also removes `provideAnimations()` and the animations chunk.
-- **Honor `prefers-reduced-motion`.** `S` — Zero handling today. Full-viewport 120vh slides, infinite bouncing nav arrows, bouncing subtitle, auto-rotating 3D model. One global `@media (prefers-reduced-motion: reduce)` block that shortens/kills these. Do this with (or before) the animations migration.
-- **Go zoneless.** `S`/`M` — Zoneless is the Angular 21 default; this repo still carries `zone.js` because it was upgraded in place (35 kB polyfill chunk). Components are mostly OnPush + signals already. Convert `AskMorganFormComponent`'s plain fields + `markForCheck()` to signals, add `provideZonelessChangeDetection()`, remove the polyfill entries and the dependency.
-- **Signal inputs / host bindings everywhere.** `S` — 11 remaining `@Input` / `@HostListener` decorators (`BasePage`, `ScrollHint`, `VerticalNavItem`, `SocialPage`). `vertical-nav-container` already uses `host:` metadata; make the rest match. The Angular signal-input migration schematic does most of it.
-- **Derive the navbar from `MAIN_ROUTES`.** `S` — `navLinks` is a hand-copied list, and three docs warn that it's easy to forget. Add optional `icon`/`ariaLabel` to `MAIN_ROUTES`, have the navbar map `[greeting, ...MAIN_ROUTES]`, delete the warning from the docs. Adding a page becomes two places instead of three.
-- **Decouple `KeyboardNavService` from page internals.** `S` — It `querySelector`s `.right-scroll-container`, `.expanded .item-card`, `.page-content` by route name. Replace with a tiny `ScrollRegionService` pages register their active scroll element with (or a `[appScrollRegion]` directive). Then new pages with scroll areas Just Work with arrow keys.
-- **Real tests.** `M` — 16 specs, 15 of them "should create". Worth actually testing: `KeyboardNavService` (route order, editable-target guard, Escape → greeting), `VerticalNavContainer` (arrow/enter/escape state machine), `AskMorganForm` (honeypot short-circuit, error state), `MAIN_ROUTES`/`lazyRouteComponents`/navbar consistency.
-- **Karma → Vitest.** `M` — Vitest is Angular 21's default runner; Karma needs a Chrome binary (tests couldn't run in the audit sandbox for exactly that reason). Angular ships a migration schematic. Pairs well with the item above.
-- **Split `OsrsStatsComponent`.** `M` — 540 lines, and its SCSS sits at 8,042 bytes against an 8 kB `anyComponentStyle` budget warning. Natural seams: character panel (model + badges), overview list, pets, activity lists, boss grid. While there: `bosses` is set via a `tap` side effect into a mutable field inside an OnPush component — make it a `computed`/`map` off `player$`. And filter the boss grid to `kills > 0` (every WOM boss currently renders, zeros included).
-- **One `site.config.ts`.** `S` — `STATSFM_USERNAME` lives in a component, `WOM_USERNAME` in a const file, social handles in `SOCIAL_LINKS`, the DO function URL in the form. Pull every handle/URL into one config object. Also feeds JSON-LD `sameAs` (see SEO).
-- **Cache API responses across navigations.** `S` — Interests is destroyed and recreated on every arrow-key visit, re-hitting stats.fm, WOM and RuneProfile (seven requests) each time. `sessionStorage` with a 10-minute TTL in each service, or move the observables into the `providedIn: 'root'` services with `shareReplay`.
-- **`font-size: 2.5dvh` on `body`.** `S` — Type scales with viewport *height*, so a landscape phone gets tiny text and the user's browser text-size preference is partly overridden. Consider `clamp(1rem, 2.5dvh, 1.4rem)` or a rem base with page-level scaling where the full-bleed layouts need it.
-- **Heading hierarchy.** `S` — The greeting title is a `<div>`; every other page starts at `<h2>` with no `<h1>`. Fix for screen readers and SEO in one go.
-- **Convert the OSRS PNGs.** `S` — ~100 PNGs under `public/osrs/` (skills, bosses, icons) plus `osrs-character.png` while the repo rule says webp. Batch convert, or sprite-sheet the 24 skill icons.
-- **Stale remote branches.** `S` — ~20 merged feature branches still on `origin`. Turn on "Automatically delete head branches" in repo settings and prune once.
-- **README drift.** `S` — Its page table is missing `/social` and duplicates `site-state.md`. Trim it to setup + a pointer to `docs/`.
-- **Dependabot grouping.** `S` — Add `groups:` (e.g. `angular`, `eslint`) to `dependabot.yml` so framework bumps arrive as one PR instead of five.
-- **`npm run check`.** `S` — One script that runs lint + prod build + headless tests, since `CLAUDE.md` asks for all three before calling work done.
-- **Drop `CommonModule` from `AskMorganForm`.** trivial — only `NgClass` is used; class bindings would remove the import entirely.
-- **Lighthouse + axe in CI.** `M` — `treosh/lighthouse-ci-action` (or `lhci`) with budgets, and `pa11y-ci`/`axe-core` against the built `dist/` on PRs. Keeps "old web spirit, modern craft" honest.
+- **Stale remote branches.** `S` — ~17 merged feature branches are still on `origin` (the git proxy in Claude's sandbox can't delete branches). Keep `archived-old-website`. One-liner to run locally:
+  `for b in chore/upgrade-angular-21.2.15 claude-project-setup feature/ask-morgan feature/gemini-play feature/housekeeping feature/interests-page-enhancements feature/navbar-click-fix feature/osrs-3d-model feature/social-page feature/vertical-nav-items gup morgan-vanv/home-page-content morgan-vanv/interests-page-content morgan-vanv/osrs-interests-expansion morgan-vanv/osrs-recent-achievements morgan-vanv/ui-improvements refactor; do git push origin --delete "$b"; done`
+  Then turn on "Automatically delete head branches" in repo settings.
+- **Lift the `vitest ~4.0` pin.** `S` — 4.1.x crashes npm 10 during install (`edgesOut` null in arborist). Re-test when Node 22's bundled npm updates, or switch CI/local to npm 11.
+- **Angular 22.** `M` — Dependabot has 22.0.1 PRs open. Everything in this repo is already on the v21 idioms (zoneless, signals, view transitions, Vitest), so the jump should be mostly mechanical; do it as its own PR after this one lands.
+- **Community-wall images are 1200×1600 for ~250px polaroids.** `S` — Lighthouse flags it. An 800px variant for the wall (keep the original for fullscreen) would cut most of the page weight.
+- **Navbar wraps "Blog" onto a second row at 1280px.** `S` — pre-existing; tighter padding or a slightly smaller nav font would fit all seven links on one line at common laptop widths.
+- **Tests still thin in places.** `S` each — no coverage yet for `SeoTitleStrategy` edge cases (query strings), `ScrollHint`, `IconComponent`, or the OSRS parent component's data shaping.
+- **Playwright smoke test in CI.** `M` — the headless-browser pass during the audit caught a real bug the unit tests couldn't (scroll-region ordering). A ~10-line Playwright script (deep link → arrow keys → Escape → dialog Escape) would make that permanent.
 
 ## 2. SEO & discoverability
 
-- **Meta tags.** `S` — `index.html` has a `<title>` and nothing else: no description, no Open Graph / Twitter card, no `theme-color`, no canonical. Add site-wide defaults in `index.html` and per-route overrides via `Meta`/`Title` from route `data` (extend `MAIN_ROUTES` with `description`).
-- **Prerender every route.** `M` — `ng add @angular/ssr` with `prerender` only (no server). GitHub Pages then serves real HTML for `/interests` etc. instead of a 404-status `index.html` copy, link previews work, and crawlers see content. Gotchas: `KeyboardNavService` touches `window` in its constructor and `model-viewer` needs `isPlatformBrowser`/`afterNextRender` guards; external API calls stay client-side (fine).
-- **`robots.txt` + `sitemap.xml`.** `S` — Generate the sitemap at build from `MAIN_ROUTES` (tiny Node script in the build step, or a static file until routes change).
-- **JSON-LD `Person`.** `S` — On `/home`: name, `sameAs` = `SOCIAL_LINKS` hrefs, `jobTitle`, `alumniOf`. Pulls straight from the config object.
-- **OG image.** `S` — One 1200×630 card in the site palette (name + a rotating subtitle frozen in time). Per-page variants later.
-- **Favicon set.** `S` — Only `favicon.ico` today. Add an SVG favicon, `apple-touch-icon`, `site.webmanifest` with the teal/gold colors.
-- **Title pattern.** `S` — `Interests · morganvanv.com` rather than just `Interests`.
-- **IndieWeb identity.** `S` — `rel="me"` on the social links and an `h-card` microformat on `/home`. This is the IndieWeb's version of SEO: it enables IndieAuth, Mastodon profile verification, and webmentions later. Very on-brand.
-- **`humans.txt`.** trivial — Old-web staple, and a place for a joke.
+Shipped in PR #74: meta/OG/Twitter tags, prerendering of every route, `robots.txt` + `sitemap.xml` (test-enforced), JSON-LD `Person`, `og-image.jpg`, PNG icons + web manifest, title pattern, `rel="me"` + h-card, `humans.txt`. Left:
+
+- **Per-page OG images.** `S` — one generic card today. The generator is a 30-line Pillow script (background crop + JetBrains Mono); a per-route variant with the page title is easy once there's a place to run it (a `scripts/` folder, or a GitHub Action).
+- **SVG favicon.** `S` — the icon is pixel art, so the current `.ico` + PNGs are right; an SVG would only make sense with a vector mark. Skip unless one appears.
+- **Submit the sitemap to Google Search Console / Bing Webmaster Tools.** `S` — manual, one-time, and it needs Morgan's accounts.
+- **Verify `rel="me"` from the other side.** `S` — add the site URL to the GitHub, Mastodon (if any) and other profiles so the links are reciprocal; that's what makes IndieAuth and Mastodon verification work.
+- **`humans.txt` copy is a draft.** `S` — written in Morgan's voice by Claude; edit freely.
 
 ## 3. Features: Morgan's seeds, worked out
 

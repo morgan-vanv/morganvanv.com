@@ -8,7 +8,7 @@ describe('public SEO files', () => {
     const sitemap = readFileSync('public/sitemap.xml', 'utf8');
     expect(sitemap).toContain(`<loc>${SITE_CONFIG.url}/</loc>`);
     for (const { path } of MAIN_ROUTES) {
-      expect(sitemap).toContain(`<loc>${SITE_CONFIG.url}/${path}</loc>`);
+      expect(sitemap).toContain(`<loc>${SITE_CONFIG.url}/${path}/</loc>`);
     }
     expect(sitemap.match(/<loc>/g)?.length).toBe(MAIN_ROUTES.length + 1);
   });

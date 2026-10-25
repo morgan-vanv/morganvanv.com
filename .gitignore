@@ -47,3 +47,4 @@ dist/
 # Antigravity CLI
 .antigravitycli/
 
+.lighthouseci

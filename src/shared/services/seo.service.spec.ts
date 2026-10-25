@@ -23,7 +23,7 @@ describe('SeoTitleStrategy', () => {
   it('uses the bare domain on the greeting page', async () => {
     await router.navigateByUrl('/');
     expect(title.getTitle()).toBe(SITE_CONFIG.domain);
-    expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(SITE_CONFIG.url);
+    expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/`);
   });
 
   it('sets a suffixed title, the route description and canonical URL on main pages', async () => {
@@ -31,8 +31,8 @@ describe('SeoTitleStrategy', () => {
     await router.navigateByUrl(`/${route.path}`);
     expect(title.getTitle()).toBe(`${route.title} · ${SITE_CONFIG.domain}`);
     expect(meta.getTag('name="description"')?.content).toBe(route.description);
-    expect(meta.getTag('property="og:url"')?.content).toBe(`${SITE_CONFIG.url}/${route.path}`);
-    expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/${route.path}`);
+    expect(meta.getTag('property="og:url"')?.content).toBe(`${SITE_CONFIG.url}/${route.path}/`);
+    expect(document.head.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(`${SITE_CONFIG.url}/${route.path}/`);
   });
 
   it('adds one JSON-LD Person block', () => {

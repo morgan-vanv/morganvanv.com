@@ -25,9 +25,11 @@ export class SeoTitleStrategy extends TitleStrategy {
     const route = this.deepest(snapshot.root);
     const routeTitle = this.buildTitle(snapshot);
     const description = (route.data['description'] as string | undefined) ?? SITE_CONFIG.defaultDescription;
-    const path = snapshot.url.split(/[?#]/)[0];
-    const canonical = `${SITE_CONFIG.url}${path === '/' ? '' : path}`;
-    const fullTitle = routeTitle && path !== '/' ? `${routeTitle} · ${SITE_CONFIG.domain}` : SITE_CONFIG.domain;
+    const path = snapshot.url.split(/[?#]/)[0].replace(/\/+$/, '');
+    // Prerendered routes are directories on GitHub Pages (/home -> /home/), so
+    // the canonical form carries the trailing slash the server will redirect to.
+    const canonical = path === '' ? `${SITE_CONFIG.url}/` : `${SITE_CONFIG.url}${path}/`;
+    const fullTitle = routeTitle && path !== '' ? `${routeTitle} · ${SITE_CONFIG.domain}` : SITE_CONFIG.domain;
 
     this.title.setTitle(fullTitle);
     this.meta.updateTag({ name: 'description', content: description });
