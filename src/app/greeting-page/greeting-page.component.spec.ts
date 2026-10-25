@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-
 import { GreetingPageComponent } from './greeting-page.component';
 
 describe('GreetingPageComponent', () => {
@@ -8,18 +7,17 @@ describe('GreetingPageComponent', () => {
   let fixture: ComponentFixture<GreetingPageComponent>;
 
   beforeEach(async () => {
-      await TestBed.configureTestingModule({
-          imports: [GreetingPageComponent],
-          providers: [provideRouter([])],
-      })
-          .compileComponents();
+    await TestBed.configureTestingModule({
+      imports: [GreetingPageComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
 
-      fixture = TestBed.createComponent(GreetingPageComponent);
-      component = fixture.componentInstance;
-      fixture.detectChanges();
+    fixture = TestBed.createComponent(GreetingPageComponent);
+    component = fixture.componentInstance;
+    await fixture.whenStable();
   });
 
   it('should create', () => {
-      expect(component).toBeTruthy();
+    expect(component).toBeTruthy();
   });
 });
