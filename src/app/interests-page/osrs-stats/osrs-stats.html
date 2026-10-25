@@ -1,7 +1,8 @@
 <section class="osrs-section">
   @if (player().data; as player) {
-    <div class="osrs-panels">
-      <app-osrs-character-panel />
+    <app-osrs-character-panel [player]="player" />
+
+    <div class="osrs-row osrs-row--top">
       <app-osrs-skills-panel [skills]="player.latestSnapshot.data.skills" />
       <app-osrs-overview-panel
         [player]="player"
@@ -12,11 +13,12 @@
       <app-osrs-pets-panel [pets]="pets()" />
     </div>
 
-    <div class="osrs-lower-panels">
+    <div class="osrs-row osrs-row--activity">
       <app-osrs-activity-list title="Recent Achievements" [rows]="achievements()" emptyText="No achievements yet." errorText="Could not load achievements." />
       <app-osrs-activity-list title="Recent Drops" [rows]="drops()" emptyText="No drops yet." errorText="Could not load drops." />
-      <app-osrs-boss-grid [bosses]="player.latestSnapshot.data.bosses" />
     </div>
+
+    <app-osrs-boss-grid [bosses]="player.latestSnapshot.data.bosses" />
   } @else if (player().error) {
     <p class="loading-text">Could not load OSRS stats.</p>
   } @else {

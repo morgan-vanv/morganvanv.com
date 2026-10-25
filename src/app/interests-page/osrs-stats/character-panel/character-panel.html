@@ -1,23 +1,34 @@
-<div class="character-panel">
-  <h3>{{ username }}</h3>
-  <div class="character-img-wrapper">
-    <model-viewer
-      src="tipodissdong.glb"
-      poster="osrs-character.webp"
-      [attr.alt]="username"
-      [attr.auto-rotate]="autoRotate() ? '' : null"
-      camera-controls
-      disable-zoom
-      shadow-intensity="1"
-      class="character-model">
-    </model-viewer>
-    <div class="character-badges">
+<div class="character-band">
+  <model-viewer
+    src="tipodissdong.glb"
+    poster="osrs-character.webp"
+    [attr.alt]="username + ', 3D character model'"
+    [attr.auto-rotate]="autoRotate() ? '' : null"
+    camera-controls
+    disable-zoom
+    shadow-intensity="1"
+    class="character-model">
+  </model-viewer>
+
+  <div class="identity">
+    <h3 class="name">{{ username }}</h3>
+
+    <div class="badges">
       @for (badge of badges; track badge.label) {
-        <a [href]="badge.href" target="_blank" rel="noopener noreferrer" class="character-badge">
-          <img [src]="badge.iconUrl" [alt]="badge.alt" class="badge-icon" />
+        <a [href]="badge.href" target="_blank" rel="noopener noreferrer" class="badge">
+          <img [src]="badge.iconUrl" [alt]="badge.alt" class="badge-icon" width="24" height="24" />
           <span>{{ badge.label }}</span>
         </a>
       }
     </div>
+
+    <dl class="headline">
+      @for (stat of headline(); track stat.label) {
+        <div class="stat" [title]="stat.title">
+          <dt>{{ stat.label }}</dt>
+          <dd>{{ stat.value }}</dd>
+        </div>
+      }
+    </dl>
   </div>
 </div>

@@ -1,27 +1,24 @@
 @use '../../../styles' as *;
 
-.osrs-panels {
-  display: flex;
-  gap: 4rem;
-  align-items: stretch;
-  justify-content: space-around;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-    gap: 1.5rem;
-  }
+.osrs-row {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
-.osrs-lower-panels {
-  display: flex;
-  gap: 4rem;
-  margin-top: 2.5rem;
-  align-items: flex-start;
-  justify-content: space-around;
+// Skills keeps its natural width; Progress takes the slack; Pets fills the row height.
+.osrs-row--top {
+  grid-template-columns: auto minmax(0, 1.4fr) minmax(0, 1fr);
+}
 
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 1.5rem;
+.osrs-row--activity {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+// Last, so it wins over the modifiers above.
+@media (max-width: $breakpoint-mobile) {
+  .osrs-row--top,
+  .osrs-row--activity {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

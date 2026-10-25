@@ -1,95 +1,68 @@
-<div class="completions-panel">
-  <h3>Overview</h3>
-  <ul class="completions-list">
-    <li class="completion-row">
-      <span class="completion-icon-slot"><img src="/osrs/icons/combat-icon.webp" alt="Combat Level" /></span>
-      <span class="completion-label">Combat Lvl</span>
-      <span class="completion-value">{{ player().combatLevel }}</span>
-    </li>
-    <li class="completion-row">
-      <span class="completion-icon-slot"><img src="/osrs/icons/skills-icon.webp" alt="Total Lvl" /></span>
-      <span class="completion-label">Total Lvl</span>
-      <span class="completion-value">{{ totalLevel() }}</span>
-    </li>
-
-    <li class="completion-row">
-      <span class="completion-icon-slot"><img src="/osrs/icons/quests-icon.webp" alt="Quests" /></span>
-      <span class="completion-label">Quests</span>
+<div class="panel">
+  <h3>Progress</h3>
+  <ul class="progress-list">
+    <li class="row">
+      <img src="/osrs/icons/quests-icon.webp" alt="" class="row-icon" width="18" height="18" />
+      <span class="row-label">Quests</span>
       @if (quests().data; as qs) {
-        <div class="completion-value-group">
-          <span class="completion-value">{{ qs.completed }}<span class="completion-denom"> / {{ qs.total }}</span></span>
-          <span class="completion-sub">{{ qs.earnedQp }} QP</span>
-        </div>
+        <span class="row-value">{{ qs.completed }}<span class="denom"> / {{ qs.total }}</span></span>
+        <div class="bar" role="presentation"><span [style.width.%]="percent(qs.completed, qs.total)"></span></div>
+        <span class="row-sub">{{ qs.earnedQp }} QP</span>
       } @else {
-        <span class="loading-text">{{ quests().error ? '!' : '—' }}</span>
+        <span class="row-value loading-text">{{ quests().error ? '!' : '—' }}</span>
       }
     </li>
 
-    <li class="completion-row">
-      <span class="completion-icon-slot"><img src="/osrs/icons/diary-icon.webp" alt="Achievement Diaries" /></span>
-      <span class="completion-label">Diaries</span>
+    <li class="row">
+      <img src="/osrs/icons/diary-icon.webp" alt="" class="row-icon" width="18" height="18" />
+      <span class="row-label">Diaries</span>
       @if (diaries().data; as tiers) {
-        <div class="tier-completion-group">
-          <span class="completion-value tier-total">{{ diaryTotals().completed }}<span class="completion-denom"> / {{ diaryTotals().total }}</span></span>
-          <div class="tier-chips">
-            @for (tier of tiers; track tier.tier) {
-              <span class="tier-chip"
-                    [class.complete]="tier.completed === tier.total"
-                    [class.in-progress]="tier.completed > 0 && tier.completed < tier.total"
-                    [title]="tier.tier + ': ' + tier.completed + '/' + tier.total">
-                {{ tier.tier.slice(0, 2) }}
-              </span>
-            }
-          </div>
-        </div>
-      } @else {
-        <span class="loading-text">{{ diaries().error ? '!' : '—' }}</span>
-      }
-    </li>
-
-    <li class="completion-row">
-      <span class="completion-icon-slot"><img src="/osrs/icons/clue-icon.webp" alt="Clue Scrolls" /></span>
-      <span class="completion-label">Clues</span>
-      <div class="tier-completion-group">
-        <span class="completion-value tier-total">{{ totalClues() }}</span>
-        <div class="tier-chips">
-          @for (tier of clueTiers; track tier.key) {
-            <span class="tier-chip" [class.complete]="clueScore(tier.key) > 0" [title]="clueTitle(tier.key, tier.label)">
-              {{ tier.abbr }}
-            </span>
+        <span class="row-value">{{ diaryTotals().completed }}<span class="denom"> / {{ diaryTotals().total }}</span></span>
+        <div class="bar" role="presentation"><span [style.width.%]="percent(diaryTotals().completed, diaryTotals().total)"></span></div>
+        <span class="row-sub tier-chips">
+          @for (tier of tiers; track tier.tier) {
+            <span class="tier-chip"
+                  [class.complete]="tier.completed === tier.total"
+                  [class.in-progress]="tier.completed > 0 && tier.completed < tier.total"
+                  [title]="tier.tier + ': ' + tier.completed + '/' + tier.total">{{ tier.tier.slice(0, 2) }}</span>
           }
-        </div>
-      </div>
+        </span>
+      } @else {
+        <span class="row-value loading-text">{{ diaries().error ? '!' : '—' }}</span>
+      }
     </li>
 
-    <li class="completion-row">
-      <span class="completion-icon-slot"><img src="/osrs/icons/combat-achievements-icon.webp" alt="Combat Achievements" /></span>
-      <span class="completion-label">Comb. Ach.</span>
+    <li class="row">
+      <img src="/osrs/icons/combat-achievements-icon.webp" alt="" class="row-icon" width="18" height="18" />
+      <span class="row-label">Combat Achievements</span>
       @if (combat().data; as ca) {
-        <div class="completion-value-group">
-          <span class="completion-value">{{ ca.totalCompleted }}<span class="completion-denom"> / {{ ca.totalTasks }}</span></span>
-          <span class="completion-sub">tasks</span>
-        </div>
+        <span class="row-value">{{ ca.totalCompleted }}<span class="denom"> / {{ ca.totalTasks }}</span></span>
+        <div class="bar" role="presentation"><span [style.width.%]="percent(ca.totalCompleted, ca.totalTasks)"></span></div>
       } @else {
-        <span class="loading-text">{{ combat().error ? '!' : '—' }}</span>
+        <span class="row-value loading-text">{{ combat().error ? '!' : '—' }}</span>
       }
     </li>
 
-    <li class="completion-row">
-      <span class="completion-icon-slot"><img src="/osrs/icons/collection-log-icon.webp" alt="Collection Log" /></span>
-      <span class="completion-label">Coll. Log</span>
+    <li class="row">
+      <img src="/osrs/icons/collection-log-icon.webp" alt="" class="row-icon" width="18" height="18" />
+      <span class="row-label">Collection Log</span>
       @if (collectionLog().data; as clog) {
-        <span class="completion-value">{{ clog.obtained }}<span class="completion-denom"> / {{ clog.total }}</span></span>
+        <span class="row-value">{{ formatNumber(clog.obtained) }}<span class="denom"> / {{ formatNumber(clog.total) }}</span></span>
+        <div class="bar" role="presentation"><span [style.width.%]="percent(clog.obtained, clog.total)"></span></div>
       } @else {
-        <span class="loading-text">{{ collectionLog().error ? '!' : '—' }}</span>
+        <span class="row-value loading-text">{{ collectionLog().error ? '!' : '—' }}</span>
       }
     </li>
 
-    <li class="completion-row">
-      <span class="completion-label">EHP / EHB</span>
-      <div class="completion-value-group">
-        <span class="completion-value">{{ formatNumber(player().ehp) }} <span class="completion-denom">| {{ formatNumber(player().ehb) }}</span></span>
-      </div>
+    <li class="row">
+      <img src="/osrs/icons/clue-icon.webp" alt="" class="row-icon" width="18" height="18" />
+      <span class="row-label">Clue Scrolls</span>
+      <span class="row-value">{{ formatNumber(totalClues()) }}</span>
+      <span class="row-sub tier-chips">
+        @for (tier of clueTiers; track tier.key) {
+          <span class="tier-chip" [class.complete]="clueScore(tier.key) > 0" [title]="clueTitle(tier.key, tier.label)">{{ tier.abbr }}</span>
+        }
+      </span>
     </li>
   </ul>
 </div>

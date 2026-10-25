@@ -1,19 +1,21 @@
-<div class="pets-outer">
-  <h3>Pets @if (pets().data; as summary) {<span class="range-label">· {{ summary.obtained }}/{{ summary.total }}</span>}</h3>
-  @if (pets().data; as summary) {
-    <ul class="pets-list">
-      @for (pet of summary.pets; track pet.id) {
-        <li class="pet-item">
-          <img [src]="itemImageUrl(pet.id)" class="pet-icon" [alt]="pet.name" loading="lazy" />
-          <span class="pet-label">{{ pet.name }}</span>
-        </li>
-      } @empty {
-        <li class="loading-text">No pets obtained yet.</li>
-      }
-    </ul>
-  } @else if (pets().error) {
-    <p class="loading-text">Could not load pets.</p>
-  } @else {
-    <p class="loading-text">Loading...</p>
-  }
+<div class="panel">
+  <h3>Pets @if (pets().data; as summary) {<span class="range-label">{{ summary.obtained }} / {{ summary.total }}</span>}</h3>
+  <div class="list-area">
+    @if (pets().data; as summary) {
+      <ul class="pets-list">
+        @for (pet of summary.pets; track pet.id) {
+          <li class="pet-item">
+            <img [src]="itemImageUrl(pet.id)" class="pet-icon" alt="" width="32" height="32" loading="lazy" />
+            <span class="pet-label">{{ pet.name }}</span>
+          </li>
+        } @empty {
+          <li class="loading-text">No pets obtained yet.</li>
+        }
+      </ul>
+    } @else if (pets().error) {
+      <p class="loading-text">Could not load pets.</p>
+    } @else {
+      <p class="loading-text">Loading...</p>
+    }
+  </div>
 </div>

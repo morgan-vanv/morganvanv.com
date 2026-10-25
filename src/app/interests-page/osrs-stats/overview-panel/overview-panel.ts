@@ -27,7 +27,13 @@ export interface CollectionLogSummary {
   total: number;
 }
 
-/** Combat/total level, quests, diaries, clues, combat achievements, collection log, EHP/EHB. */
+/** Percent complete, clamped to 0–100; 0 when the total is unknown. */
+export function percent(done: number, total: number): number {
+  if (!total || total <= 0) return 0;
+  return Math.max(0, Math.min(100, (done / total) * 100));
+}
+
+/** Progress panel: quests, diaries, combat achievements and collection log as bars; clues as a count. */
 @Component({
   selector: 'app-osrs-overview-panel',
   templateUrl: './overview-panel.html',
@@ -43,8 +49,8 @@ export class OsrsOverviewPanelComponent {
 
   readonly clueTiers = CLUE_TIERS;
   readonly formatNumber = formatNumber;
+  readonly percent = percent;
 
-  readonly totalLevel = computed(() => this.player().latestSnapshot.data.skills['overall']?.level ?? 0);
   readonly totalClues = computed(() => this.player().latestSnapshot.data.activities['clue_scrolls_all']?.score ?? 0);
   readonly diaryTotals = computed(() => {
     const tiers = this.diaries().data ?? [];
