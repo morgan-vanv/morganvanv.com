@@ -8,6 +8,11 @@ const USER = SITE_CONFIG.handles.statsFm;
 const CURRENT_URL = `https://api.stats.fm/api/v1/users/${USER}/streams/current`;
 const RECENT_URL = `https://api.stats.fm/api/v1/users/${USER}/streams/recent?limit=1`;
 
+function setVisibility(state: DocumentVisibilityState): void {
+  Object.defineProperty(document, 'visibilityState', { value: state, configurable: true });
+  document.dispatchEvent(new Event('visibilitychange'));
+}
+
 /** The service polls on timer(0, …), which fires on the next macrotask. */
 const tick = () => new Promise(resolve => setTimeout(resolve, 0));
 
@@ -29,7 +34,10 @@ describe('RecentStreamService', () => {
     await tick();
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    setVisibility('visible');
+    http.verify();
+  });
 
   it('prefers the currently playing track and marks it as playing', async () => {
     http.expectOne(CURRENT_URL).flush({ item: { date: new Date().toISOString(), isPlaying: true, progressMs: 1, track: track(7, 'Live One') } });
@@ -53,6 +61,18 @@ describe('RecentStreamService', () => {
     await tick();
     expect(service.lastListened()).toBeNull();
     expect(service.summary()).toBeNull();
+  });
+
+  it('hiding the tab cancels an in-flight fetch, including its fallback request', async () => {
+    const pending = http.expectOne(CURRENT_URL);
+    setVisibility('hidden');
+    expect(pending.cancelled).toBe(true);
+    http.expectNone(RECENT_URL);
+
+    setVisibility('visible');
+    await tick();
+    http.expectOne(CURRENT_URL).flush(null);
+    http.expectOne(RECENT_URL).flush({ items: [] });
   });
 
   it('yields null when there are no streams at all', async () => {

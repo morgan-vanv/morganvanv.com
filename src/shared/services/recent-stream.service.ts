@@ -1,6 +1,6 @@
 import { DestroyRef, Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { catchError, filter, fromEvent, map, merge, of, startWith, switchMap, timer } from 'rxjs';
+import { EMPTY, catchError, filter, fromEvent, map, merge, of, startWith, switchMap, timer } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SITE_CONFIG } from '../config/site.config';
 import { StatsFmService, StatsFmTrack } from './stats-fm.service';
@@ -69,9 +69,10 @@ export class RecentStreamService {
       map(() => document.visibilityState === 'visible'),
     );
 
+    // The fetch lives inside the visibility branch, so hiding the tab cancels
+    // the whole chain — including a request that's already in flight.
     visible$.pipe(
-      switchMap(visible => visible ? timer(0, POLL_INTERVAL_MS) : of()),
-      switchMap(() => this.fetch()),
+      switchMap(visible => visible ? timer(0, POLL_INTERVAL_MS).pipe(switchMap(() => this.fetch())) : EMPTY),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(item => {
       this.now.set(Date.now());
