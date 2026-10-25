@@ -1,9 +1,9 @@
 import { Component, Input, OnChanges, OnDestroy, signal, SimpleChanges } from '@angular/core';
-import { MatIconModule } from '@angular/material/icon';
+import { IconComponent } from '../icon/icon.component';
 
 @Component({
   selector: 'app-scroll-hint',
-  imports: [MatIconModule],
+  imports: [IconComponent],
   templateUrl: './scroll-hint.component.html',
   styleUrl: './scroll-hint.component.scss',
 })

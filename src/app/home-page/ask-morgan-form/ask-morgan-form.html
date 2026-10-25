@@ -26,10 +26,9 @@
           required
           [disabled]="isSubmitting"
         ></textarea>
-        <div class="char-counter" [ngClass]="{
-          'warning': question.length >= 400 && question.length < 480,
-          'danger': question.length >= 480
-        }">
+        <div class="char-counter"
+             [class.warning]="question.length >= 400 && question.length < 480"
+             [class.danger]="question.length >= 480">
           {{ question.length }} / 500
         </div>
       </div>

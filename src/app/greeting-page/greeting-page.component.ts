@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit, signal, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MatIconModule } from '@angular/material/icon';
-import { MatIconButton } from '@angular/material/button';
+import { IconComponent } from '../../shared/icon/icon.component';
 
 const SUBTITLES = [
   'a real human man',
@@ -16,7 +15,7 @@ const FADE_DURATION_MS = 400;
 
 @Component({
   selector: 'app-greeting-page',
-  imports: [RouterLink, MatIconModule, MatIconButton],
+  imports: [RouterLink, IconComponent],
   templateUrl: './greeting-page.component.html',
   styleUrl: './greeting-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

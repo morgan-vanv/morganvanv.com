@@ -12,12 +12,9 @@
   z-index: 1;
 }
 
-mat-icon {
+app-icon {
   color: $accent-color;
   font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  line-height: 1;
   animation: scroll-hint-bounce 0.9s ease-in-out infinite;
 }
 

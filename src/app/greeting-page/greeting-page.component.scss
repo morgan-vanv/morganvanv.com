@@ -55,11 +55,14 @@
   50%       { transform: translateY(-10px); }
 }
 
-.custom-arrow-button.mat-mdc-icon-button {
+.custom-arrow-button {
   margin-bottom: 1rem;
+  padding: 0;
   background-color: transparent;
-  color: #fff;
+  color: $main-color;
   border: none;
+  cursor: pointer;
+  font: inherit;
   border-radius: 33%;
   width: 10rem;
   height: 10rem;
@@ -88,9 +91,6 @@
 .prompt-arrow {
   color: $accent-color;
   font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  line-height: 1;
   animation: greeting-bounce 0.9s ease-in-out infinite;
 }
 

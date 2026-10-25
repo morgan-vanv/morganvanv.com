@@ -31,10 +31,10 @@
               }
             ],
             "styles": [
-              "node_modules/@fontsource/jetbrains-mono/400.css",
-              "node_modules/@fontsource/jetbrains-mono/700.css",
-              "node_modules/material-icons/iconfont/material-icons.css",
-              "node_modules/material-icons/iconfont/outlined.css",
+              "node_modules/@fontsource/jetbrains-mono/latin-400.css",
+              "node_modules/@fontsource/jetbrains-mono/latin-700.css",
+              "node_modules/@fontsource/caveat/latin-400.css",
+              "node_modules/@fontsource/caveat/latin-700.css",
               "src/styles.scss"
             ]
           },
@@ -93,10 +93,10 @@
               }
             ],
             "styles": [
-              "node_modules/@fontsource/jetbrains-mono/400.css",
-              "node_modules/@fontsource/jetbrains-mono/700.css",
-              "node_modules/material-icons/iconfont/material-icons.css",
-              "node_modules/material-icons/iconfont/outlined.css",
+              "node_modules/@fontsource/jetbrains-mono/latin-400.css",
+              "node_modules/@fontsource/jetbrains-mono/latin-700.css",
+              "node_modules/@fontsource/caveat/latin-400.css",
+              "node_modules/@fontsource/caveat/latin-700.css",
               "src/styles.scss"
             ]
           }

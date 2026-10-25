@@ -5,8 +5,8 @@
     <div class="subtitle" [class.hidden]="!subtitleVisible()">{{ subtitle() }}</div>
   </div>
 
-  <button mat-icon-button class="custom-arrow-button" routerLink="/home">
-    <mat-icon fontSet="material-icons-outlined" class="prompt-arrow">keyboard_arrow_down</mat-icon>
+  <button type="button" class="custom-arrow-button" routerLink="/home">
+    <app-icon name="chevron-down" class="prompt-arrow" />
     <span class="arrow-label">Click / Arrow Keys</span>
   </button>
 

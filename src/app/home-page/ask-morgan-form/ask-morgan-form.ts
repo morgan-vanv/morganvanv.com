@@ -1,6 +1,5 @@
 import { Component, ChangeDetectorRef, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
@@ -8,7 +7,7 @@ const SUBMIT_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb1
 
 @Component({
   selector: 'app-ask-morgan-form',
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule],
   templateUrl: './ask-morgan-form.html',
   styleUrl: './ask-morgan-form.scss',
 })

@@ -8,15 +8,15 @@
            [routerLinkActiveOptions]="{ exact: !!link.exact }"
            [attr.aria-label]="link.ariaLabel ?? null">
           @if (rla.isActive && i > 1) {
-            <mat-icon class="nav-arrow nav-arrow-left" aria-hidden="true">keyboard_arrow_left</mat-icon>
+            <app-icon name="chevron-left" class="nav-arrow nav-arrow-left" />
           }
           @if (link.icon) {
-            <mat-icon aria-hidden="true">{{ link.icon }}</mat-icon>
+            <app-icon [name]="link.icon" class="nav-icon" />
           } @else {
             <span>{{ link.label }}</span>
           }
           @if (rla.isActive && i < navLinks.length - 1) {
-            <mat-icon class="nav-arrow nav-arrow-right" aria-hidden="true">keyboard_arrow_right</mat-icon>
+            <app-icon name="chevron-right" class="nav-arrow nav-arrow-right" />
           }
         </a>
       </li>
