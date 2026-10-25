@@ -8,7 +8,7 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
-    "test:ci": "ng test --watch=false --browsers=ChromeHeadless --no-progress",
+    "test:ci": "ng test --watch=false",
     "check": "npm run lint && npm run build -- --configuration=production && npm run test:ci"
   },
   "prettier": {
@@ -44,16 +44,12 @@
     "@angular/cli": "^21.2.13",
     "@angular/compiler-cli": "^21.2.15",
     "@eslint/js": "^10.0.1",
-    "@types/jasmine": "~5.1.0",
+    "@vitest/coverage-v8": "~4.0.8",
     "angular-eslint": "^21.4.0",
     "eslint": "^10.4.1",
-    "jasmine-core": "~6.2.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.2.0",
+    "happy-dom": "^20.0.0",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.61.0"
+    "typescript-eslint": "^8.61.0",
+    "vitest": "~4.0.8"
   }
 }

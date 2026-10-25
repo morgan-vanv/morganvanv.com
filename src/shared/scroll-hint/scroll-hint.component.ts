@@ -28,6 +28,9 @@ export class ScrollHintComponent {
         const { scrollTop, scrollHeight, clientHeight } = el;
         this.canScrollDown.set(scrollHeight - scrollTop - clientHeight > SCROLL_THRESHOLD_PX);
       };
+      // Observers are missing during prerendering and in jsdom; the hint is
+      // purely decorative, so it just stays hidden there.
+      if (typeof ResizeObserver === 'undefined' || typeof MutationObserver === 'undefined') return;
       el.addEventListener('scroll', check, { passive: true });
       const resizeObserver = new ResizeObserver(check);
       resizeObserver.observe(el);

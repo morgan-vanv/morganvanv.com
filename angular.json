@@ -76,24 +76,11 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [],
             "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "node_modules/@fontsource/jetbrains-mono/latin-400.css",
-              "node_modules/@fontsource/jetbrains-mono/latin-700.css",
-              "node_modules/@fontsource/caveat/latin-400.css",
-              "node_modules/@fontsource/caveat/latin-700.css",
-              "src/styles.scss"
-            ]
+            "buildTarget": "::development",
+            "runner": "vitest"
           }
         },
         "lint": {

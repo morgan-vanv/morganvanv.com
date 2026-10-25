@@ -47,4 +47,4 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm test -- --watch=false --browsers=ChromeHeadless --no-progress
+      - run: npm run test:ci

@@ -3,23 +3,23 @@ import { provideRouter } from '@angular/router';
 
 import { GreetingPageComponent } from './greeting-page.component';
 
-describe('LandingPage', () => {
+describe('GreetingPageComponent', () => {
   let component: GreetingPageComponent;
   let fixture: ComponentFixture<GreetingPageComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [GreetingPageComponent],
-      providers: [provideRouter([])],
-    })
-    .compileComponents();
+      await TestBed.configureTestingModule({
+          imports: [GreetingPageComponent],
+          providers: [provideRouter([])],
+      })
+          .compileComponents();
 
-    fixture = TestBed.createComponent(GreetingPageComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+      fixture = TestBed.createComponent(GreetingPageComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+      expect(component).toBeTruthy();
   });
 });

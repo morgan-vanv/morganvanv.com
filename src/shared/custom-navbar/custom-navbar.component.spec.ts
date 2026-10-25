@@ -3,23 +3,23 @@ import { provideRouter } from '@angular/router';
 
 import { CustomNavbarComponent } from './custom-navbar.component';
 
-describe('SplashdownPage', () => {
+describe('provideRouter', () => {
   let component: CustomNavbarComponent;
   let fixture: ComponentFixture<CustomNavbarComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [CustomNavbarComponent],
-      providers: [provideRouter([])],
-    })
-    .compileComponents();
+      await TestBed.configureTestingModule({
+          imports: [CustomNavbarComponent],
+          providers: [provideRouter([])],
+      })
+          .compileComponents();
 
-    fixture = TestBed.createComponent(CustomNavbarComponent);
-    component = fixture.componentInstance;
-    fixture.detectChanges();
+      fixture = TestBed.createComponent(CustomNavbarComponent);
+      component = fixture.componentInstance;
+      fixture.detectChanges();
   });
 
   it('should create', () => {
-    expect(component).toBeTruthy();
+      expect(component).toBeTruthy();
   });
 });
