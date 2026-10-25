@@ -16,4 +16,5 @@ Pushing to `master` deploys. Work on a branch and open a PR.
 
 - `.github/copilot-instructions.md` — conventions and architecture (also imported by `CLAUDE.md`)
 - `docs/decisions.md` — dated one-line decisions
+- `docs/roadmap.md` — what's being built next, with the decisions already made
 - `docs/ideas-later.md` — the ideas backlog
