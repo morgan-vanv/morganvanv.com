@@ -1,4 +1,4 @@
-import { Component, HostListener, ChangeDetectionStrategy, signal, contentChildren, ElementRef, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal, contentChildren, ElementRef, inject } from '@angular/core';
 import { VerticalNavItemComponent } from './vertical-nav-item.component';
 
 @Component({
@@ -7,7 +7,8 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
   styleUrl: './vertical-nav-container.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '[class.has-expanded-item]': 'isExpanded()'
+    '[class.has-expanded-item]': 'isExpanded()',
+    '(document:keydown)': 'handleKeyDown($event)',
   }
 })
 export class VerticalNavContainerComponent {
@@ -24,7 +25,6 @@ export class VerticalNavContainerComponent {
     }, 0);
   }
 
-  @HostListener('document:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
     if (event.metaKey || event.ctrlKey || event.altKey) return;

@@ -22,7 +22,7 @@ export const routes: Routes = [
     path: route.path,
     loadComponent: lazyRouteComponents[route.path],
     title: route.title,
-    data: { animation: getMainRouteAnimation(route.path) },
+    data: { animation: getMainRouteAnimation(route.path), description: route.description },
   })),
   {
     path: '**',

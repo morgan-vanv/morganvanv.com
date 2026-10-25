@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-
 import { CustomNavbarComponent } from './custom-navbar.component';
 
-describe('SplashdownPage', () => {
+describe('CustomNavbarComponent', () => {
   let component: CustomNavbarComponent;
   let fixture: ComponentFixture<CustomNavbarComponent>;
 
@@ -11,12 +10,11 @@ describe('SplashdownPage', () => {
     await TestBed.configureTestingModule({
       imports: [CustomNavbarComponent],
       providers: [provideRouter([])],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(CustomNavbarComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {

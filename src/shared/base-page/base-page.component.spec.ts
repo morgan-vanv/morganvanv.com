@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-
 import { BasePageComponent } from './base-page.component';
 
-describe('SplashdownPage', () => {
+describe('BasePageComponent', () => {
   let component: BasePageComponent;
   let fixture: ComponentFixture<BasePageComponent>;
 
@@ -11,12 +10,11 @@ describe('SplashdownPage', () => {
     await TestBed.configureTestingModule({
       imports: [BasePageComponent],
       providers: [provideRouter([])],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(BasePageComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {

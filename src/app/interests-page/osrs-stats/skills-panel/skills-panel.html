@@ -1,0 +1,11 @@
+<div class="skills-panel">
+  <h3>Skills</h3>
+  <div class="skills-grid">
+    @for (skill of skillOrder; track skill) {
+      <div class="skill-cell" [class.maxed]="level(skill) === 99">
+        <img [src]="iconUrl(skill)" [alt]="skill" class="skill-icon" />
+        <span class="skill-level">{{ level(skill) }}</span>
+      </div>
+    }
+  </div>
+</div>

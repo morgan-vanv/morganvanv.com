@@ -33,8 +33,10 @@ jobs:
       - name: Build Angular Application
         run: npm run build -- --configuration=production --base-href=/
 
-      - name: Copy index.html to 404.html for SPA routing
-        run: cp dist/browser/index.html dist/browser/404.html
+      # Unknown URLs get the client-side shell (not a prerendered page), so the
+      # router can redirect to the greeting without a hydration mismatch.
+      - name: Copy the CSR shell to 404.html for SPA routing
+        run: cp dist/browser/index.csr.html dist/browser/404.html
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v5

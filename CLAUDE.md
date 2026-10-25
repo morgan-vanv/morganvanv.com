@@ -9,11 +9,11 @@ Update conventions there, not here. This file only holds Claude-specific rules.
 ## Hard rules
 
 - **`master` deploys.** Every push to `master` ships to morganvanv.com. Work on a branch and open a PR; never push to `master` directly.
-- **Before calling work done**, all three CI checks must pass locally:
+- **Before calling work done**, all three CI checks must pass locally (`npm run check` runs them in order):
   ```bash
   npm run lint
   npm run build -- --configuration=production
-  npm test -- --watch=false --browsers=ChromeHeadless --no-progress
+  npm run test:ci
   ```
 - **Copy is Morgan's voice.** Draft visible text in a casual, dry, first-person tone, keep it short, and flag it as a draft. Never invent facts about Morgan's life, opinions, or projects; use `[TODO: Morgan]` instead.
 - **Static site only.** No server code in this app. Anything needing a backend is a serverless function called over HTTP (see `ask-morgan-form`).

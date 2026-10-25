@@ -1,22 +1,26 @@
-import { Component, Input, HostListener, inject, ChangeDetectionStrategy, computed, signal, DestroyRef, ElementRef } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, computed, signal, DestroyRef, ElementRef, input } from '@angular/core';
 import { VerticalNavContainerComponent } from './vertical-nav-container.component';
 import { ScrollHintComponent } from '../scroll-hint/scroll-hint.component';
+import { ScrollRegionDirective } from '../scroll-region/scroll-region.directive';
 
 @Component({
   selector: 'app-vertical-nav-item',
-  imports: [ScrollHintComponent],
+  imports: [ScrollHintComponent, ScrollRegionDirective],
   templateUrl: './vertical-nav-item.component.html',
   styleUrl: './vertical-nav-item.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '[class.hidden-sibling]': 'isHiddenSibling()'
+    '[class.hidden-sibling]': 'isHiddenSibling()',
+    '(click)': 'onClick($event)',
+    '(mouseenter)': 'onMouseEnter()',
+    '(focusin)': 'onFocusIn()',
   }
 })
 export class VerticalNavItemComponent {
-  @Input({ required: true }) title!: string;
-  @Input() description?: string;
-  @Input() isUnderConstruction = false;
-  @Input() iconUrl?: string;
+  readonly title = input.required<string>();
+  readonly description = input<string>();
+  readonly isUnderConstruction = input(false);
+  readonly iconUrl = input<string>();
 
   isEscapeActive = signal(false);
 
@@ -42,7 +46,6 @@ export class VerticalNavItemComponent {
     return this.container.isExpanded() && !this.isExpanded();
   });
 
-  @HostListener('click', ['$event'])
   onClick(event?: MouseEvent) {
     if (event) {
       const target = event.target;
@@ -58,14 +61,12 @@ export class VerticalNavItemComponent {
     this.container.expandItem(this);
   }
 
-  @HostListener('mouseenter')
   onMouseEnter() {
     if (!this.isHighlighted()) {
       this.container.setHighlight(this);
     }
   }
 
-  @HostListener('focusin')
   onFocusIn() {
     if (!this.isHighlighted()) {
       this.container.setHighlight(this);

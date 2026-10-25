@@ -1,0 +1,17 @@
+/* TEAM */
+  Some guy: Morgan Van Valkenburgh
+  Site: https://morganvanv.com
+  Location: Greater Cincinnati, Ohio
+
+  Quality assurance: Ada (cat)
+  Role: light of my life / bane of my existence
+
+/* THANKS */
+  Wise Old Man, RuneProfile, stats.fm — for the live numbers
+  The IndieWeb, Web Revival, and neocities — for the reminder that websites can be fun
+
+/* SITE */
+  Built with: Angular, TypeScript, SCSS, and a mild amount of spite
+  Hosting: GitHub Pages
+  Fonts: JetBrains Mono, Caveat
+  Standards: HTML5, CSS3, arrow keys

@@ -19,9 +19,7 @@
           "options": {
             "outputPath": "dist",
             "browser": "src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": [],
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
             "assets": [
@@ -31,12 +29,14 @@
               }
             ],
             "styles": [
-              "node_modules/@fontsource/jetbrains-mono/400.css",
-              "node_modules/@fontsource/jetbrains-mono/700.css",
-              "node_modules/material-icons/iconfont/material-icons.css",
-              "node_modules/material-icons/iconfont/outlined.css",
+              "node_modules/@fontsource/jetbrains-mono/latin-400.css",
+              "node_modules/@fontsource/jetbrains-mono/latin-700.css",
+              "node_modules/@fontsource/caveat/latin-400.css",
+              "node_modules/@fontsource/caveat/latin-700.css",
               "src/styles.scss"
-            ]
+            ],
+            "server": "src/main.server.ts",
+            "outputMode": "static"
           },
           "configurations": {
             "production": {
@@ -78,27 +78,11 @@
           "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular/build:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
             "tsConfig": "tsconfig.spec.json",
-            "inlineStyleLanguage": "scss",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "public"
-              }
-            ],
-            "styles": [
-              "node_modules/@fontsource/jetbrains-mono/400.css",
-              "node_modules/@fontsource/jetbrains-mono/700.css",
-              "node_modules/material-icons/iconfont/material-icons.css",
-              "node_modules/material-icons/iconfont/outlined.css",
-              "src/styles.scss"
-            ]
+            "buildTarget": "::development",
+            "runner": "vitest"
           }
         },
         "lint": {

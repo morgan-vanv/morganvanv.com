@@ -1,0 +1,63 @@
+@use '../../../../styles' as *;
+@use '../../../../shared/shared-styles.scss' as shared;
+
+// Render as if the inner panel were the parent's flex item directly.
+:host {
+  display: contents;
+}
+
+// A natural-width flex column; its height comes from align-items: stretch
+// on the parent row, so the list scrolls inside it.
+.pets-outer {
+  flex-shrink: 0;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: $breakpoint-mobile) {
+    height: 40vh;
+  }
+
+  h3 {
+    flex-shrink: 0;
+    margin-bottom: 0.75rem;
+  }
+}
+
+.pets-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  @include shared.scrollbar-styled;
+  &::-webkit-scrollbar-track { margin: 0; }
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.pet-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.pet-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.pet-label {
+  font-size: 0.95rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-
 import { GreetingPageComponent } from './greeting-page.component';
 
-describe('LandingPage', () => {
+describe('GreetingPageComponent', () => {
   let component: GreetingPageComponent;
   let fixture: ComponentFixture<GreetingPageComponent>;
 
@@ -11,12 +10,11 @@ describe('LandingPage', () => {
     await TestBed.configureTestingModule({
       imports: [GreetingPageComponent],
       providers: [provideRouter([])],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(GreetingPageComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {

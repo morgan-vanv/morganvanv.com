@@ -1,0 +1,32 @@
+name: Quality
+
+# Lighthouse (performance, best practices, SEO, and axe-core accessibility)
+# against the prerendered build. Accessibility and SEO regressions fail the
+# check; performance and best-practice scores only warn because runner
+# timing is noisy.
+
+on:
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lighthouse:
+    name: Lighthouse
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build -- --configuration=production
+      - run: npx --yes @lhci/cli@0.15.x autorun

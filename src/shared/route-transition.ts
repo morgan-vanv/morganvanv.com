@@ -1,54 +1,45 @@
-import { animate, group, query, style, transition, trigger } from '@angular/animations';
+import { ActivatedRouteSnapshot } from '@angular/router';
+import type { ViewTransitionInfo } from '@angular/router';
 
-const positioned = query(':enter, :leave', [
-  style({ position: 'absolute', width: '100%', height: '100%' })
-], { optional: true });
+export type TransitionDirection = 'left' | 'right' | 'vertical';
 
-const verticalTransition = [
-  positioned,
-  group([
-    query(':leave', [
-      animate('500ms ease-in-out', style({ opacity: 0, transform: 'translateY(-120vh)' }))
-    ], { optional: true }),
-    query(':enter', [
-      style({ opacity: 0, transform: 'translateY(120vh)' }),
-      animate('500ms ease-in-out', style({ opacity: 1, transform: 'translateY(0)' }))
-    ], { optional: true }),
-  ])
-];
+const DATA_ATTR = 'transition';
 
-const slideRightTransition = [
-  positioned,
-  group([
-    query(':leave', [
-      animate('400ms ease-in-out', style({ opacity: 0, transform: 'translateX(-100%)' }))
-    ], { optional: true }),
-    query(':enter', [
-      style({ opacity: 0, transform: 'translateX(100%)' }),
-      animate('400ms ease-in-out', style({ opacity: 1, transform: 'translateX(0)' }))
-    ], { optional: true }),
-  ])
-];
+/** The transition that currently owns the data attribute, so an older one finishing late can't clear a newer one's direction. */
+let owner: ViewTransitionInfo['transition'] | null = null;
 
-const slideLeftTransition = [
-  positioned,
-  group([
-    query(':leave', [
-      animate('400ms ease-in-out', style({ opacity: 0, transform: 'translateX(100%)' }))
-    ], { optional: true }),
-    query(':enter', [
-      style({ opacity: 0, transform: 'translateX(-100%)' }),
-      animate('400ms ease-in-out', style({ opacity: 1, transform: 'translateX(0)' }))
-    ], { optional: true }),
-  ])
-];
+function animationIndex(snapshot: ActivatedRouteSnapshot): number {
+  let node: ActivatedRouteSnapshot | null = snapshot;
+  while (node) {
+    const value = node.data['animation'];
+    if (typeof value === 'number') return value;
+    node = node.firstChild;
+  }
+  return 0;
+}
 
-export const defaultRouteTransition = trigger('routeAnimations', [
-  // Greeting page (index 0) always slides vertically — checked before :increment/:decrement
-  transition('0 => *', verticalTransition),
-  transition('* => 0', verticalTransition),
+/**
+ * Picks the slide direction for a route change. The greeting page (index 0)
+ * always slides vertically; main pages slide horizontally based on their
+ * order in MAIN_ROUTES. The direction is exposed as
+ * `<html data-transition="…">` for the ::view-transition CSS in styles.scss.
+ */
+export function directionBetween(from: number, to: number): TransitionDirection {
+  if (from === 0 || to === 0) return 'vertical';
+  return to > from ? 'right' : 'left';
+}
 
-  // Main pages (1–5) slide horizontally based on index direction
-  transition(':increment', slideRightTransition),
-  transition(':decrement', slideLeftTransition),
-]);
+export function onViewTransitionCreated({ transition, from, to }: ViewTransitionInfo): void {
+  const direction = directionBetween(animationIndex(from), animationIndex(to));
+  const html = document.documentElement;
+  owner = transition;
+  html.dataset[DATA_ATTR] = direction;
+  transition.finished
+    .catch(() => undefined) // a skipped transition rejects; that's fine
+    .then(() => {
+      if (owner === transition) {
+        owner = null;
+        delete html.dataset[DATA_ATTR];
+      }
+    });
+}

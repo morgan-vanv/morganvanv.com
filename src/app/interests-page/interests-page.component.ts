@@ -7,8 +7,9 @@ import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } fr
 import { OsrsStatsComponent } from './osrs-stats/osrs-stats';
 import { Observable, map, catchError, of } from 'rxjs';
 import { WOM_USERNAME, POWERED_BY_LINKS } from '../../shared/constants/osrs-stats.const';
+import { SITE_CONFIG } from '../../shared/config/site.config';
 
-const STATSFM_USERNAME = 'morgan.vanv';
+const STATSFM_USERNAME = SITE_CONFIG.handles.statsFm;
 const STATS_DISPLAY_LIMIT = 8;
 
 @Component({
@@ -20,6 +21,8 @@ const STATS_DISPLAY_LIMIT = 8;
 })
 export class InterestsPageComponent {
   readonly womUsername = WOM_USERNAME;
+  readonly statsFmProfileUrl = `https://stats.fm/user/${STATSFM_USERNAME}`;
+  readonly discogsCollectionUrl = `https://www.discogs.com/user/${SITE_CONFIG.handles.discogs}/collection`;
   readonly poweredByLinks = POWERED_BY_LINKS;
 
   private statsFm = inject(StatsFmService);

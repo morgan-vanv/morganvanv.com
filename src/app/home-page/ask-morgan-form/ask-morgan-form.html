@@ -1,16 +1,16 @@
-<div class="ask-morgan-container" [class.success-state]="isSuccess">
-  @if (!isSuccess) {
+<div class="ask-morgan-container" [class.success-state]="isSuccess()">
+  @if (!isSuccess()) {
 
-    @if (errorMessage) {
+    @if (errorMessage(); as error) {
       <div class="error-message" aria-live="assertive">
-        {{ errorMessage }}
+        {{ error }}
       </div>
     }
 
     <form (ngSubmit)="submitForm()">
       <div class="honey-pot" aria-hidden="true">
         <label for="username_honey">Leave this field blank if you are human:</label>
-        <input type="text" id="username_honey" name="username_honey" [(ngModel)]="usernameHoney" tabindex="-1" autocomplete="off">
+        <input type="text" id="username_honey" name="username_honey" [ngModel]="usernameHoney()" (ngModelChange)="usernameHoney.set($event)" tabindex="-1" autocomplete="off">
       </div>
 
       <div class="form-group">
@@ -18,29 +18,27 @@
         <textarea
           id="question"
           name="question"
-          [(ngModel)]="question"
-          maxlength="500"
+          [ngModel]="question()"
+          (ngModelChange)="question.set($event)"
+          [maxlength]="maxLength"
           rows="4"
           placeholder="What's on your mind?"
           aria-label="Your anonymous submission"
           required
-          [disabled]="isSubmitting"
+          [disabled]="isSubmitting()"
         ></textarea>
-        <div class="char-counter" [ngClass]="{
-          'warning': question.length >= 400 && question.length < 480,
-          'danger': question.length >= 480
-        }">
-          {{ question.length }} / 500
+        <div class="char-counter" [class.warning]="counterWarning()" [class.danger]="counterDanger()">
+          {{ charCount() }} / {{ maxLength }}
         </div>
       </div>
 
-      <button type="submit" class="submit-btn" [disabled]="isSubmitting || !question.trim()">
-        {{ isSubmitting ? 'Sending...' : 'Submit' }}
+      <button type="submit" class="submit-btn" [disabled]="!canSubmit()">
+        {{ isSubmitting() ? 'Sending...' : 'Submit' }}
       </button>
     </form>
   }
 
-  @if (isSuccess) {
+  @if (isSuccess()) {
     <div class="success-feedback" aria-live="polite">
     <div class="success-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -49,7 +47,7 @@
       </svg>
     </div>
     <h4>Message Sent</h4>
-    <p>{{ successMessage }}</p>
+    <p>{{ successMessage() }}</p>
     <button type="button" class="reset-btn" (click)="resetForm()">Ask Another Question</button>
     </div>
   }

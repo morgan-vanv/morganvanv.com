@@ -31,9 +31,10 @@ nav ul {
   .nav-arrow {
     color: $accent-color;
     font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    line-height: 1;
+  }
+
+  .nav-icon {
+    font-size: 1.5rem;
   }
 
   .nav-arrow-left {

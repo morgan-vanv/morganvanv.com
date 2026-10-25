@@ -1,4 +1,6 @@
-export const WOM_USERNAME = 'TipodissDong';
+import { SITE_CONFIG } from '../config/site.config';
+
+export const WOM_USERNAME = SITE_CONFIG.handles.osrs;
 
 export interface CharacterBadge {
   iconUrl: string;
@@ -8,8 +10,8 @@ export interface CharacterBadge {
 }
 
 export const CHARACTER_BADGES: CharacterBadge[] = [
-  { iconUrl: 'osrs/badges/group_ironman_badge.png', alt: 'Group Ironman', label: 'SeedSlingers', href: 'https://wiseoldman.net/groups/12982' },
-  { iconUrl: 'osrs/badges/clan_deputy_owner_icon.png', alt: 'Clan', label: 'Ugandans', href: 'https://wiseoldman.net/groups/7117' },
+  { iconUrl: 'osrs/badges/group_ironman_badge.webp', alt: 'Group Ironman', label: 'SeedSlingers', href: 'https://wiseoldman.net/groups/12982' },
+  { iconUrl: 'osrs/badges/clan_deputy_owner_icon.webp', alt: 'Clan', label: 'Ugandans', href: 'https://wiseoldman.net/groups/7117' },
 ];
 
 export interface PoweredByLink {

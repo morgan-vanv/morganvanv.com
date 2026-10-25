@@ -1,0 +1,22 @@
+<div class="activity-panel">
+  <h3>{{ title() }}</h3>
+  @if (rows().data; as items) {
+    <ul class="activities-list">
+      @for (row of items; track $index) {
+        <li class="activity-item">
+          <img [src]="row.iconUrl" class="activity-icon" [alt]="row.label" loading="lazy" />
+          <div class="activity-info">
+            <span class="activity-label">{{ row.label }}</span>
+            <span class="activity-meta">{{ row.meta }}</span>
+          </div>
+        </li>
+      } @empty {
+        <li class="loading-text">{{ emptyText() }}</li>
+      }
+    </ul>
+  } @else if (rows().error) {
+    <p class="loading-text">{{ errorText() }}</p>
+  } @else {
+    <p class="loading-text">Loading...</p>
+  }
+</div>

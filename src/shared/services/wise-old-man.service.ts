@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { ApiCacheService } from './api-cache.service';
 import { Observable } from 'rxjs';
 
 export interface WomSkill {
@@ -44,7 +44,7 @@ const BASE_URL = 'https://api.wiseoldman.net/v2';
 
 @Injectable({ providedIn: 'root' })
 export class WiseOldManService {
-  private http = inject(HttpClient);
+  private http = inject(ApiCacheService);
 
   getPlayer(username: string): Observable<WomPlayer> {
     return this.http.get<WomPlayer>(`${BASE_URL}/players/${encodeURIComponent(username)}`);

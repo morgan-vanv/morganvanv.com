@@ -2,20 +2,28 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { fromEvent } from 'rxjs';
 import { GREETING_ROUTE, MAIN_NAV_ROUTES } from '../main-routes';
+import { ScrollRegionService } from '../scroll-region/scroll-region.service';
 
 const SCROLL_STEP_PX = 120;
 const DEFAULT_MAIN_ROUTE = MAIN_NAV_ROUTES[0];
 
+/**
+ * Site-wide arrow-key navigation: Left/Right move between main pages in
+ * MAIN_ROUTES order, Up/Down scroll the page's registered scroll region,
+ * Escape returns to the greeting. Any arrow leaves the greeting page.
+ */
 @Injectable({ providedIn: 'root' })
 export class KeyboardNavService {
   private readonly router = inject(Router);
+  private readonly scrollRegions = inject(ScrollRegionService);
 
   constructor() {
+    if (typeof window === 'undefined') return;
     fromEvent<KeyboardEvent>(window, 'keydown')
       .subscribe(e => this.onKeyDown(e));
   }
 
-  private onKeyDown(e: KeyboardEvent): void {
+  onKeyDown(e: KeyboardEvent): void {
     if (e.defaultPrevented) return;
     if (e.metaKey || e.ctrlKey || e.altKey) return;
     if (this.isEditableTarget(document.activeElement)) return;
@@ -35,7 +43,7 @@ export class KeyboardNavService {
     }
 
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-      const container = this.getScrollContainer(currentPath);
+      const container = this.scrollRegions.active();
       if (container) {
         e.preventDefault();
         container.scrollBy({ top: e.key === 'ArrowDown' ? SCROLL_STEP_PX : -SCROLL_STEP_PX, behavior: 'auto' });
@@ -52,20 +60,6 @@ export class KeyboardNavService {
     if (nextIdx >= 0 && nextIdx < MAIN_NAV_ROUTES.length) {
       this.router.navigate([MAIN_NAV_ROUTES[nextIdx]]);
     }
-  }
-
-  private getScrollContainer(currentPath: string): HTMLElement | null {
-    if (currentPath === '/home') {
-      return document.querySelector<HTMLElement>('.right-scroll-container');
-    }
-
-    if (currentPath === '/interests') {
-      const expandedItem = document.querySelector<HTMLElement>('.expanded .item-card');
-      if (expandedItem) return expandedItem;
-      return null;
-    }
-
-    return document.querySelector<HTMLElement>('.page-content');
   }
 
   private getCurrentPath(): string {

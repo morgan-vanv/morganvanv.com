@@ -1,4 +1,3 @@
-
 .canvas {
   height: 100dvh;
   width: 100dvw;
@@ -16,6 +15,7 @@
 main {
   height: 100dvh;
   width: 100%;
+  // Captured separately by the View Transitions API so only the page slides
+  // and the background canvas stays put. Animations live in styles.scss.
+  view-transition-name: page;
 }
-
-

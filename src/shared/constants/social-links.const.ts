@@ -1,3 +1,5 @@
+import { SITE_CONFIG } from '../config/site.config';
+
 export interface SocialLink {
   href: string;
   label: string;
@@ -10,7 +12,7 @@ export interface SocialLink {
 
 export const SOCIAL_LINKS: SocialLink[] = [
   {
-    href: 'mailto:website@morganvanv.com',
+    href: `mailto:${SITE_CONFIG.email}`,
     label: 'Email',
     brandColor: 'var(--accent-color)',
     viewBox: '0 0 24 24',
@@ -18,7 +20,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     external: false,
   },
   {
-    href: 'https://github.com/morgan-vanv',
+    href: `https://github.com/${SITE_CONFIG.handles.github}`,
     label: 'GitHub',
     brandColor: '#010409',
     viewBox: '0 0 24 24',
@@ -26,7 +28,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     external: true,
   },
   {
-    href: 'https://www.linkedin.com/in/morganvanv/',
+    href: `https://www.linkedin.com/in/${SITE_CONFIG.handles.linkedin}/`,
     label: 'LinkedIn',
     brandColor: '#0A66C2',
     viewBox: '0 0 24 24',
@@ -34,7 +36,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     external: true,
   },
   {
-    href: 'https://discordapp.com/users/186233910529622016',
+    href: `https://discordapp.com/users/${SITE_CONFIG.handles.discordUserId}`,
     label: 'Discord',
     brandColor: '#7289DA',
     viewBox: '0 0 24 24',
@@ -42,7 +44,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     external: true,
   },
   {
-    href: 'https://open.spotify.com/user/1228709273?si=2d1f83f608db406a',
+    href: `https://open.spotify.com/user/${SITE_CONFIG.handles.spotifyUserId}`,
     label: 'Spotify',
     brandColor: '#1DB954',
     viewBox: '0 0 24 24',
@@ -50,7 +52,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     external: true,
   },
   {
-    href: 'https://steamcommunity.com/id/most_money/',
+    href: `https://steamcommunity.com/id/${SITE_CONFIG.handles.steam}/`,
     label: 'Steam',
     brandColor: '#1b2838',
     viewBox: '0 0 24 24',
@@ -58,7 +60,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     external: true,
   },
   {
-    href: 'https://www.instagram.com/morgan.vanv/',
+    href: `https://www.instagram.com/${SITE_CONFIG.handles.instagram}/`,
     label: 'Instagram',
     brandColor: '#c13584',
     viewBox: '0 0 24 24',

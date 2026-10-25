@@ -1,0 +1,13 @@
+<div class="bosses-panel">
+  <h3>Boss Kills</h3>
+  <ul class="boss-grid">
+    @for (boss of rows(); track boss.metric) {
+      <li class="boss-item" [title]="boss.name">
+        <img [src]="'osrs/bosses/' + boss.metric + '.webp'" class="boss-icon" [alt]="boss.name" loading="lazy" />
+        <span class="boss-kc">{{ boss.kills }}</span>
+      </li>
+    } @empty {
+      <li class="loading-text">No boss kills yet.</li>
+    }
+  </ul>
+</div>

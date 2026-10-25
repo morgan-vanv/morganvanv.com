@@ -1,9 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-
 import { ProjectsPageComponent } from './projects-page.component';
 
-describe('SplashdownPage', () => {
+describe('ProjectsPageComponent', () => {
   let component: ProjectsPageComponent;
   let fixture: ComponentFixture<ProjectsPageComponent>;
 
@@ -11,12 +10,11 @@ describe('SplashdownPage', () => {
     await TestBed.configureTestingModule({
       imports: [ProjectsPageComponent],
       providers: [provideRouter([])],
-    })
-    .compileComponents();
+    }).compileComponents();
 
     fixture = TestBed.createComponent(ProjectsPageComponent);
     component = fixture.componentInstance;
-    fixture.detectChanges();
+    await fixture.whenStable();
   });
 
   it('should create', () => {

@@ -1,9 +1,9 @@
-<app-base-page>
+<app-base-page pageTitle="Social">
   <section>
     <h2>Community Photo Wall</h2>
     <p>
       If you would like to submit a photo to the wall, please email it to me (with an optional caption) at
-      <a href="mailto:website@morganvanv.com" class="pill">website&#64;morganvanv.com</a>
+      <a [href]="'mailto:' + siteEmail" class="pill">{{ siteEmail }}</a>
     </p>
 
     <div class="photo-wall">
@@ -17,7 +17,7 @@
              (keydown.space)="openFullscreen(photo); $event.preventDefault()">
           <div class="polaroid-image-container">
             @if (photo.imageUrl) {
-              <img [src]="photo.imageUrl" [alt]="photo.caption || 'Community submitted photo'" class="polaroid-image" loading="lazy" decoding="async" />
+              <img [src]="photo.imageUrl" [alt]="'Community photo' + (photo.caption ? ': ' + photo.caption : '')" class="polaroid-image" width="1200" height="1600" loading="lazy" decoding="async" />
             } @else {
               <div class="polaroid-placeholder">{{ photo.placeholderText }}</div>
             }
