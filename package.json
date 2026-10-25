@@ -53,6 +53,6 @@
     "happy-dom": "^20.0.0",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.61.0",
-    "vitest": "~4.0.8"
+    "vitest": "~4.1.0"
   }
 }
