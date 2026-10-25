@@ -147,9 +147,9 @@ export class RuneProfileService {
     const params = new URLSearchParams();
     if (cursor) params.set('cursor', cursor);
     if (activityTypes?.length) params.set('activityTypes', activityTypes.join(','));
-    const query = params.size > 0 ? `?${params}` : '';
+    const query = params.toString();
     return this.http.get<RpActivitiesResponse>(
-      `${BASE_URL}/accounts/${encodeURIComponent(username)}/activities${query}`
+      `${BASE_URL}/accounts/${encodeURIComponent(username)}/activities${query ? `?${query}` : ''}`
     );
   }
 
