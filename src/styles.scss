@@ -67,3 +67,41 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+// Route transitions (View Transitions API). The direction is set on <html>
+// by onViewTransitionCreated() in shared/route-transition.ts. Only the
+// <main> element (view-transition-name: page) moves; the root crossfade is
+// disabled so the background canvas stays still.
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+::view-transition-old(page),
+::view-transition-new(page) {
+  animation-duration: 400ms;
+  animation-timing-function: ease-in-out;
+}
+
+html[data-transition='right'] ::view-transition-old(page) { animation-name: slide-out-left; }
+html[data-transition='right'] ::view-transition-new(page) { animation-name: slide-in-right; }
+html[data-transition='left'] ::view-transition-old(page) { animation-name: slide-out-right; }
+html[data-transition='left'] ::view-transition-new(page) { animation-name: slide-in-left; }
+html[data-transition='vertical'] ::view-transition-old(page) { animation-name: slide-out-up; animation-duration: 500ms; }
+html[data-transition='vertical'] ::view-transition-new(page) { animation-name: slide-in-down; animation-duration: 500ms; }
+
+@keyframes slide-out-left { to { opacity: 0; transform: translateX(-100%); } }
+@keyframes slide-in-right { from { opacity: 0; transform: translateX(100%); } }
+@keyframes slide-out-right { to { opacity: 0; transform: translateX(100%); } }
+@keyframes slide-in-left { from { opacity: 0; transform: translateX(-100%); } }
+@keyframes slide-out-up { to { opacity: 0; transform: translateY(-120vh); } }
+@keyframes slide-in-down { from { opacity: 0; transform: translateY(120vh); } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

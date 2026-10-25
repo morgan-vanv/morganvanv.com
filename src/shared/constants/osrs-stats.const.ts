@@ -1,4 +1,6 @@
-export const WOM_USERNAME = 'TipodissDong';
+import { SITE_CONFIG } from '../config/site.config';
+
+export const WOM_USERNAME = SITE_CONFIG.handles.osrs;
 
 export interface CharacterBadge {
   iconUrl: string;

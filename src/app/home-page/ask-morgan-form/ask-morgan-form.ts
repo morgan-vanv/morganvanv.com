@@ -1,64 +1,68 @@
-import { Component, ChangeDetectorRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
+import { SITE_CONFIG } from '../../../shared/config/site.config';
 
-const SUBMIT_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit';
+export const QUESTION_MAX_LENGTH = 500;
+const SUCCESS_MESSAGE = 'Thanks for reaching out! Your message was sent anonymously.';
+const ERROR_MESSAGE = 'An error occurred while sending your message. Please try again later.';
 
 @Component({
   selector: 'app-ask-morgan-form',
   imports: [FormsModule],
   templateUrl: './ask-morgan-form.html',
   styleUrl: './ask-morgan-form.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AskMorganFormComponent {
-  question = '';
-  usernameHoney = '';
-  isSubmitting = false;
-  successMessage = '';
-  errorMessage = '';
-  isSuccess = false;
+  readonly maxLength = QUESTION_MAX_LENGTH;
 
-  private cdr = inject(ChangeDetectorRef);
-  private http = inject(HttpClient);
+  readonly question = signal('');
+  readonly usernameHoney = signal('');
+  readonly isSubmitting = signal(false);
+  readonly successMessage = signal('');
+  readonly errorMessage = signal('');
+  readonly isSuccess = signal(false);
 
-  async submitForm() {
-    if (!this.question.trim()) return;
-    
+  readonly charCount = computed(() => this.question().length);
+  readonly counterWarning = computed(() => this.charCount() >= 400 && this.charCount() < 480);
+  readonly counterDanger = computed(() => this.charCount() >= 480);
+  readonly canSubmit = computed(() => !this.isSubmitting() && this.question().trim().length > 0);
+
+  private readonly http = inject(HttpClient);
+
+  async submitForm(): Promise<void> {
+    const question = this.question().trim();
+    if (!question) return;
+
     // Honeypot short-circuit: fail silently to prevent spam
-    if (this.usernameHoney.trim()) {
-      this.successMessage = 'Thanks for reaching out! Your message was sent anonymously.';
-      this.isSuccess = true;
+    if (this.usernameHoney().trim()) {
+      this.successMessage.set(SUCCESS_MESSAGE);
+      this.isSuccess.set(true);
       return;
     }
 
-    this.isSubmitting = true;
-    this.errorMessage = '';
+    this.isSubmitting.set(true);
+    this.errorMessage.set('');
 
     try {
-      const payload = {
-        question: this.question.trim(),
-        username_honey: this.usernameHoney
-      };
-      
       await firstValueFrom(
-        this.http.post(SUBMIT_URL, payload)
+        this.http.post(SITE_CONFIG.askMorganSubmitUrl, { question, username_honey: this.usernameHoney() })
       );
-
-      this.successMessage = 'Thanks for reaching out! Your message was sent anonymously.';
-      this.isSuccess = true;
+      this.successMessage.set(SUCCESS_MESSAGE);
+      this.isSuccess.set(true);
     } catch {
-      this.errorMessage = 'An error occurred while sending your message. Please try again later.';
+      this.errorMessage.set(ERROR_MESSAGE);
     } finally {
-      this.isSubmitting = false;
-      this.cdr.markForCheck();
+      this.isSubmitting.set(false);
     }
   }
 
-  resetForm() {
-    this.isSuccess = false;
-    this.successMessage = '';
-    this.question = '';
-    this.usernameHoney = '';
+  resetForm(): void {
+    this.isSuccess.set(false);
+    this.successMessage.set('');
+    this.question.set('');
+    this.usernameHoney.set('');
   }
 }

@@ -1,6 +1,5 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { defaultRouteTransition } from '../shared/route-transition';
 import { KeyboardNavService } from '../shared/services/keyboard-nav.service';
 
 @Component({
@@ -8,17 +7,10 @@ import { KeyboardNavService } from '../shared/services/keyboard-nav.service';
   imports: [RouterOutlet],
   templateUrl: './app.html',
   styleUrl: './app.scss',
-  animations: [ defaultRouteTransition ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
   constructor() {
     inject(KeyboardNavService);
   }
-
-  prepareRoute(outlet: RouterOutlet): number | undefined {
-    const animation = outlet?.activatedRouteData?.['animation'];
-    return typeof animation === 'number' ? animation : undefined;
-  }
-
 }

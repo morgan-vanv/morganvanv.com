@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { ApiCacheService } from './api-cache.service';
 import { Observable } from 'rxjs';
 
 export interface RpCollectionLogItem {
@@ -135,7 +135,7 @@ const BASE_URL = 'https://api.runeprofile.com/v1';
 
 @Injectable({ providedIn: 'root' })
 export class RuneProfileService {
-  private http = inject(HttpClient);
+  private http = inject(ApiCacheService);
 
   getCollectionLogTab(username: string, tab: string): Observable<RpCollectionLogTabResponse> {
     return this.http.get<RpCollectionLogTabResponse>(
@@ -144,12 +144,12 @@ export class RuneProfileService {
   }
 
   getActivities(username: string, activityTypes?: RpActivityType[], cursor?: string): Observable<RpActivitiesResponse> {
-    const params: Record<string, string> = {};
-    if (cursor) params['cursor'] = cursor;
-    if (activityTypes?.length) params['activityTypes'] = activityTypes.join(',');
+    const params = new URLSearchParams();
+    if (cursor) params.set('cursor', cursor);
+    if (activityTypes?.length) params.set('activityTypes', activityTypes.join(','));
+    const query = params.size > 0 ? `?${params}` : '';
     return this.http.get<RpActivitiesResponse>(
-      `${BASE_URL}/accounts/${encodeURIComponent(username)}/activities`,
-      { params }
+      `${BASE_URL}/accounts/${encodeURIComponent(username)}/activities${query}`
     );
   }
 

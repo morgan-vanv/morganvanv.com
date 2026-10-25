@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { ApiCacheService } from './api-cache.service';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
@@ -66,7 +66,7 @@ const BASE_URL = 'https://api.stats.fm/api/v1';
 
 @Injectable({ providedIn: 'root' })
 export class StatsFmService {
-  private http = inject(HttpClient);
+  private http = inject(ApiCacheService);
 
   getTopAlbums(username: string, range: StatsFmRange = 'months'): Observable<StatsFmTopAlbum[]> {
     return this.http

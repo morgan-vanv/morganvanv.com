@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IconComponent, IconName } from '../icon/icon.component';
+import { GREETING_ROUTE, MAIN_ROUTES } from '../main-routes';
 
 interface NavLink {
   route: string;
@@ -10,22 +11,19 @@ interface NavLink {
   exact?: boolean;
 }
 
+/** Greeting link, then every main route in MAIN_ROUTES order. */
+export const NAV_LINKS: readonly NavLink[] = [
+  { route: GREETING_ROUTE, icon: 'exit', ariaLabel: 'Greeting', exact: true },
+  ...MAIN_ROUTES.map(({ path, title }) => ({ route: `/${path}`, label: title })),
+];
+
 @Component({
   selector: 'app-custom-navbar',
   imports: [RouterLink, RouterLinkActive, IconComponent],
   templateUrl: './custom-navbar.component.html',
-  styleUrl: './custom-navbar.component.scss'
+  styleUrl: './custom-navbar.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomNavbarComponent {
-
-  readonly navLinks: NavLink[] = [
-    { route: '/', icon: 'exit', ariaLabel: 'Greeting', exact: true },
-    { route: '/home', label: 'Home' },
-    { route: '/background', label: 'Background' },
-    { route: '/social', label: 'Social' },
-    { route: '/interests', label: 'Interests' },
-    { route: '/projects', label: 'Projects' },
-    { route: '/blog', label: 'Blog' },
-  ];
-
+  readonly navLinks = NAV_LINKS;
 }

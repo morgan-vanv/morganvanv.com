@@ -1,9 +1,9 @@
 <div class="page-container">
   <app-custom-navbar></app-custom-navbar>
-  <div class="page-content" #pageContent>
+  <div class="page-content" #pageContent appScrollRegion>
     <ng-content></ng-content>
   </div>
-  @if (showScrollHint) {
+  @if (showScrollHint()) {
     <app-scroll-hint [scrollEl]="pageContent" />
   }
 </div>

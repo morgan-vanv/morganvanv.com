@@ -1,7 +1,8 @@
-import { Component, ChangeDetectionStrategy, signal, HostListener } from '@angular/core';
+import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
+import { SITE_CONFIG } from '../../shared/config/site.config';
 
 interface PhotoSpot {
   id: number;
@@ -25,8 +26,12 @@ const SUBMITTED_PHOTOS: Omit<PhotoSpot, 'id'>[] = [
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown.escape)': 'onEscape($event)',
+  },
 })
 export class SocialPageComponent {
+  readonly siteEmail = SITE_CONFIG.email;
   readonly selectedPhoto = signal<PhotoSpot | null>(null);
   private lastFocusedElement: HTMLElement | null = null;
 
@@ -63,7 +68,6 @@ export class SocialPageComponent {
     }
   }
 
-  @HostListener('document:keydown.escape', ['$event'])
   onEscape(event: Event) {
     if (this.selectedPhoto()) {
       this.closeFullscreen();

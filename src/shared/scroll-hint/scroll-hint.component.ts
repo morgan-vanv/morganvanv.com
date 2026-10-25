@@ -1,63 +1,46 @@
-import { Component, Input, OnChanges, OnDestroy, signal, SimpleChanges } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject, input, signal } from '@angular/core';
 import { IconComponent } from '../icon/icon.component';
 
+const SCROLL_THRESHOLD_PX = 8;
+
+/** A bouncing chevron shown while the given element can still scroll down. */
 @Component({
   selector: 'app-scroll-hint',
   imports: [IconComponent],
   templateUrl: './scroll-hint.component.html',
   styleUrl: './scroll-hint.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ScrollHintComponent implements OnChanges, OnDestroy {
-  @Input() scrollEl: HTMLElement | null = null;
+export class ScrollHintComponent {
+  readonly scrollEl = input<HTMLElement | null>(null);
 
-  protected canScrollDown = signal(false);
+  protected readonly canScrollDown = signal(false);
 
-  private readonly scrollHandler = () => this.checkScroll();
-  private resizeObserver: ResizeObserver | null = null;
-  private mutationObserver: MutationObserver | null = null;
-  private attachedEl: HTMLElement | null = null;
-
-  private static readonly SCROLL_THRESHOLD_PX = 8;
-
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['scrollEl']) {
-      this.detach();
-      this.attach(this.scrollEl);
-    }
-  }
-
-  ngOnDestroy(): void {
-    this.detach();
-  }
-
-  private attach(el: HTMLElement | null): void {
-    if (!el) return;
-    this.attachedEl = el;
-    el.addEventListener('scroll', this.scrollHandler, { passive: true });
-    this.resizeObserver = new ResizeObserver(() => this.checkScroll());
-    this.resizeObserver.observe(el);
-    this.mutationObserver = new MutationObserver(() => this.checkScroll());
-    this.mutationObserver.observe(el, { childList: true, subtree: true });
-    this.checkScroll();
-  }
-
-  private detach(): void {
-    if (this.attachedEl) {
-      this.attachedEl.removeEventListener('scroll', this.scrollHandler);
-      this.attachedEl = null;
-    }
-    this.resizeObserver?.disconnect();
-    this.resizeObserver = null;
-    this.mutationObserver?.disconnect();
-    this.mutationObserver = null;
-  }
-
-  private checkScroll(): void {
-    if (!this.attachedEl) {
-      this.canScrollDown.set(false);
-      return;
-    }
-    const { scrollTop, scrollHeight, clientHeight } = this.attachedEl;
-    this.canScrollDown.set(scrollHeight - scrollTop - clientHeight > ScrollHintComponent.SCROLL_THRESHOLD_PX);
+  constructor() {
+    const destroyRef = inject(DestroyRef);
+    effect(onCleanup => {
+      const el = this.scrollEl();
+      if (!el) {
+        this.canScrollDown.set(false);
+        return;
+      }
+      const check = () => {
+        const { scrollTop, scrollHeight, clientHeight } = el;
+        this.canScrollDown.set(scrollHeight - scrollTop - clientHeight > SCROLL_THRESHOLD_PX);
+      };
+      el.addEventListener('scroll', check, { passive: true });
+      const resizeObserver = new ResizeObserver(check);
+      resizeObserver.observe(el);
+      const mutationObserver = new MutationObserver(check);
+      mutationObserver.observe(el, { childList: true, subtree: true });
+      check();
+      const cleanup = () => {
+        el.removeEventListener('scroll', check);
+        resizeObserver.disconnect();
+        mutationObserver.disconnect();
+      };
+      onCleanup(cleanup);
+      destroyRef.onDestroy(cleanup);
+    });
   }
 }

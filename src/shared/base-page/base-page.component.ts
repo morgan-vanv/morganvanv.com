@@ -1,13 +1,15 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { CustomNavbarComponent } from '../custom-navbar/custom-navbar.component';
 import { ScrollHintComponent } from '../scroll-hint/scroll-hint.component';
+import { ScrollRegionDirective } from '../scroll-region/scroll-region.directive';
 
 @Component({
   selector: 'app-base-page',
-  imports: [CustomNavbarComponent, ScrollHintComponent],
+  imports: [CustomNavbarComponent, ScrollHintComponent, ScrollRegionDirective],
   templateUrl: './base-page.component.html',
   styleUrl: './base-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BasePageComponent {
-  @Input() showScrollHint = true;
+  readonly showScrollHint = input(true);
 }
