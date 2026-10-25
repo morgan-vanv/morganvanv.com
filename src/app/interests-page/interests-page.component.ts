@@ -41,10 +41,11 @@ export class InterestsPageComponent {
     catchError(() => of([]))
   );
 
+  /** "210 hrs", "1 hr", "45 min" — whole units only, so it fits in a list row. */
   formatPlaytime(ms: number): string {
     const hours = Math.floor(ms / 3_600_000);
-    const minutes = Math.floor((ms % 3_600_000) / 60_000);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    if (hours >= 2) return `${hours.toLocaleString()} hrs`;
+    if (hours === 1) return '1 hr';
+    return `${Math.floor(ms / 60_000)} min`;
   }
 }

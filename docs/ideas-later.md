@@ -22,6 +22,8 @@ Most of the 2026-10-25 audit list shipped in PR #74 (fonts, icons/Material, view
 - **Tests still thin in places.** `S` each — no coverage yet for `SeoTitleStrategy` edge cases (query strings), `ScrollHint`, `IconComponent`, or the OSRS parent component's data shaping.
 - **Playwright smoke test in CI.** `M` — the headless-browser pass during the audit caught a real bug the unit tests couldn't (scroll-region ordering). A ~10-line Playwright script (deep link → arrow keys → Escape → dialog Escape) would make that permanent.
 
+- **Site-wide layout & mobile pass.** `M` — Morgan's ask (2026-10-25), next up after the roadmap work: apply the Music-tab treatment (compact headers, better use of width, panels) across every page, fix mobile layouts, and fine-tune spacing/typography. Known items: the navbar wraps "Blog" to a second row at 1280 px; the mobile navbar stacks into five rows; the OSRS panels are dense on phones.
+
 ## 2. SEO & discoverability
 
 Shipped in PR #74: meta/OG/Twitter tags, prerendering of every route, `robots.txt` + `sitemap.xml` (test-enforced), JSON-LD `Person`, `og-image.jpg`, PNG icons + web manifest, title pattern, `rel="me"` + h-card, `humans.txt`. Left:
