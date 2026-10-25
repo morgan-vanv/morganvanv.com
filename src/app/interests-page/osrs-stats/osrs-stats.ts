@@ -48,7 +48,17 @@ export class OsrsStatsComponent {
   private readonly wom = inject(WiseOldManService);
   private readonly runeProfile = inject(RuneProfileService);
 
-  readonly player = toSignal(this.wom.getPlayer(WOM_USERNAME).pipe(toResourceState()), { initialValue: LOADING });
+  readonly player = toSignal(
+    this.wom.getPlayer(WOM_USERNAME).pipe(
+      map(player => {
+        // A malformed payload should land in the error state, not throw while rendering.
+        if (!player?.latestSnapshot?.data?.skills) throw new Error('Unexpected Wise Old Man response');
+        return player;
+      }),
+      toResourceState()
+    ),
+    { initialValue: LOADING }
+  );
 
   readonly pets = toSignal(
     this.runeProfile.getCollectionLogTab(WOM_USERNAME, 'Other').pipe(

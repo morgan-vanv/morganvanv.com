@@ -1,0 +1,18 @@
+@if (stream.lastListened(); as item) {
+  <a class="last-listened" [href]="item.trackUrl" target="_blank" rel="noopener noreferrer" [class.playing]="item.isPlaying">
+    @if (item.imageUrl) {
+      <img [src]="item.imageUrl" alt="" class="art" width="80" height="80" loading="lazy" decoding="async" />
+    }
+    <span class="text">
+      <span class="label">
+        @if (item.isPlaying) {
+          <span class="dot" aria-hidden="true"></span> Listening now
+        } @else {
+          Last listened <span class="when">· {{ stream.when() }}</span>
+        }
+      </span>
+      <span class="track">{{ item.trackName }}</span>
+      <span class="artist">{{ item.artistName }}</span>
+    </span>
+  </a>
+}

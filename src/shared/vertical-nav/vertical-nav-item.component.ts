@@ -11,6 +11,8 @@ import { ScrollRegionDirective } from '../scroll-region/scroll-region.directive'
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class.hidden-sibling]': 'isHiddenSibling()',
+    // Lets the page that projects content into this item style it per state.
+    '[class.is-expanded]': 'isExpanded()',
     '(click)': 'onClick($event)',
     '(mouseenter)': 'onMouseEnter()',
     '(focusin)': 'onFocusIn()',

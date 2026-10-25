@@ -10,21 +10,26 @@
           Or, if you are more into vinyl, you can check out my
           <a [href]="discogsCollectionUrl" target="_blank" rel="noopener noreferrer" class="pill">Discogs</a>.
         </span>
-        
+
+        <app-last-listened />
+
         <div class="stats-columns">
 
           <div class="stats-column">
-            <h3>Top Songs <span class="range-label">· this week</span></h3>
+            <h3>Top Songs <span class="range-label">this week</span></h3>
             @if (topTracks$ | async; as tracks) {
               <ol class="stats-list">
-                @for (item of tracks; track item.track.id) {
+                @for (item of tracks; track item.track.id; let i = $index) {
                   <li class="stats-item">
+                    <span class="stats-rank" [class.top]="i < 3">{{ i + 1 }}</span>
                     @if (item.track.albums[0]?.image; as imgSrc) {
                       <img [src]="imgSrc" [alt]="item.track.name" class="stats-thumbnail" />
+                    } @else {
+                      <span class="stats-thumbnail" aria-hidden="true"></span>
                     }
                     <div class="stats-info">
                       <span class="stats-name">{{ item.track.name }}</span>
-                      <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} streams</span>
+                      <span class="stats-meta">{{ item.track.artists[0]?.name }} · {{ item.streams }} plays</span>
                     </div>
                   </li>
                 }
@@ -35,15 +40,16 @@
           </div>
 
           <div class="stats-column">
-            <h3>Top Albums <span class="range-label">· this month</span></h3>
+            <h3>Top Albums <span class="range-label">this month</span></h3>
             @if (topAlbums$ | async; as albums) {
               <ol class="stats-list">
-                @for (item of albums; track item.album.id) {
+                @for (item of albums; track item.album.id; let i = $index) {
                   <li class="stats-item">
+                    <span class="stats-rank" [class.top]="i < 3">{{ i + 1 }}</span>
                     <img [src]="item.album.image" [alt]="item.album.name" class="stats-thumbnail" />
                     <div class="stats-info">
                       <span class="stats-name">{{ item.album.name }}</span>
-                      <span class="stats-meta">{{ item.album.artists[0]?.name }} · {{ item.streams }} streams</span>
+                      <span class="stats-meta">{{ item.album.artists[0]?.name }} · {{ item.streams }} plays</span>
                     </div>
                   </li>
                 }
@@ -54,15 +60,16 @@
           </div>
 
           <div class="stats-column">
-            <h3>Top Artists <span class="range-label">· all time</span></h3>
+            <h3>Top Artists <span class="range-label">all time</span></h3>
             @if (topArtists$ | async; as artists) {
               <ol class="stats-list">
-                @for (item of artists; track item.artist.id) {
+                @for (item of artists; track item.artist.id; let i = $index) {
                   <li class="stats-item">
+                    <span class="stats-rank" [class.top]="i < 3">{{ i + 1 }}</span>
                     <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
                     <div class="stats-info">
                       <span class="stats-name">{{ item.artist.name }}</span>
-                      <span class="stats-meta">{{ item.streams }} streams · {{ formatPlaytime(item.playedMs) }}</span>
+                      <span class="stats-meta">{{ item.streams }} plays · {{ formatPlaytime(item.playedMs) }}</span>
                     </div>
                   </li>
                 }

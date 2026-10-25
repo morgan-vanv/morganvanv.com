@@ -5,6 +5,7 @@ import { VerticalNavContainerComponent } from '../../shared/vertical-nav/vertica
 import { VerticalNavItemComponent } from '../../shared/vertical-nav/vertical-nav-item.component';
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { OsrsStatsComponent } from './osrs-stats/osrs-stats';
+import { LastListenedComponent } from '../../shared/last-listened/last-listened.component';
 import { Observable, map, catchError, of } from 'rxjs';
 import { WOM_USERNAME, POWERED_BY_LINKS } from '../../shared/constants/osrs-stats.const';
 import { SITE_CONFIG } from '../../shared/config/site.config';
@@ -14,7 +15,7 @@ const STATS_DISPLAY_LIMIT = 8;
 
 @Component({
   selector: 'app-interests-page',
-  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent],
+  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent, LastListenedComponent],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,10 +41,11 @@ export class InterestsPageComponent {
     catchError(() => of([]))
   );
 
+  /** "210 hrs", "1 hr", "45 min" — whole units only, so it fits in a list row. */
   formatPlaytime(ms: number): string {
     const hours = Math.floor(ms / 3_600_000);
-    const minutes = Math.floor((ms % 3_600_000) / 60_000);
-    if (hours > 0) return `${hours}h ${minutes}m`;
-    return `${minutes}m`;
+    if (hours >= 2) return `${hours.toLocaleString()} hrs`;
+    if (hours === 1) return '1 hr';
+    return `${Math.floor(ms / 60_000)} min`;
   }
 }

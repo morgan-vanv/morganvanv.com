@@ -45,6 +45,15 @@ describe('ApiCacheService', () => {
   vi.useRealTimers();
   });
 
+  it('bypasses the cache entirely when the TTL is 0', async () => {
+    const first = firstValueFrom(service.get(URL, 0));
+    http.expectOne(URL).flush(1);
+    await first;
+    const second = firstValueFrom(service.get(URL, 0));
+    http.expectOne(URL).flush(2);
+    expect(await second).toBe(2);
+  });
+
   it('does not cache failed requests', async () => {
   const first = firstValueFrom(service.get(URL));
   http.expectOne(URL).flush('nope', { status: 500, statusText: 'Server Error' });

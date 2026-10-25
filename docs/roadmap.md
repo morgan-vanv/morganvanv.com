@@ -6,22 +6,9 @@ Agreed 2026-10-25, after PR #74 landed. Theme: **make the site visibly alive** �
 
 ---
 
-## 1. Last listened (`S`)
+## 1. Last listened — shipped
 
-**What:** a live "last listened: *Track* — *Artist* · 12 min ago" line, in two places fed by one request:
-- **Greeting:** joins the rotating `SUBTITLES` as a dynamic entry (shown when data is available; the static jokes still cycle around it). If the stream is from the last few minutes, the wording becomes "listening to … right now".
-- **Music card (Interests):** a one-liner above the three top-lists, with the album art thumbnail.
-
-**How:**
-- `StatsFmService.getRecentStreams(username, 1)` already exists and is unused. Response items carry `endTime` + `track` (name, artists, albums[0].image).
-- Route it through `ApiCacheService` with a **short TTL (~2 min)** rather than the default 10 — this is the one feed where staleness shows.
-- A tiny `RecentStreamService` (`providedIn: 'root'`) exposes `lastListened = toSignal(...)` with `{ track, artist, imageUrl, endedAt }` so both placements share it; relative time via `Intl.RelativeTimeFormat`, refreshed on a 60 s interval only while the tab is visible (`document.visibilityState`).
-- Prerender: the subtitle must stay deterministic for hydration — the live entry is inserted after `afterNextRender`, same pattern as the random subtitle.
-- Empty/private/error → nothing renders; the greeting falls back to the static list silently.
-
-**Needs from Morgan:** nothing — the recent-streams endpoint is confirmed public for `morgan.vanv` (checked 2026-10-25).
-
-**Done when:** the greeting shows a real track within a couple of minutes of playing one; the Music card shows the same; neither renders anything when the API is unavailable; tests cover the relative-time wording and the "right now" threshold.
+PR #80. `RecentStreamService` (`src/shared/services/recent-stream.service.ts`) is the shared source for §2's **Listening** row.
 
 ## 2. `/now` page (`S`/`M`)
 
@@ -37,7 +24,7 @@ Agreed 2026-10-25, after PR #74 landed. Theme: **make the site visibly alive** �
    - **Site** — last commit: message, date, short SHA, linked to GitHub.
 
 **How:**
-- **Last commit is baked at build time**, not fetched: a small `scripts/write-build-info.mjs` runs before `ng build` (via an `npm run prebuild`) and writes `src/build-info.ts` (`{ sha, date, message }`) from `git log -1`. Zero API calls, no rate limits, prerender-friendly. The file is gitignored; a committed placeholder keeps `ng serve` working.
+- **Last commit is baked at build time**, not fetched: `scripts/write-build-info.mjs` runs as the `prebuild` npm hook and writes a **gitignored** `src/build-info.prod.ts` (`{ sha, date, message }`) from `git log -1`; the **committed** `src/build-info.ts` holds dev placeholder values and the production configuration swaps it via `fileReplacements`. Zero API calls, no rate limits, prerender-friendly, and `ng serve` / tests work from a fresh checkout. (Design per Copilot's review of #79: a path can't be both tracked and ignored.)
 - Rows are small presentational components reused from Interests where they exist (the activity-row look).
 - Page shell: `<app-base-page pageTitle="Now">`, `appScrollRegion` on its content, scroll hint on.
 - Add to `MAIN_ROUTES` (title "Now", description drafted), `lazyRouteComponents`, `public/sitemap.xml` (the test will insist). Navbar updates itself.
