@@ -5,6 +5,9 @@ export type TransitionDirection = 'left' | 'right' | 'vertical';
 
 const DATA_ATTR = 'transition';
 
+/** The transition that currently owns the data attribute, so an older one finishing late can't clear a newer one's direction. */
+let owner: ViewTransitionInfo['transition'] | null = null;
+
 function animationIndex(snapshot: ActivatedRouteSnapshot): number {
   let node: ActivatedRouteSnapshot | null = snapshot;
   while (node) {
@@ -29,8 +32,14 @@ export function directionBetween(from: number, to: number): TransitionDirection 
 export function onViewTransitionCreated({ transition, from, to }: ViewTransitionInfo): void {
   const direction = directionBetween(animationIndex(from), animationIndex(to));
   const html = document.documentElement;
+  owner = transition;
   html.dataset[DATA_ATTR] = direction;
-  transition.finished.finally(() => {
-    delete html.dataset[DATA_ATTR];
-  });
+  transition.finished
+    .catch(() => undefined) // a skipped transition rejects; that's fine
+    .then(() => {
+      if (owner === transition) {
+        owner = null;
+        delete html.dataset[DATA_ATTR];
+      }
+    });
 }

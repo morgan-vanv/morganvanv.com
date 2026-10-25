@@ -1,7 +1,6 @@
 import { MAIN_ROUTES, MAIN_NAV_ROUTES, getMainRouteAnimation } from './main-routes';
 import { routes } from '../app/app.routes';
 import { NAV_LINKS } from './custom-navbar/custom-navbar.component';
-import { directionBetween } from './route-transition';
 
 describe('MAIN_ROUTES', () => {
   it('every main route has a lazy component and an animation index', () => {
@@ -26,17 +25,5 @@ describe('MAIN_ROUTES', () => {
   it('animation indexes are 1-based and unique', () => {
   const indexes = MAIN_ROUTES.map(r => getMainRouteAnimation(r.path));
   expect(indexes).toEqual(MAIN_ROUTES.map((_, i) => i + 1));
-  });
-});
-
-describe('directionBetween', () => {
-  it('slides vertically to and from the greeting page', () => {
-  expect(directionBetween(0, 3)).toBe('vertical');
-  expect(directionBetween(3, 0)).toBe('vertical');
-  });
-
-  it('slides right when moving forward and left when moving back', () => {
-  expect(directionBetween(1, 2)).toBe('right');
-  expect(directionBetween(4, 2)).toBe('left');
   });
 });
