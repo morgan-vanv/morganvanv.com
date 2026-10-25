@@ -28,6 +28,8 @@
 }
 
 .title {
+  margin: 0;
+  font-weight: normal;
   font-size: min(10dvw, 4rem);
   color: $main-color;
   text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
@@ -36,6 +38,7 @@
 }
 
 .subtitle {
+  margin: 0;
   font-size: min(5dvw, 1.5rem);
   color: $main-color;
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);

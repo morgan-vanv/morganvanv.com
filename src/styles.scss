@@ -11,7 +11,9 @@ $danger-color: #ff4d4d;
 
 body {
   font-family: 'JetBrains Mono', monospace;
-  font-size: 2.5dvh;
+  // Scales with the viewport height so the no-scroll layouts fit, but never
+  // below 1rem (landscape phones) or above 1.4rem (tall monitors).
+  font-size: clamp(1rem, 2.5dvh, 1.4rem);
   box-sizing: border-box;
   margin: 0;
   position: relative;
@@ -19,6 +21,19 @@ body {
   color: $main-color;
   background-color: $background-color;
   --accent-color: #{$accent-color};
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
 }
 
 .loading-text {

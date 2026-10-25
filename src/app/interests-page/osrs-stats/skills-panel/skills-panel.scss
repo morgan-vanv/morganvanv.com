@@ -1,0 +1,46 @@
+@use '../../../../styles' as *;
+
+// Render as if the inner panel were the parent's flex item directly.
+:host {
+  display: contents;
+}
+
+.skills-panel {
+  flex-shrink: 0;
+
+  h3 {
+    margin-bottom: 0.75rem;
+  }
+}
+
+.skills-grid {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 2px;
+}
+
+.skill-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 4px;
+
+  &.maxed .skill-level {
+    color: $osrs-gold;
+    font-weight: bold;
+  }
+}
+
+.skill-icon {
+  width: 24px;
+  height: 24px;
+  image-rendering: pixelated;
+  flex-shrink: 0;
+}
+
+.skill-level {
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.2ch;
+}

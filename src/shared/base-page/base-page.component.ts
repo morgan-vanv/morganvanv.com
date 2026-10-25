@@ -12,4 +12,6 @@ import { ScrollRegionDirective } from '../scroll-region/scroll-region.directive'
 })
 export class BasePageComponent {
   readonly showScrollHint = input(true);
+  /** Visually-hidden page heading, so every page has exactly one <h1>. Omit on pages that render their own. */
+  readonly pageTitle = input<string>();
 }
