@@ -6,7 +6,7 @@ Personal website built with Angular 21 (zoneless, signals, prerendered to static
 
 ```bash
 npm start            # dev server at http://localhost:4200
-npm run build        # production build (prerenders every route into dist/browser)
+npm run build        # production build: regenerates build info, prerenders every route into dist/browser
 npm test             # unit tests (Vitest, watch mode)
 npm run test:ci      # unit tests, single run — what CI runs
 npm run lint         # ESLint (TS + HTML)
@@ -48,6 +48,8 @@ public/              # static assets, robots.txt, sitemap.xml, humans.txt, site.
 **Routing:** Main routes are declared once in `MAIN_ROUTES` (`src/shared/main-routes.ts`) with a `path`, `title` and `description`. Their order drives arrow-key navigation (`KeyboardNavService`), the navbar, slide direction, titles and meta tags. `src/app/app.routes.ts` maps each path to a lazy `loadComponent` via `lazyRouteComponents` and derives `data.animation` / `data.description` from the route. Don't hand-write `animation` values.
 
 **Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget), and give the page `<app-base-page pageTitle="…">` unless it renders its own `<h1>`. The navbar updates itself.
+
+**Build info:** `npm run build` runs `scripts/write-build-info.mjs` first (the `prebuild` hook), writing the gitignored `src/build-info.prod.ts` that the production configuration swaps in for `src/build-info.ts`. Always build production through `npm run build`; a bare `ng build` skips the hook and fails on the missing file.
 
 **Prerendering:** every route is rendered to static HTML at build time (`outputMode: "static"`, `RenderMode.Prerender`) and hydrated in the browser. Code that touches `window`/`document` outside an event handler must be guarded (`typeof window !== 'undefined'`, `isPlatformServer`, or `afterNextRender`). Anything shown on first paint must be deterministic so hydration matches (e.g. the greeting picks its random subtitle after render). `ApiCacheService` returns `EMPTY` on the server and the HTTP transfer cache is disabled, so live panels are always fetched live in the browser.
 

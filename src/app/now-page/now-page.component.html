@@ -1,0 +1,54 @@
+<app-base-page pageTitle="Now">
+  <section class="now">
+
+    <header class="now-header">
+      <h2>What I'm up to now</h2>
+      <span class="range-label">updated {{ updated }}</span>
+    </header>
+
+    <div class="note">
+      @for (paragraph of note; track $index) {
+        <p>{{ paragraph }}</p>
+      }
+    </div>
+
+    <ul class="now-rows">
+      @for (row of rows(); track row.key) {
+        <li>
+          @if (row.internal) {
+            <a class="now-row" [routerLink]="row.href">
+              <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: row }" />
+            </a>
+          } @else {
+            <a class="now-row" [href]="row.href" target="_blank" rel="noopener noreferrer">
+              <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: row }" />
+            </a>
+          }
+        </li>
+      }
+    </ul>
+
+    <p class="footnote">
+      This is a <a href="https://nownownow.com/about" target="_blank" rel="noopener noreferrer" class="pill">now page</a>.
+      Everything below the note updates on its own.
+    </p>
+
+  </section>
+</app-base-page>
+
+<ng-template #rowBody let-row>
+  <span class="label" [class.live]="row.live">
+    @if (row.live) {<span class="dot" aria-hidden="true"></span>}
+    {{ row.label }}
+  </span>
+  @if (row.iconUrl) {
+    <img [src]="row.iconUrl" alt="" class="thumb" [class.pixel]="row.iconStyle === 'pixel'" width="48" height="48" loading="lazy" decoding="async" />
+  } @else {
+    <span class="thumb thumb--glyph" aria-hidden="true">&lt;/&gt;</span>
+  }
+  <span class="text">
+    <span class="title" [title]="row.title">{{ row.title }}</span>
+    @if (row.detail) {<span class="detail">{{ row.detail }}</span>}
+  </span>
+  @if (row.when) {<span class="when">{{ row.when }}</span>}
+</ng-template>

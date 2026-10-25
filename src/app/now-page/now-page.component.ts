@@ -1,0 +1,115 @@
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { RouterLink } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
+import { catchError, map, of } from 'rxjs';
+import { BasePageComponent } from '../../shared/base-page/base-page.component';
+import { RecentStreamService } from '../../shared/services/recent-stream.service';
+import { RuneProfileService, RpActivity } from '../../shared/services/rune-profile.service';
+import { relativeTime } from '../../shared/services/relative-time';
+import { ACHIEVEMENT_ACTIVITY_TYPES, DROP_ACTIVITY_TYPES, WOM_USERNAME } from '../../shared/constants/osrs-stats.const';
+import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
+import { SITE_CONFIG } from '../../shared/config/site.config';
+import { achievementIcon, achievementLabel, dropLabel } from '../interests-page/osrs-stats/osrs-format';
+import { BUILD_INFO } from '../../build-info';
+import { NOW_CONTENT } from './now.content';
+
+export interface NowRow {
+  key: string;
+  label: string;
+  iconUrl: string | null;
+  /** Photos and album art are cropped to fill; game icons are drawn pixelated. */
+  iconStyle: 'cover' | 'pixel';
+  title: string;
+  detail?: string;
+  when?: string;
+  /** External link, or an in-site path when `internal`. */
+  href?: string;
+  internal?: boolean;
+  live?: boolean;
+}
+
+/** Formats a YYYY-MM-DD or ISO date as "October 25, 2026", in UTC so build and browser agree. */
+export function formatDay(value: string): string {
+  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+}
+
+/**
+ * The IndieWeb "now page": Morgan's note at the top, then rows that fill in
+ * on their own. The note, community and site rows are prerendered; listening
+ * and playing arrive in the browser. Rows with no data don't render.
+ */
+@Component({
+  selector: 'app-now-page',
+  imports: [BasePageComponent, RouterLink, NgTemplateOutlet],
+  templateUrl: './now-page.component.html',
+  styleUrl: './now-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class NowPageComponent {
+  private readonly recentStream = inject(RecentStreamService);
+  private readonly runeProfile = inject(RuneProfileService);
+
+  readonly note = NOW_CONTENT.paragraphs;
+  readonly updated = formatDay(NOW_CONTENT.updated);
+
+  private readonly latestAchievement = toSignal(this.latestActivity(ACHIEVEMENT_ACTIVITY_TYPES), { initialValue: null });
+  private readonly latestDrop = toSignal(this.latestActivity(DROP_ACTIVITY_TYPES), { initialValue: null });
+
+  private readonly listening = computed<NowRow | null>(() => {
+    const item = this.recentStream.lastListened();
+    if (!item) return null;
+    return {
+      key: 'listening', label: 'Listening', iconUrl: item.imageUrl, iconStyle: 'cover',
+      title: item.trackName, detail: item.artistName,
+      when: item.isPlaying ? 'right now' : this.recentStream.when() ?? undefined,
+      href: item.trackUrl, live: item.isPlaying,
+    };
+  });
+
+  private readonly playing = computed<NowRow | null>(() => {
+    const achievement = this.latestAchievement();
+    const drop = this.latestDrop();
+    const latest = achievement ?? drop;
+    if (!latest) return null;
+    return {
+      key: 'playing', label: 'Playing', iconUrl: achievementIcon(latest), iconStyle: 'pixel',
+      title: achievement ? achievementLabel(achievement) : dropLabel(latest),
+      detail: achievement && drop ? `Old School RuneScape · latest drop: ${dropLabel(drop)}` : 'Old School RuneScape',
+      when: relativeTime(Date.parse(latest.createdAt)),
+      href: `https://www.runeprofile.com/${WOM_USERNAME}`,
+    };
+  });
+
+  private readonly community: NowRow | null = (() => {
+    const newest = COMMUNITY_PHOTOS.at(-1);
+    if (!newest) return null;
+    return {
+      key: 'community', label: 'Community', iconUrl: newest.imageUrl, iconStyle: 'cover',
+      title: newest.caption ?? 'A new photo',
+      detail: 'newest photo on the community wall', href: '/social', internal: true,
+    };
+  })();
+
+  private readonly site: NowRow | null = BUILD_INFO.sha ? {
+    key: 'site', label: 'Site', iconUrl: null, iconStyle: 'pixel',
+    title: BUILD_INFO.message,
+    detail: `last change · ${BUILD_INFO.sha.slice(0, 7)}`,
+    when: formatDay(BUILD_INFO.date) || undefined,
+    href: `${SITE_CONFIG.repoUrl}/commit/${BUILD_INFO.sha}`,
+  } : null;
+
+  // Watching (Letterboxd) slots in between Playing and Community once that feed exists.
+  readonly rows = computed(() =>
+    [this.listening(), this.playing(), this.community, this.site].filter((row): row is NowRow => row !== null)
+  );
+
+  private latestActivity(types: readonly RpActivity['type'][]) {
+    return this.runeProfile.getActivities(WOM_USERNAME, types).pipe(
+      map(response => response.activities?.[0] ?? null),
+      catchError(() => of(null)),
+    );
+  }
+}

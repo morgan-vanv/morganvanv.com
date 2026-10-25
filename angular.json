@@ -52,7 +52,13 @@
                   "maximumError": "16kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/build-info.ts",
+                  "with": "src/build-info.prod.ts"
+                }
+              ]
             },
             "development": {
               "optimization": false,
