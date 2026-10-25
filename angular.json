@@ -34,7 +34,9 @@
               "node_modules/@fontsource/caveat/latin-400.css",
               "node_modules/@fontsource/caveat/latin-700.css",
               "src/styles.scss"
-            ]
+            ],
+            "server": "src/main.server.ts",
+            "outputMode": "static"
           },
           "configurations": {
             "production": {

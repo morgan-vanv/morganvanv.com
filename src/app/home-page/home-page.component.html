@@ -2,13 +2,13 @@
 
   <div class="home-parent-container">
 
-    <div class="left-sticky-container">
+    <div class="left-sticky-container h-card">
 
       <div class="profile-picture-wrapper">
-        <img src="profile_picture.webp" alt="Profile Picture" class="profile-picture" />
+        <img src="profile_picture.webp" alt="Morgan Van Valkenburgh" class="profile-picture u-photo" width="400" height="400" />
       </div>
 
-      <h1>Morgan Van Valkenburgh</h1>
+      <h1 class="p-name">Morgan Van Valkenburgh</h1>
 
       <div class="social-media-container">
 
@@ -18,7 +18,7 @@
              [href]="link.href"
              [attr.aria-label]="link.label"
              [attr.target]="link.external ? '_blank' : null"
-             [attr.rel]="link.external ? 'noopener noreferrer' : null">
+             [attr.rel]="link.external ? 'me noopener noreferrer' : null">
             <svg role="img" [attr.viewBox]="link.viewBox" xmlns="http://www.w3.org/2000/svg">
               <title>{{ link.label }}</title>
               <path [attr.d]="link.svgPath" [attr.fill-rule]="link.fillRule || null"/>
@@ -28,7 +28,7 @@
 
       </div>
 
-      <p class="profile-minor-text">Hey there! Welcome to my personal website. Feel free to explore and connect with me.</p>
+      <p class="profile-minor-text p-note">Hey there! Welcome to my personal website. Feel free to explore and connect with me.</p>
 
     </div>
 

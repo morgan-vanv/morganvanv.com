@@ -1,6 +1,7 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformServer } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of, tap } from 'rxjs';
+import { EMPTY, Observable, of, tap } from 'rxjs';
 
 const DEFAULT_TTL_MS = 10 * 60 * 1000;
 const PREFIX = 'api-cache:';
@@ -18,8 +19,11 @@ interface CacheEntry<T> {
 @Injectable({ providedIn: 'root' })
 export class ApiCacheService {
   private readonly http = inject(HttpClient);
+  private readonly isServer = isPlatformServer(inject(PLATFORM_ID));
 
   get<T>(url: string, ttlMs = DEFAULT_TTL_MS): Observable<T> {
+    // Prerendered pages show the loading state; live data is fetched in the browser.
+    if (this.isServer) return EMPTY;
     const cached = this.read<T>(url);
     if (cached !== undefined) return of(cached);
     return this.http.get<T>(url).pipe(tap(data => this.write(url, data, ttlMs)));
