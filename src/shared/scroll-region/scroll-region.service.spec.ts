@@ -24,6 +24,18 @@ describe('ScrollRegionService', () => {
   expect(service.active()).toBeNull();
   });
 
+  it('prefers a region nested inside another region, whatever the registration order', () => {
+    const outer = document.createElement('div');
+    const inner = document.createElement('div');
+    outer.appendChild(inner);
+    service.register(inner);
+    service.register(outer);
+    expect(service.active()).toBe(inner);
+    service.unregister(inner);
+    expect(service.active()).toBe(outer);
+    service.unregister(outer);
+  });
+
   it('does not register the same element twice', () => {
   service.register(a);
   service.register(a);
