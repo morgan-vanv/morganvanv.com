@@ -37,7 +37,7 @@ src/
 
 **Page structure:** Each route has its own folder under `src/app/<name>-page/`. Pages import `BasePageComponent` to get the navbar. The `App` component (`src/app/app.ts`) applies route animations via `@routeAnimations`. Complex pages may contain nested sub-components in subfolders (e.g. `interests-page/osrs-stats/`).
 
-**Routing:** Defined in `src/app/app.routes.ts`. Every route requires a `data: { animation: 'UniqueName' }` property for the slide transition to work.
+**Routing:** Main routes are declared once in `MAIN_ROUTES` (`src/shared/main-routes.ts`). Their order drives arrow-key navigation (`KeyboardNavService`), route titles, and slide direction. The navbar does **not** read `MAIN_ROUTES`; it has its own hardcoded `navLinks` array in `src/shared/custom-navbar/custom-navbar.component.ts` that must be updated separately. `src/app/app.routes.ts` maps each path to a lazy `loadComponent` via `lazyRouteComponents` and derives `data.animation` from the route's index with `getMainRouteAnimation()` (the greeting route is `0`). Don't hand-write `animation` values.
 
 ## Conventions
 
@@ -49,7 +49,7 @@ private myService = inject(MyService);
 ```
 For navigation, prefer `routerLink` directive over imperative `Router.navigate()` whenever possible.
 
-**New pages:** Import `BasePageComponent` (not `CustomNavbarComponent` directly) to get the shared navbar. Register the route in `app.routes.ts` with an `animation` data key.
+**New pages:** Import `BasePageComponent` (not `CustomNavbarComponent` directly) to get the shared navbar. Add the route to `MAIN_ROUTES` in `src/shared/main-routes.ts` (position = nav order) add its entry to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type will fail the build if you forget this), and add a matching link to `navLinks` in `custom-navbar.component.ts` (nothing enforces this one, so it is easy to miss).
 
 **Component metadata style:** Use `styleUrl` (singular) and `templateUrl`. Imports should have spaces after `{`. Top-level page components follow the `*.component.ts/html/scss` naming convention. Sub-components generated via Angular CLI (e.g. `ng generate component`) may omit the `.component.` infix — both patterns exist in the codebase.
 ```ts
