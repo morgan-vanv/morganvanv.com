@@ -24,3 +24,4 @@ One line per decision: what was decided and why. Newest at the bottom.
 - **2026-10-25** Every route is prerendered (`@angular/ssr`, `outputMode: static`) and hydrated; no runtime server. Prerendered pages never embed live API data.
 - **2026-10-25** SEO lives in `SeoTitleStrategy` + `index.html`; canonical URLs and the sitemap use trailing slashes to match GitHub Pages' directory redirects.
 - **2026-10-25** Lighthouse CI runs on PRs; accessibility (axe-core) and SEO scores below 0.95 fail the check, performance/best-practices only warn.
+- **2026-10-25** Promoted three "alive" features (last listened, `/now`, Tonight's sky) to `docs/roadmap.md` with decisions: `/now` is a main route after Home; the sky is stars + Moon + planets via lazy-loaded `astronomy-engine`, Cincinnati by default with an opt-in "my sky" toggle; last-listened appears on the greeting and the Music card.

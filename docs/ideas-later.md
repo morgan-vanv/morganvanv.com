@@ -81,10 +81,9 @@ Shipped in PR #74: meta/OG/Twitter tags, prerendering of every route, `robots.tx
 Grouped by the design pillars.
 
 ### Alive (changes on its own)
-- **Now-playing / last-played.** `S` — `StatsFmService.getRecentStreams()` already exists and is unused. A one-line "last listened: *track* · *N* min ago" on the greeting or in the Music card. Cheapest "alive" win in the repo.
-- **`/now` page.** `S`/`M` — The IndieWeb "now page" convention, but mostly auto-generated: last played, last watched (Letterboxd JSON), last OSRS achievement (RuneProfile), newest community photo, last commit to the site. One hand-written paragraph at the top that Morgan updates when he feels like it.
+*Now-playing, the `/now` page and Tonight's sky were promoted to `docs/roadmap.md` on 2026-10-25.*
+
 - **History charts from scheduled snapshots.** `M`, `data` — A nightly GitHub Action appends WOM total XP / EHP and stats.fm top artist to a JSON file. After a month there's enough for sparklines: "XP over time", "music taste drift". Same Action pattern as Letterboxd.
-- **Tonight's sky.** `M` — Replace the static `background.webp` with a lightweight canvas starfield showing the real sky over Cincinnati right now (the `astronomy-engine` package is small; constellation lines optional). Ties the astrophotography interest into the one thing every visitor sees. Respect reduced-motion; fall back to the static image.
 - **Site changelog.** `S` — `/changelog` or a "What's new" box on Home, generated from `git log` at build or a hand-kept `CHANGELOG.md`. Makes "check back in sometime" concrete.
 - **Colophon.** `S` — How the site is built, what powers each live panel, fonts, hosting. IndieWeb staple; also where the tech stack can live without being the headline.
 - **Vinyl shelf.** `M` — Discogs has a public API for public collections. A shelf of cover art under Interests; hover/expand for pressing details. Discogs is already linked from the Music card.
