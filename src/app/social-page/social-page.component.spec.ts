@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { SocialPageComponent, photoCountLabel } from './social-page.component';
@@ -73,5 +74,20 @@ describe('SocialPageComponent', () => {
     const event = { target: overlay, currentTarget: overlay } as unknown as MouseEvent;
     component.onOverlayClick(event);
     expect(component.selectedPhoto()).toBeNull();
+  });
+
+  it('has the full photo and its wall thumbnail on disk for every community photo', () => {
+    for (const photo of COMMUNITY_PHOTOS) {
+      expect(existsSync(`public/${photo.imageUrl}`), photo.imageUrl).toBe(true);
+      expect(existsSync(`public/${photo.thumbUrl}`), photo.thumbUrl).toBe(true);
+    }
+  });
+
+  it('shows thumbnails on the wall and the full photo fullscreen', async () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.polaroid-image')?.getAttribute('src')).toBe(COMMUNITY_PHOTOS[0].thumbUrl);
+    component.openFullscreen(component.photos[0]);
+    await fixture.whenStable();
+    expect(el.querySelector('.fullscreen-image')?.getAttribute('src')).toBe(COMMUNITY_PHOTOS[0].imageUrl);
   });
 });

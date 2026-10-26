@@ -9,6 +9,7 @@ import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const'
 interface PhotoSpot {
   id: number;
   imageUrl?: string;
+  thumbUrl?: string;
   placeholderText?: string;
   caption?: string;
 }

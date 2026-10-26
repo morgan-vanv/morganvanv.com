@@ -22,7 +22,7 @@
                (keydown.space)="openFullscreen(photo); $event.preventDefault()">
             <div class="polaroid-image-container">
               @if (photo.imageUrl) {
-                <img [src]="photo.imageUrl" [alt]="'Community photo' + (photo.caption ? ': ' + photo.caption : '')" class="polaroid-image" width="1200" height="1600" loading="lazy" decoding="async" />
+                <img [src]="photo.thumbUrl ?? photo.imageUrl" [alt]="'Community photo' + (photo.caption ? ': ' + photo.caption : '')" class="polaroid-image" width="480" height="640" loading="lazy" decoding="async" />
               } @else {
                 <div class="polaroid-placeholder">{{ photo.placeholderText }}</div>
               }

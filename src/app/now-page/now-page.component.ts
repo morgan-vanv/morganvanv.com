@@ -103,7 +103,7 @@ export class NowPageComponent {
     const newest = COMMUNITY_PHOTOS.at(-1);
     if (!newest) return null;
     return {
-      key: 'community', label: 'Community', iconUrl: newest.imageUrl, iconStyle: 'cover', glyph: '✿',
+      key: 'community', label: 'Community', iconUrl: newest.thumbUrl, iconStyle: 'cover', glyph: '✿',
       title: newest.caption ?? 'A new photo',
       detail: 'newest photo on the community wall', href: '/social', internal: true,
     };
