@@ -1,39 +1,46 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SkyService } from './sky.service';
 
 /**
- * The one control for the live sky: whose sky it is. Hidden until the sky
- * has actually drawn, so it never offers something that isn't there.
- * Copy is a draft for Morgan.
+ * The one control for the live sky: whose sky it is. Takes its space from the
+ * start (so nothing shifts) but stays invisible until the sky has actually
+ * drawn, so it never offers something that isn't there. One persistent button,
+ * so keyboard focus survives every state change. Copy is a draft for Morgan.
  */
 @Component({
   selector: 'app-sky-toggle',
   template: `
-    @if (sky.ready()) {
-      <p class="sky-toggle">
-        @switch (sky.status()) {
-          @case ('locating') {
-            <span>finding your sky…</span>
-          }
-          @default {
-            <span>{{ sky.location().mine ? 'your sky, live' : 'the sky over Cincinnati, live' }}</span>
-            <span aria-hidden="true">·</span>
-            @if (sky.location().mine) {
-              <button type="button" (click)="sky.showCincinnati()">back to Cincinnati</button>
-            } @else {
-              <button type="button" (click)="sky.showMine()">show my sky</button>
-            }
-            @if (sky.status() === 'failed') {
-              <span class="note" role="status">(couldn't get a location)</span>
-            }
-          }
-        }
-      </p>
-    }
+    <p class="sky-toggle" [class.waiting]="!sky.ready()">
+      <span>{{ where() }}</span>
+      <span aria-hidden="true">·</span>
+      <button type="button" (click)="toggle()">{{ action() }}</button>
+      <span class="note" role="status">{{ note() }}</span>
+    </p>
   `,
   styleUrl: './sky-toggle.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SkyToggleComponent {
   protected readonly sky = inject(SkyService);
+
+  protected readonly where = computed(() => (this.sky.location().mine ? 'your sky, live' : 'the sky over Cincinnati, live'));
+  protected readonly action = computed(() => {
+    if (this.sky.status() === 'locating') return 'cancel';
+    return this.sky.location().mine ? 'back to Cincinnati' : 'show my sky';
+  });
+  protected readonly note = computed(() => {
+    switch (this.sky.status()) {
+      case 'locating':
+        return 'finding your sky…';
+      case 'failed':
+        return 'couldn\'t get a location';
+      default:
+        return '';
+    }
+  });
+
+  protected toggle(): void {
+    if (this.sky.status() === 'locating' || this.sky.location().mine) this.sky.showCincinnati();
+    else this.sky.showMine();
+  }
 }

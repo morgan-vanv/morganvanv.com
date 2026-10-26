@@ -15,6 +15,9 @@ export const SKY_LOCATION_KEY = 'sky-location';
 
 export type LocateStatus = 'idle' | 'locating' | 'failed';
 
+/** How long to wait for a location before saying it didn't work. */
+export const LOCATE_GIVE_UP_MS = 20_000;
+
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 /** Parses a stored location, or null if it's missing or malformed. */
@@ -44,6 +47,8 @@ export class SkyService {
   /** True once the live sky has drawn its first frame (until then the painted sky shows). */
   readonly ready = signal(false);
 
+  private attempt = 0;
+
   constructor() {
     if (!this.isBrowser) return;
     const stored = parseStoredLocation(readStorage());
@@ -55,20 +60,35 @@ export class SkyService {
       this.status.set('failed');
       return;
     }
+    // Each request gets a number; answers to an older (cancelled) request are ignored.
+    const attempt = ++this.attempt;
+    const isCurrent = () => attempt === this.attempt;
     this.status.set('locating');
+    // The browser's own timeout only starts once permission is granted, and some
+    // browsers never call back when the prompt is dismissed, so give up on our own.
+    const giveUp = setTimeout(() => {
+      if (isCurrent() && this.status() === 'locating') this.status.set('failed');
+    }, LOCATE_GIVE_UP_MS);
     navigator.geolocation.getCurrentPosition(
       position => {
+        clearTimeout(giveUp);
+        if (!isCurrent()) return;
         const location = { lat: round1(position.coords.latitude), lon: round1(position.coords.longitude), mine: true };
         this.location.set(location);
         writeStorage(JSON.stringify({ lat: location.lat, lon: location.lon }));
         this.status.set('idle');
       },
-      () => this.status.set('failed'),
+      () => {
+        clearTimeout(giveUp);
+        if (isCurrent()) this.status.set('failed');
+      },
       { maximumAge: 60 * 60 * 1000, timeout: 15_000 },
     );
   }
 
+  /** Back to Cincinnati; also cancels a request that hasn't answered yet. */
   showCincinnati(): void {
+    this.attempt++;
     this.location.set(CINCINNATI);
     this.status.set('idle');
     writeStorage(null);

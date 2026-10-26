@@ -72,8 +72,8 @@ const SKY_KEYS: readonly { alt: number; top: Rgb; horizon: Rgb }[] = [
   { alt: -18, top: [1, 32, 49], horizon: [27, 78, 88] },
   { alt: -12, top: [6, 38, 64], horizon: [52, 84, 102] },
   { alt: -6, top: [24, 56, 98], horizon: [168, 104, 90] },
-  { alt: 0, top: [54, 102, 164], horizon: [232, 168, 112] },
-  { alt: 8, top: [62, 124, 200], horizon: [168, 204, 232] },
+  { alt: 0, top: [44, 86, 146], horizon: [222, 158, 104] },
+  { alt: 8, top: [46, 98, 170], horizon: [150, 190, 224] },
 ];
 
 const mix = (a: number, b: number, t: number) => a + (b - a) * t;
@@ -133,6 +133,8 @@ export interface SkyRenderResult {
   readonly sunAlt: number;
   /** How many catalogue stars ended up drawn (above the horizon, on screen, not washed out). */
   readonly starsDrawn: number;
+  /** Where the Moon was drawn (art pixels) and the mean offset of its lit pixels from its centre (y down), or null if not drawn. */
+  readonly moon: { readonly x: number; readonly y: number; readonly litCount: number; readonly litDx: number; readonly litDy: number } | null;
 }
 
 export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: SkyInput): SkyRenderResult {
@@ -168,7 +170,8 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   };
   const toScreen = (h: Vec3) => {
     const p = projectSouth(h);
-    return p ? { x: centerX + p.x * scale, y: horizonY - p.y * scale } : null;
+    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return null;
+    return { x: centerX + p.x * scale, y: horizonY - p.y * scale };
   };
   const onScreen = (p: { x: number; y: number }, margin = 2) =>
     p.x >= -margin && p.y >= -margin && p.x < width + margin && p.y < height + margin;
@@ -189,7 +192,8 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
         const b = toScreen(hb);
         if (!a || !b || (!onScreen(a, width) && !onScreen(b, width))) continue;
         // A segment near the north point can project absurdly long; skip it.
-        if (Math.hypot(b.x - a.x, b.y - a.y) > width / 2) continue;
+        // (Measured against the projection scale, so it means the same on every screen shape.)
+        if (Math.hypot(b.x - a.x, b.y - a.y) > 3 * scale) continue;
         drawLine(a.x, a.y, b.x, b.y, (x, y) => blend(x, y, lineColor, 0.25 * stars));
       }
     }
@@ -208,7 +212,7 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
 
   if (input.bodies) {
     for (const planet of input.bodies.planets) {
-      // Venus and Jupiter show up a little before the stars do.
+      // The brightest planets (usually Venus and Jupiter) show up a little before the stars do.
       const visibility = planet.mag < -1.5 ? smoothstep(-2, -9, sunAlt) : stars;
       if (planet.alt < 0 || visibility <= 0) continue;
       const p = toScreen(planet.h);
@@ -219,7 +223,7 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
     }
   }
 
-  const discRadius = Math.max(2, Math.min(6, Math.round(width / 120)));
+  const discRadius = Math.max(3, Math.min(6, Math.round(width / 120)));
 
   if (sunAlt > -1) {
     const p = toScreen(sunH);
@@ -229,6 +233,7 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
     }
   }
 
+  let moonResult: SkyRenderResult['moon'] = null;
   const moon = input.bodies?.moon;
   if (moon && moon.alt > -1) {
     const p = toScreen(moon.h);
@@ -240,19 +245,34 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
       const shadow: Rgb = [24, 40, 54];
       // In daylight the Moon is a pale ghost; at night the unlit part hides the stars behind it.
       const daylight = 1 - stars;
+      const litAlpha = daylight > 0.5 ? 0.75 : 1;
       const r = discRadius;
+      const [cx, cy] = [Math.round(p.x), Math.round(p.y)];
+      let [litCount, litX, litY] = [0, 0, 0];
       disc(p.x, p.y, r, (x, y) => {
-        const nx = (x - Math.round(p.x)) / (r + 0.5);
-        const ny = -(y - Math.round(p.y)) / (r + 0.5);
+        const nx = (x - cx) / (r + 0.5);
+        const ny = -(y - cy) / (r + 0.5);
         const nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny));
-        const isLit = nx * sun[0] + ny * sun[1] + nz * sun[2] > 0;
-        if (isLit) blend(x, y, lit, daylight > 0.5 ? 0.75 : 1);
-        else if (daylight < 0.5) blend(x, y, shadow, 0.6);
+        if (nx * sun[0] + ny * sun[1] + nz * sun[2] > 0) {
+          blend(x, y, lit, litAlpha);
+          litCount++;
+          litX += x - cx;
+          litY += y - cy;
+        } else if (daylight < 0.5) {
+          blend(x, y, shadow, 0.6);
+        }
       });
+      // A thin crescent can fall between pixel centres; keep at least the limb facing the Sun lit.
+      if (litCount === 0 && moon.illuminated > 0.02) {
+        const [lx, ly] = [Math.round(toSun.x * r), Math.round(-toSun.y * r)];
+        blend(cx + lx, cy + ly, lit, litAlpha);
+        [litCount, litX, litY] = [1, lx, ly];
+      }
+      moonResult = { x: cx, y: cy, litCount, litDx: litCount ? litX / litCount : 0, litDy: litCount ? litY / litCount : 0 };
     }
   }
 
-  return { sunAlt, starsDrawn };
+  return { sunAlt, starsDrawn, moon: moonResult };
 }
 
 /** Unit screen direction (x right, y up) from body `from` toward body `to` along the sky. */

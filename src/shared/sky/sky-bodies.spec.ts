@@ -13,7 +13,8 @@ describe('sky bodies', () => {
     const date = new Date('2024-04-08T19:09:00Z');
     const [lat, lon] = [39.76, -84.19];
     const bodies = computeBodies(Astronomy, date, lat, lon);
-    expect(angleBetween(bodies.moon.h, sunHorizontal(date, lat, lon))).toBeLessThan(0.3);
+    // The Moon gains on the Sun about 0.5° an hour, so 0.03° pins this to within a few minutes.
+    expect(angleBetween(bodies.moon.h, sunHorizontal(date, lat, lon))).toBeLessThan(0.03);
     expect(bodies.moon.alt).toBeGreaterThan(40);
     expect(bodies.moon.phaseAngle).toBeGreaterThan(178);
   });

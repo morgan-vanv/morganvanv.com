@@ -64,6 +64,28 @@ describe('sky render', () => {
     expect(r + g + b).toBeGreaterThan(600);
   });
 
+  it('lights the side of the Moon that faces the Sun', () => {
+    // Waxing crescent in the evening: the Sun has set in the west-southwest, so the
+    // lit side faces right (west) and down.
+    const evening = render('2026-11-14T00:00:00Z').result.moon!;
+    expect(evening.litCount).toBeGreaterThan(0);
+    expect(evening.litDx).toBeGreaterThan(0);
+    expect(evening.litDy).toBeGreaterThan(0);
+    // Waning crescent before sunrise: the Sun is below the eastern horizon, so the lit side faces left (east).
+    const morning = render('2026-11-06T11:00:00Z');
+    expect(morning.bodies!.moon.phaseAngle).toBeGreaterThan(110);
+    expect(morning.result.moon!.litDx).toBeLessThan(0);
+  });
+
+  it('a hair-thin crescent still shows its sunward limb', () => {
+    // 3.5 % lit, low in the east before sunrise.
+    const { result, bodies } = render('2026-11-07T11:30:00Z');
+    expect(bodies!.moon.illuminated).toBeLessThan(0.05);
+    expect(bodies!.moon.illuminated).toBeGreaterThan(0.02);
+    expect(result.moon!.litCount).toBeGreaterThan(0);
+    expect(result.moon!.litDx).toBeLessThan(0);
+  });
+
   it('still renders stars and the right sky colour without astronomy-engine', () => {
     const { result } = render('2026-10-26T05:00:00Z', false);
     expect(result.sunAlt).toBeLessThan(-40);

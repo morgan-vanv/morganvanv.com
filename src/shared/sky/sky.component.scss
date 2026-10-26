@@ -7,7 +7,6 @@
   opacity: 0;
   transition: opacity 1.2s ease;
   pointer-events: none;
-  --daylight: 0;
 }
 
 :host(.ready) {
@@ -25,16 +24,9 @@
 .foreground {
   position: absolute;
   inset: 0;
-  // Same sizing as the painted background in app.scss, so they line up exactly.
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  filter: brightness(calc(1 + 0.45 * var(--daylight)));
-}
+  filter: brightness(calc(1 + 0.45 * var(--daylight, 0)));
 
-// Only requested once the component has preloaded it (see sky.component.ts).
-:host(.ready) .foreground {
-  background-image: url('/foreground.webp');
+  // Holds the cut-out painting (an <img> added and styled by sky.component.ts once it has loaded).
 }
 
 @media (prefers-reduced-motion: reduce) {

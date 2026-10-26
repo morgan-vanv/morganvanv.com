@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { CINCINNATI, SKY_LOCATION_KEY, SkyService, parseStoredLocation } from './sky.service';
+import { CINCINNATI, LOCATE_GIVE_UP_MS, SKY_LOCATION_KEY, SkyService, parseStoredLocation } from './sky.service';
 import { parseSkyAt } from './sky.component';
 
 describe('SkyService', () => {
@@ -66,5 +66,49 @@ describe('parseSkyAt', () => {
     expect(parseSkyAt('?sky-at=2026-01-15T04:00:00Z')?.toISOString()).toBe('2026-01-15T04:00:00.000Z');
     expect(parseSkyAt('?sky-at=tuesday')).toBeNull();
     expect(parseSkyAt('')).toBeNull();
+  });
+});
+
+describe('SkyService edge cases', () => {
+  afterEach(() => {
+    localStorage.clear();
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it('survives localStorage throwing', () => {
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new Error('blocked');
+    });
+    const service = TestBed.inject(SkyService);
+    expect(service.location()).toEqual(CINCINNATI);
+    expect(() => service.showCincinnati()).not.toThrow();
+  });
+
+  it('gives up if the browser never answers', () => {
+    vi.useFakeTimers();
+    vi.spyOn(navigator, 'geolocation', 'get').mockReturnValue({ getCurrentPosition: vi.fn() } as unknown as Geolocation);
+    const service = TestBed.inject(SkyService);
+    service.showMine();
+    expect(service.status()).toBe('locating');
+    vi.advanceTimersByTime(LOCATE_GIVE_UP_MS);
+    expect(service.status()).toBe('failed');
+    expect(service.location()).toEqual(CINCINNATI);
+  });
+
+  it('cancelling ignores a late answer', () => {
+    let answer: PositionCallback = () => undefined;
+    const getCurrentPosition = vi.fn((success: PositionCallback) => (answer = success));
+    vi.spyOn(navigator, 'geolocation', 'get').mockReturnValue({ getCurrentPosition } as unknown as Geolocation);
+    const service = TestBed.inject(SkyService);
+    service.showMine();
+    service.showCincinnati();
+    answer({ coords: { latitude: 10, longitude: 10 } } as GeolocationPosition);
+    expect(service.location()).toEqual(CINCINNATI);
+    expect(service.status()).toBe('idle');
+    expect(localStorage.getItem(SKY_LOCATION_KEY)).toBeNull();
   });
 });

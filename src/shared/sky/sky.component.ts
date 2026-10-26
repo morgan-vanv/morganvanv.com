@@ -6,7 +6,6 @@ import {
   afterNextRender,
   effect,
   inject,
-  signal,
   untracked,
   viewChild,
 } from '@angular/core';
@@ -35,28 +34,29 @@ export function parseSkyAt(search: string): Date | null {
  * request) drawn as pixel art behind the painted trees and mountains.
  *
  * Nothing here runs during prerendering or first paint: the painted
- * background shows until star data, astronomy-engine and the cut-out
- * foreground have all loaded, then the live sky fades in over it. If any of
- * that fails, the painting simply stays. No animation loop: the sky is
+ * background shows until the star data and the cut-out foreground have
+ * loaded (and astronomy-engine has loaded or failed), then the live sky fades
+ * in over it. If the data or the foreground fails, the painting simply stays;
+ * if only astronomy-engine fails, the sky draws without the Moon and planets.
+ * No animation loop: the sky is
  * redrawn once a minute while the tab is visible, and never on a timer for
  * visitors who prefer reduced motion.
  */
 @Component({
   selector: 'app-sky',
-  template: `<canvas #canvas class="sky"></canvas><div class="foreground"></div>`,
+  template: `<canvas #canvas class="sky"></canvas><div #foreground class="foreground"></div>`,
   styleUrl: './sky.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'aria-hidden': 'true',
     '[class.ready]': 'sky.ready()',
-    '[style.--daylight]': 'daylight()',
   },
 })
 export class SkyComponent {
   protected readonly sky = inject(SkyService);
+  private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
-  /** 0 at night, 1 in daylight; brightens the foreground a little so the trees aren't pitch black at noon. */
-  protected readonly daylight = signal(0);
+  private readonly foreground = viewChild.required<ElementRef<HTMLElement>>('foreground');
 
   private catalog: SkyCatalog | null = null;
   private astronomy: AstronomyModule | null = null;
@@ -94,11 +94,16 @@ export class SkyComponent {
           resizeTimer = setTimeout(() => this.draw(), RESIZE_DEBOUNCE_MS);
         };
         document.addEventListener('visibilitychange', onVisibility);
-        window.addEventListener('resize', onResize);
+        // Follow the element the painting is sized to, not the window (they differ when pinch-zoomed).
+        const resizeObserver = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(onResize);
+        if (resizeObserver) resizeObserver.observe(this.host);
+        else window.addEventListener('resize', onResize);
         destroyRef.onDestroy(() => {
+          document.documentElement.style.removeProperty('--daylight');
           clearInterval(interval);
           clearTimeout(resizeTimer);
           document.removeEventListener('visibilitychange', onVisibility);
+          resizeObserver?.disconnect();
           window.removeEventListener('resize', onResize);
         });
       });
@@ -120,7 +125,14 @@ export class SkyComponent {
       ]);
       this.catalog = prepareCatalog(stars, constellations);
       this.astronomy = astronomy;
-      return !!this.canvas().nativeElement.getContext('2d');
+      if (!this.canvas().nativeElement.getContext('2d')) return false;
+      // The already-decoded image goes in as-is, so it paints in the same frame the sky appears.
+      foreground.alt = '';
+      // Styled inline: an element added outside the template doesn't get the component's
+      // scoped styles. Same sizing as the painted background in app.scss, so they line up.
+      Object.assign(foreground.style, { display: 'block', width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' });
+      this.foreground().nativeElement.append(foreground);
+      return true;
     } catch {
       return false;
     }
@@ -133,7 +145,7 @@ export class SkyComponent {
     const context = canvas.getContext('2d');
     if (!context) return;
 
-    const layout = computeLayout(window.innerWidth, window.innerHeight);
+    const layout = computeLayout(this.host.clientWidth || window.innerWidth, this.host.clientHeight || window.innerHeight);
     if (canvas.width !== layout.width || canvas.height !== layout.height) {
       canvas.width = layout.width;
       canvas.height = layout.height;
@@ -152,7 +164,9 @@ export class SkyComponent {
     const image = context.createImageData(layout.width, layout.height);
     const { sunAlt } = renderSky(image.data, layout, { date, lat, lon, catalog, bodies });
     context.putImageData(image, 0, 0);
-    this.daylight.set(Math.round(smoothstep(-6, 6, sunAlt) * 100) / 100);
+    // 0 at night, 1 in daylight, on <html> so page cards can darken behind their text
+    // when the sky behind them is bright (see base-page), and the trees can brighten a little.
+    document.documentElement.style.setProperty('--daylight', String(Math.round(smoothstep(-6, 6, sunAlt) * 100) / 100));
   }
 }
 
