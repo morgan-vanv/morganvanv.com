@@ -11,38 +11,38 @@ describe('ApiCacheService', () => {
   let http: HttpTestingController;
 
   beforeEach(() => {
-  sessionStorage.clear();
-  TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
-  service = TestBed.inject(ApiCacheService);
-  http = TestBed.inject(HttpTestingController);
+    sessionStorage.clear();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    service = TestBed.inject(ApiCacheService);
+    http = TestBed.inject(HttpTestingController);
   });
 
   afterEach(() => {
-  vi.restoreAllMocks();
-  http.verify();
+    vi.restoreAllMocks();
+    http.verify();
   });
 
   it('fetches once, then serves the cached value', async () => {
-  const first = firstValueFrom(service.get<{ ok: boolean }>(URL));
-  http.expectOne(URL).flush({ ok: true });
-  expect(await first).toEqual({ ok: true });
+    const first = firstValueFrom(service.get<{ ok: boolean }>(URL));
+    http.expectOne(URL).flush({ ok: true });
+    expect(await first).toEqual({ ok: true });
 
-  const second = await firstValueFrom(service.get<{ ok: boolean }>(URL));
-  expect(second).toEqual({ ok: true });
-  http.expectNone(URL);
+    const second = await firstValueFrom(service.get<{ ok: boolean }>(URL));
+    expect(second).toEqual({ ok: true });
+    http.expectNone(URL);
   });
 
   it('refetches after the entry expires', async () => {
-  vi.useFakeTimers();
-  const first = firstValueFrom(service.get(URL, 1000));
-  http.expectOne(URL).flush(1);
-  await first;
+    vi.useFakeTimers();
+    const first = firstValueFrom(service.get(URL, 1000));
+    http.expectOne(URL).flush(1);
+    await first;
 
-  vi.advanceTimersByTime(1001);
-  const second = firstValueFrom(service.get(URL, 1000));
-  http.expectOne(URL).flush(2);
-  expect(await second).toBe(2);
-  vi.useRealTimers();
+    vi.advanceTimersByTime(1001);
+    const second = firstValueFrom(service.get(URL, 1000));
+    http.expectOne(URL).flush(2);
+    expect(await second).toBe(2);
+    vi.useRealTimers();
   });
 
   it('bypasses the cache entirely when the TTL is 0', async () => {
@@ -55,12 +55,12 @@ describe('ApiCacheService', () => {
   });
 
   it('does not cache failed requests', async () => {
-  const first = firstValueFrom(service.get(URL));
-  http.expectOne(URL).flush('nope', { status: 500, statusText: 'Server Error' });
-  await expect(first).rejects.toBeTruthy();
+    const first = firstValueFrom(service.get(URL));
+    http.expectOne(URL).flush('nope', { status: 500, statusText: 'Server Error' });
+    await expect(first).rejects.toBeTruthy();
 
-  const second = firstValueFrom(service.get(URL));
-  http.expectOne(URL).flush('ok');
-  expect(await second).toBe('ok');
+    const second = firstValueFrom(service.get(URL));
+    http.expectOne(URL).flush('ok');
+    expect(await second).toBe('ok');
   });
 });

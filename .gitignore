@@ -48,3 +48,6 @@ dist/
 .antigravitycli/
 
 .lighthouseci
+
+# Generated at build time by scripts/write-build-info.mjs
+/src/build-info.prod.ts

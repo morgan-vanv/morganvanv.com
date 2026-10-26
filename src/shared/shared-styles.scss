@@ -21,14 +21,21 @@
   }
 }
 
+// The dark, softly bordered surface every card sits on: panels, the
+// now-playing and character bands, the /now note and rows. One definition
+// so they can't drift apart.
+@mixin surface {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba($main-color, 0.1);
+}
+
 // A framed panel: the card style shared by the Interests sections
 // (Music top lists, OSRS panels).
 @mixin panel {
+  @include surface;
   box-sizing: border-box;
   min-width: 0;
   padding: 0.9rem 0.8rem 0.6rem;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba($main-color, 0.1);
   border-radius: 10px;
 }
 

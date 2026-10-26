@@ -7,21 +7,21 @@ describe('ScrollRegionService', () => {
   const b = document.createElement('div');
 
   beforeEach(() => {
-  service = TestBed.inject(ScrollRegionService);
+    service = TestBed.inject(ScrollRegionService);
   });
 
   it('has no active region by default', () => {
-  expect(service.active()).toBeNull();
+    expect(service.active()).toBeNull();
   });
 
   it('the most recently registered region wins, then falls back on unregister', () => {
-  service.register(a);
-  service.register(b);
-  expect(service.active()).toBe(b);
-  service.unregister(b);
-  expect(service.active()).toBe(a);
-  service.unregister(a);
-  expect(service.active()).toBeNull();
+    service.register(a);
+    service.register(b);
+    expect(service.active()).toBe(b);
+    service.unregister(b);
+    expect(service.active()).toBe(a);
+    service.unregister(a);
+    expect(service.active()).toBeNull();
   });
 
   it('prefers a region nested inside another region, whatever the registration order', () => {
@@ -37,9 +37,9 @@ describe('ScrollRegionService', () => {
   });
 
   it('does not register the same element twice', () => {
-  service.register(a);
-  service.register(a);
-  service.unregister(a);
-  expect(service.active()).toBeNull();
+    service.register(a);
+    service.register(a);
+    service.unregister(a);
+    expect(service.active()).toBeNull();
   });
 });

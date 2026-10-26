@@ -3,6 +3,7 @@ import { A11yModule } from '@angular/cdk/a11y';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 import { SITE_CONFIG } from '../../shared/config/site.config';
+import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 
 interface PhotoSpot {
   id: number;
@@ -11,14 +12,6 @@ interface PhotoSpot {
   caption?: string;
 }
 
-const SUBMITTED_PHOTOS: Omit<PhotoSpot, 'id'>[] = [
-  { imageUrl: 'images/community-wall/stobi.webp', caption: 'a beast or demon of some sort' },
-  { imageUrl: 'images/community-wall/richard_and_bernie.webp', caption: 'Richard & Bernie <3' },
-  { imageUrl: 'images/community-wall/gup.webp', caption: 'gup' },
-  { imageUrl: 'images/community-wall/dirty_dan.webp', caption: 'Dirty Dan' },
-  { imageUrl: 'images/community-wall/atlas.webp', caption: 'atlas gains knowledge of self' },
-  { imageUrl: 'images/community-wall/gerbie.webp', caption: 'gerbie' },
-];
 
 @Component({
   selector: 'app-social-page',
@@ -36,7 +29,7 @@ export class SocialPageComponent {
   private lastFocusedElement: HTMLElement | null = null;
 
   readonly photos: PhotoSpot[] = Array.from({ length: 12 }, (_, i) => {
-    const submitted = SUBMITTED_PHOTOS[i];
+    const submitted = COMMUNITY_PHOTOS[i];
     if (submitted) {
       return { id: i, ...submitted };
     }

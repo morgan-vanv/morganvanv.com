@@ -1,4 +1,5 @@
 import { SITE_CONFIG } from '../config/site.config';
+import type { RpActivityType } from '../services/rune-profile.service';
 
 export const WOM_USERNAME = SITE_CONFIG.handles.osrs;
 
@@ -53,3 +54,18 @@ export const CLUE_TIERS: ClueTier[] = [
   { key: 'clue_scrolls_elite', label: 'Elite', abbr: 'El' },
   { key: 'clue_scrolls_master', label: 'Master', abbr: 'Ms' },
 ];
+
+/**
+ * RuneProfile activity types shown as "achievements" and "drops". Shared by
+ * the OSRS panel and /now so both request the same URL and share the cache.
+ */
+export const ACHIEVEMENT_ACTIVITY_TYPES: readonly RpActivityType[] = [
+  'level_up',
+  'quest_completed',
+  'achievement_diary_tier_completed',
+  'combat_achievement_tier_completed',
+  'combat_achievement_tier_reached',
+  'xp_milestone',
+];
+
+export const DROP_ACTIVITY_TYPES: readonly RpActivityType[] = ['valuable_drop', 'new_item_obtained'];

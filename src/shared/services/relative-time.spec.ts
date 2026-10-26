@@ -9,6 +9,11 @@ describe('relativeTime', () => {
     expect(relativeTime(NOW + 5_000, NOW)).toBe('just now');
   });
 
+  it('returns an empty string for invalid timestamps instead of throwing', () => {
+    expect(relativeTime(Number.NaN, NOW)).toBe('');
+    expect(relativeTime(Date.parse('not a date'), NOW)).toBe('');
+  });
+
   it('counts minutes, hours and days', () => {
     expect(relativeTime(NOW - min(1), NOW)).toBe('1 minute ago');
     expect(relativeTime(NOW - min(12), NOW)).toBe('12 minutes ago');

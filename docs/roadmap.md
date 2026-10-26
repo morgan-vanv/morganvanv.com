@@ -10,28 +10,9 @@ Agreed 2026-10-25, after PR #74 landed. Theme: **make the site visibly alive** �
 
 PR #80. `RecentStreamService` (`src/shared/services/recent-stream.service.ts`) is the shared source for §2's **Listening** row.
 
-## 2. `/now` page (`S`/`M`)
+## 2. `/now` page — shipped
 
-**What:** the IndieWeb "now page", mostly auto-generated. **Main route, second in order: Home → Now → Background → …** (arrow keys, navbar, sitemap all follow `MAIN_ROUTES`).
-
-**Layout** (top to bottom):
-1. **A hand-written paragraph** — Morgan's words, updated when he feels like it. Lives in `src/app/now-page/now.content.ts` as a `{ updated: '2026-10-25', text: '…' }` const so the "last updated" date is honest and the copy is a one-line PR. Ships with short placeholder copy marked `[TODO: Morgan]`; Morgan supplies the real paragraph after the page exists.
-2. **Auto rows**, each "label · value · when", in this order, each hidden when its source is empty:
-   - **Listening** — last listened (from §1's `RecentStreamService`).
-   - **Playing** — last OSRS achievement + last drop (RuneProfile; already fetched for Interests, cached).
-   - **Watching** — *slot reserved* for the Letterboxd feed (`ideas-later.md` §3); renders nothing until that data file exists.
-   - **Community** — newest photo on the wall (last entry of `SUBMITTED_PHOTOS`; static).
-   - **Site** — last commit: message, date, short SHA, linked to GitHub.
-
-**How:**
-- **Last commit is baked at build time**, not fetched: `scripts/write-build-info.mjs` runs as the `prebuild` npm hook and writes a **gitignored** `src/build-info.prod.ts` (`{ sha, date, message }`) from `git log -1`; the **committed** `src/build-info.ts` holds dev placeholder values and the production configuration swaps it via `fileReplacements`. Zero API calls, no rate limits, prerender-friendly, and `ng serve` / tests work from a fresh checkout. (Design per Copilot's review of #79: a path can't be both tracked and ignored.)
-- Rows are small presentational components reused from Interests where they exist (the activity-row look).
-- Page shell: `<app-base-page pageTitle="Now">`, `appScrollRegion` on its content, scroll hint on.
-- Add to `MAIN_ROUTES` (title "Now", description drafted), `lazyRouteComponents`, `public/sitemap.xml` (the test will insist). Navbar updates itself.
-
-**Needs from Morgan:** the paragraph, after the page ships. Everything else is automatic.
-
-**Done when:** `/now` prerenders with the paragraph, date and commit row; live rows fill in in the browser; the Letterboxd slot is a no-op; arrow keys traverse Home → Now → Background.
+`src/app/now-page/`. The note lives in `now.content.ts`; it and its "updated" date stay hidden until Morgan adds paragraphs. The Watching row slots in once the Letterboxd feed exists (`ideas-later.md` §3).
 
 ## 3. Tonight's sky (`M`)
 

@@ -8,6 +8,7 @@ export const SITE_CONFIG = {
   url: 'https://morganvanv.com',
   email: 'website@morganvanv.com',
   defaultDescription: 'Morgan Van Valkenburgh\'s personal website. Some guy from Cincinnati, his cat, and the things he\'s into.',
+  repoUrl: 'https://github.com/morgan-vanv/morganvanv.com',
   handles: {
     github: 'morgan-vanv',
     linkedin: 'morganvanv',

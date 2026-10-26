@@ -5,6 +5,13 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    ignore:
+      # vitest 4.1.x crashes npm 10 installs (arborist "edgesOut" of null); we pin ~4.0.
+      # Remove once CI's npm handles it (see .github/copilot-instructions.md).
+      - dependency-name: "vitest"
+        versions: [">=4.1.0"]
+      - dependency-name: "@vitest/coverage-v8"
+        versions: [">=4.1.0"]
     groups:
       angular:
         patterns:

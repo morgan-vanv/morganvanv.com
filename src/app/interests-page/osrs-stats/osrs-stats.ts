@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
 import { WiseOldManService } from '../../../shared/services/wise-old-man.service';
-import { RuneProfileService, RpActivity, RpActivityType } from '../../../shared/services/rune-profile.service';
-import { WOM_USERNAME, DIARY_TIERS } from '../../../shared/constants/osrs-stats.const';
+import { RuneProfileService, RpActivity } from '../../../shared/services/rune-profile.service';
+import { WOM_USERNAME, DIARY_TIERS, ACHIEVEMENT_ACTIVITY_TYPES, DROP_ACTIVITY_TYPES } from '../../../shared/constants/osrs-stats.const';
 import { LOADING, toResourceState } from './resource-state';
 import { OsrsCharacterPanelComponent } from './character-panel/character-panel';
 import { OsrsSkillsPanelComponent } from './skills-panel/skills-panel';
@@ -15,16 +15,6 @@ import { achievementIcon, achievementLabel, dropIcon, dropLabel, formatDate } fr
 
 const DISPLAY_LIMIT = 20;
 
-const DROP_ACTIVITY_TYPES: RpActivityType[] = ['valuable_drop', 'new_item_obtained'];
-
-const ACHIEVEMENT_ACTIVITY_TYPES: RpActivityType[] = [
-  'level_up',
-  'quest_completed',
-  'achievement_diary_tier_completed',
-  'combat_achievement_tier_completed',
-  'combat_achievement_tier_reached',
-  'xp_milestone',
-];
 
 /**
  * Live OSRS character stats. This component only fetches and shapes the

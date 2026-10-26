@@ -143,7 +143,7 @@ export class RuneProfileService {
     );
   }
 
-  getActivities(username: string, activityTypes?: RpActivityType[], cursor?: string): Observable<RpActivitiesResponse> {
+  getActivities(username: string, activityTypes?: readonly RpActivityType[], cursor?: string): Observable<RpActivitiesResponse> {
     const params = new URLSearchParams();
     if (cursor) params.set('cursor', cursor);
     if (activityTypes?.length) params.set('activityTypes', activityTypes.join(','));
