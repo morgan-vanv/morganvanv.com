@@ -44,7 +44,7 @@
   @if (row.iconUrl) {
     <img [src]="row.iconUrl" alt="" class="thumb" [class.pixel]="row.iconStyle === 'pixel'" width="48" height="48" loading="lazy" decoding="async" />
   } @else {
-    <span class="thumb thumb--glyph" aria-hidden="true">&lt;/&gt;</span>
+    <span class="thumb thumb--glyph" aria-hidden="true">{{ row.glyph }}</span>
   }
   <span class="text">
     <span class="title" [title]="row.title">{{ row.title }}</span>

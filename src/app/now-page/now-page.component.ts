@@ -10,7 +10,7 @@ import { relativeTime } from '../../shared/services/relative-time';
 import { ACHIEVEMENT_ACTIVITY_TYPES, DROP_ACTIVITY_TYPES, WOM_USERNAME } from '../../shared/constants/osrs-stats.const';
 import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 import { SITE_CONFIG } from '../../shared/config/site.config';
-import { achievementIcon, achievementLabel, dropLabel } from '../interests-page/osrs-stats/osrs-format';
+import { achievementIcon, achievementLabel, dropIcon, dropLabel } from '../interests-page/osrs-stats/osrs-format';
 import { BUILD_INFO } from '../../build-info';
 import { NOW_CONTENT } from './now.content';
 
@@ -20,6 +20,8 @@ export interface NowRow {
   iconUrl: string | null;
   /** Photos and album art are cropped to fill; game icons are drawn pixelated. */
   iconStyle: 'cover' | 'pixel';
+  /** Shown in place of the icon when there is none. */
+  glyph: string;
   title: string;
   detail?: string;
   when?: string;
@@ -29,9 +31,16 @@ export interface NowRow {
   live?: boolean;
 }
 
-/** Formats a YYYY-MM-DD or ISO date as "October 25, 2026", in UTC so build and browser agree. */
+/**
+ * Formats a YYYY-MM-DD date, or an ISO timestamp, as "October 25, 2026".
+ * Uses the calendar date as written: a commit stamped 2026-10-25T21:33-04:00
+ * happened on the 25th where it was made, even though it's the 26th in UTC.
+ * Deterministic, so prerendered and hydrated output agree.
+ */
 export function formatDay(value: string): string {
-  const date = new Date(/^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value);
+  const match = /^(\d{4}-\d{2}-\d{2})(?:$|T)/.exec(value);
+  if (!match) return '';
+  const date = new Date(`${match[1]}T00:00:00Z`);
   if (Number.isNaN(date.getTime())) return '';
   return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
@@ -62,7 +71,7 @@ export class NowPageComponent {
     const item = this.recentStream.lastListened();
     if (!item) return null;
     return {
-      key: 'listening', label: 'Listening', iconUrl: item.imageUrl, iconStyle: 'cover',
+      key: 'listening', label: 'Listening', iconUrl: item.imageUrl, iconStyle: 'cover', glyph: '♪',
       title: item.trackName, detail: item.artistName,
       when: item.isPlaying ? 'right now' : this.recentStream.when() ?? undefined,
       href: item.trackUrl, live: item.isPlaying,
@@ -75,10 +84,10 @@ export class NowPageComponent {
     const latest = achievement ?? drop;
     if (!latest) return null;
     return {
-      key: 'playing', label: 'Playing', iconUrl: achievementIcon(latest), iconStyle: 'pixel',
+      key: 'playing', label: 'Playing', iconUrl: achievement ? achievementIcon(achievement) : dropIcon(latest), iconStyle: 'pixel', glyph: '⚔',
       title: achievement ? achievementLabel(achievement) : dropLabel(latest),
       detail: achievement && drop ? `Old School RuneScape · latest drop: ${dropLabel(drop)}` : 'Old School RuneScape',
-      when: relativeTime(Date.parse(latest.createdAt)),
+      when: relativeTime(Date.parse(latest.createdAt)) || undefined,
       href: `https://www.runeprofile.com/${WOM_USERNAME}`,
     };
   });
@@ -87,14 +96,14 @@ export class NowPageComponent {
     const newest = COMMUNITY_PHOTOS.at(-1);
     if (!newest) return null;
     return {
-      key: 'community', label: 'Community', iconUrl: newest.imageUrl, iconStyle: 'cover',
+      key: 'community', label: 'Community', iconUrl: newest.imageUrl, iconStyle: 'cover', glyph: '✿',
       title: newest.caption ?? 'A new photo',
       detail: 'newest photo on the community wall', href: '/social', internal: true,
     };
   })();
 
   private readonly site: NowRow | null = BUILD_INFO.sha ? {
-    key: 'site', label: 'Site', iconUrl: null, iconStyle: 'pixel',
+    key: 'site', label: 'Site', iconUrl: null, iconStyle: 'pixel', glyph: '</>',
     title: BUILD_INFO.message,
     detail: `last change · ${BUILD_INFO.sha.slice(0, 7)}`,
     when: formatDay(BUILD_INFO.date) || undefined,

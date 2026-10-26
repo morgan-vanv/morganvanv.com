@@ -15,9 +15,11 @@ function isRuneProfileActivities(req: { url: string }): boolean {
 }
 
 describe('formatDay', () => {
-  it('formats plain dates and ISO timestamps in UTC', () => {
+  it('formats plain dates and ISO timestamps by the calendar date as written', () => {
     expect(formatDay('2026-10-25')).toBe('October 25, 2026');
     expect(formatDay('2026-01-01T03:00:00Z')).toBe('January 1, 2026');
+    // An evening commit in Eastern time is still that day, not the next UTC day.
+    expect(formatDay('2026-10-25T21:33:57-04:00')).toBe('October 25, 2026');
   });
 
   it('returns an empty string for junk', () => {
@@ -76,6 +78,44 @@ describe('NowPageComponent', () => {
     const playing = fixture.componentInstance.rows().find(r => r.key === 'playing');
     expect(playing?.title).toBe('Slayer 87');
     expect(playing?.detail).toBe('Old School RuneScape · latest drop: Tanzanite fang — 4.2M gp');
+  });
+
+  function flushActivities(achievements: unknown[], drops: unknown[]): void {
+    for (const req of http.match(isRuneProfileActivities)) {
+      const isDrops = new URL(req.request.url).searchParams.get('activityTypes')?.split(',').includes('valuable_drop');
+      req.flush({ activities: isDrops ? drops : achievements, nextCursor: null, hasMore: false });
+    }
+  }
+
+  it('builds Playing from a drop alone, with the item icon', async () => {
+    flushActivities([], [{ type: 'valuable_drop', createdAt: new Date().toISOString(), data: { itemId: 4151, value: 1_500_000 }, enriched: { itemName: 'Abyssal whip' } }]);
+    await fixture.whenStable();
+    const playing = fixture.componentInstance.rows().find(r => r.key === 'playing');
+    expect(playing?.title).toBe('Abyssal whip — 1.5M gp');
+    expect(playing?.detail).toBe('Old School RuneScape');
+    expect(playing?.iconUrl).toBe('https://static.runelite.net/cache/item/icon/4151.png');
+  });
+
+  it('uses the achievement icon and a relative time when an achievement exists', async () => {
+    flushActivities([{ type: 'quest_completed', createdAt: new Date(Date.now() - 3 * 3_600_000).toISOString(), data: { questId: 1 }, enriched: { questName: 'Dragon Slayer II' } }], []);
+    await fixture.whenStable();
+    const playing = fixture.componentInstance.rows().find(r => r.key === 'playing');
+    expect(playing?.iconUrl).toBe('osrs/icons/quests-icon.webp');
+    expect(playing?.when).toBe('3 hours ago');
+  });
+
+  it('a malformed timestamp drops the time but keeps every row rendering', async () => {
+    flushActivities([{ type: 'level_up', createdAt: 'garbage', data: { name: 'Slayer', level: 87 }, enriched: {} }], []);
+    await fixture.whenStable();
+    expect(rowKeys()).toEqual(['playing', 'community', 'site']);
+    expect(fixture.componentInstance.rows()[0].when).toBeUndefined();
+  });
+
+  it('shows a glyph instead of a broken image when a row has no icon', async () => {
+    lastListened.set({ trackName: 'Song', artistName: 'Band', imageUrl: null, trackUrl: 'https://stats.fm/track/1', isPlaying: true, at: Date.now() });
+    await fixture.whenStable();
+    const glyphs = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.thumb--glyph')].map(g => g.textContent?.trim());
+    expect(glyphs).toEqual(['♪', '</>']);
   });
 
   it('skips Playing when RuneProfile fails', async () => {

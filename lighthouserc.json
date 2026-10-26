@@ -5,6 +5,7 @@
       "url": [
         "http://localhost/",
         "http://localhost/home",
+        "http://localhost/now",
         "http://localhost/background",
         "http://localhost/social",
         "http://localhost/interests"
