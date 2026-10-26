@@ -1,4 +1,5 @@
 @use '../../styles' as *;
+@use '../../shared/shared-styles.scss' as shared;
 
 :host {
   height: 100dvh;
@@ -67,71 +68,105 @@
   50%       { transform: translateY(-10px); }
 }
 
-.custom-arrow-button {
-  margin-bottom: 1rem;
-  padding: 0;
-  background-color: transparent;
-  color: $main-color;
-  border: none;
-  cursor: pointer;
-  font: inherit;
-  border-radius: 33%;
-  width: 10rem;
-  height: 10rem;
-  box-shadow: 0 8px 23px rgba(0, 0, 0, 0.1);
+// The way in: a glass pill in the navbar's idiom (gold [ ] on hover and
+// focus, the pager's chevron), with a keycap hint for keyboards.
+.enter-prompt {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: clamp(1.5rem, 9dvh, 5rem);
 
-  transition:
-    transform 0.3s ease,
-    backdrop-filter 0.3s;
+  @media (max-height: $breakpoint-short) {
+    gap: 0.375rem;
+    margin-bottom: 0.875rem;
+  }
+}
 
-  &:hover {
-    backdrop-filter: blur(8px);
-    transform: scale(1.1);
+.enter {
+  @include shared.surface;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 3rem;
+  padding: 0 1.25rem;
+  border-color: rgba($main-color, 0.22);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: $main-color;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
+
+  // Space kept for the brackets, so they appear without shifting anything.
+  .bracket {
+    color: transparent;
+    transition: color 0.2s ease;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($accent-color, 0.6);
+    background: rgba($accent-color, 0.12);
+    color: $accent-color;
+
+    .bracket {
+      color: $accent-color;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 3px;
   }
 
   &:active {
-    color: $accent-color;
-    transform: scale(0.75);
-    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  @media (max-height: $breakpoint-short) {
-    width: 9rem;
-    height: 4.5rem;
-    margin-bottom: 0.5rem;
-    border-radius: 1.5rem;
+    transform: scale(0.96);
   }
 }
 
-.prompt-arrow {
+.enter-arrow {
   color: $accent-color;
-  font-size: 1.5rem;
-  animation: greeting-bounce 0.9s ease-in-out infinite;
+  font-size: 1.15rem;
+  animation: enter-nudge 0.9s ease-in-out infinite;
 }
 
-@keyframes greeting-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(4px); }
+@keyframes enter-nudge {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(3px); }
 }
 
-.arrow-label {
-  display: block;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 1rem;
-  font-weight: normal;
-  font-family: 'JetBrains Mono', monospace;
+// Keyboards only: touch screens just tap.
+.hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
   color: $main-color;
-  text-align: center;
-  width: 100%;
+  font-size: $font-size-meta;
+  opacity: 0.6;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
   user-select: none;
 
-  @media (max-height: $breakpoint-short) {
-    margin: 0.25rem 0 0;
+  @media (hover: none) and (pointer: coarse) {
+    display: none;
   }
 }
 
+kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.5rem;
+  height: 1.5rem;
+  padding: 0 0.3rem;
+  border: 1px solid rgba($main-color, 0.35);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: rgba(0, 0, 0, 0.35);
+  font: inherit;
+  box-sizing: border-box;
+}

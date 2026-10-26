@@ -110,9 +110,9 @@
   }
 }
 
-// Live preview at the foot of a collapsed tile.
+// Live preview on a collapsed tile, centred in the space under the header.
 .item-preview {
-  margin-top: auto;
+  margin-block: auto;
 
   &:empty {
     display: none;
