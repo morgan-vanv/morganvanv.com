@@ -1,9 +1,8 @@
 name: Quality
 
-# Lighthouse (performance, best practices, SEO, and axe-core accessibility)
-# against the prerendered build, once as desktop and once as a phone. Accessibility and SEO regressions fail the
-# check; performance and best-practice scores only warn because runner
-# timing is noisy.
+# Lighthouse (performance, best practices, SEO, and axe-core accessibility) against the prerendered
+# build: every page in the sitemap, three runs each, once as desktop and once as a phone. What fails
+# and what only warns is in lighthouserc.cjs; the scores land on this check's Summary page.
 
 on:
   pull_request:
@@ -30,7 +29,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build -- --configuration=production
+      # Both form factors run even if the first fails, and each writes its scores to the job summary.
       - name: Lighthouse (desktop)
-        run: npx --yes @lhci/cli@0.15.x autorun
+        run: npx --yes @lhci/cli@0.15.x autorun --config=./lighthouserc.cjs
+      - name: Summary (desktop)
+        if: ${{ !cancelled() }}
+        run: node scripts/lighthouse-summary.mjs Desktop
       - name: Lighthouse (mobile)
-        run: npx --yes @lhci/cli@0.15.x autorun --config=./lighthouserc.mobile.json
+        if: ${{ !cancelled() }}
+        run: npx --yes @lhci/cli@0.15.x autorun --config=./lighthouserc.cjs
+        env:
+          LH_FORM_FACTOR: mobile
+      - name: Summary (mobile)
+        if: ${{ !cancelled() }}
+        run: node scripts/lighthouse-summary.mjs Mobile

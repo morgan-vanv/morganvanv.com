@@ -22,6 +22,8 @@ Tests run on Vitest with happy-dom; no browser is needed. `vitest` is pinned to 
 
 **Versions:** TypeScript stays on the range `@angular/compiler-cli` accepts (`>=6.0 <6.1` for Angular 22); Dependabot ignores newer TypeScript until Angular does. Node follows Angular's `engines` (`^22.22.3 || ^24.15.0 || >=26`). The package `version` tracks the Angular major. Upgrade Angular with `ng update` (its migrations), not by bumping versions.
 
+**Lighthouse CI** (the Quality check, PRs only) audits every page in `public/sitemap.xml`, three runs each, as desktop and as a phone. Thresholds live in `lighthouserc.cjs`: accessibility or SEO below 0.95 fails, and so do the page-weight, JavaScript, image and layout-shift ceilings; performance and best-practices only warn. The ceilings are deliberately loose: they catch accidents, not drift. When something grows on purpose, raise the number. Scores land on the check's Summary page (`scripts/lighthouse-summary.mjs`).
+
 ## Architecture
 
 ```
@@ -54,7 +56,7 @@ art/                 # source art (the painting, lossless); not served
 
 **Routing:** Main routes are declared once in `MAIN_ROUTES` (`src/shared/main-routes.ts`) with a `path`, `title` and `description`. Their order drives arrow-key navigation (`KeyboardNavService`), the navbar, slide direction, titles and meta tags. `src/app/app.routes.ts` maps each path to a lazy `loadComponent` via `lazyRouteComponents` and derives `data.animation` / `data.description` from the route. Don't hand-write `animation` values.
 
-**Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget), and give the page a header: `<app-page-header title="…" description="…">` inside `<app-base-page>` (or a visually-hidden h1 when the page shows its title another way: `<app-base-page pageTitle="…">`, or its own as Interests does while a section is open). Exactly one `<h1>` per page. The navbar and pager update themselves.
+**Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget; Lighthouse CI picks the page up from there), and give the page a header: `<app-page-header title="…" description="…">` inside `<app-base-page>` (or a visually-hidden h1 when the page shows its title another way: `<app-base-page pageTitle="…">`, or its own as Interests does while a section is open). Exactly one `<h1>` per page. The navbar and pager update themselves.
 
 **Build info:** `npm run build` runs `scripts/write-build-info.mjs` first (the `prebuild` hook), writing the gitignored `src/build-info.prod.ts` that the production configuration swaps in for `src/build-info.ts`. Always build production through `npm run build`; a bare `ng build` skips the hook and fails on the missing file.
 
