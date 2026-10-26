@@ -10,6 +10,13 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 0.6rem;
+
+  // Tablets and phones: sits in the free slot at the right end of the pager
+  // navbar, centred on its row, as one of its buttons.
+  @media (max-width: $breakpoint-mobile) {
+    top: calc(#{$card-inset-mobile} + (#{$navbar-height} - 2.75rem) / 2);
+    right: calc(#{$card-inset-mobile} + 0.5rem);
+  }
 }
 
 .sky-button {
@@ -31,6 +38,15 @@
   &:hover,
   &[aria-expanded='true'] {
     border-color: $accent-color;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    border-color: transparent;
+    background: transparent;
+    backdrop-filter: none;
   }
 }
 

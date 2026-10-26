@@ -1,0 +1,49 @@
+@use '../../styles' as *;
+
+:host {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin: 0 0.2rem 1.25rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    margin-bottom: 0.875rem;
+  }
+}
+
+.text {
+  min-width: 0;
+}
+
+h1 {
+  margin: 0;
+  font-size: $font-size-page-title;
+  line-height: 1.2;
+
+  @media (max-width: $breakpoint-mobile) {
+    font-size: 1.375rem;
+  }
+}
+
+.desc {
+  margin: 0.25rem 0 0;
+  font-size: $font-size-small;
+  line-height: 1.55;
+  opacity: 0.72;
+
+  &:empty {
+    display: none;
+  }
+}
+
+.meta {
+  flex: none;
+  font-size: $font-size-meta;
+  opacity: 0.6;
+  white-space: nowrap;
+
+  &:empty {
+    display: none;
+  }
+}

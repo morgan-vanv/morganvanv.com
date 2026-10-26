@@ -6,6 +6,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
  */
 const ICON_PATHS = {
   'chevron-down': 'M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6z',
+  'chevron-up': 'M7.41 15.41 12 10.83l4.59 4.58L18 14l-6-6-6 6z',
   'chevron-left': 'M15.41 16.59 10.83 12l4.58-4.59L14 6l-6 6 6 6z',
   'chevron-right': 'M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z',
   // Material Design Icons "weather-night" (Pictogrammers, Apache-2.0)

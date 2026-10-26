@@ -7,25 +7,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-
-  @media (max-width: $breakpoint-mobile) {
-    padding: 2.5dvw 0;
-    box-sizing: border-box;
-  }
 }
 
 app-custom-navbar {
   width: 100%;
+  flex: none;
 }
 
+// The glass card every page sits in. Desktop: 90% of the window, capped at
+// $card-max-width so wide screens keep the painting on both sides, with a gap
+// top and bottom that grows with the window (the Moon lives there).
 .page-container {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  width: 80dvw;
-  height: 80dvh;
+  width: min(90dvw, $card-max-width);
+  height: calc(100dvh - 2 * clamp(1rem, 5.5dvh, 3.5rem));
   border: 1px solid $main-color;
   border-radius: 2rem;
   backdrop-filter: blur(8px);
@@ -34,11 +31,13 @@ app-custom-navbar {
   overflow: hidden;
 
   @media (max-width: $breakpoint-mobile) {
-    width: 95dvw;
-    height: auto;
-    flex: 1;
-    min-height: 0;
-    margin: 0 auto;
+    width: calc(100dvw - 2 * #{$card-inset-mobile});
+    height: calc(100dvh - 2 * #{$card-inset-mobile});
+    border-radius: 1.25rem;
+  }
+
+  @media (max-height: $breakpoint-short) {
+    border-radius: 1rem;
   }
 }
 
@@ -46,9 +45,17 @@ app-custom-navbar {
   flex: 1;
   min-height: 0;
   width: 100%;
-  padding: 1rem 1.5rem;
+  padding: 1.25rem 1.5rem 1.5rem;
   box-sizing: border-box;
   overflow-y: auto;
   overflow-x: hidden;
   @include shared.scrollbar-styled;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 0.875rem;
+  }
+
+  @media (max-height: $breakpoint-short) {
+    padding: 0.625rem 0.75rem;
+  }
 }

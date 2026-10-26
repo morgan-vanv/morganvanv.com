@@ -30,16 +30,21 @@
 .title {
   margin: 0;
   font-weight: normal;
-  font-size: min(10dvw, 4rem);
+  // Bounded by height as well as width, so it fits a landscape phone.
+  font-size: min(10dvw, 11dvh, 4rem);
   color: $main-color;
   text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
   margin-bottom: 1rem;
   text-align: center;
+
+  @media (max-height: $breakpoint-short) {
+    margin-bottom: 0.5rem;
+  }
 }
 
 .subtitle {
   margin: 0;
-  font-size: min(5dvw, 1.5rem);
+  font-size: min(5dvw, 5dvh, 1.5rem);
   color: $main-color;
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
   margin-bottom: 2rem;
@@ -50,6 +55,10 @@
 
   &.hidden {
     opacity: 0;
+  }
+
+  @media (max-height: $breakpoint-short) {
+    margin-bottom: 0.75rem;
   }
 }
 
@@ -89,6 +98,13 @@
     transform: scale(0.75);
     transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  @media (max-height: $breakpoint-short) {
+    width: 9rem;
+    height: 4.5rem;
+    margin-bottom: 0.5rem;
+    border-radius: 1.5rem;
+  }
 }
 
 .prompt-arrow {
@@ -113,5 +129,9 @@
   text-align: center;
   width: 100%;
   user-select: none;
+
+  @media (max-height: $breakpoint-short) {
+    margin: 0.25rem 0 0;
+  }
 }
 
