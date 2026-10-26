@@ -9,6 +9,10 @@ permissions:
   contents: read
   pages: write
   id-token: write
+  # Read-only, for the Build badge: the merged PR's checks and the deploy history.
+  actions: read
+  checks: read
+  pull-requests: read
 
 concurrency:
   group: pages
@@ -20,6 +24,9 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
+        with:
+          # Full history, so the Build badge can number this commit (git rev-list --count).
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -39,8 +46,9 @@ jobs:
       - name: Copy the CSR shell to 404.html for SPA routing
         run: cp dist/browser/index.csr.html dist/browser/404.html
 
-      # The Lighthouse badge on /now: three runs of the homepage as a phone, median scores written to
-      # dist/browser/lighthouse.json. Never blocks a deploy: if this fails, the badge just hides.
+      # The Lighthouse and Page weight badges on /now: three runs of the homepage as a phone, median
+      # scores and weights written to dist/browser/lighthouse.json. Never blocks a deploy: if this fails,
+      # the badges just hide.
       - name: Measure the homepage for the Lighthouse badge
         continue-on-error: true
         env:
@@ -49,6 +57,16 @@ jobs:
         run: |
           npx --yes @lhci/cli@0.15.x collect --config=./lighthouserc.cjs
           node scripts/write-lighthouse-badge.mjs
+
+      # The Build badge on /now: this commit's number, the merged PR's checks, a test run with coverage
+      # and the deploy history, written to dist/browser/site-status.json. Never blocks a deploy either.
+      - name: Record what built this for the Build badge
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          npx ng test --watch=false --coverage --coverage-reporters=json-summary --reporters=default --reporters=json --output-file=test-results.json || true
+          node scripts/write-site-status.mjs
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v5

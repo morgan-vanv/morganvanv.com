@@ -1,0 +1,10 @@
+@use '../../../styles' as *;
+@use '../glyph';
+
+@include glyph.colors;
+
+// A check that failed: its LED is out, ringed in the danger colour.
+.led-off {
+  fill: none;
+  stroke: $danger-color;
+}
