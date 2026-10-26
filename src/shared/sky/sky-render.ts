@@ -7,13 +7,13 @@ import { Vec3, altAz, altAzToVector, j2000ToHorizontalMatrix, multiply, projectS
  * Everything here is pure (no DOM), so it can be tested directly.
  */
 
-/** Size of public/background.webp, and the row where its horizon (the valley floor) sits. */
+/** The scene's size (public/background.webp; the landscape looks are drawn at 1/4 of it), and the row where its horizon (the valley floor) sits. */
 export const BACKGROUND_SIZE = { width: 2560, height: 1706 } as const;
 export const BACKGROUND_HORIZON_Y = 905;
 /** The low point of the valley between the painted mountains, where the pretend sunrise and sunset happen. */
 export const BACKGROUND_VALLEY = { x: 1350, y: 912 } as const;
 /** The farmhouse's gable end, where a light is left on after dark. */
-export const BACKGROUND_WINDOW = { x: 545, y: 1049 } as const;
+export const BACKGROUND_WINDOW = { x: 542, y: 1052 } as const;
 /** One art pixel is this many CSS pixels. */
 export const ART_PIXEL = 3;
 
@@ -76,6 +76,10 @@ export interface SkyLayout {
   /** The farmhouse window, in art pixels. */
   readonly windowX: number;
   readonly windowY: number;
+  /** Where the scene's (0, 0) lands and how many art pixels one scene pixel spans. */
+  readonly imageX: number;
+  readonly imageY: number;
+  readonly imageScale: number;
 }
 
 /**
@@ -100,6 +104,9 @@ export function computeLayout(viewportWidth: number, viewportHeight: number, art
     valleyY: (offsetY + BACKGROUND_VALLEY.y * imageScale) / artPixel,
     windowX: (offsetX + BACKGROUND_WINDOW.x * imageScale) / artPixel,
     windowY: (offsetY + BACKGROUND_WINDOW.y * imageScale) / artPixel,
+    imageX: offsetX / artPixel,
+    imageY: offsetY / artPixel,
+    imageScale: imageScale / artPixel,
   };
 }
 
@@ -251,7 +258,7 @@ export interface SkyInput {
   /** Defaults to 'darkness'. */
   readonly lighting?: Lighting;
   /** What the pointer is over: its figure's lines are drawn brighter and the object gets a ring. */
-  readonly highlight?: { readonly figure?: string | null; readonly target?: SkyTarget | null } | null;
+  readonly highlight?: { readonly figure?: string | null; readonly target?: Pick<SkyTarget, 'kind' | 'name'> | null } | null;
 }
 
 /** Something on screen that can be named on hover. Positions in art pixels. */
@@ -457,8 +464,10 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
     }
   }
 
-  // A small ring around whatever is hovered.
-  const hovered = input.highlight?.target;
+  // A small ring around whatever is hovered, wherever it is in this frame (matched by
+  // identity, not by old coordinates, so it follows the sky and vanishes with it).
+  const wanted = input.highlight?.target;
+  const hovered = wanted ? targets.find(t => t.kind === wanted.kind && t.name === wanted.name) : undefined;
   if (hovered) {
     const r = Math.max(3, Math.round(hovered.radius));
     ring(hovered.x, hovered.y, r, (x, y) => blend(x, y, [201, 146, 42], 0.9));

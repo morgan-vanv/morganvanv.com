@@ -111,3 +111,37 @@ export function isLand(layer: LandscapeLayer | null, layout: SkyLayout, x: numbe
   if (ix < 0 || iy < 0 || ix >= layout.width || iy >= layout.height) return false;
   return layer.data[(iy * layout.width + ix) * 4 + 3] >= SOLID;
 }
+
+/** Fireflies come out at dusk: always in the staged sunset, and on real summer-ish evenings in twilight. */
+export function fireflyAmount(lighting: Lighting, sunAlt: number, sunAz: number): number {
+  if (lighting === 'sunset') return 1;
+  if (lighting !== 'real' || sunAz < 180) return 0;
+  return smoothstep(0, -3, sunAlt) * (1 - smoothstep(-10, -16, sunAlt));
+}
+
+/** The band over the field and meadow where fireflies drift, in scene pixels. */
+const FIREFLY_BAND = { top: 1010, bottom: 1330 } as const;
+
+export interface Firefly {
+  /** CSS pixels, snapped to the art-pixel grid. */
+  readonly x: number;
+  readonly y: number;
+  /** Seconds. */
+  readonly delay: number;
+  readonly duration: number;
+}
+
+/** A deterministic scatter of fireflies over the meadow (same layout, same fireflies). */
+export function fireflies(layout: SkyLayout, count: number, artPixel: number): Firefly[] {
+  let seed = 7;
+  const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
+  const out: Firefly[] = [];
+  const top = layout.imageY + FIREFLY_BAND.top * layout.imageScale;
+  const bottom = Math.min(layout.height - 4, layout.imageY + FIREFLY_BAND.bottom * layout.imageScale);
+  for (let i = 0; i < count; i++) {
+    const x = Math.round(4 + random() * (layout.width - 8));
+    const y = Math.round(top + random() * Math.max(0, bottom - top));
+    out.push({ x: x * artPixel, y: y * artPixel, delay: +(random() * 6).toFixed(2), duration: +(3 + random() * 3).toFixed(2) });
+  }
+  return out;
+}

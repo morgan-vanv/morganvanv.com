@@ -57,3 +57,31 @@ describe('sky landscape', () => {
     expect(lit[i]).toBeGreaterThan(lit[i + 2]);
   });
 });
+
+describe('fireflies', () => {
+  it('come out at the staged sunset and on real evenings in twilight, not otherwise', async () => {
+    const { fireflyAmount } = await import('./sky-landscape');
+    expect(fireflyAmount('sunset', -3, 270)).toBe(1);
+    expect(fireflyAmount('darkness', -30, 0)).toBe(0);
+    expect(fireflyAmount('sunrise', -3, 90)).toBe(0);
+    expect(fireflyAmount('real', -6, 270)).toBeGreaterThan(0.3);
+    expect(fireflyAmount('real', -6, 90)).toBe(0); // morning
+    expect(fireflyAmount('real', 20, 250)).toBe(0);
+    expect(fireflyAmount('real', -25, 300)).toBe(0);
+  });
+
+  it('are scattered over the meadow, on the art-pixel grid, the same every time', async () => {
+    const { fireflies } = await import('./sky-landscape');
+    const layout = computeLayout(1280, 800);
+    const a = fireflies(layout, 14, 3);
+    expect(a).toEqual(fireflies(layout, 14, 3));
+    expect(a.length).toBe(14);
+    for (const fly of a) {
+      expect(fly.x % 3).toBe(0);
+      expect(fly.y % 3).toBe(0);
+      // Below the treeline, above the bottom of the screen.
+      expect(fly.y / 3).toBeGreaterThan(layout.horizonY);
+      expect(fly.y).toBeLessThan(800);
+    }
+  });
+});

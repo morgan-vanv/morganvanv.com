@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
-import { REDRAW_INTERVAL_MS, SkyComponent } from './sky.component';
+import { REDRAW_INTERVAL_MS, SkyComponent, labelPosition } from './sky.component';
+import { SkyTarget } from './sky-render';
 import { SkyToggleComponent } from './sky-toggle.component';
 import { SkyService } from './sky.service';
 
@@ -11,25 +12,33 @@ const files: Record<string, string> = {
 };
 
 /** Stubs the browser pieces happy-dom doesn't have (canvas, image decoding, media queries) and the data fetches. */
-function stubBrowser({ fetchFails = false, reducedMotion = false } = {}) {
+function stubBrowser({ fetchFails = false, reducedMotion = false, landBelow = 1, failLooks = [] as string[] } = {}) {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
     if (fetchFails) throw new Error('offline');
     return new Response(files[url], { status: files[url] ? 200 : 404 });
   }));
-  vi.spyOn(HTMLImageElement.prototype, 'decode').mockResolvedValue(undefined);
+  const decode = vi.spyOn(HTMLImageElement.prototype, 'decode').mockImplementation(function (this: HTMLImageElement) {
+    return failLooks.some(look => this.src.includes(`/landscape/${look}.webp`)) ? Promise.reject(new Error('404')) : Promise.resolve();
+  });
   const putImageData = vi.fn();
   const drawImage = vi.fn();
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
     createImageData: (w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4), width: w, height: h }),
-    getImageData: (_x: number, _y: number, w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4), width: w, height: h }),
+    // The landscape covers the bottom (1 - landBelow) of the screen.
+    getImageData: (_x: number, _y: number, w: number, h: number) => {
+      const data = new Uint8ClampedArray(w * h * 4);
+      for (let y = Math.floor(h * landBelow); y < h; y++) for (let x = 0; x < w; x++) data[(y * w + x) * 4 + 3] = 255;
+      return { data, width: w, height: h };
+    },
     putImageData,
     drawImage,
+    clearRect: vi.fn(),
   } as unknown as CanvasRenderingContext2D);
   vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: reducedMotion && query.includes('reduce') }) as MediaQueryList);
   const setIntervalSpy = vi.spyOn(window, 'setInterval');
   const geolocation = vi.fn();
   vi.spyOn(navigator, 'geolocation', 'get').mockReturnValue({ getCurrentPosition: geolocation } as unknown as Geolocation);
-  return { putImageData, setIntervalSpy, geolocation, drawImage };
+  return { putImageData, setIntervalSpy, geolocation, drawImage, decode };
 }
 
 async function mount() {
@@ -66,6 +75,54 @@ describe('SkyComponent', () => {
     expect(setIntervalSpy.mock.calls.some(([, ms]) => ms === REDRAW_INTERVAL_MS)).toBe(false);
   });
 
+  it('names what the pointer is over, but not through the landscape', async () => {
+    stubBrowser({ landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const scene = (fixture.componentInstance as unknown as { scene: { targets: SkyTarget[] } }).scene;
+    const height = window.innerHeight / 3;
+    const star = scene.targets.find(t => t.kind === 'star' && t.y < height * 0.5);
+    expect(star).toBeTruthy();
+    const open = document.createElement('div');
+    document.body.append(open);
+    const move = async (x: number, y: number) => {
+      open.dispatchEvent(new PointerEvent('pointermove', { clientX: x, clientY: y, pointerType: 'mouse', bubbles: true }));
+      await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+      await fixture.whenStable();
+    };
+    await move(star!.x * 3, star!.y * 3);
+    expect(fixture.nativeElement.querySelector('.sky-label')?.textContent).toContain(star!.name);
+    // Low on the screen is landscape here: nothing to name.
+    await move(30, window.innerHeight - 10);
+    expect(fixture.nativeElement.querySelector('.sky-label')).toBeNull();
+    open.remove();
+  });
+
+  it('a look that fails to load is asked for once, and the night look stands in', async () => {
+    const { decode, putImageData } = stubBrowser({ failLooks: ['sunset'] });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    sky.setLighting('sunset');
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    const draw = (fixture.componentInstance as unknown as { draw: () => void }).draw.bind(fixture.componentInstance);
+    for (let i = 0; i < 5; i++) draw();
+    const sunsetLoads = decode.mock.contexts.filter(img => (img as HTMLImageElement).src.includes('/landscape/sunset.webp'));
+    expect(sunsetLoads.length).toBe(1);
+    expect(putImageData.mock.calls.length).toBeGreaterThan(5);
+    localStorage.clear();
+  });
+
+  it('removes its listeners when destroyed', async () => {
+    stubBrowser();
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const removed = vi.spyOn(document, 'removeEventListener');
+    fixture.destroy();
+    const types = removed.mock.calls.map(([type]) => type);
+    expect(types).toEqual(expect.arrayContaining(['pointermove', 'pointerup', 'visibilitychange']));
+  });
+
   it('leaves the painted sky alone when the data can\'t load', async () => {
     const { putImageData } = stubBrowser({ fetchFails: true });
     const { fixture, sky } = await mount();
@@ -73,6 +130,15 @@ describe('SkyComponent', () => {
     expect(sky.ready()).toBe(false);
     expect(putImageData).not.toHaveBeenCalled();
     expect(fixture.nativeElement.classList).not.toContain('ready');
+  });
+});
+
+describe('labelPosition', () => {
+  it('sits below-right of the pointer, and flips away from a page card', () => {
+    expect(labelPosition('Vega · Lyra', 100, 100, [])).toEqual({ x: 114, y: 112 });
+    const card = { left: 150, right: 900, top: 0, bottom: 700 } as DOMRect;
+    const flipped = labelPosition('Vega · Lyra', 140, 100, [card]);
+    expect(flipped.x + 'Vega · Lyra'.length * 7.5 + 22).toBeLessThanOrEqual(150);
   });
 });
 

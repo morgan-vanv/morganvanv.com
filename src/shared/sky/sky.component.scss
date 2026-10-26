@@ -36,8 +36,37 @@
   pointer-events: none;
 }
 
+// Fireflies: one warm art pixel with a faint cross of glow, blinking slowly and drifting a pixel.
+.firefly {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  background: #f6ffb0;
+  box-shadow:
+    3px 0 rgba(214, 240, 120, 0.35),
+    -3px 0 rgba(214, 240, 120, 0.35),
+    0 3px rgba(214, 240, 120, 0.35),
+    0 -3px rgba(214, 240, 120, 0.35);
+  opacity: 0;
+  animation: firefly 4s steps(8) infinite;
+}
+
+@keyframes firefly {
+  0%,
+  100% { opacity: 0; transform: translate(0, 0); }
+  35% { opacity: 1; }
+  55% { opacity: 0.85; transform: translate(3px, -3px); }
+  75% { opacity: 0; transform: translate(6px, -3px); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :host {
     transition: none;
+  }
+
+  // Still there, just not blinking.
+  .firefly {
+    animation: none !important;
+    opacity: 0.6;
   }
 }

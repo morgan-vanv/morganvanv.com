@@ -141,6 +141,7 @@ describe('sky render', () => {
     expect(result.segments.some(s => s.figure === 'Ori')).toBe(true);
     // Nothing to point at in a starless daytime sky but the Sun.
     const day = render('2026-01-15T04:00:00Z', true, 'day').result;
+    expect(day.targets.some(t => t.kind === 'sun')).toBe(true);
     expect(day.targets.every(t => t.kind === 'sun' || t.kind === 'moon' || t.kind === 'planet')).toBe(true);
   });
 

@@ -52,7 +52,9 @@ const names = JSON.parse(readFileSync(join(src, 'data/stars.6.json'), 'utf8')).f
   .map(f => {
     const [lon, lat] = f.geometry.coordinates;
     return [ra(lon), dec(lat), starNames[f.id].name, starNames[f.id].c];
-  });
+  })
+  // A few names are shared by two stars (Alnair); keep the brighter.
+  .filter((entry, i, all) => all.findIndex(other => other[2] === entry[2]) === i);
 
 const missing = CONSTELLATIONS.filter(id => !lines.some(l => l.id === id));
 if (missing.length) throw new Error(`constellations not found: ${missing.join(', ')}`);
