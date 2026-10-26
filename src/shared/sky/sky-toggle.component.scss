@@ -1,0 +1,38 @@
+// Bottom-left corner of the greeting page, quiet until hovered or focused.
+:host {
+  position: fixed;
+  left: 0.75rem;
+  bottom: 0.5rem;
+  z-index: 2;
+}
+
+.sky-toggle {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4em;
+  align-items: baseline;
+  font-size: 0.75rem;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+
+  &:hover,
+  &:focus-within {
+    opacity: 0.95;
+  }
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.note {
+  opacity: 0.8;
+}

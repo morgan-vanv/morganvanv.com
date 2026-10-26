@@ -8,6 +8,7 @@
 
 /* THANKS */
   Wise Old Man, RuneProfile, stats.fm — for the live numbers
+  astronomy-engine (Don Cross) and d3-celestial (Olaf Frohn) — for the sky
   The IndieWeb, Web Revival, and neocities — for the reminder that websites can be fun
 
 /* SITE */
