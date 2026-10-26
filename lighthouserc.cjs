@@ -31,9 +31,10 @@ module.exports = {
         'categories:seo': ['error', { minScore: 0.95 }],
         'categories:best-practices': ['warn', { minScore: 0.9 }],
         'categories:performance': ['warn', { minScore: 0.8 }],
-        'total-byte-weight': ['error', { maxNumericValue: 3000 * KB }],
-        'resource-summary:script:size': ['error', { maxNumericValue: 1200 * KB }],
-        'resource-summary:image:size': ['error', { maxNumericValue: 1500 * KB }],
+        // Heaviest page on 2026-10-26: 906 KB in all, 476 KB of JS, 355 KB of images (/interests/).
+        'total-byte-weight': ['error', { maxNumericValue: 1400 * KB }],
+        'resource-summary:script:size': ['error', { maxNumericValue: 750 * KB }],
+        'resource-summary:image:size': ['error', { maxNumericValue: 600 * KB }],
         'cumulative-layout-shift': ['error', { maxNumericValue: 0.1 }],
       },
     },
