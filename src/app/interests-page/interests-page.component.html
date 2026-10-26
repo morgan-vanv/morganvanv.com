@@ -41,7 +41,7 @@
                   <li class="stats-item">
                     <span class="stats-rank" [class.top]="i < 3">{{ i + 1 }}</span>
                     @if (item.track.albums[0]?.image; as imgSrc) {
-                      <img [src]="imgSrc" [alt]="item.track.name" class="stats-thumbnail" />
+                      <img [src]="imgSrc" [alt]="item.track.name" class="stats-thumbnail" width="36" height="36" loading="lazy" decoding="async" />
                     } @else {
                       <span class="stats-thumbnail" aria-hidden="true"></span>
                     }
@@ -64,7 +64,7 @@
                 @for (item of albums; track item.album.id; let i = $index) {
                   <li class="stats-item">
                     <span class="stats-rank" [class.top]="i < 3">{{ i + 1 }}</span>
-                    <img [src]="item.album.image" [alt]="item.album.name" class="stats-thumbnail" />
+                    <img [src]="item.album.image" [alt]="item.album.name" class="stats-thumbnail" width="36" height="36" loading="lazy" decoding="async" />
                     <div class="stats-info">
                       <span class="stats-name">{{ item.album.name }}</span>
                       <span class="stats-meta">{{ item.album.artists[0]?.name }} · {{ item.streams }} plays</span>
@@ -84,7 +84,7 @@
                 @for (item of artists; track item.artist.id; let i = $index) {
                   <li class="stats-item">
                     <span class="stats-rank" [class.top]="i < 3">{{ i + 1 }}</span>
-                    <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" />
+                    <img [src]="item.artist.image" [alt]="item.artist.name" class="stats-thumbnail" width="36" height="36" loading="lazy" decoding="async" />
                     <div class="stats-info">
                       <span class="stats-name">{{ item.artist.name }}</span>
                       <span class="stats-meta">{{ item.streams }} plays · {{ formatPlaytime(item.playedMs) }}</span>
