@@ -17,6 +17,7 @@ Most of the 2026-10-25 audit list shipped in PR #74 (fonts, icons/Material, view
   Then turn on "Automatically delete head branches" in repo settings.
 - **Lift the `vitest ~4.0` pin.** `S` — 4.1.x crashes npm 10 during install (`edgesOut` null in arborist). Re-tested 2026-10-26 with npm 10.9.9 (Node 22.23): still crashes. Re-test when Node 22's bundled npm updates, or switch CI/local to npm 11.
 - **TypeScript 7.** `M` — Dependabot ignores TypeScript ≥ 6.1 because Angular 22's compiler only accepts 6.0. Lift the ignore in `.github/dependabot.yml` when a new Angular accepts 7 (the Angular blog mentions TSGo support in the application builder).
+- **Dev-dependency audit.** `S` — `npm audit` reports 6 issues, all dev-only (production has 0): `@vitest/mocker` and `vite` are fixed only past the `vitest ~4.0` pin; `happy-dom` is fixed in 21 (Dependabot #75, tests pass with it). Merging #75 and lifting the vitest pin clears them.
 - **Community-wall images are 1200×1600 for ~250px polaroids.** `S` — Lighthouse flags it. An 800px variant for the wall (keep the original for fullscreen) would cut most of the page weight.
 - **Navbar wraps "Blog" onto a second row at 1280px.** `S` — pre-existing; tighter padding or a slightly smaller nav font would fit all seven links on one line at common laptop widths.
 - **Tests still thin in places.** `S` each — no coverage yet for `SeoTitleStrategy` edge cases (query strings), `ScrollHint`, `IconComponent`, or the OSRS parent component's data shaping.
