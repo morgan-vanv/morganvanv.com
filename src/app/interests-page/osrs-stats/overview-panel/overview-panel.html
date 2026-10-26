@@ -6,7 +6,7 @@
       <span class="row-label">Quests</span>
       @if (quests().data; as qs) {
         <span class="row-value">{{ qs.completed }}<span class="denom"> / {{ qs.total }}</span></span>
-        <div class="bar" role="presentation"><span [style.width.%]="percent(qs.completed, qs.total)"></span></div>
+        <div class="bar" aria-hidden="true"><span [style.width.%]="percent(qs.completed, qs.total)"></span></div>
         <span class="row-sub">{{ qs.earnedQp }} QP</span>
       } @else {
         <span class="row-value loading-text">{{ quests().error ? '!' : '—' }}</span>
@@ -18,7 +18,7 @@
       <span class="row-label">Diaries</span>
       @if (diaries().data; as tiers) {
         <span class="row-value">{{ diaryTotals().completed }}<span class="denom"> / {{ diaryTotals().total }}</span></span>
-        <div class="bar" role="presentation"><span [style.width.%]="percent(diaryTotals().completed, diaryTotals().total)"></span></div>
+        <div class="bar" aria-hidden="true"><span [style.width.%]="percent(diaryTotals().completed, diaryTotals().total)"></span></div>
         <span class="row-sub tier-chips">
           @for (tier of tiers; track tier.tier) {
             <span class="tier-chip"
@@ -37,7 +37,7 @@
       <span class="row-label">Combat Achievements</span>
       @if (combat().data; as ca) {
         <span class="row-value">{{ ca.totalCompleted }}<span class="denom"> / {{ ca.totalTasks }}</span></span>
-        <div class="bar" role="presentation"><span [style.width.%]="percent(ca.totalCompleted, ca.totalTasks)"></span></div>
+        <div class="bar" aria-hidden="true"><span [style.width.%]="percent(ca.totalCompleted, ca.totalTasks)"></span></div>
       } @else {
         <span class="row-value loading-text">{{ combat().error ? '!' : '—' }}</span>
       }
@@ -48,7 +48,7 @@
       <span class="row-label">Collection Log</span>
       @if (collectionLog().data; as clog) {
         <span class="row-value">{{ formatNumber(clog.obtained) }}<span class="denom"> / {{ formatNumber(clog.total) }}</span></span>
-        <div class="bar" role="presentation"><span [style.width.%]="percent(clog.obtained, clog.total)"></span></div>
+        <div class="bar" aria-hidden="true"><span [style.width.%]="percent(clog.obtained, clog.total)"></span></div>
       } @else {
         <span class="row-value loading-text">{{ collectionLog().error ? '!' : '—' }}</span>
       }

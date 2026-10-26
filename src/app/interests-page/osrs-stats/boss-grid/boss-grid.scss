@@ -17,7 +17,7 @@
 // Fills the full width with as many columns as fit; reads left-to-right, most kills first.
 .boss-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(215px, 100%), 1fr));
   gap: 0.15rem 0.75rem;
   list-style: none;
   padding: 0;
