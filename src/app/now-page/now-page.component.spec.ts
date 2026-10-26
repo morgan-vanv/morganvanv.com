@@ -8,6 +8,12 @@ import { LastListened, RecentStreamService } from '../../shared/services/recent-
 import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 import { NOW_CONTENT } from './now.content';
 
+/** Matches RuneProfile activity requests by parsed host and path, not by substring. */
+function isRuneProfileActivities(req: { url: string }): boolean {
+  const url = new URL(req.url);
+  return url.hostname === 'api.runeprofile.com' && url.pathname.endsWith('/activities');
+}
+
 describe('formatDay', () => {
   it('formats plain dates and ISO timestamps in UTC', () => {
     expect(formatDay('2026-10-25')).toBe('October 25, 2026');
@@ -58,11 +64,11 @@ describe('NowPageComponent', () => {
   });
 
   it('builds Playing from the latest achievement, with the latest drop as detail', async () => {
-    const reqs = http.match(r => r.url.includes('runeprofile.com') && r.url.includes('/activities'));
+    const reqs = http.match(isRuneProfileActivities);
     expect(reqs.length).toBe(2);
     const created = new Date().toISOString();
     for (const req of reqs) {
-      req.flush(req.request.url.includes('valuable_drop')
+      req.flush(new URL(req.request.url).searchParams.get('activityTypes')?.split(',').includes('valuable_drop')
         ? { activities: [{ type: 'valuable_drop', createdAt: created, data: { itemId: 1, value: 4_200_000 }, enriched: { itemName: 'Tanzanite fang' } }], nextCursor: null, hasMore: false }
         : { activities: [{ type: 'level_up', createdAt: created, data: { name: 'Slayer', level: 87 }, enriched: {} }], nextCursor: null, hasMore: false });
     }
@@ -73,7 +79,7 @@ describe('NowPageComponent', () => {
   });
 
   it('skips Playing when RuneProfile fails', async () => {
-    for (const req of http.match(r => r.url.includes('/activities'))) req.flush('down', { status: 503, statusText: 'Unavailable' });
+    for (const req of http.match(isRuneProfileActivities)) req.flush('down', { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     expect(rowKeys()).not.toContain('playing');
   });
