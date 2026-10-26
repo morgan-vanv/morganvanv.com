@@ -1,0 +1,8 @@
+@if (up(); as up) {
+  <app-badge name="Up tonight" [value]="up.value" [label]="up.label" [popover]="up.popover" (pressed)="sky.openMenu()">
+    <svg glyph width="22" height="22" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="5" class="g-gold" />
+      <ellipse cx="12" cy="12" rx="10" ry="3.2" class="g-line" stroke-width="1.3" transform="rotate(-20 12 12)" />
+    </svg>
+  </app-badge>
+}

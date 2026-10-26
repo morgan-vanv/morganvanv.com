@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, effect, inject, untracked, viewChild } from '@angular/core';
 import { IconComponent } from '../icon/icon.component';
 import { SkyService } from './sky.service';
 import { SkyToggleComponent } from './sky-toggle.component';
@@ -32,8 +32,9 @@ export const LIGHT_OPTIONS: readonly { id: Lighting; label: string; hint: string
 export class SkyMenuComponent {
   protected readonly sky = inject(SkyService);
   protected readonly options = LIGHT_OPTIONS;
-  protected readonly open = signal(false);
+  protected readonly open = this.sky.menuOpen;
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
+  private readonly injector = inject(Injector);
   private readonly button = viewChild<ElementRef<HTMLButtonElement>>('button');
 
   constructor() {
@@ -44,6 +45,13 @@ export class SkyMenuComponent {
       document.addEventListener('pointerdown', onPointerDown);
       inject(DestroyRef).onDestroy(() => document.removeEventListener('pointerdown', onPointerDown));
     }
+    // Opened from a badge: put focus on the current light, so Esc and Tab carry on from here.
+    effect(() => {
+      if (!this.sky.menuFocusRequests()) return;
+      untracked(() => afterNextRender(() => {
+        this.host.querySelector<HTMLInputElement>('input[name="sky-lighting"]:checked')?.focus();
+      }, { injector: this.injector }));
+    });
   }
 
   protected hint(): string {

@@ -60,10 +60,18 @@ describe('SkyMenuComponent', () => {
 
   it('lists what is up right now', async () => {
     const { fixture, el, sky, button } = await mount();
-    sky.upNow.set({ planets: ['Venus', 'Jupiter'], constellations: ['Orion'], moon: 'Moon, 40% lit' });
+    sky.upNow.set({ planets: ['Venus', 'Jupiter'], constellations: ['Orion'], moon: 'Moon, 40% lit', detail: null });
     button()!.click();
     await fixture.whenStable();
     const items = Array.from(el.querySelectorAll('.up-now li')).map(li => li.textContent!.trim());
     expect(items).toEqual(['Venus, Jupiter', 'Orion', 'Moon, 40% lit']);
+  });
+
+  it('opens from elsewhere (the sky badges) and takes focus', async () => {
+    const { fixture, el, sky, button } = await mount();
+    sky.openMenu();
+    await fixture.whenStable();
+    expect(button()!.getAttribute('aria-expanded')).toBe('true');
+    expect(document.activeElement).toBe(el.querySelector('input[name="sky-lighting"]:checked'));
   });
 });

@@ -55,6 +55,10 @@ export class SkyService {
   readonly ready = signal(false);
   /** What's above the horizon at the last redraw, as text. */
   readonly upNow = signal<UpNow | null>(null);
+  /** Whether the ☾ menu is open. Here rather than in the menu so the sky badges on /now can open it. */
+  readonly menuOpen = signal(false);
+  /** Bumped when something other than the ☾ button opens the menu, so the menu takes focus. */
+  readonly menuFocusRequests = signal(0);
 
   private attempt = 0;
 
@@ -64,6 +68,12 @@ export class SkyService {
     if (stored) this.location.set(stored);
     const lighting = readStorage(SKY_LIGHTING_KEY);
     if (LIGHTINGS.includes(lighting as Lighting)) this.lighting.set(lighting as Lighting);
+  }
+
+  /** Opens the ☾ menu from elsewhere on the page (the Moon and Up tonight badges) and moves focus into it. */
+  openMenu(): void {
+    this.menuOpen.set(true);
+    this.menuFocusRequests.update(count => count + 1);
   }
 
   setLighting(lighting: Lighting): void {

@@ -1,0 +1,16 @@
+@if (weather(); as weather) {
+  <app-badge name="Cincinnati" [value]="weather.value" [href]="href" [label]="weather.label" [popover]="weather.popover">
+    <svg glyph width="22" height="22" viewBox="0 0 24 24">
+      <circle cx="18.5" cy="5" r="1.2" class="g-gold" />
+      <circle cx="5" cy="4.5" r="0.9" class="g-gold" />
+      <circle cx="12.5" cy="3" r="0.7" class="g-white" />
+      @if (weather.clear) {
+        <circle cx="7" cy="14" r="0.9" class="g-white" />
+        <circle cx="16" cy="17" r="1.1" class="g-gold" />
+        <circle cx="11" cy="20" r="0.7" class="g-white" />
+      } @else {
+        <path d="M6.5 19h10a3.5 3.5 0 0 0 0-7 5 5 0 0 0-9.6 1.4A2.9 2.9 0 0 0 6.5 19z" class="g-line" stroke-width="1.3" />
+      }
+    </svg>
+  </app-badge>
+}

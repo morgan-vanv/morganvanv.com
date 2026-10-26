@@ -18,6 +18,10 @@ import { PROJECTS } from '../../shared/constants/projects.const';
 import { ProjectCardComponent } from '../../shared/project-card/project-card.component';
 import { LighthouseBadgeComponent } from '../../shared/badges/lighthouse-badge/lighthouse-badge.component';
 import { PhotoWallBadgeComponent } from '../../shared/badges/photo-wall-badge/photo-wall-badge.component';
+import { MoonBadgeComponent } from '../../shared/badges/moon-badge/moon-badge.component';
+import { PlanetsBadgeComponent } from '../../shared/badges/planets-badge/planets-badge.component';
+import { WeatherBadgeComponent } from '../../shared/badges/weather-badge/weather-badge.component';
+import { VinylBadgeComponent } from '../../shared/badges/vinyl-badge/vinyl-badge.component';
 import { AngularBadgeComponent } from '../../shared/badges/angular-badge/angular-badge.component';
 import { NoCookiesBadgeComponent } from '../../shared/badges/no-cookies-badge/no-cookies-badge.component';
 import { UnderConstructionBadgeComponent } from '../../shared/badges/under-construction-badge/under-construction-badge.component';
@@ -62,7 +66,8 @@ export function formatDay(value: string): string {
 @Component({
   selector: 'app-now-page',
   imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent,
-    LighthouseBadgeComponent, PhotoWallBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent,
+    LighthouseBadgeComponent, MoonBadgeComponent, PlanetsBadgeComponent, WeatherBadgeComponent, VinylBadgeComponent,
+    PhotoWallBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent,
     UnderConstructionBadgeComponent, OwnButtonBadgeComponent],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
