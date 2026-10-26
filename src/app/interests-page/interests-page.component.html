@@ -117,15 +117,19 @@
       <app-vertical-nav-item 
         title="📺 Favorite Media" 
         description="Movies, TV shows, and books I love."
-        [isUnderConstruction]="true">
-        <p preview class="tile-construction">🚧 under construction 🚧</p>
+        [isUnderConstruction]="mediaUnderConstruction">
+        @if (mediaUnderConstruction) {
+          <p preview class="tile-construction">🚧 under construction 🚧</p>
+        }
       </app-vertical-nav-item>
 
       <app-vertical-nav-item 
         title="📸 My Photos" 
         description="Photography and memories."
-        [isUnderConstruction]="true">
-        <p preview class="tile-construction">🚧 under construction 🚧</p>
+        [isUnderConstruction]="photosUnderConstruction">
+        @if (photosUnderConstruction) {
+          <p preview class="tile-construction">🚧 under construction 🚧</p>
+        }
       </app-vertical-nav-item>
 
     </app-vertical-nav-container>

@@ -1,9 +1,11 @@
-@use '../../styles' as *;
+@use '../../../styles' as *;
 
-// An 88×31 button, drawn at 1.5× (132×46) so the scores stay readable and it clears the 44px tap target.
+// An 88×31 button, drawn at 1.5× (132×46) so the text stays readable and it clears the 44px tap target.
+// Opaque on purpose: it stays readable whatever the sky behind the card is doing.
 :host {
   position: relative;
   display: inline-block;
+  flex: none;
 }
 
 .badge {
@@ -12,16 +14,22 @@
   width: 8.25rem;
   height: 2.875rem;
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   background: $background-sky-color;
   color: $main-color;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
   // The classic bevel: lit from the top left.
   border: 1px solid;
   border-color: rgba($main-color, 0.45) rgba(#000, 0.75) rgba(#000, 0.75) rgba($main-color, 0.45);
   outline: 1px solid #000;
 
   &:hover,
-  &:focus-visible {
+  &:focus-visible,
+  &[aria-expanded='true'] {
     border-color: $accent-color;
     outline-color: $accent-color;
   }
@@ -33,14 +41,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   background: $background-color;
   border-right: 1px solid rgba($main-color, 0.15);
-
-  .beam { fill: $accent-color; opacity: 0.45; }
-  .tower { stroke: $main-color; stroke-width: 1.4; stroke-linejoin: round; }
-  .stripe { stroke: $main-color; stroke-width: 1.2; }
-  .lamp { fill: $accent-color; }
-  .roof { fill: $main-color; }
 }
 
 .text {
@@ -51,6 +54,7 @@
   justify-content: center;
   gap: 1px;
   padding-left: 0.375rem;
+  white-space: nowrap;
 }
 
 .name {
@@ -61,9 +65,14 @@
   text-transform: uppercase;
   color: $accent-color;
   line-height: 1;
+
+  &.long {
+    font-size: 0.56rem;
+    letter-spacing: 0.02em;
+  }
 }
 
-.scores {
+.value {
   display: flex;
   gap: 0.25rem;
   font-size: $font-size-label;
@@ -78,7 +87,6 @@
   z-index: 1;
   width: 16rem;
   box-sizing: border-box;
-  display: flex;
   flex-direction: column;
   gap: 0.375rem;
   padding: 0.75rem 0.875rem;
@@ -87,18 +95,36 @@
   border-radius: 10px;
   font-size: $font-size-meta;
   pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 150ms ease, visibility 150ms;
+  // Out of the layout until it's wanted, so a hidden popover can't widen the page.
+  display: none;
+  transition: opacity 150ms ease;
+
+  &.end {
+    left: auto;
+    right: 0;
+  }
+
+  &.below {
+    bottom: auto;
+    top: calc(100% + 0.5rem);
+  }
 
   .badge:hover + &,
   .badge:focus-visible + & {
-    opacity: 1;
-    visibility: visible;
+    display: flex;
+
+    @starting-style {
+      opacity: 0;
+    }
+  }
+
+  // An open button badge shows its own panel instead.
+  .badge[aria-expanded='true'] + & {
+    display: none;
   }
 }
 
-.popover-label {
+.popover-title {
   font-size: $font-size-label;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -108,9 +134,14 @@
 .popover-row {
   display: flex;
   justify-content: space-between;
+  gap: 0.75rem;
+
+  b {
+    text-align: right;
+  }
 }
 
-.popover-when {
+.popover-note {
   opacity: 0.65;
   margin-top: 0.125rem;
 }

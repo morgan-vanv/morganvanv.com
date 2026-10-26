@@ -1,0 +1,28 @@
+<span class="anchor">
+  <app-badge [label]="label" [expanded]="open()" controls="link-to-me" (pressed)="toggle()">
+    <svg glyph width="24" height="24" viewBox="0 0 24 24">
+      <circle cx="4" cy="4" r="0.9" class="g-white" />
+      <rect x="18.5" y="2.5" width="2" height="2" class="g-gold" />
+      <path d="M4 21 V12 L12 5.5 L20 12 V21 Z" class="g-deep g-stroke" stroke-width="1.3" />
+      <rect x="10.3" y="14" width="3.4" height="3.4" class="g-gold" />
+    </svg>
+    <span text class="own-text">
+      <span class="own-name">morganvanv</span>
+      <span class="own-tld">.com</span>
+    </span>
+  </app-badge>
+
+  @if (open()) {
+    <div id="link-to-me" class="panel" [class.end]="placement().end" [class.below]="placement().below" role="group" aria-labelledby="link-to-me-title">
+      <h4 id="link-to-me-title" class="panel-title">Link to me</h4>
+      <img [src]="imagePath" width="88" height="31" alt="The 88×31 button: a farmhouse with its window lit, and morganvanv.com" />
+      <label class="visually-hidden" for="link-to-me-code">HTML for the button</label>
+      <textarea #code id="link-to-me-code" class="code" readonly rows="5" spellcheck="false">{{ snippet }}</textarea>
+      <div class="actions">
+        <button type="button" class="copy" (click)="copy()">{{ copied() ? 'copied ✓' : 'copy' }}</button>
+        <span class="hint">hotlinking is fine</span>
+      </div>
+      <span class="visually-hidden" aria-live="polite">{{ copied() ? 'Copied to the clipboard' : '' }}</span>
+    </div>
+  }
+</span>

@@ -43,12 +43,13 @@ src/
     config/site.config.ts    # every handle, URL and endpoint the site uses
     services/        # KeyboardNavService, SeoTitleStrategy, ApiCacheService, API clients
     sky/             # Tonight's sky: live canvas behind every page (see below)
+    badges/          # The 88×31 buttons on /now: the app-badge shell, one small component per badge
     route-transition.ts  # View Transitions direction logic
     main-routes.ts       # the main pages: path, title, description
     shared-styles.scss   # Shared mixins: surface, panel, band, panel-grid, prose, label, progress-bar, scrollbar-styled
   styles.scss        # Global styles, color variables, route-transition CSS
 public/              # static assets, robots.txt, sitemap.xml, humans.txt, site.webmanifest, data/sky/
-scripts/             # build-info (prebuild hook); sky data and landscape generators (one-off)
+scripts/             # build-info (prebuild hook); deploy-time badge data; sky data, landscape and 88×31 generators (one-off)
 art/                 # source art (the painting, lossless); not served
 ```
 
@@ -89,6 +90,8 @@ For navigation, prefer `routerLink` over imperative `Router.navigate()` whenever
 
 **Keyboard:** ← → always page between routes (`KeyboardNavService`), Escape returns to the greeting, ↑/↓ scroll or move within a page. Don't give a widget arrow-key semantics that fight that: use toggle buttons with `aria-pressed` rather than ARIA tabs or radio groups (the Music list switcher does), and ↑/↓ walk the Interests tiles in reading order even when they sit two across. Navigation UI marks the current/hovered item with the gold `[ ]` brackets (navbar, pager, tiles, the greeting's way in), reserving their space so nothing shifts.
 
+**Badges (88×31 buttons):** they live in the Buttons panel at the bottom of `/now`, in two labelled rows (`tonight`, `this site`). Every badge renders through `app-badge` (`src/shared/badges/badge/`), which owns the look: 132×46 (1.5×), a glyph cell, a tiny gold caps name over the value, the classic bevel, a gold border on hover/focus, and a solid popover (opens left near the right edge and below near the top, and is `display: none` until wanted so it can't widen the page). A badge is a small component with `:host { display: contents }` that works out its data and renders one `app-badge`, or nothing while it has no data; give it `href` (new tab), `route` (in-site) or neither (a button, `(pressed)`), a `label` with the full text (the face is tiny and the popover is `aria-hidden`), and an inline-SVG glyph coloured with the `glyph.colors` classes (`src/shared/badges/_glyph.scss`). Data must be real or the joke must be true, and nothing may need tending or block a deploy. `UNDER_CONSTRUCTION` is the single list of unfinished spots (pages and badge both read it). The site's own button is `public/88x31.gif`, drawn by `scripts/build-88x31.py`; keep it and its HTML twin in `own-button-badge` in step.
+
 **Scroll regions:** Put `appScrollRegion` on the element arrow keys should scroll (`[appScrollRegion]="false"` withdraws it). The innermost registered region wins.
 
 **Config:** External handles, usernames, URLs and the Ask Morgan endpoint live in `SITE_CONFIG` (`src/shared/config/site.config.ts`). API clients go through `ApiCacheService.get(url, ttlMs?)` (sessionStorage, 10-minute TTL by default; `0` bypasses the cache). `provideHttpClient()` uses Fetch by default since Angular 22: don't add the deprecated `withFetch()`, and only add `withXhr()` if something needs upload progress. In tests, `provideHttpClient()` + `provideHttpClientTesting()` is enough.
@@ -128,7 +131,7 @@ A `--accent-color` CSS custom property is also set on `body` for inline template
 
 **Motion:** Route changes use the View Transitions API (`withViewTransitions` + `onViewTransitionCreated` in `route-transition.ts`; CSS in `styles.scss`). `@angular/animations` is not a dependency; use CSS. Everything decorative must respect `prefers-reduced-motion` (a global rule covers CSS animations; JS-driven motion such as the 3D model's auto-rotate and the sky's light changes checks `matchMedia`).
 
-**Images:** compressed `.webp` in `public/` with real `alt` (or `alt=""` when decorative), and `width`/`height` attributes where the CSS doesn't already fix the box. Encode from the lossless original (history has them, e.g. the Ada collage's PNG in `cfa9dd2`), never from an already-compressed copy; offer a larger `srcset` variant when the image is shown big. Give list and off-screen images `loading="lazy"`, and always inside a collapsed Interests section: content projected into `app-vertical-nav-item` is created even while collapsed, so an eager `<img>` there downloads on the landing page (the Music covers cost 3 MB until #89). `og-image.jpg` is the one deliberate non-webp (link previews don't all support webp).
+**Images:** compressed `.webp` in `public/` with real `alt` (or `alt=""` when decorative), and `width`/`height` attributes where the CSS doesn't already fix the box. Encode from the lossless original (history has them, e.g. the Ada collage's PNG in `cfa9dd2`), never from an already-compressed copy; offer a larger `srcset` variant when the image is shown big. Give list and off-screen images `loading="lazy"`, and always inside a collapsed Interests section: content projected into `app-vertical-nav-item` is created even while collapsed, so an eager `<img>` there downloads on the landing page (the Music covers cost 3 MB until #89). `og-image.jpg` (link previews don't all support webp) and `88x31.gif` (other sites paste it into old-web pages) are the deliberate non-webps.
 
 **ESLint rules:** Component selectors must use `app-` prefix in kebab-case; directive selectors must use `app` prefix in camelCase.
 

@@ -45,11 +45,6 @@
         }
       </ul>
 
-      <!-- 88×31 buttons. Each hides itself without data, so the strip collapses when empty. -->
-      <div class="buttons">
-        <app-lighthouse-badge />
-      </div>
-
       <p class="footnote">
         This is a <a href="https://nownownow.com/about" target="_blank" rel="noopener noreferrer" class="pill">now page</a>.
         Everything under “Lately” updates on its own.
@@ -57,6 +52,27 @@
     </section>
 
   </div>
+
+  <!-- 88×31 buttons, in two rows. Each hides itself while it has no data. -->
+  <section class="panel buttons-panel" aria-labelledby="now-buttons">
+    <h2 id="now-buttons">Buttons <span class="range-label">88×31s, most of them live</span></h2>
+    <div class="cluster">
+      <h3 class="cluster-label">tonight</h3>
+      <div class="strip">
+        <app-photo-wall-badge />
+      </div>
+    </div>
+    <div class="cluster">
+      <h3 class="cluster-label">this site</h3>
+      <div class="strip">
+        <app-lighthouse-badge />
+        <app-angular-badge />
+        <app-no-cookies-badge />
+        <app-under-construction-badge />
+        <app-own-button-badge />
+      </div>
+    </div>
+  </section>
 </app-base-page>
 
 <ng-template #rowBody let-row>

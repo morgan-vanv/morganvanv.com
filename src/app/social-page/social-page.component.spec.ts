@@ -1,8 +1,8 @@
 import { existsSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { SocialPageComponent, photoCountLabel } from './social-page.component';
-import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
+import { SocialPageComponent } from './social-page.component';
+import { COMMUNITY_PHOTOS, photoCountLabel } from '../../shared/constants/community-photos.const';
 
 describe('SocialPageComponent', () => {
   let component: SocialPageComponent;

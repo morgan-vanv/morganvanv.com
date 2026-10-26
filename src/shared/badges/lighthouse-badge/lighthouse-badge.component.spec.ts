@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Observable, of, throwError } from 'rxjs';
 import { LighthouseBadgeComponent, LIGHTHOUSE_REPORT_URL } from './lighthouse-badge.component';
-import { ApiCacheService } from '../services/api-cache.service';
+import { ApiCacheService } from '../../services/api-cache.service';
 
 describe('LighthouseBadgeComponent', () => {
   const report = {
@@ -27,7 +27,7 @@ describe('LighthouseBadgeComponent', () => {
     const link = el.querySelector('a.badge');
     expect(link?.getAttribute('href')).toBe('https://pagespeed.web.dev/analysis?url=https%3A%2F%2Fmorganvanv.com%2F');
     expect(link?.getAttribute('target')).toBe('_blank');
-    expect([...el.querySelectorAll('.scores span')].map(span => span.textContent?.trim())).toEqual(['99', '100', '96', '100']);
+    expect([...el.querySelectorAll('.value span')].map(span => span.textContent?.trim())).toEqual(['99', '100', '96', '100']);
   });
 
   it('says everything in its accessible name, since the visible text is tiny', async () => {

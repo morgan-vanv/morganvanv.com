@@ -17,3 +17,8 @@ export const COMMUNITY_PHOTOS: readonly CommunityPhoto[] = [
   { imageUrl: 'images/community-wall/atlas.webp', thumbUrl: 'images/community-wall/thumbs/atlas.webp', caption: 'atlas gains knowledge of self' },
   { imageUrl: 'images/community-wall/gerbie.webp', thumbUrl: 'images/community-wall/thumbs/gerbie.webp', caption: 'gerbie' },
 ];
+
+/** "1 photo", "6 photos": the dim count beside the wall's heading and on its badge. */
+export function photoCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'photo' : 'photos'}`;
+}

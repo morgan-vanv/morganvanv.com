@@ -1,0 +1,11 @@
+@use '../../../styles' as *;
+@use '../glyph';
+
+@include glyph.colors;
+
+// The whole glyph cell in hazard stripes, gold on the dark.
+.hazard {
+  align-self: stretch;
+  width: 100%;
+  background: repeating-linear-gradient(-45deg, rgba($accent-color, 0.55) 0 4px, $background-color 4px 8px);
+}

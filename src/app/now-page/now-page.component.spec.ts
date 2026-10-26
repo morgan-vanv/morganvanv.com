@@ -59,6 +59,16 @@ describe('NowPageComponent', () => {
     expect(headings[0].textContent?.trim()).toBe('Now');
   });
 
+  it('puts the 88×31 buttons in their own panel, one labelled row per cluster', () => {
+    const panel = (fixture.nativeElement as HTMLElement).querySelector('.buttons-panel');
+    expect(panel?.querySelector('h2')?.textContent).toContain('Buttons');
+    expect([...panel!.querySelectorAll('.cluster-label')].map(h => h.textContent?.trim())).toEqual(['tonight', 'this site']);
+    // The static ones are there from the start; the Lighthouse badge waits for its report.
+    expect(panel?.querySelector('app-photo-wall-badge .badge')).not.toBeNull();
+    expect(panel?.querySelector('app-own-button-badge .badge')).not.toBeNull();
+    expect(panel?.querySelector('app-lighthouse-badge .badge')).toBeNull();
+  });
+
   it('lists the projects under Building, with a count', () => {
     expect(text()).toContain('Building');
     const count = (fixture.nativeElement as HTMLElement).querySelector('#now-building .range-label');

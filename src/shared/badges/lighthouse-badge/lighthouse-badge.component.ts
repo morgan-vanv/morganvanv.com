@@ -1,8 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, map, of } from 'rxjs';
-import { ApiCacheService } from '../services/api-cache.service';
-import { SITE_CONFIG } from '../config/site.config';
+import { ApiCacheService } from '../../services/api-cache.service';
+import { SITE_CONFIG } from '../../config/site.config';
+import { BadgeComponent, BadgePopover } from '../badge/badge.component';
 
 /** What the deploy job writes (`scripts/write-lighthouse-badge.mjs`): the homepage, as a phone. */
 export interface LighthouseReport {
@@ -21,13 +22,14 @@ const isReport = (value: unknown): value is LighthouseReport => {
 };
 
 /**
- * An 88×31-style button (at 1.5×) with the site's own Lighthouse scores, measured at deploy.
+ * The 88×31 button with the site's own Lighthouse scores, measured at deploy.
  * Links to a live PageSpeed Insights run. Renders nothing until the report loads, or if there isn't one:
  * `public/lighthouse.json` is a placeholder the deploy overwrites, so local dev, PR checks and a deploy
  * whose measurement failed all show nothing (and log no 404).
  */
 @Component({
   selector: 'app-lighthouse-badge',
+  imports: [BadgeComponent],
   templateUrl: './lighthouse-badge.component.html',
   styleUrl: './lighthouse-badge.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,6 +62,15 @@ export class LighthouseBadgeComponent {
     const at = this.report()?.measuredAt;
     return at ? new Date(at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
   });
+
+  readonly scores = computed(() => this.rows().map(row => String(row.value)));
+
+  readonly popover = computed<BadgePopover>(() => ({
+    title: 'Homepage, on a phone',
+    rows: this.rows().map(row => ({ label: row.label, value: String(row.value) })),
+    note: `measured at deploy · ${this.measured()}`,
+    cta: 'check my homework ↗',
+  }));
 
   readonly label = computed(() =>
     `Lighthouse scores for this site's homepage on a phone, measured ${this.measured()}: ` +

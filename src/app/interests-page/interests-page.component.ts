@@ -11,6 +11,7 @@ import { OsrsPreviewComponent } from './osrs-stats/osrs-preview/osrs-preview';
 import { Observable, map, catchError, of } from 'rxjs';
 import { WOM_USERNAME, POWERED_BY_LINKS } from '../../shared/constants/osrs-stats.const';
 import { SITE_CONFIG } from '../../shared/config/site.config';
+import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 
 const STATSFM_USERNAME = SITE_CONFIG.handles.statsFm;
 const STATS_DISPLAY_LIMIT = 8;
@@ -29,6 +30,8 @@ export class InterestsPageComponent {
   readonly statsFmProfileUrl = `https://stats.fm/user/${STATSFM_USERNAME}`;
   readonly discogsCollectionUrl = `https://www.discogs.com/user/${SITE_CONFIG.handles.discogs}/collection`;
   readonly poweredByLinks = POWERED_BY_LINKS;
+  readonly mediaUnderConstruction = isUnderConstruction('favorite-media');
+  readonly photosUnderConstruction = isUnderConstruction('my-photos');
 
   /** Tablets and phones show one top list at a time. */
   readonly listTabs: readonly { id: MusicList; label: string }[] = [

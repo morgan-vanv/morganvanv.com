@@ -102,7 +102,7 @@ Grouped by the design pillars.
 - **Webmentions.** `S` — `webmention.io` + Bridgy to receive replies/likes from the fediverse on blog posts. Pairs with `rel="me"`.
 - **Spirograph wall.** see Games.
 - **Photo wall self-serve.** `M`, `backend` — Upload via a DO function to Spaces with a pending queue Morgan approves. Until then, a "Submit a photo" pill that opens a prefilled `mailto:` (subject + caption prompt) is an `S` improvement.
-- **Webring / 88×31 buttons.** `S` — Join an IndieWeb/Yesterweb ring; show the buttons.
+- **Webrings and friends' buttons.** `S` — Morgan's follow-up to the badge strip (2026-10-26). Research which rings are active and what they ask (most want their prev/next widget kept working; prefer plain links over a JS embed, for the "no trackers" badge and prerendering), then join one or two `[TODO: Morgan]`. Friends' 88×31s as a link exchange, copied with permission rather than hotlinked so they don't rot `[TODO: Morgan]`. Both would sit in the Buttons panel on `/now`.
 - **Visitor pixel canvas** (r/place in miniature). `L`, `backend` — Fun, needs real-time state. Park until a backend pattern exists.
 - **Polls** ("which subtitle is best?"). `M`, `backend` — Same dependency.
 
@@ -116,7 +116,7 @@ Grouped by the design pillars.
 
 ### Look
 - **Handwritten annotations.** `S` — Caveat is only used on polaroid captions. Small margin notes ("← this is Ada", "yes this is live") across pages would spread the handwritten accent and the voice.
-- **More badges (88×31 buttons).** `S` each — The strip under Lately on `/now` exists (the Lighthouse badge, `src/shared/lighthouse-badge/`, sets the look: 1.5×, bevel, gold on hover/focus, the full text in the accessible name, hidden when it has no data). Next candidates: a "best viewed at night" button (pillar 6), a live OSRS total-level badge, the site's own 88×31 for others to link with, and webrings or causes Morgan actually wants to rep `[TODO: Morgan]`. Same rules: real data or a real joke, nothing that needs tending. Once there are two, pull the shared button styling into a mixin.
+- **More badges (88×31 buttons).** `S` each — The Buttons panel on `/now` exists (2026-10-26); every badge is an `app-badge` (`src/shared/badges/`). Left on the bench from the brainstorm: a live OSRS total-level badge, XP this week, collection log, "best viewed at night" (live: night here ✓ / come back after dark), arrow keys welcome, QA: Ada, campfire: lit, a carbon estimate from page weight, the honest uptime joke ("100% of the times you've checked"), and causes Morgan wants to rep `[TODO: Morgan]`. Same rules: real data or a real joke, nothing that needs tending.
 - **Unify under-construction.** `S` — Pages use the gif; Interests items use a text banner. Make `UnderConstructionComponent` take a `variant` and use it everywhere.
 - **Loading states.** `S` — The live panels show "Loading…" text; skeleton rows in the site's dark/translucent style would feel less static.
 - **OSRS item icons from RuneLite's CDN.** note — Works, but it's a third-party hotlink; if it ever breaks, the Action pattern can cache them.
