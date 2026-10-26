@@ -12,10 +12,14 @@ const { readFileSync } = require('node:fs');
 const KB = 1024;
 const mobile = process.env.LH_FORM_FACTOR === 'mobile';
 
+// LH_PAGES=/ (comma-separated paths) narrows the run; the deploy uses it to measure the homepage for the badge.
+const only = process.env.LH_PAGES?.split(',');
+
 // Sitemap URLs (trailing slashes, as GitHub Pages serves them), pointed at LHCI's local server.
-const urls = [...readFileSync('public/sitemap.xml', 'utf8').matchAll(/<loc>https?:\/\/[^/]+(\/[^<]*)<\/loc>/g)].map(
-  ([, path]) => `http://localhost${path}`,
-);
+const urls = [...readFileSync('public/sitemap.xml', 'utf8').matchAll(/<loc>https?:\/\/[^/]+(\/[^<]*)<\/loc>/g)]
+  .map(([, path]) => path)
+  .filter(path => !only || only.includes(path))
+  .map(path => `http://localhost${path}`);
 
 module.exports = {
   ci: {

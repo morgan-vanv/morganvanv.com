@@ -11,7 +11,8 @@ import { PROJECTS } from '../../shared/constants/projects.const';
 
 /** Matches RuneProfile activity requests by parsed host and path, not by substring. */
 function isRuneProfileActivities(req: { url: string }): boolean {
-  const url = new URL(req.url);
+  // A base, since same-origin requests (the Lighthouse badge's /lighthouse.json) are relative.
+  const url = new URL(req.url, 'http://localhost');
   return url.hostname === 'api.runeprofile.com' && url.pathname.endsWith('/activities');
 }
 
@@ -63,7 +64,7 @@ describe('NowPageComponent', () => {
     const count = (fixture.nativeElement as HTMLElement).querySelector('#now-building .range-label');
     expect(count?.textContent?.trim()).toBe(`${PROJECTS.length} ${PROJECTS.length === 1 ? 'project' : 'projects'}`);
     expect((fixture.nativeElement as HTMLElement).querySelectorAll('app-project-card').length).toBe(PROJECTS.length);
-    http.match(r => new URL(r.url).hostname === 'api.github.com');
+    http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
   });
 
   it('hides the note and its date while the note is empty, and shows the static rows', () => {

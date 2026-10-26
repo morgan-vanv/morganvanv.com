@@ -39,6 +39,17 @@ jobs:
       - name: Copy the CSR shell to 404.html for SPA routing
         run: cp dist/browser/index.csr.html dist/browser/404.html
 
+      # The Lighthouse badge on /now: three runs of the homepage as a phone, median scores written to
+      # dist/browser/lighthouse.json. Never blocks a deploy: if this fails, the badge just hides.
+      - name: Measure the homepage for the Lighthouse badge
+        continue-on-error: true
+        env:
+          LH_FORM_FACTOR: mobile
+          LH_PAGES: /
+        run: |
+          npx --yes @lhci/cli@0.15.x collect --config=./lighthouserc.cjs
+          node scripts/write-lighthouse-badge.mjs
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v5
         with:
