@@ -1,4 +1,5 @@
 @use '../../../../styles' as *;
+@use '../../../../shared/shared-styles.scss' as shared;
 
 :host {
   display: block;
@@ -13,9 +14,8 @@
   box-sizing: border-box;
   margin-bottom: 1.25rem;
   padding: 0.5rem 1.5rem;
-  border: 1px solid rgba($main-color, 0.14);
+  @include shared.surface;
   border-radius: 12px;
-  background: linear-gradient(90deg, rgba($accent-color, 0.1), rgba($main-color, 0.04) 60%);
 
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
