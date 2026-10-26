@@ -29,11 +29,14 @@
 .shoutbox {
   display: flex;
   flex-direction: column;
+  // Its own height, staying in view while the wall scrolls past (wide screens).
+  align-self: start;
+  position: sticky;
+  top: 0;
 
   app-under-construction {
     --under-construction-size: 120px;
-    flex: 1;
-    min-height: 8rem;
+    min-height: 12rem;
   }
 }
 
