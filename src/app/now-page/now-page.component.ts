@@ -13,6 +13,8 @@ import { SITE_CONFIG } from '../../shared/config/site.config';
 import { achievementIcon, achievementLabel, dropIcon, dropLabel } from '../interests-page/osrs-stats/osrs-format';
 import { BUILD_INFO } from '../../build-info';
 import { NOW_CONTENT } from './now.content';
+import { PROJECTS } from '../../shared/constants/projects.const';
+import { ProjectCardComponent } from '../../shared/project-card/project-card.component';
 
 export interface NowRow {
   key: string;
@@ -52,7 +54,7 @@ export function formatDay(value: string): string {
  */
 @Component({
   selector: 'app-now-page',
-  imports: [BasePageComponent, RouterLink, NgTemplateOutlet],
+  imports: [BasePageComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,6 +64,7 @@ export class NowPageComponent {
   private readonly runeProfile = inject(RuneProfileService);
 
   readonly note = NOW_CONTENT.paragraphs;
+  readonly projects = PROJECTS;
   readonly updated = formatDay(NOW_CONTENT.updated);
 
   private readonly latestAchievement = toSignal(this.latestActivity(ACHIEVEMENT_ACTIVITY_TYPES), { initialValue: null });

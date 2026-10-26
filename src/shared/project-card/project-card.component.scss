@@ -1,0 +1,132 @@
+@use '../../styles' as *;
+@use '../shared-styles.scss' as shared;
+
+:host {
+  display: block;
+}
+
+.project-card {
+  @include shared.surface;
+  display: grid;
+  grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
+  gap: 1.5rem;
+  padding: 1rem;
+  border-radius: 12px;
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 1rem;
+  }
+}
+
+.shot {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 10;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #000;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.name {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.2;
+}
+
+.subtitle {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: $accent-color;
+}
+
+.description {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+.quote {
+  margin: 0;
+  font-size: 0.9rem;
+  font-style: italic;
+  opacity: 0.7;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tag {
+  font-size: 0.75rem;
+  padding: 0.1rem 0.5rem;
+  border: 1px solid rgba($main-color, 0.15);
+  border-radius: 999px;
+  opacity: 0.8;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: auto;
+  padding-top: 0.4rem;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.link {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgba($main-color, 0.2);
+  border-radius: 6px;
+  color: inherit;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($main-color, 0.08);
+    border-color: rgba($main-color, 0.35);
+  }
+
+  &--primary {
+    border-color: rgba($accent-color, 0.6);
+    color: $accent-color;
+    font-weight: bold;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($accent-color, 0.12);
+      border-color: $accent-color;
+    }
+  }
+}
+
+.updated {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}

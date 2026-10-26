@@ -7,6 +7,7 @@ import { NowPageComponent, formatDay } from './now-page.component';
 import { LastListened, RecentStreamService } from '../../shared/services/recent-stream.service';
 import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 import { NOW_CONTENT } from './now.content';
+import { PROJECTS } from '../../shared/constants/projects.const';
 
 /** Matches RuneProfile activity requests by parsed host and path, not by substring. */
 function isRuneProfileActivities(req: { url: string }): boolean {
@@ -49,6 +50,12 @@ describe('NowPageComponent', () => {
     fixture = TestBed.createComponent(NowPageComponent);
     http = TestBed.inject(HttpTestingController);
     await fixture.whenStable();
+  });
+
+  it('lists the projects under Building', () => {
+    expect(text()).toContain('Building');
+    expect((fixture.nativeElement as HTMLElement).querySelectorAll('app-project-card').length).toBe(PROJECTS.length);
+    http.match(r => new URL(r.url).hostname === 'api.github.com');
   });
 
   it('shows the note, its date, and the static rows before any live data', () => {

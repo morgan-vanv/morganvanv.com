@@ -1,8 +1,10 @@
 @use '../../styles' as *;
+@use '../../shared/shared-styles.scss' as shared;
 
-// A reading page: one centred column, not the full card width.
+// A reading page: one centred column, wider than a typical article so the
+// rows and project card can breathe.
 .now {
-  max-width: 54rem;
+  max-width: 62rem;
   margin: 0 auto;
   padding: 0.5rem 0 1.5rem;
 }
@@ -21,14 +23,15 @@
   }
 }
 
-// Morgan's note: the Music/OSRS band style, so the hand-written part reads as the headline.
+// Morgan's note: the same surface as everything else, so it reads as part of
+// the page rather than a callout.
 .note {
-  margin-bottom: 1.5rem;
-  padding: 1.1rem 1.4rem;
-  border: 1px solid rgba($main-color, 0.14);
+  @include shared.surface;
+  margin-bottom: 2rem;
+  padding: 1.25rem 1.5rem;
   border-radius: 12px;
-  background: linear-gradient(90deg, rgba($accent-color, 0.1), rgba($main-color, 0.04) 60%);
-  line-height: 1.6;
+  font-size: 1.05rem;
+  line-height: 1.65;
 
   p {
     margin: 0;
@@ -39,25 +42,40 @@
   }
 }
 
+.now-section {
+  margin-bottom: 2rem;
+}
+
+.section-heading {
+  @include shared.panel-heading;
+  margin: 0 0.2rem 0.75rem;
+  font-size: 1.2rem;
+}
+
+.projects {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .now-rows {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 0.75rem;
 }
 
 // label · thumb · title/detail · when
 .now-row {
+  @include shared.surface;
   display: grid;
-  grid-template-columns: 7rem 48px minmax(0, 1fr) auto;
+  grid-template-columns: 8rem 72px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 1rem;
-  padding: 0.7rem 1rem;
-  border: 1px solid rgba($main-color, 0.1);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.25);
+  gap: 1.25rem;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
   color: inherit;
   text-decoration: none;
   transition: background-color 0.2s ease, border-color 0.2s ease;
@@ -69,16 +87,17 @@
   }
 
   @media (max-width: $breakpoint-mobile) {
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: 56px minmax(0, 1fr);
     grid-template-areas:
       'label label'
       'thumb text'
       'thumb when';
-    column-gap: 0.85rem;
+    column-gap: 0.9rem;
     row-gap: 0.15rem;
+    padding: 0.9rem 1rem;
 
-    .label { grid-area: label; margin-bottom: 0.35rem; }
-    .thumb { grid-area: thumb; align-self: start; }
+    .label { grid-area: label; margin-bottom: 0.4rem; }
+    .thumb { grid-area: thumb; align-self: start; width: 56px; height: 56px; }
     .text { grid-area: text; }
     .when { grid-area: when; text-align: left; }
   }
@@ -88,7 +107,7 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: $accent-color;
@@ -108,9 +127,9 @@
 }
 
 .thumb {
-  width: 48px;
-  height: 48px;
-  border-radius: 6px;
+  width: 72px;
+  height: 72px;
+  border-radius: 8px;
   object-fit: cover;
 
   &.pixel {
@@ -126,55 +145,59 @@
   justify-content: center;
   background: rgba($main-color, 0.07);
   color: $accent-color;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
   font-weight: bold;
 }
 
 .text {
   display: flex;
   flex-direction: column;
+  gap: 0.2rem;
   min-width: 0;
   line-height: 1.35;
 }
 
 .title {
+  font-size: 1.15rem;
   font-weight: bold;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
   @media (max-width: $breakpoint-mobile) {
+    font-size: 1.05rem;
     white-space: normal;
   }
 }
 
 .detail {
-  font-size: 0.85rem;
+  font-size: 0.95rem;
   opacity: 0.65;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
   @media (max-width: $breakpoint-mobile) {
+    font-size: 0.85rem;
     white-space: normal;
   }
 }
 
 .when {
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   opacity: 0.6;
   text-align: right;
   white-space: nowrap;
 }
 
 .footnote {
-  margin: 1.25rem 0 0;
+  margin: 0;
   font-size: 0.85rem;
   opacity: 0.6;
   text-align: center;
-}
 
-.footnote .pill {
-  font-size: 0.8rem;
-  padding: 0.1rem 0.55rem;
+  .pill {
+    font-size: 0.8rem;
+    padding: 0.1rem 0.55rem;
+  }
 }

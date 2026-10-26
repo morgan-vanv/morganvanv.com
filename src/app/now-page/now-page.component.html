@@ -12,25 +12,39 @@
       }
     </div>
 
-    <ul class="now-rows">
-      @for (row of rows(); track row.key) {
-        <li>
-          @if (row.internal) {
-            <a class="now-row" [routerLink]="row.href">
-              <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: row }" />
-            </a>
-          } @else {
-            <a class="now-row" [href]="row.href" target="_blank" rel="noopener noreferrer">
-              <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: row }" />
-            </a>
+    @if (projects.length) {
+      <section class="now-section" aria-labelledby="now-building">
+        <h3 id="now-building" class="section-heading">Building</h3>
+        <div class="projects">
+          @for (project of projects; track project.id) {
+            <app-project-card [project]="project" />
           }
-        </li>
-      }
-    </ul>
+        </div>
+      </section>
+    }
+
+    <section class="now-section" aria-labelledby="now-lately">
+      <h3 id="now-lately" class="section-heading">Lately <span class="range-label">updates on its own</span></h3>
+      <ul class="now-rows">
+        @for (row of rows(); track row.key) {
+          <li>
+            @if (row.internal) {
+              <a class="now-row" [routerLink]="row.href">
+                <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: row }" />
+              </a>
+            } @else {
+              <a class="now-row" [href]="row.href" target="_blank" rel="noopener noreferrer">
+                <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: row }" />
+              </a>
+            }
+          </li>
+        }
+      </ul>
+    </section>
 
     <p class="footnote">
       This is a <a href="https://nownownow.com/about" target="_blank" rel="noopener noreferrer" class="pill">now page</a>.
-      Everything below the note updates on its own.
+      Everything under “Lately” updates on its own.
     </p>
 
   </section>
@@ -42,7 +56,7 @@
     {{ row.label }}
   </span>
   @if (row.iconUrl) {
-    <img [src]="row.iconUrl" alt="" class="thumb" [class.pixel]="row.iconStyle === 'pixel'" width="48" height="48" loading="lazy" decoding="async" />
+    <img [src]="row.iconUrl" alt="" class="thumb" [class.pixel]="row.iconStyle === 'pixel'" width="72" height="72" loading="lazy" decoding="async" />
   } @else {
     <span class="thumb thumb--glyph" aria-hidden="true">{{ row.glyph }}</span>
   }
