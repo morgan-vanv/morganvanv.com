@@ -1,14 +1,13 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
+import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 
 @Component({
   selector: 'app-blog-page',
-  imports: [BasePageComponent, UnderConstructionComponent],
+  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent],
   templateUrl: './blog-page.component.html',
   styleUrl: './blog-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class BlogPageComponent {
-
-}
+export class BlogPageComponent {}
