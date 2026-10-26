@@ -1,7 +1,13 @@
-<app-base-page pageTitle="Interests" [showScrollHint]="false">
+<app-base-page [showScrollHint]="false">
+
+  <section class="interests">
+  @if (!nav.isExpanded()) {
+    <!-- Description: draft copy for Morgan. -->
+    <app-page-header title="Interests" description="Things I'm into, mostly pulled live." />
+  }
 
   <div class="interests-wrapper">
-    <app-vertical-nav-container>
+    <app-vertical-nav-container #nav>
 
       <app-vertical-nav-item title="🎵 Music">
         <span description>
@@ -11,11 +17,22 @@
           <a [href]="discogsCollectionUrl" target="_blank" rel="noopener noreferrer" class="pill">Discogs</a>.
         </span>
 
+        <div preview><app-last-listened [preview]="true" /></div>
+
         <app-last-listened />
+
+        <!-- Tablets and phones show one list at a time; wide screens show all three. -->
+        <div class="list-tabs" role="tablist" aria-label="Top lists">
+          @for (tab of listTabs; track tab.id) {
+            <button type="button" role="tab" class="list-tab" [id]="'music-tab-' + tab.id"
+                    [attr.aria-selected]="activeList() === tab.id" [attr.aria-controls]="'music-list-' + tab.id"
+                    (click)="activeList.set(tab.id)">{{ tab.label }}</button>
+          }
+        </div>
 
         <div class="stats-columns">
 
-          <div class="stats-column">
+          <div class="stats-column" id="music-list-songs" role="tabpanel" aria-labelledby="music-tab-songs" [class.is-active]="activeList() === 'songs'">
             <h3>Top Songs <span class="range-label">this week</span></h3>
             @if (topTracks$ | async; as tracks) {
               <ol class="stats-list">
@@ -39,7 +56,7 @@
             }
           </div>
 
-          <div class="stats-column">
+          <div class="stats-column" id="music-list-albums" role="tabpanel" aria-labelledby="music-tab-albums" [class.is-active]="activeList() === 'albums'">
             <h3>Top Albums <span class="range-label">this month</span></h3>
             @if (topAlbums$ | async; as albums) {
               <ol class="stats-list">
@@ -59,7 +76,7 @@
             }
           </div>
 
-          <div class="stats-column">
+          <div class="stats-column" id="music-list-artists" role="tabpanel" aria-labelledby="music-tab-artists" [class.is-active]="activeList() === 'artists'">
             <h3>Top Artists <span class="range-label">all time</span></h3>
             @if (topArtists$ | async; as artists) {
               <ol class="stats-list">
@@ -92,6 +109,7 @@
             <a [href]="link.href" target="_blank" rel="noopener noreferrer" class="pill">{{ link.label }}</a>
           }
         </span>
+        <div preview><app-osrs-preview /></div>
         <app-osrs-stats />
       </app-vertical-nav-item>
 
@@ -99,15 +117,18 @@
         title="📺 Favorite Media" 
         description="Movies, TV shows, and books I love."
         [isUnderConstruction]="true">
+        <p preview class="tile-construction">🚧 under construction 🚧</p>
       </app-vertical-nav-item>
 
       <app-vertical-nav-item 
         title="📸 My Photos" 
         description="Photography and memories."
         [isUnderConstruction]="true">
+        <p preview class="tile-construction">🚧 under construction 🚧</p>
       </app-vertical-nav-item>
 
     </app-vertical-nav-container>
   </div>
+  </section>
 
 </app-base-page>

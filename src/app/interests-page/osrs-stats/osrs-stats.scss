@@ -17,6 +17,11 @@
 
 // Last, so it wins over the modifiers above.
 @media (max-width: $breakpoint-mobile) {
+  .osrs-row {
+    gap: 0.875rem;
+    margin-bottom: 0.875rem;
+  }
+
   .osrs-row--top,
   .osrs-row--activity {
     grid-template-columns: minmax(0, 1fr);

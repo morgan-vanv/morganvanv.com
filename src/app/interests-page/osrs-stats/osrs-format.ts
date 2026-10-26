@@ -16,6 +16,12 @@ export function formatNumber(n: number): string {
   return Math.round(n).toLocaleString();
 }
 
+/** Skills at level 99 (or above), and how many skills there are, ignoring "overall". */
+export function maxedSkills(skills: Record<string, { level: number }>): { maxed: number; total: number } {
+  const levels = Object.entries(skills).filter(([name]) => name !== 'overall').map(([, skill]) => skill.level);
+  return { maxed: levels.filter(level => level >= 99).length, total: levels.length };
+}
+
 export function formatGp(value: number): string {
   if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(1)}B gp`;
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M gp`;

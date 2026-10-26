@@ -36,6 +36,8 @@ export interface WomPlayer {
   exp: number;
   ehp: number;
   ehb: number;
+  /** Efficient hours to max, per Wise Old Man (0 once maxed). */
+  ttm?: number;
   combatLevel: number;
   latestSnapshot: { data: WomSnapshot };
 }

@@ -55,4 +55,27 @@ describe('InterestsPageComponent', () => {
     expect(ranks.map(r => r.classList.contains('top'))).toEqual([true, true, true, false]);
     expect((fixture.nativeElement as HTMLElement).textContent).toContain('Band · 10 plays');
   });
+
+  it('hides the page header while a section is open', async () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-page-header h1')?.textContent).toBe('Interests');
+
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    expect(el.querySelector('app-page-header')).toBeNull();
+  });
+
+  it('switches the visible top list with the tabs', async () => {
+    document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    const active = () => [...el.querySelectorAll('.stats-column.is-active')].map(c => c.id);
+    expect(active()).toEqual(['music-list-songs']);
+
+    const albums = [...el.querySelectorAll<HTMLButtonElement>('.list-tab')].find(t => t.textContent?.trim() === 'Albums')!;
+    albums.click();
+    await fixture.whenStable();
+    expect(active()).toEqual(['music-list-albums']);
+    expect(albums.getAttribute('aria-selected')).toBe('true');
+  });
 });

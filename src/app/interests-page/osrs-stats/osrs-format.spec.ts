@@ -1,4 +1,4 @@
-import { formatBossName, formatGp, formatXp, achievementLabel, dropLabel } from './osrs-format';
+import { formatBossName, formatGp, formatXp, achievementLabel, dropLabel, maxedSkills } from './osrs-format';
 import { RpActivity } from '../../../shared/services/rune-profile.service';
 
 describe('osrs-format', () => {
@@ -14,6 +14,11 @@ describe('osrs-format', () => {
     expect(formatGp(12_400)).toBe('12K gp');
     expect(formatGp(3_250_000)).toBe('3.3M gp');
     expect(formatGp(1_500_000_000)).toBe('1.5B gp');
+  });
+
+  it('counts skills at 99, ignoring overall', () => {
+    expect(maxedSkills({ overall: { level: 2000 }, attack: { level: 99 }, magic: { level: 98 } })).toEqual({ maxed: 1, total: 2 });
+    expect(maxedSkills({})).toEqual({ maxed: 0, total: 0 });
   });
 
   it('abbreviates xp', () => {

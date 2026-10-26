@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { VerticalNavContainerComponent } from '../../shared/vertical-nav/vertical-nav-container.component';
@@ -6,6 +6,8 @@ import { VerticalNavItemComponent } from '../../shared/vertical-nav/vertical-nav
 import { StatsFmService, StatsFmTopArtist, StatsFmTopAlbum, StatsFmTopTrack } from '../../shared/services/stats-fm.service';
 import { OsrsStatsComponent } from './osrs-stats/osrs-stats';
 import { LastListenedComponent } from '../../shared/last-listened/last-listened.component';
+import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
+import { OsrsPreviewComponent } from './osrs-stats/osrs-preview/osrs-preview';
 import { Observable, map, catchError, of } from 'rxjs';
 import { WOM_USERNAME, POWERED_BY_LINKS } from '../../shared/constants/osrs-stats.const';
 import { SITE_CONFIG } from '../../shared/config/site.config';
@@ -13,9 +15,11 @@ import { SITE_CONFIG } from '../../shared/config/site.config';
 const STATSFM_USERNAME = SITE_CONFIG.handles.statsFm;
 const STATS_DISPLAY_LIMIT = 8;
 
+export type MusicList = 'songs' | 'albums' | 'artists';
+
 @Component({
   selector: 'app-interests-page',
-  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent, LastListenedComponent],
+  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent, LastListenedComponent, PageHeaderComponent, OsrsPreviewComponent],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -25,6 +29,14 @@ export class InterestsPageComponent {
   readonly statsFmProfileUrl = `https://stats.fm/user/${STATSFM_USERNAME}`;
   readonly discogsCollectionUrl = `https://www.discogs.com/user/${SITE_CONFIG.handles.discogs}/collection`;
   readonly poweredByLinks = POWERED_BY_LINKS;
+
+  /** Tablets and phones show one top list at a time. */
+  readonly listTabs: readonly { id: MusicList; label: string }[] = [
+    { id: 'songs', label: 'Songs' },
+    { id: 'albums', label: 'Albums' },
+    { id: 'artists', label: 'Artists' },
+  ];
+  readonly activeList = signal<MusicList>('songs');
 
   private statsFm = inject(StatsFmService);
 

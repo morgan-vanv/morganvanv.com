@@ -1,48 +1,91 @@
 @use '../../styles' as *;
 @use '../../shared/shared-styles.scss' as shared;
 
-.interests-wrapper {
-  width: 100%;
+// Header, then the tiles filling the rest of the card (wide screens); on
+// tablets and phones everything flows and the card scrolls.
+.interests {
+  display: flex;
+  flex-direction: column;
   height: 100%;
-  position: relative;
-  overflow: hidden;
-  padding: 1rem;
-  box-sizing: border-box;
 
   @media (max-width: $breakpoint-mobile) {
     height: auto;
-    overflow: visible;
   }
 }
 
-// Expanded items get a compact, dimmer description (the content here is
-// projected, so it's styled from this component via the host class).
-app-vertical-nav-item.is-expanded [description] {
-  font-size: 0.95rem;
-  opacity: 0.7;
-  max-width: 70ch;
+.interests-wrapper {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
 
-  .pill {
-    font-size: 0.85rem;
-    padding: 0.1rem 0.55rem;
+.tile-construction {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  @include shared.surface;
+  font-size: $font-size-meta;
+  text-align: center;
+  opacity: 0.75;
+}
+
+// ── Music ──────────────────────────────────────────────────────────────────
+
+// Wide screens show all three lists, so the tabs only appear on small screens.
+.list-tabs {
+  display: none;
+
+  @media (max-width: $breakpoint-mobile) {
+    @include shared.surface;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.25rem;
+    margin-bottom: 0.75rem;
+    padding: 0.25rem;
+    border-radius: 12px;
+  }
+}
+
+.list-tab {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: $main-color;
+  font: inherit;
+  font-size: $font-size-small;
+  opacity: 0.75;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &[aria-selected='true'] {
+    background: rgba($accent-color, 0.18);
+    box-shadow: inset 0 0 0 1px rgba($accent-color, 0.5);
+    color: $accent-color;
+    font-weight: bold;
+    opacity: 1;
   }
 }
 
 .stats-columns {
-  display: flex;
-  gap: 1.25rem;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-  }
+  @include shared.panel-grid(repeat(3, minmax(0, 1fr)));
 }
 
 .stats-column {
   @include shared.panel;
-  flex: 1;
 
   h3 {
     @include shared.panel-heading;
+  }
+
+  // One list at a time on small screens (the tabs pick which).
+  @media (max-width: $breakpoint-mobile) {
+    &:not(.is-active) {
+      display: none;
+    }
   }
 }
 
@@ -66,6 +109,11 @@ app-vertical-nav-item.is-expanded [description] {
   &:hover {
     background: rgba($main-color, 0.05);
   }
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1rem 40px minmax(0, 1fr);
+    gap: 0.625rem;
+  }
 }
 
 .stats-rank {
@@ -88,6 +136,11 @@ app-vertical-nav-item.is-expanded [description] {
   border-radius: 4px;
   object-fit: cover;
   background: rgba($main-color, 0.08);
+
+  @media (max-width: $breakpoint-mobile) {
+    width: 40px;
+    height: 40px;
+  }
 }
 
 .stats-info {
