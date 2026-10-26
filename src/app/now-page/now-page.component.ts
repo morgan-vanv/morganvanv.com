@@ -12,7 +12,7 @@ import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const'
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { achievementIcon, achievementLabel, dropIcon, dropLabel } from '../interests-page/osrs-stats/osrs-format';
 import { BUILD_INFO } from '../../build-info';
-import { NOW_CONTENT } from './now.content';
+import { NOW_CONTENT_TOKEN } from './now.content';
 import { PROJECTS } from '../../shared/constants/projects.const';
 import { ProjectCardComponent } from '../../shared/project-card/project-card.component';
 
@@ -63,9 +63,11 @@ export class NowPageComponent {
   private readonly recentStream = inject(RecentStreamService);
   private readonly runeProfile = inject(RuneProfileService);
 
-  readonly note = NOW_CONTENT.paragraphs;
+  /** Morgan's note; hidden, along with its date, while it has no paragraphs. */
+  private readonly content = inject(NOW_CONTENT_TOKEN);
+  readonly note = this.content.paragraphs;
   readonly projects = PROJECTS;
-  readonly updated = formatDay(NOW_CONTENT.updated);
+  readonly updated = formatDay(this.content.updated);
 
   private readonly latestAchievement = toSignal(this.latestActivity(ACHIEVEMENT_ACTIVITY_TYPES), { initialValue: null });
   private readonly latestDrop = toSignal(this.latestActivity(DROP_ACTIVITY_TYPES), { initialValue: null });

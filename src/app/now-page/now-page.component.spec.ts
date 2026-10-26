@@ -6,7 +6,7 @@ import { signal } from '@angular/core';
 import { NowPageComponent, formatDay } from './now-page.component';
 import { LastListened, RecentStreamService } from '../../shared/services/recent-stream.service';
 import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
-import { NOW_CONTENT } from './now.content';
+import { NOW_CONTENT_TOKEN } from './now.content';
 import { PROJECTS } from '../../shared/constants/projects.const';
 
 /** Matches RuneProfile activity requests by parsed host and path, not by substring. */
@@ -58,9 +58,10 @@ describe('NowPageComponent', () => {
     http.match(r => new URL(r.url).hostname === 'api.github.com');
   });
 
-  it('shows the note, its date, and the static rows before any live data', () => {
-    expect(text()).toContain(NOW_CONTENT.paragraphs[0]);
-    expect(text()).toContain('updated October 25, 2026');
+  it('hides the note and its date while the note is empty, and shows the static rows', () => {
+    expect((fixture.nativeElement as HTMLElement).querySelector('.note')).toBeNull();
+    expect(text()).not.toContain('updated October');
+    expect(text()).toContain("What I'm up to now");
     expect(rowKeys()).toEqual(['community', 'site']);
     expect(text()).toContain(COMMUNITY_PHOTOS.at(-1)!.caption!);
   });
@@ -129,5 +130,24 @@ describe('NowPageComponent', () => {
     for (const req of http.match(isRuneProfileActivities)) req.flush('down', { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     expect(rowKeys()).not.toContain('playing');
+  });
+});
+
+describe('NowPageComponent with a note', () => {
+  it('shows the note and its updated date once there is text', async () => {
+    sessionStorage.clear();
+    await TestBed.configureTestingModule({
+      imports: [NowPageComponent],
+      providers: [
+        provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
+        { provide: RecentStreamService, useValue: { lastListened: signal(null), when: signal(null) } },
+        { provide: NOW_CONTENT_TOKEN, useValue: { updated: '2026-11-02', paragraphs: ['Mostly building a castle.', 'And a website.'] } },
+      ],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(NowPageComponent);
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect([...el.querySelectorAll('.note p')].map(p => p.textContent)).toEqual(['Mostly building a castle.', 'And a website.']);
+    expect(el.textContent).toContain('updated November 2, 2026');
   });
 });
