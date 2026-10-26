@@ -18,7 +18,11 @@ PR #80. `RecentStreamService` (`src/shared/services/recent-stream.service.ts`) i
 
 PR #84 (sky, lighting modes, ☾ menu), then PR #85: hover labels, the painting soft-matted and relit for each light, a smooth sky, eased changes of light with a travelling Sun, fog, fireflies, the farmhouse light and a campfire. How it works: `.github/copilot-instructions.md` (Architecture → Tonight's sky). What's left is in `ideas-later.md` §4 (Alive).
 
-All three roadmap items are done; the next plan is the site-wide layout and mobile pass.
+All three roadmap items are done.
+
+## 4. Face-lift — in review
+
+The Music/OSRS treatment applied site-wide, plus the layout and mobile pass: compact headers, bands and panel grids, a roomier card, a one-line navbar with a phone pager, Interests tiles with live previews, Music tabs on phones, a bigger OSRS character, the sharp Ada collage. Mockups were approved on the "morganvanv.com face-lift" design canvas; the conventions are in `.github/copilot-instructions.md` (Page layout, breakpoints, Navbar and ☾).
 
 ---
 
