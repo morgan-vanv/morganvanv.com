@@ -28,46 +28,72 @@ const transfer = (lhr, type) =>
   lhr.audits['resource-summary']?.details?.items?.find(item => item.resourceType === type)?.transferSize;
 
 const byUrl = Map.groupBy(runs, lhr => lhr.requestedUrl);
-const rows = [...byUrl].map(([url, lhrs]) => {
+const pages = [...byUrl].map(([url, lhrs]) => {
   const m = pick => median(lhrs.map(pick));
-  return [
-    `\`${path(url)}\``,
-    score(m(lhr => lhr.categories.performance?.score)),
-    score(m(lhr => lhr.categories.accessibility?.score)),
-    score(m(lhr => lhr.categories['best-practices']?.score)),
-    score(m(lhr => lhr.categories.seo?.score)),
-    kb(m(lhr => lhr.audits['total-byte-weight']?.numericValue)),
-    kb(m(lhr => transfer(lhr, 'script'))),
-    kb(m(lhr => transfer(lhr, 'image'))),
-    m(lhr => lhr.audits['cumulative-layout-shift']?.numericValue)?.toFixed(3) ?? '–',
-    links[url] ? `[report](${links[url]})` : '',
-  ];
+  return {
+    url,
+    perf: m(lhr => lhr.categories.performance?.score),
+    a11y: m(lhr => lhr.categories.accessibility?.score),
+    best: m(lhr => lhr.categories['best-practices']?.score),
+    seo: m(lhr => lhr.categories.seo?.score),
+    weight: m(lhr => lhr.audits['total-byte-weight']?.numericValue),
+    js: m(lhr => transfer(lhr, 'script')),
+    images: m(lhr => transfer(lhr, 'image')),
+    cls: m(lhr => lhr.audits['cumulative-layout-shift']?.numericValue),
+  };
 });
 
-const problems = assertions
+const failed = assertions
   .filter(result => !result.passed)
   .map(result => {
     const name = result.auditProperty ? `${result.auditId}:${result.auditProperty}` : result.auditId;
     const bytes = result.auditId === 'total-byte-weight' || result.auditProperty?.endsWith('size');
     const show = value => (bytes ? kb(value) : Number(value.toFixed(3)));
-    return `- ${result.level === 'error' ? '❌' : '⚠️'} \`${path(result.url)}\` ${name}: ${show(result.actual)} (want ${result.operator} ${show(result.expected)})`;
+    const text = `${path(result.url)} ${name}: ${show(result.actual)} (want ${result.operator} ${show(result.expected)})`;
+    return { level: result.level, text };
   });
 
 const markdown = [
   `### Lighthouse: ${label}`,
   '',
-  rows.length
+  pages.length
     ? [
         '| Page | Perf | A11y | Best | SEO | Weight | JS | Images | CLS | |',
         '|---|--:|--:|--:|--:|--:|--:|--:|--:|---|',
-        ...rows.map(row => `| ${row.join(' | ')} |`),
+        ...pages.map(p =>
+          [
+            `\`${path(p.url)}\``,
+            score(p.perf),
+            score(p.a11y),
+            score(p.best),
+            score(p.seo),
+            kb(p.weight),
+            kb(p.js),
+            kb(p.images),
+            p.cls?.toFixed(3) ?? '–',
+            links[p.url] ? `[report](${links[p.url]})` : '',
+          ].join(' | '),
+        ).map(row => `| ${row} |`),
         '',
         `Median of ${Math.max(...[...byUrl.values()].map(lhrs => lhrs.length))} runs per page.`,
       ].join('\n')
     : '_No Lighthouse results found._',
-  problems.length ? ['', ...problems].join('\n') : '',
+  failed.length ? ['', ...failed.map(f => `- ${f.level === 'error' ? '❌' : '⚠️'} \`${f.text}\``)].join('\n') : '',
   '',
 ].join('\n');
 
 if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, markdown);
 else console.log(markdown);
+
+// In Actions, also annotate the run: each failed check (so the reason shows on the PR), and one line
+// with the heaviest numbers (what the ceilings in lighthouserc.cjs are measured against).
+if (process.env.GITHUB_ACTIONS) {
+  for (const f of failed) console.log(`::${f.level === 'error' ? 'error' : 'warning'} title=Lighthouse ${label}::${f.text}`);
+  if (pages.length) {
+    const most = key => Math.max(...pages.map(p => p[key] ?? 0));
+    console.log(
+      `::notice title=Lighthouse ${label}::heaviest page ${kb(most('weight'))} · JS ${kb(most('js'))} · images ${kb(most('images'))} · ` +
+        `max CLS ${most('cls').toFixed(3)} · lowest perf ${Math.round(Math.min(...pages.map(p => p.perf ?? 1)) * 100)}`,
+    );
+  }
+}
