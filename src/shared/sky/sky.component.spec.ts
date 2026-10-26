@@ -104,6 +104,26 @@ describe('SkyComponent', () => {
     open.remove();
   });
 
+  it('draws at device resolution on a 2x screen, and still names stars at CSS positions', async () => {
+    stubBrowser({ landBelow: 0.6 });
+    vi.spyOn(window, 'devicePixelRatio', 'get').mockReturnValue(2);
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const canvas: HTMLCanvasElement = fixture.nativeElement.querySelector('canvas');
+    expect(canvas.width).toBe(Math.ceil(window.innerWidth * 2));
+    expect(parseFloat(canvas.style.width)).toBeCloseTo(Math.ceil(window.innerWidth * 2) / 2, 3);
+    const scene = (fixture.componentInstance as unknown as { scene: { targets: SkyTarget[] } }).scene;
+    const star = scene.targets.find(t => t.kind === 'star' && t.y < window.innerHeight);
+    expect(star).toBeTruthy();
+    const open = document.createElement('div');
+    document.body.append(open);
+    open.dispatchEvent(new PointerEvent('pointermove', { clientX: star!.x / 2, clientY: star!.y / 2, pointerType: 'mouse', bubbles: true }));
+    await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
+    await fixture.whenStable();
+    expect(fixture.nativeElement.querySelector('.sky-label')?.textContent).toContain(star!.name);
+    open.remove();
+  });
+
   it('a look that fails to load is asked for once, and the night look stands in', async () => {
     const { decode, putImageData } = stubBrowser({ failLooks: ['sunset'] });
     const { fixture, sky } = await mount();

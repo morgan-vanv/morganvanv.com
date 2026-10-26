@@ -149,6 +149,35 @@ describe('sky render', () => {
     expect(day.targets.every(t => t.kind === 'sun' || t.kind === 'moon' || t.kind === 'planet')).toBe(true);
   });
 
+  it('can leave the gradient to the caller: a transparent layer that lands on the same picture', () => {
+    const layout = computeLayout(640, 400);
+    const date = new Date('2026-10-26T03:00:00Z');
+    const bodies = computeBodies(Astronomy, date, lat, lon);
+    const opaque = new Uint8ClampedArray(layout.width * layout.height * 4);
+    renderSky(opaque, layout, { date, lat, lon, catalog, bodies, lighting: 'darkness' });
+    const layer = new Uint8ClampedArray(opaque.length);
+    const { background } = renderSky(layer, layout, { date, lat, lon, catalog, bodies, lighting: 'darkness', paintBackground: false });
+    expect(background.top).toEqual(skyColors(-30).top);
+    let transparent = 0;
+    let worst = 0;
+    for (let i = 0; i < layer.length; i += 4) {
+      if (layer[i + 3] === 0) {
+        transparent++;
+        continue;
+      }
+      // Lay the layer over the opaque render's own background colour there and compare.
+      const a = layer[i + 3] / 255;
+      const y = Math.floor(i / 4 / layout.width);
+      const t = Math.min(1, y / layout.horizonY) ** 2;
+      for (let c = 0; c < 3; c++) {
+        const under = background.top[c] + (background.horizon[c] - background.top[c]) * t;
+        worst = Math.max(worst, Math.abs(layer[i + c] * a + under * (1 - a) - opaque[i + c]));
+      }
+    }
+    expect(transparent).toBeGreaterThan(layer.length / 4 * 0.9);
+    expect(worst).toBeLessThan(3);
+  });
+
   it('gives bright things a glow to draw', () => {
     const { result } = render('2026-10-26T03:00:00Z');
     // The full Moon, Saturn and the brightest stars.

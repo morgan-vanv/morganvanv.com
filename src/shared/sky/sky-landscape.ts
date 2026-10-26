@@ -2,9 +2,9 @@ import { Lighting, SkyLayout, smoothstep } from './sky-render';
 
 /**
  * The landscape in front of the sky: Morgan's painting with its sky cut out
- * softly, in four pre-lit looks (built by scripts/build-landscape.py). The
- * component draws them over the sky, blended by these weights, and adds the
- * farmhouse light, morning fog and dusk fireflies.
+ * softly, in four pre-lit looks (built by scripts/build-landscape.py; the
+ * sunrise look has its morning fog baked in). The component draws them over the
+ * sky, blended by these weights, and adds the farmhouse light and dusk fireflies.
  */
 export type LandscapeLook = 'darkness' | 'sunrise' | 'sunset' | 'day';
 export const LANDSCAPE_LOOKS: readonly LandscapeLook[] = ['darkness', 'sunrise', 'sunset', 'day'];

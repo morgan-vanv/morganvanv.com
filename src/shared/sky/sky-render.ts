@@ -2,19 +2,20 @@ import { Bodies, PlanetName } from './sky-bodies';
 import { Vec3, altAz, altAzToVector, j2000ToHorizontalMatrix, multiply, projectSouth, raDecToVector, sunHorizontal } from './sky-math';
 
 /**
- * Draws the sky into a small RGBA buffer, one buffer pixel per "art" pixel;
- * the component scales it up with nearest-neighbour so it reads as pixel art.
- * Everything here is pure (no DOM), so it can be tested directly.
+ * Draws the sky into an RGBA buffer: the gradient (unless the caller paints it),
+ * soft stars, antialiased constellation lines, the Sun and the Moon. The buffer
+ * is usually at device resolution; `layout.artPixel` says how many CSS pixels
+ * one buffer pixel is. Everything here is pure (no DOM), so it can be tested.
+ * "Buffer pixels" below means pixels of that buffer.
  */
 
-/** The scene's size (public/background.webp; the landscape looks are drawn at 1/4 of it), and the row where its horizon (the valley floor) sits. */
+/** The painting's size (public/background.webp; the landscape looks are 3/4 of it), and the row where its horizon (the valley floor) sits. */
 export const BACKGROUND_SIZE = { width: 2560, height: 1706 } as const;
 export const BACKGROUND_HORIZON_Y = 905;
 /** The low point of the valley between the painted mountains, where the pretend sunrise and sunset happen. */
 export const BACKGROUND_VALLEY = { x: 1350, y: 922 } as const;
 /** The farmhouse's gable end, where a light is left on after dark. */
 export const BACKGROUND_WINDOW = { x: 542, y: 1052 } as const;
-/** One art pixel is this many CSS pixels. */
 /** CSS pixels per buffer pixel by default. The component passes 1 / devicePixelRatio for crisp, smooth drawing. */
 export const ART_PIXEL = 1;
 
@@ -68,18 +69,18 @@ export interface SkyLayout {
   /** Buffer size in buffer pixels. */
   readonly width: number;
   readonly height: number;
-  /** Where altitude 0 due south lands, in art pixels. */
+  /** Where altitude 0 due south lands, in buffer pixels. */
   readonly centerX: number;
   readonly horizonY: number;
   /** Projection scale: the zenith is 2 × scale above the horizon, east and west 2 × scale either side. */
   readonly scale: number;
-  /** The painting's valley between the mountains, in art pixels. */
+  /** The painting's valley between the mountains, in buffer pixels. */
   readonly valleyX: number;
   readonly valleyY: number;
-  /** The farmhouse window, in art pixels. */
+  /** The farmhouse window, in buffer pixels. */
   readonly windowX: number;
   readonly windowY: number;
-  /** Where the scene's (0, 0) lands and how many art pixels one scene pixel spans. */
+  /** Where the scene's (0, 0) lands and how many buffer pixels one scene pixel spans. */
   readonly imageX: number;
   readonly imageY: number;
   readonly imageScale: number;
@@ -182,13 +183,13 @@ export const LIGHTINGS: readonly Lighting[] = ['darkness', 'real', 'sunrise', 's
 interface Look {
   readonly top: Rgb;
   readonly horizon: Rgb;
-  /** A warm glow along the horizon, centred on `x` (art pixels). */
+  /** A warm glow along the horizon, centred on `x` (buffer pixels). */
   readonly glow: { readonly x: number; readonly color: Rgb; readonly strength: number } | null;
   /** 0…1: how visible stars (and constellation lines) are. */
   readonly stars: number;
   /** 0…1: the same for the brightest planets, which show up first. */
   readonly brightPlanets: number;
-  /** Where to draw the Sun's disc, in art pixels, or null for no Sun. */
+  /** Where to draw the Sun's disc, in buffer pixels, or null for no Sun. */
   readonly sun: { readonly x: number; readonly y: number } | null;
   /** The Sun altitude this look stands for (drives how much page cards darken). */
   readonly sunAlt: number;
@@ -283,7 +284,7 @@ export interface SkyBackground {
   readonly glow: { readonly x: number; readonly color: Rgb; readonly strength: number } | null;
 }
 
-/** Something on screen that can be named on hover. Positions in art pixels. */
+/** Something on screen that can be named on hover. Positions in buffer pixels. */
 export interface SkyTarget {
   readonly kind: 'star' | 'planet' | 'moon' | 'sun';
   readonly name: string;
@@ -293,11 +294,11 @@ export interface SkyTarget {
   readonly detail?: string;
   readonly x: number;
   readonly y: number;
-  /** How close (art pixels) the pointer has to be. */
+  /** How close (buffer pixels) the pointer has to be. */
   readonly radius: number;
 }
 
-/** A drawn constellation line segment, in art pixels. */
+/** A drawn constellation line segment, in buffer pixels. */
 export interface SkySegment {
   readonly figure: string;
   readonly ax: number;
@@ -312,7 +313,7 @@ export interface SkyRenderResult {
   readonly sunAz: number;
   /** How many catalogue stars ended up drawn (above the horizon, on screen, not washed out). */
   readonly starsDrawn: number;
-  /** Where the Moon was drawn (art pixels) and the mean offset of its lit pixels from its centre (y down), or null if not drawn. */
+  /** Where the Moon was drawn (buffer pixels) and the mean offset of its lit pixels from its centre (y down), or null if not drawn. */
   readonly moon: { readonly x: number; readonly y: number; readonly litCount: number; readonly litDx: number; readonly litDy: number } | null;
   /** What was drawn that can be named on hover (only things visible in this lighting). */
   readonly targets: readonly SkyTarget[];
@@ -542,7 +543,7 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   return { sunAlt, sunAz: look.sunAz, starsDrawn, moon: moonResult, targets, segments, glows, background: { top, horizon, glow } };
 }
 
-/** Finds what's under a point (art pixels): the nearest target in reach, else the nearest figure line within `lineReach`. */
+/** Finds what's under a point (buffer pixels): the nearest target in reach, else the nearest figure line within `lineReach`. */
 export function hitTest(
   x: number,
   y: number,

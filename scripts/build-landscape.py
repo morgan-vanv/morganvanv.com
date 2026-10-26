@@ -1,7 +1,7 @@
 """Builds the landscape the live sky sits behind: public/landscape/<look>.webp,
 one per lighting look (darkness, sunrise, sunset, day). Each is Morgan's
 painting (art/painting.png, the lossless original) with the sky cut out softly
-and relit, at 3/4 size (1920x1280).
+and relit, at 3/4 size (1920x1279).
 
     python3 scripts/build-landscape.py art/painting.png public/landscape
 
@@ -105,21 +105,28 @@ for x in range(W):
 #   pixel = a * foreground + (1 - a) * sky   →   a by projection, colour by unmixing.
 # That gives soft, antialiased edges with none of the old sky left in them.
 P = rgb_u8.astype(np.float32)
-sure_sky = ndimage.binary_erosion(sky, iterations=6)
-sure_land = ndimage.binary_erosion(~sky, iterations=6)
+# border_value=1: the picture's own edges don't make anything less certain.
+sure_sky = ndimage.binary_erosion(sky, iterations=6, border_value=1)
+sure_land = ndimage.binary_erosion(~sky, iterations=6, border_value=1)
 band = ~sure_sky & ~sure_land
 
 lum_all = P.sum(2)
 not_star = np.abs(lum_all - ndimage.median_filter(lum_all, size=5)) < 12
 B = np.zeros_like(P)
 last = None
+first_fit = None
+last_fit_row = -1
 for y in range(H):
     sel = sure_sky[y] & not_star[y]
     if sel.sum() > 30:
         last = [np.polyfit(xs[sel], P[y, sel, c], 2) for c in range(3)]
+        first_fit = y if first_fit is None else first_fit
+        last_fit_row = y
     if last is not None:
         for c in range(3):
             B[y, :, c] = np.polyval(last[c], xs)
+B[:first_fit] = B[first_fit]  # rows above the first fit take its colours
+B = np.clip(B, 0, 255)
 
 _, (iy, ix) = ndimage.distance_transform_edt(~sure_land, return_indices=True)
 F = ndimage.uniform_filter(P[iy, ix], size=(5, 5, 1))
@@ -130,6 +137,8 @@ def solve(F):
 
 alpha = solve(F)
 alpha = np.where(sure_land, 1, np.where(sure_sky, 0, alpha))
+# Well below the last row with sky to model there's no sky to unmix from: it's all land.
+alpha[last_fit_row + 40:] = np.where(sky[last_fit_row + 40:], alpha[last_fit_row + 40:], 1)
 
 # Sky seen through gaps in the crowns (above the horizon, coloured like the sky there).
 # (A little below the horizon too: the glow in the valley between the peaks is sky.)
@@ -145,8 +154,10 @@ in_crown = ndimage.uniform_filter(np.where(candidate, 0, greenish), size=15) > 0
 crown_ids = np.unique(labels[candidate & in_crown])
 pocket = np.isin(labels, np.setdiff1d(np.union1d(open_ids, crown_ids), [0]))
 pocket = ndimage.binary_dilation(pocket, iterations=1) & above & ~sky
-weight = ndimage.uniform_filter((~pocket).astype(np.float32), size=9)
-local_f = ndimage.uniform_filter(np.where(pocket[..., None], 0, P), size=(9, 9, 1)) / np.maximum(weight, 1e-3)[..., None]
+# The foreground colour around a gap: its non-gap, non-sky neighbours only.
+solid = ~pocket & ~sky
+weight = ndimage.uniform_filter(solid.astype(np.float32), size=9)
+local_f = ndimage.uniform_filter(np.where(solid[..., None], P, 0), size=(9, 9, 1)) / np.maximum(weight, 1e-3)[..., None]
 alpha = np.where(pocket, np.minimum(alpha, solve(local_f)), alpha)
 F = np.where(pocket[..., None], local_f, F)
 band |= pocket
@@ -236,6 +247,7 @@ def relit(look):
         out = out * (1 - fog[..., None]) + FOG * fog[..., None]
     return out
 
+assert alpha[:6][sure_sky[:6]].max(initial=0) == 0, 'open sky along the top edge must be fully transparent'
 alpha_u8 = (alpha * 255).round().astype(np.uint8)
 for look in ('darkness', 'sunrise', 'sunset', 'day'):
     pixels = np.dstack([np.clip(relit(look), 0, 255).astype(np.uint8), alpha_u8])

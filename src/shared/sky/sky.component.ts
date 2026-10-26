@@ -133,7 +133,9 @@ export class SkyComponent {
   /** Where the landscape covers the sky (alpha), at a quarter of CSS resolution, for hover. */
   private landMask: { width: number; height: number; alpha: Uint8ClampedArray } | null = null;
   private destroyed = false;
-  private points: HTMLCanvasElement | null = null;
+  private readonly scratch = new Map<string, HTMLCanvasElement>();
+  private pointsData: ImageData | null = null;
+  private blendKey = '';
   private fireflyKey = '';
 
   constructor() {
@@ -175,8 +177,21 @@ export class SkyComponent {
         if (resizeObserver) resizeObserver.observe(this.host);
         else window.addEventListener('resize', onResize);
         const stopHover = this.listenForHover();
+        // Moving to a screen with a different pixel density: redraw at the new resolution.
+        let density: MediaQueryList | null = null;
+        const watchDensity = () => {
+          density?.removeEventListener?.('change', onDensity);
+          density = matchMedia(`(resolution: ${window.devicePixelRatio || 1}dppx)`);
+          density.addEventListener?.('change', onDensity);
+        };
+        const onDensity = () => {
+          watchDensity();
+          this.draw();
+        };
+        watchDensity();
         destroyRef.onDestroy(() => {
           stopHover();
+          density?.removeEventListener?.('change', onDensity);
           document.documentElement.style.removeProperty('--daylight');
           clearInterval(interval);
           clearTimeout(resizeTimer);
@@ -239,13 +254,51 @@ export class SkyComponent {
     return null;
   }
 
-  /** A reusable offscreen canvas for the stars layer. */
-  private pointsCanvas(): HTMLCanvasElement | null {
+  /** A named offscreen canvas, created once and reused. */
+  private scratchCanvas(name: string): HTMLCanvasElement | null {
     try {
-      return (this.points ??= document.createElement('canvas'));
+      let canvas = this.scratch.get(name);
+      if (!canvas) this.scratch.set(name, (canvas = document.createElement('canvas')));
+      return canvas;
     } catch {
       return null;
     }
+  }
+
+  /** The transparent buffer the renderer draws points into: reused, cleared each time. */
+  private pointsImage(context: CanvasRenderingContext2D, layout: SkyLayout): ImageData {
+    const reuse = this.pointsData;
+    if (reuse && reuse.width === layout.width && reuse.height === layout.height) {
+      reuse.data.fill(0);
+      return reuse;
+    }
+    return (this.pointsData = context.createImageData(layout.width, layout.height));
+  }
+
+  /**
+   * The weighted looks combined into one image, at the looks' own size. They all share one
+   * silhouette, so adding weight × each (premultiplied) gives exactly the blend, soft edges
+   * included. Cached until the weights change.
+   */
+  private blendedLandscape(layers: readonly { image: HTMLImageElement; weight: number }[]): CanvasImageSource | null {
+    if (layers.length === 1) return layers[0].image;
+    const canvas = this.scratchCanvas('landscape');
+    const first = layers[0]?.image;
+    if (!canvas || !first) return null;
+    const key = layers.map(l => `${l.image.src}:${l.weight.toFixed(3)}`).join('|');
+    if (key === this.blendKey) return canvas;
+    const context = canvas.getContext('2d');
+    if (!context) return null;
+    [canvas.width, canvas.height] = [first.naturalWidth || first.width, first.naturalHeight || first.height];
+    context.globalCompositeOperation = 'lighter';
+    for (const { image, weight } of layers) {
+      context.globalAlpha = weight;
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    }
+    context.globalAlpha = 1;
+    context.globalCompositeOperation = 'source-over';
+    this.blendKey = key;
+    return canvas;
   }
 
   private viewWidth(): number {
@@ -258,6 +311,7 @@ export class SkyComponent {
 
   /** Draws a landscape image the way CSS draws the painting (`cover`, centred), in buffer pixels. */
   private drawCover(context: CanvasRenderingContext2D, image: CanvasImageSource, layout: SkyLayout): void {
+    // (Any source: a look image or the blended canvas; it's stretched to the painting's frame.)
     const scale = layout.imageScale;
     context.drawImage(image, layout.imageX, layout.imageY, BACKGROUND_SIZE.width * scale, BACKGROUND_SIZE.height * scale);
   }
@@ -418,21 +472,21 @@ export class SkyComponent {
     const lighting = this.sky.lighting();
     // The gradient is painted by the canvas (fast, smooth); everything that's a point, a line
     // or a disc is drawn in JS onto a transparent layer and laid over it.
-    const image = context.createImageData(layout.width, layout.height);
+    const image = this.pointsImage(context, layout);
     const { sunAlt, sunAz, targets, segments, glows, background } = renderSky(image.data, layout, {
       date, lat, lon, catalog, bodies, lighting, paintBackground: false,
     });
-    paintSky(context, layout, background);
-    const points = this.pointsCanvas();
+    paintSky(context, layout, background, this.scratchCanvas('glow'));
+    const points = this.scratchCanvas('points');
     if (points) {
-      [points.width, points.height] = [layout.width, layout.height];
+      if (points.width !== layout.width || points.height !== layout.height) [points.width, points.height] = [layout.width, layout.height];
       points.getContext('2d')?.putImageData(image, 0, 0);
       context.drawImage(points, 0, 0);
     }
     drawGlows(context, glows);
 
-    // The landscape: the weighted looks, blended in turn. A look that hasn't loaded (or
-    // failed) lends its weight to the night look until it arrives.
+    // The landscape: the weighted looks. A look that hasn't loaded (or failed) lends its
+    // weight to the night look until it arrives.
     let nightWeight = 0;
     const layers: { image: HTMLImageElement; weight: number }[] = [];
     for (const [look, weight] of Object.entries(lookWeights(lighting, sunAlt, sunAz)) as [LandscapeLook, number][]) {
@@ -441,13 +495,7 @@ export class SkyComponent {
       else nightWeight += weight;
     }
     if (nightWeight > 0) layers.unshift({ image: night, weight: nightWeight });
-    let drawn = 0;
-    for (const { image: img, weight } of layers) {
-      drawn += weight;
-      context.globalAlpha = drawn ? weight / drawn : 1;
-      this.drawCover(context, img, layout);
-    }
-    context.globalAlpha = 1;
+    this.drawCover(context, this.blendedLandscape(layers) ?? night, layout);
 
     drawWindowLight(context, layout, windowGlow(lighting, sunAlt));
     this.updateLandMask(night);
@@ -481,8 +529,13 @@ export class SkyComponent {
 
 const rgba = ([r, g, b]: readonly number[], a: number) => `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
 
-/** The sky gradient (zenith to horizon, eased like the renderer's), and the horizon glow. */
-function paintSky(context: CanvasRenderingContext2D, layout: SkyLayout, background: SkyBackground): void {
+/**
+ * The sky gradient (zenith to horizon, eased like the renderer's), and the horizon glow,
+ * built exactly as the renderer defines it: strength × 0.55 × t³ (up from the horizon) ×
+ * exp(−(dx / 0.3w)²) (along it), as a horizontal gradient masked by a vertical one on a
+ * small offscreen canvas.
+ */
+function paintSky(context: CanvasRenderingContext2D, layout: SkyLayout, background: SkyBackground, scratch: HTMLCanvasElement | null): void {
   const { top, horizon, glow } = background;
   const horizonY = Math.max(1, layout.horizonY);
   const gradient = context.createLinearGradient(0, 0, 0, horizonY);
@@ -492,19 +545,28 @@ function paintSky(context: CanvasRenderingContext2D, layout: SkyLayout, backgrou
   }
   context.fillStyle = gradient;
   context.fillRect(0, 0, layout.width, layout.height);
-  if (!glow) return;
-  // The renderer's glow is strength × t³ × 0.55 across, × a Gaussian along: an ellipse on the horizon.
-  const [rx, ry] = [layout.width * 0.3 * 1.6, horizonY];
-  context.save();
-  context.translate(glow.x, horizonY);
-  context.scale(1, ry / rx);
-  const halo = context.createRadialGradient(0, 0, 0, 0, 0, rx);
-  for (const [stop, share] of [[0, 1], [0.25, 0.62], [0.5, 0.28], [0.75, 0.08], [1, 0]] as const) {
-    halo.addColorStop(stop, rgba(glow.color, glow.strength * 0.55 * share));
+  if (!glow || !scratch) return;
+  const glowContext = scratch.getContext('2d');
+  if (!glowContext) return;
+  // A quarter size is plenty for something this soft.
+  const [w, h] = [Math.ceil(layout.width / 4), Math.ceil(layout.height / 4)];
+  if (scratch.width !== w || scratch.height !== h) [scratch.width, scratch.height] = [w, h];
+  glowContext.clearRect(0, 0, w, h);
+  const along = glowContext.createLinearGradient(0, 0, w, 0);
+  const [gx, sigma] = [glow.x / 4, (layout.width * 0.3) / 4];
+  for (let k = 0; k <= 24; k++) {
+    const x = (k / 24) * w;
+    along.addColorStop(k / 24, rgba(glow.color, glow.strength * 0.55 * Math.exp(-(((x - gx) / sigma) ** 2))));
   }
-  context.fillStyle = halo;
-  context.fillRect(-rx, -rx, rx * 2, rx * 2);
-  context.restore();
+  glowContext.fillStyle = along;
+  glowContext.fillRect(0, 0, w, h);
+  const up = glowContext.createLinearGradient(0, 0, 0, horizonY / 4);
+  for (let k = 0; k <= 10; k++) up.addColorStop(k / 10, `rgba(0, 0, 0, ${(k / 10) ** 3})`);
+  glowContext.globalCompositeOperation = 'destination-in';
+  glowContext.fillStyle = up;
+  glowContext.fillRect(0, 0, w, h);
+  glowContext.globalCompositeOperation = 'source-over';
+  context.drawImage(scratch, 0, 0, layout.width, layout.height);
 }
 
 /** Soft halos round things that shine. */
