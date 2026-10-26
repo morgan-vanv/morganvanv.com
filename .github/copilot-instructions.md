@@ -36,13 +36,14 @@ src/
     page-header/     # <app-page-header>: a page's visible h1, dim one-liner, optional meta
     custom-navbar/   # Navigation: one line on wide screens, a pager on tablets/phones; links from MAIN_ROUTES
     icon/            # <app-icon name="…">: the site's few glyphs as inline SVG
+    vertical-nav/    # Interests tiles: a [preview] slot while collapsed, ↑/↓ + Enter/Esc, one section expanded at a time
     scroll-region/   # ScrollRegionService + [appScrollRegion] for arrow-key scrolling
     config/site.config.ts    # every handle, URL and endpoint the site uses
     services/        # KeyboardNavService, SeoTitleStrategy, ApiCacheService, API clients
     sky/             # Tonight's sky: live canvas behind every page (see below)
     route-transition.ts  # View Transitions direction logic
     main-routes.ts       # the main pages: path, title, description
-    shared-styles.scss   # Shared utility mixins (e.g. scrollbar-styled)
+    shared-styles.scss   # Shared mixins: surface, panel, band, panel-grid, prose, label, progress-bar, scrollbar-styled
   styles.scss        # Global styles, color variables, route-transition CSS
 public/              # static assets, robots.txt, sitemap.xml, humans.txt, site.webmanifest, data/sky/
 scripts/             # build-info (prebuild hook); sky data and landscape generators (one-off)
@@ -53,7 +54,7 @@ art/                 # source art (the painting, lossless); not served
 
 **Routing:** Main routes are declared once in `MAIN_ROUTES` (`src/shared/main-routes.ts`) with a `path`, `title` and `description`. Their order drives arrow-key navigation (`KeyboardNavService`), the navbar, slide direction, titles and meta tags. `src/app/app.routes.ts` maps each path to a lazy `loadComponent` via `lazyRouteComponents` and derives `data.animation` / `data.description` from the route. Don't hand-write `animation` values.
 
-**Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget), and give the page a header: `<app-page-header title="…" description="…">` inside `<app-base-page>` (or `<app-base-page pageTitle="…">` for a visually-hidden h1 when the page renders its own). Exactly one `<h1>` per page. The navbar and pager update themselves.
+**Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget), and give the page a header: `<app-page-header title="…" description="…">` inside `<app-base-page>` (or a visually-hidden h1 when the page shows its title another way: `<app-base-page pageTitle="…">`, or its own as Interests does while a section is open). Exactly one `<h1>` per page. The navbar and pager update themselves.
 
 **Build info:** `npm run build` runs `scripts/write-build-info.mjs` first (the `prebuild` hook), writing the gitignored `src/build-info.prod.ts` that the production configuration swaps in for `src/build-info.ts`. Always build production through `npm run build`; a bare `ng build` skips the hook and fails on the missing file.
 
@@ -83,6 +84,8 @@ For navigation, prefer `routerLink` over imperative `Router.navigate()` whenever
 **Icons:** `<app-icon name="chevron-down" />`. Add a path to `ICON_PATHS` in `src/shared/icon/icon.component.ts` for a new glyph. No icon fonts, no Angular Material.
 
 **Fonts:** JetBrains Mono and Caveat are bundled from `@fontsource` (latin subsets, listed in `angular.json` `styles`). Never add a Google Fonts `<link>`; the build must not need the network.
+
+**Keyboard:** ← → always page between routes (`KeyboardNavService`), Escape returns to the greeting, ↑/↓ scroll or move within a page. Don't give a widget arrow-key semantics that fight that: use toggle buttons with `aria-pressed` rather than ARIA tabs or radio groups (the Music list switcher does), and ↑/↓ walk the Interests tiles in reading order even when they sit two across. Navigation UI marks the current/hovered item with the gold `[ ]` brackets (navbar, pager, tiles, the greeting's way in), reserving their space so nothing shifts.
 
 **Scroll regions:** Put `appScrollRegion` on the element arrow keys should scroll (`[appScrollRegion]="false"` withdraws it). The innermost registered region wins.
 
