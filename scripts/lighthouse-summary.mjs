@@ -91,9 +91,11 @@ if (process.env.GITHUB_ACTIONS) {
   for (const f of failed) console.log(`::${f.level === 'error' ? 'error' : 'warning'} title=Lighthouse ${label}::${f.text}`);
   if (pages.length) {
     const most = key => Math.max(...pages.map(p => p[key] ?? 0));
-    console.log(
-      `::notice title=Lighthouse ${label}::heaviest page ${kb(most('weight'))} · JS ${kb(most('js'))} · images ${kb(most('images'))} · ` +
-        `max CLS ${most('cls').toFixed(3)} · lowest perf ${Math.round(Math.min(...pages.map(p => p.perf ?? 1)) * 100)}`,
-    );
+    const lines = [
+      `heaviest page ${kb(most('weight'))} · JS ${kb(most('js'))} · images ${kb(most('images'))} · max CLS ${most('cls').toFixed(3)}`,
+      ...pages.map(p => `${path(p.url)}  ${[p.perf, p.a11y, p.best, p.seo].map(score).join('/')}  ${kb(p.weight)}`),
+    ];
+    // Annotation messages encode newlines as %0A.
+    console.log(`::notice title=Lighthouse ${label}::${lines.join('%0A')}`);
   }
 }
