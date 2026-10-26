@@ -1,10 +1,11 @@
-import { Lighting, SkyLayout, smoothstep } from './sky-render';
+import { BACKGROUND_CAMPFIRE, BACKGROUND_WINDOW, Lighting, SkyLayout, smoothstep } from './sky-render';
 
 /**
  * The landscape in front of the sky: Morgan's painting with its sky cut out
  * softly, in four pre-lit looks (built by scripts/build-landscape.py; the
  * sunrise look has its morning fog baked in). The component draws them over the
- * sky, blended by these weights, and adds the farmhouse light and dusk fireflies.
+ * sky, blended by these weights, and adds the farmhouse window, the campfire
+ * beside it and the dusk fireflies.
  */
 export type LandscapeLook = 'darkness' | 'sunrise' | 'sunset' | 'day';
 export const LANDSCAPE_LOOKS: readonly LandscapeLook[] = ['darkness', 'sunrise', 'sunset', 'day'];
@@ -34,8 +35,8 @@ export function lookWeights(lighting: Lighting, sunAlt: number, sunAz: number): 
 }
 
 /**
- * How brightly the farmhouse window glows: fully after dark, a little at dusk
- * and dawn, not at all in daylight.
+ * How brightly the farmhouse window and the campfire glow: fully after dark,
+ * a little at dusk and dawn, not at all in daylight.
  */
 export function windowGlow(lighting: Lighting, sunAlt: number): number {
   switch (lighting) {
@@ -85,4 +86,22 @@ export function fireflies(layout: SkyLayout, count: number): Firefly[] {
     out.push({ x: Math.round(x), y: Math.round(y), delay: +(random() * 6).toFixed(2), duration: +(4 + random() * 4).toFixed(2) });
   }
   return out;
+}
+
+/** Where the farmhouse window and the campfire are, in CSS pixels, and how big a scene pixel is there (1 on a 1280-wide screen). */
+export interface NightLights {
+  readonly window: { readonly x: number; readonly y: number };
+  readonly fire: { readonly x: number; readonly y: number };
+  readonly size: number;
+}
+
+export function nightLights(layout: SkyLayout): NightLights {
+  const css = layout.artPixel;
+  const at = (p: { x: number; y: number }) => ({
+    x: Math.round((layout.imageX + p.x * layout.imageScale) * css * 10) / 10,
+    y: Math.round((layout.imageY + p.y * layout.imageScale) * css * 10) / 10,
+  });
+  // Scene pixels per CSS pixel × 2: the painting is drawn at half size on a 1280-wide screen.
+  const size = Math.max(0.7, Math.round(layout.imageScale * css * 2 * 100) / 100);
+  return { window: at(BACKGROUND_WINDOW), fire: at(BACKGROUND_CAMPFIRE), size };
 }

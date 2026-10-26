@@ -131,6 +131,13 @@ export function projectSouth(h: Vec3): { x: number; y: number } | null {
   return { x: (-2 * h[1]) / denom, y: (2 * h[2]) / denom };
 }
 
+/** The inverse of `projectSouth`: the horizontal unit vector that lands at (x, y). */
+export function unprojectSouth(x: number, y: number): Vec3 {
+  const r2 = x * x + y * y;
+  const k = r2 + 4;
+  return [(r2 - 4) / k, (-4 * x) / k, (4 * y) / k];
+}
+
 /**
  * Low-precision Sun position (Astronomical Almanac; about 0.01° from 1950 to
  * 2050), as right ascension / declination of date in degrees.

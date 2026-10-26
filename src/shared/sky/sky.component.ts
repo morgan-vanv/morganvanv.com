@@ -9,19 +9,23 @@ import {
   signal,
   untracked,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { SkyService } from './sky.service';
-import { j2000ToHorizontalMatrix } from './sky-math';
+import { altAz, j2000ToHorizontalMatrix, sunHorizontal } from './sky-math';
 import { upNow } from './sky-up-now';
 import { AstronomyModule, Bodies, computeBodies, loadAstronomy } from './sky-bodies';
 import { NO_HOVER, SkyHover, hoverAt, hoverLabel, isOpenSky, sameHover } from './sky-hover';
 import {
   Firefly,
+  LANDSCAPE_LOOKS,
   LandscapeLook,
+  NightLights,
   fireflies,
   fireflyAmount,
   landscapeUrl,
   lookWeights,
+  nightLights,
   windowGlow,
 } from './sky-landscape';
 import {
@@ -34,6 +38,7 @@ import {
   SkyCatalog,
   SkyGlow,
   SkyLayout,
+  SkyRenderResult,
   SkySegment,
   SkyTarget,
   StarFile,
@@ -41,7 +46,9 @@ import {
   prepareCatalog,
   renderSky,
   smoothstep,
+  sunDiscRadius,
 } from './sky-render';
+import { LightState, TRANSITION_MS, ease, lightBetween, sunPlaceAt, sunScreen } from './sky-transition';
 
 /** How often the sky is redrawn while the tab is visible (the sky turns about 0.25° a minute). */
 export const REDRAW_INTERVAL_MS = 60_000;
@@ -54,6 +61,10 @@ const TOUCH_LABEL_MS = 3000;
 const MAX_DPR = 2;
 /** How close (CSS px) the pointer must be to a constellation line to name it. */
 const LINE_REACH_CSS = 6;
+/** How long a change of light waits for its landscape look to arrive before going ahead without it. */
+const LOOK_WAIT_MS = 1500;
+/** Fireflies are on the meadow while there's at least this much of them. */
+const FIREFLY_MIN = 0.05;
 
 /**
  * `?sky-at=2026-01-15T04:00Z` pins the sky to a moment, for checking how it
@@ -79,20 +90,46 @@ export function parseSkyAt(search: string): Date | null {
  * only astronomy-engine fails, the sky draws without the Moon and planets.
  * Other landscape looks (sunrise, sunset, day) load when first needed.
  *
- * No animation loop: the sky is redrawn once a minute while the tab is
- * visible, and never on a timer for visitors who prefer reduced motion. Hover
- * highlights go on a second, cheap canvas, so pointing at stars never redraws
- * the sky.
+ * No standing animation loop: the sky is redrawn once a minute while the tab
+ * is visible, and never on a timer for visitors who prefer reduced motion.
+ * Changing the light draws the new one once, onto a second pair of layers,
+ * and crossfades to it over a couple of seconds while the Sun (an element of
+ * its own) travels to its new place; see sky-transition.ts. Per frame that's
+ * an opacity and a transform, nothing redrawn. Under reduced motion the light
+ * changes at once. The fireflies, the farmhouse window and the campfire are
+ * CSS. Hover highlights go on their own cheap canvas, so pointing at stars
+ * never redraws the sky.
+ *
+ * Layers, back to front: the sky (gradient, stars, Moon, halos), the Sun, the
+ * landscape, the hover overlay, then the small lights.
  */
 @Component({
   selector: 'app-sky',
   template: `
-    <canvas #canvas class="sky"></canvas>
+    <canvas #sky class="sky"></canvas>
+    <canvas #sky class="sky"></canvas>
+    <div #sun class="sun"></div>
+    <canvas #land class="sky"></canvas>
+    <canvas #land class="sky"></canvas>
     <canvas #overlay class="sky overlay"></canvas>
-    @for (fly of fireflies(); track $index) {
-      <span class="firefly" [style.left.px]="fly.x" [style.top.px]="fly.y"
-        [style.animation-delay.s]="fly.delay" [style.animation-duration.s]="fly.duration"></span>
+    @if (lights(); as lights) {
+      <span class="window-light" [style.left.px]="lights.window.x" [style.top.px]="lights.window.y" [style.--size]="lights.size"></span>
+      <div class="campfire" [style.left.px]="lights.fire.x" [style.top.px]="lights.fire.y" [style.--size]="lights.size">
+        <span class="fire-pool"></span>
+        <span class="fire-glow"></span>
+        <span class="fire-flame"></span>
+        <span class="fire-core"></span>
+        @for (ember of embers; track $index) {
+          <span class="ember" [style.--drift.px]="ember.drift" [style.animation-delay.s]="ember.delay"></span>
+        }
+      </div>
     }
+    <div class="fireflies">
+      @for (fly of fireflies(); track $index) {
+        <span class="firefly" [style.left.px]="fly.x" [style.top.px]="fly.y"
+          [style.animation-delay.s]="fly.delay" [style.animation-duration.s]="fly.duration"></span>
+      }
+    </div>
     @if (label(); as label) {
       <div class="sky-label" [style.left.px]="label.x" [style.top.px]="label.y">{{ label.text }}</div>
     }
@@ -107,11 +144,23 @@ export function parseSkyAt(search: string): Date | null {
 export class SkyComponent {
   protected readonly sky = inject(SkyService);
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
-  private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
+  /** Two of each, so a change of light can crossfade from one to the other. */
+  private readonly skies = viewChildren<ElementRef<HTMLCanvasElement>>('sky');
+  private readonly lands = viewChildren<ElementRef<HTMLCanvasElement>>('land');
+  private readonly sunElement = viewChild.required<ElementRef<HTMLElement>>('sun');
   private readonly overlay = viewChild.required<ElementRef<HTMLCanvasElement>>('overlay');
 
   /** Fireflies on the meadow at dusk (CSS-animated; nothing at all otherwise). */
   protected readonly fireflies = signal<readonly Firefly[]>([]);
+  /** Where the farmhouse window and the campfire are (CSS pixels); how bright they are is a CSS variable. */
+  protected readonly lights = signal<NightLights | null>(null);
+  /** Sparks off the campfire: sideways drift (CSS px) and start offset (s). */
+  protected readonly embers = [
+    { drift: -2, delay: 0 },
+    { drift: 2.5, delay: 0.9 },
+    { drift: -0.5, delay: 1.7 },
+    { drift: 1.5, delay: 2.6 },
+  ] as const;
   /** The hover label, in CSS pixels, or null. */
   protected readonly label = signal<{ text: string; x: number; y: number } | null>(null);
 
@@ -137,15 +186,34 @@ export class SkyComponent {
   private pointsData: ImageData | null = null;
   private blendKey = '';
   private fireflyKey = '';
+  private lightsKey = '';
+  /** Which of the two sky/landscape pairs is on screen. */
+  private shown = 0;
+  /** What's eased on screen now, and the change under way (if any). */
+  private state: LightState | null = null;
+  private transition: {
+    from: LightState;
+    to: LightState;
+    start: number;
+    frame: number;
+    /** The pair fading in, and the one fading out. */
+    incoming: number;
+    /** 0…1, eased: how far the crossfade has got. */
+    progress: number;
+  } | null = null;
+  /** Bumped by every redraw, so a change of light still waiting on its look knows if it's been overtaken. */
+  private drawId = 0;
+  /** A look arrived mid-change (the night look stood in for it): redraw when the change is over. */
+  private redrawAfterTransition = false;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
 
-    // Redraw when the visitor changes whose sky it is or how it's lit.
+    // Redraw when the visitor changes whose sky it is or how it's lit, easing into it.
     effect(() => {
       this.sky.location();
       this.sky.lighting();
-      untracked(() => this.draw());
+      untracked(() => this.changeLight());
     });
 
     afterNextRender(() => {
@@ -161,10 +229,10 @@ export class SkyComponent {
 
         const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
         const interval = reducedMotion ? undefined : setInterval(() => {
-          if (document.visibilityState === 'visible') this.draw();
+          if (document.visibilityState === 'visible' && !this.transition) this.draw();
         }, REDRAW_INTERVAL_MS);
         const onVisibility = () => {
-          if (document.visibilityState === 'visible') this.draw();
+          if (document.visibilityState === 'visible' && !this.transition) this.draw();
         };
         let resizeTimer: ReturnType<typeof setTimeout> | undefined;
         const onResize = () => {
@@ -190,6 +258,8 @@ export class SkyComponent {
         };
         watchDensity();
         destroyRef.onDestroy(() => {
+          if (this.transition) cancelAnimationFrame(this.transition.frame);
+          this.transition = null;
           stopHover();
           density?.removeEventListener?.('change', onDensity);
           document.documentElement.style.removeProperty('--daylight');
@@ -218,7 +288,7 @@ export class SkyComponent {
       ]);
       this.catalog = prepareCatalog(stars, constellations, names);
       this.astronomy = astronomy;
-      return !!this.canvas().nativeElement.getContext('2d');
+      return !!this.skies()[0]?.nativeElement.getContext('2d');
     } catch {
       return false;
     }
@@ -246,7 +316,9 @@ export class SkyComponent {
       this.loadLook(look).then(
         () => {
           this.awaitedLooks.delete(look);
-          if (!this.destroyed) this.draw();
+          // Mid-change, draw it in once the change is over.
+          if (this.transition) this.redrawAfterTransition = true;
+          else if (!this.destroyed) this.draw();
         },
         () => this.awaitedLooks.delete(look),
       );
@@ -289,7 +361,10 @@ export class SkyComponent {
     if (key === this.blendKey) return canvas;
     const context = canvas.getContext('2d');
     if (!context) return null;
-    [canvas.width, canvas.height] = [first.naturalWidth || first.width, first.naturalHeight || first.height];
+    const [width, height] = [first.naturalWidth || first.width, first.naturalHeight || first.height];
+    // Resizing a canvas reallocates it, even to the same size, so only resize when it changes.
+    if (canvas.width !== width || canvas.height !== height) [canvas.width, canvas.height] = [width, height];
+    else context.clearRect(0, 0, width, height);
     context.globalCompositeOperation = 'lighter';
     for (const { image, weight } of layers) {
       context.globalAlpha = weight;
@@ -441,21 +516,115 @@ export class SkyComponent {
     }
   }
 
-  /** Draws the sky and landscape. */
-  private draw(): void {
+  /**
+   * The visitor picked another light (or place). Eases into it, once the
+   * landscape look it needs has arrived (or a moment has passed); at once
+   * before the sky is up, and always at once under reduced motion.
+   */
+  private changeLight(): void {
+    const id = ++this.drawId;
+    if (!this.state || !this.layout || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      this.draw();
+      return;
+    }
+    const needed = this.neededLooks().filter(look => !this.lookImages.has(look) && !this.failedLooks.has(look));
+    if (!needed.length) {
+      this.draw(true);
+      return;
+    }
+    const go = () => {
+      if (id === this.drawId && !this.destroyed) this.draw(true);
+    };
+    const wait = setTimeout(go, LOOK_WAIT_MS);
+    void Promise.allSettled(needed.map(look => this.loadLook(look))).then(() => {
+      clearTimeout(wait);
+      go();
+    });
+  }
+
+  /** The looks the chosen light uses (real time: those for where the Sun is now). */
+  private neededLooks(): LandscapeLook[] {
+    const lighting = this.sky.lighting();
+    if (lighting !== 'real') return [lighting];
+    const { lat, lon } = this.sky.location();
+    const { alt, az } = altAz(sunHorizontal(this.pinnedTime ?? new Date(), lat, lon));
+    const weights = lookWeights('real', alt, az);
+    return LANDSCAPE_LOOKS.filter(look => (weights[look] ?? 0) > 0);
+  }
+
+  /**
+   * Stops a change of light part way, keeping what's on screen: the pair fading
+   * in is folded into the one under it at its current strength, so the picture
+   * doesn't jump, and that one becomes the pair on screen.
+   */
+  private settleTransition(): void {
+    const transition = this.transition;
+    if (!transition) return;
+    cancelAnimationFrame(transition.frame);
+    this.transition = null;
+    // The upper canvas of each pair (DOM order) is the one whose opacity is moving.
+    const [bottom, top] = [0, 1];
+    const topOpacity = transition.incoming === top ? transition.progress : 1 - transition.progress;
+    for (const pair of [this.skies(), this.lands()]) {
+      const [under, over] = [pair[bottom]?.nativeElement, pair[top]?.nativeElement];
+      const context = under?.getContext('2d');
+      if (!under || !over || !context || !over.width) continue;
+      context.globalAlpha = topOpacity;
+      context.drawImage(over, 0, 0);
+      context.globalAlpha = 1;
+    }
+    this.shown = bottom;
+    this.showPair(bottom);
+  }
+
+  /** Shows one pair fully and hides the other (and gives its memory back: phones are short of it). */
+  private showPair(index: number): void {
+    for (const pair of [this.skies(), this.lands()]) {
+      pair.forEach((ref, i) => {
+        const canvas = ref.nativeElement;
+        canvas.style.opacity = i === index ? '' : '0';
+        if (i !== index && canvas.width) [canvas.width, canvas.height] = [0, 0];
+      });
+    }
+  }
+
+  /**
+   * Draws the sky and landscape for the chosen light: renders the stars, Moon
+   * and planets, paints the gradient, halos and landscape, and places the Sun.
+   * With `animate`, draws onto the hidden pair and crossfades to it from what's
+   * on screen, the Sun travelling as it goes.
+   */
+  private draw(animate = false): void {
     const catalog = this.catalog;
-    if (!catalog) return;
-    const canvas = this.canvas().nativeElement;
-    const context = canvas.getContext('2d');
-    if (!context) return;
+    const first = this.skies()[0]?.nativeElement;
+    if (!catalog || !first?.getContext('2d')) return;
     // Without the night landscape there's nothing to put in front of the sky; leave the painting.
     const night = this.look('darkness');
     if (!night) return;
+    this.drawId++;
 
     const dpr = Math.min(MAX_DPR, Math.max(1, window.devicePixelRatio || 1));
     const layout = computeLayout(this.viewWidth(), this.viewHeight(), 1 / dpr);
+    const sameLayout = !!this.layout && this.layout.width === layout.width && this.layout.height === layout.height
+      && this.layout.artPixel === layout.artPixel;
     this.layout = layout;
-    for (const c of [canvas, this.overlay().nativeElement]) {
+
+    // Easing needs something on screen to ease from, at the same size. A change already under
+    // way stops where it is (and eases on from there).
+    this.settleTransition();
+    const from = animate && sameLayout && this.state ? this.state : null;
+    const target = from ? 1 - this.shown : this.shown;
+    const sky = this.skies()[target]?.nativeElement;
+    const land = this.lands()[target]?.nativeElement;
+    const skyContext = sky?.getContext('2d');
+    const landContext = land?.getContext('2d');
+    if (!sky || !land || !skyContext || !landContext) return;
+    const visible = [sky, land, this.overlay().nativeElement];
+    if (!from) {
+      const shown = this.skies()[this.shown]?.nativeElement;
+      if (shown) visible.push(shown);
+    }
+    for (const c of visible) {
       if (c.width !== layout.width || c.height !== layout.height) [c.width, c.height] = [layout.width, layout.height];
       c.style.width = `${layout.width / dpr}px`;
       c.style.height = `${layout.height / dpr}px`;
@@ -471,60 +640,150 @@ export class SkyComponent {
     }
     const lighting = this.sky.lighting();
     // The gradient is painted by the canvas (fast, smooth); everything that's a point, a line
-    // or a disc is drawn in JS onto a transparent layer and laid over it.
-    const image = this.pointsImage(context, layout);
-    const { sunAlt, sunAz, targets, segments, glows, background } = renderSky(image.data, layout, {
-      date, lat, lon, catalog, bodies, lighting, paintBackground: false,
+    // or a disc is drawn in JS onto a transparent layer and laid over it. The Sun is an element.
+    const image = this.pointsImage(skyContext, layout);
+    const result = renderSky(image.data, layout, {
+      date, lat, lon, catalog, bodies, lighting, paintBackground: false, drawSun: false,
     });
-    paintSky(context, layout, background, this.scratchCanvas('glow'));
+    paintSky(skyContext, layout, result.background, this.scratchCanvas('glow'));
     const points = this.scratchCanvas('points');
     if (points) {
       if (points.width !== layout.width || points.height !== layout.height) [points.width, points.height] = [layout.width, layout.height];
       points.getContext('2d')?.putImageData(image, 0, 0);
-      context.drawImage(points, 0, 0);
+      skyContext.drawImage(points, 0, 0);
     }
-    drawGlows(context, glows);
+    drawGlows(skyContext, result.glows);
 
     // The landscape: the weighted looks. A look that hasn't loaded (or failed) lends its
     // weight to the night look until it arrives.
     let nightWeight = 0;
     const layers: { image: HTMLImageElement; weight: number }[] = [];
-    for (const [look, weight] of Object.entries(lookWeights(lighting, sunAlt, sunAz)) as [LandscapeLook, number][]) {
+    for (const [look, weight] of Object.entries(lookWeights(lighting, result.sunAlt, result.sunAz)) as [LandscapeLook, number][]) {
       const img = look === 'darkness' ? null : this.look(look);
       if (img) layers.push({ image: img, weight });
       else nightWeight += weight;
     }
     if (nightWeight > 0) layers.unshift({ image: night, weight: nightWeight });
-    this.drawCover(context, this.blendedLandscape(layers) ?? night, layout);
-
-    drawWindowLight(context, layout, windowGlow(lighting, sunAlt));
+    landContext.clearRect(0, 0, layout.width, layout.height);
+    this.drawCover(landContext, this.blendedLandscape(layers) ?? night, layout);
     this.updateLandMask(night);
 
-    this.scene = { targets, segments };
+    const state = lightState(lighting, result, layout);
+    this.placeNightLights(layout);
+    // Fireflies come out (or stay out) if either end of a change has them.
+    this.setFireflies(layout, Math.max(state.fireflies, from?.fireflies ?? 0) > FIREFLY_MIN);
+
+    this.scene = { targets: result.targets, segments: result.segments };
     // The sky moved (or changed): drop a hover whose object is no longer there.
-    const { target, figure } = this.hover;
-    const stillThere = target
-      ? targets.some(t => t.kind === target.kind && t.name === target.name)
-      : !figure || segments.some(s => s.figure === figure);
-    if (!stillThere) {
+    const { target: hovered, figure } = this.hover;
+    const stillThere = hovered
+      ? result.targets.some(t => t.kind === hovered.kind && t.name === hovered.name)
+      : !figure || result.segments.some(s => s.figure === figure);
+    if (!stillThere || from) {
       this.hover = NO_HOVER;
       this.label.set(null);
     }
     this.drawOverlay();
+    this.sky.upNow.set(upNow(bodies, catalog, j2000ToHorizontalMatrix(date, lat, lon)));
 
-    // Only touch the DOM when the fireflies actually change (they come or go, or the screen resizes).
-    const flies = fireflyAmount(lighting, sunAlt, sunAz) > 0.3 ? FIREFLY_COUNT : 0;
-    const fireflyKey = `${flies}@${layout.width}x${layout.height}`;
-    if (fireflyKey !== this.fireflyKey) {
-      this.fireflyKey = fireflyKey;
-      this.fireflies.set(flies ? fireflies(layout, flies) : []);
+    if (!from) {
+      this.showPair(this.shown);
+      this.apply(state);
+      return;
     }
 
-    this.sky.upNow.set(upNow(bodies, catalog, j2000ToHorizontalMatrix(date, lat, lon)));
+    // Crossfade: the upper canvas of each pair moves (in, or out over the incoming one).
+    const incoming = target;
+    const setFade = (progress: number) => {
+      for (const pair of [this.skies(), this.lands()]) {
+        const [under, over] = [pair[0].nativeElement, pair[1].nativeElement];
+        under.style.opacity = '';
+        over.style.opacity = String(incoming === 1 ? progress : 1 - progress);
+      }
+    };
+    const transition = { from, to: state, start: performance.now(), frame: 0, incoming, progress: 0 };
+    const step = (now: number) => {
+      if (this.transition !== transition || this.destroyed) return;
+      const t = Math.min(1, (now - transition.start) / TRANSITION_MS);
+      transition.progress = ease(t);
+      if (t >= 1) {
+        this.transition = null;
+        this.shown = incoming;
+        this.showPair(incoming);
+        this.apply(state);
+        this.setFireflies(layout, state.fireflies > FIREFLY_MIN);
+        if (this.redrawAfterTransition) {
+          this.redrawAfterTransition = false;
+          this.draw();
+        }
+        return;
+      }
+      setFade(transition.progress);
+      this.apply(lightBetween(from, state, transition.progress));
+      transition.frame = requestAnimationFrame(step);
+    };
+    this.transition = transition;
+    setFade(0);
+    transition.frame = requestAnimationFrame(step);
+  }
+
+  /** Puts the Sun where the state has it, and hands the small lights and the page their levels. */
+  private apply(state: LightState): void {
+    this.state = state;
+    const layout = this.layout;
+    const sun = this.sunElement().nativeElement;
+    const place = layout && state.sun ? sunScreen(layout, state.sun) : null;
+    if (layout && place) {
+      const css = layout.artPixel;
+      const radius = sunDiscRadius(layout) * css;
+      const [x, y] = [place.x * css, place.y * css];
+      const onScreen = x > -radius * 8 && y > -radius * 8 && x < layout.width * css + radius * 8 && y < layout.height * css + radius * 8;
+      sun.style.display = onScreen ? 'block' : 'none';
+      sun.style.setProperty('--radius', `${radius.toFixed(2)}px`);
+      sun.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
+    } else {
+      sun.style.display = 'none';
+    }
+    const style = this.host.style;
+    style.setProperty('--night-light', state.window.toFixed(3));
+    style.setProperty('--fireflies', smoothstep(FIREFLY_MIN, 0.5, state.fireflies).toFixed(3));
     // 0 at night, 1 in daylight, on <html> so page cards can darken behind their text
     // when the sky behind them is bright (see base-page).
-    document.documentElement.style.setProperty('--daylight', String(Math.round(smoothstep(-6, 6, sunAlt) * 100) / 100));
+    document.documentElement.style.setProperty('--daylight', String(Math.round(state.daylight * 100) / 100));
   }
+
+  /** Puts the window light and the campfire where the painting has them (DOM only touched when they move). */
+  private placeNightLights(layout: SkyLayout): void {
+    const lights = nightLights(layout);
+    const key = JSON.stringify(lights);
+    if (key === this.lightsKey) return;
+    this.lightsKey = key;
+    this.lights.set(lights);
+  }
+
+  /** Puts the fireflies out (or takes them in); only touches the DOM when that changes. */
+  private setFireflies(layout: SkyLayout, out: boolean): void {
+    const key = `${out}@${layout.width}x${layout.height}`;
+    if (key === this.fireflyKey) return;
+    this.fireflyKey = key;
+    this.fireflies.set(out ? fireflies(layout, FIREFLY_COUNT) : []);
+  }
+}
+
+/** What's eased about a light (see sky-transition.ts), from a render of it. */
+export function lightState(lighting: Lighting, result: SkyRenderResult, layout: SkyLayout): LightState {
+  const { sunAlt, sunAz } = result;
+  const sun = lighting === 'darkness'
+    ? null
+    : lighting === 'sunrise' || lighting === 'sunset'
+      ? (result.sun ? sunPlaceAt(layout, result.sun.x, result.sun.y) : null)
+      : { alt: sunAlt, az: sunAz };
+  return {
+    sun,
+    window: windowGlow(lighting, sunAlt),
+    fireflies: fireflyAmount(lighting, sunAlt, sunAz),
+    daylight: smoothstep(-6, 6, sunAlt),
+  };
 }
 
 const rgba = ([r, g, b]: readonly number[], a: number) => `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
@@ -579,23 +838,6 @@ function drawGlows(context: CanvasRenderingContext2D, glows: readonly SkyGlow[])
     gradient.addColorStop(1, rgba(glow.color, 0));
     context.fillStyle = gradient;
     context.fillRect(glow.x - glow.radius, glow.y - glow.radius, glow.radius * 2, glow.radius * 2);
-  }
-  context.globalCompositeOperation = 'source-over';
-}
-
-/** A warm light left on in the farmhouse: a bright core and a wide, faint halo. */
-function drawWindowLight(context: CanvasRenderingContext2D, layout: SkyLayout, strength: number): void {
-  if (strength <= 0) return;
-  const css = 1 / layout.artPixel;
-  const [x, y] = [layout.windowX, layout.windowY];
-  context.globalCompositeOperation = 'lighter';
-  for (const [radius, alpha] of [[2.2, 0.95], [7, 0.35], [26, 0.12]] as const) {
-    const r = radius * css * Math.max(0.7, layout.imageScale * layout.artPixel * 2);
-    const gradient = context.createRadialGradient(x, y, 0, x, y, r);
-    gradient.addColorStop(0, `rgba(255, 206, 128, ${alpha * strength})`);
-    gradient.addColorStop(1, 'rgba(255, 170, 90, 0)');
-    context.fillStyle = gradient;
-    context.fillRect(x - r, y - r, r * 2, r * 2);
   }
   context.globalCompositeOperation = 'source-over';
 }

@@ -21,6 +21,43 @@
   left: 0;
 }
 
+// The Sun: a disc with a soft halo, centred on its place (the component sets the
+// transform and --radius). Light adds to the sky behind it, like the halos on the canvas.
+.sun {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  mix-blend-mode: plus-lighter;
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  // The disc.
+  &::before {
+    width: calc(2 * var(--radius, 10px));
+    height: calc(2 * var(--radius, 10px));
+    background: rgb(255, 250, 232);
+  }
+
+  // The halo: six disc radii, bright at the middle and fading out.
+  &::after {
+    width: calc(12 * var(--radius, 10px));
+    height: calc(12 * var(--radius, 10px));
+    background: radial-gradient(
+      circle closest-side,
+      rgba(255, 214, 150, 0.55) 0,
+      rgba(255, 214, 150, 0.19) 35%,
+      rgba(255, 214, 150, 0) 100%
+    );
+  }
+}
+
 // The hover label: a small pill beside the pointer.
 .sky-label {
   position: fixed;
@@ -35,6 +72,13 @@
 }
 
 // Fireflies: a small warm point with a soft glow, drifting and fading slowly.
+// How many are out is --fireflies (0…1), set by the component as the light changes.
+.fireflies {
+  position: absolute;
+  inset: 0;
+  opacity: var(--fireflies, 0);
+}
+
 .firefly {
   position: absolute;
   width: 3px;
@@ -54,6 +98,135 @@
   80% { opacity: 0; transform: translate(10px, -3px); }
 }
 
+// The farmhouse window and the campfire beside it. Both sit at a point in the
+// painting (left/top), scaled by --size, as bright as --night-light (0…1). Light
+// adds to what's behind it, the way the canvas glows do.
+.window-light,
+.campfire {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: var(--night-light, 0);
+  mix-blend-mode: plus-lighter;
+}
+
+.window-light::before,
+.campfire > * {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// A lamp, or a fire in the hearth: it breathes a little.
+.window-light::before {
+  width: calc(52px * var(--size, 1));
+  height: calc(52px * var(--size, 1));
+  background: radial-gradient(
+    circle,
+    rgba(255, 214, 140, 0.95) 0,
+    rgba(255, 196, 120, 0.5) 4%,
+    rgba(255, 180, 100, 0.18) 14%,
+    rgba(255, 170, 90, 0.06) 45%,
+    rgba(255, 170, 90, 0) 70%
+  );
+  animation: hearth 5.3s ease-in-out infinite;
+}
+
+@keyframes hearth {
+  0%, 100% { opacity: 1; }
+  23% { opacity: 0.88; }
+  41% { opacity: 0.97; }
+  67% { opacity: 0.85; }
+  82% { opacity: 0.95; }
+}
+
+// The firelight on the ground round it: wide and low, flickering.
+.fire-pool {
+  width: calc(110px * var(--size, 1));
+  height: calc(30px * var(--size, 1));
+  margin-top: calc(2px * var(--size, 1));
+  background: radial-gradient(
+    ellipse closest-side,
+    rgba(255, 150, 70, 0.5) 0,
+    rgba(255, 130, 60, 0.2) 35%,
+    rgba(255, 120, 50, 0) 100%
+  );
+  animation: firelight 2.9s linear infinite;
+}
+
+// The warm air round the flames.
+.fire-glow {
+  width: calc(34px * var(--size, 1));
+  height: calc(34px * var(--size, 1));
+  margin-top: calc(-3px * var(--size, 1));
+  background: radial-gradient(
+    circle closest-side,
+    rgba(255, 150, 70, 0.4) 0,
+    rgba(255, 130, 60, 0.12) 45%,
+    rgba(255, 120, 50, 0) 100%
+  );
+  animation: firelight 2.3s linear infinite reverse;
+}
+
+// The flames: an orange tongue with a yellow heart, each dancing to its own beat.
+.fire-flame,
+.fire-core {
+  border-radius: 50% 50% 45% 45% / 65% 65% 35% 35%;
+  transform-origin: 50% 100%;
+}
+
+.fire-flame {
+  width: calc(4px * var(--size, 1));
+  height: calc(6px * var(--size, 1));
+  margin-top: calc(-2.5px * var(--size, 1));
+  background: radial-gradient(ellipse at 50% 75%, rgb(255, 170, 70) 0, rgba(240, 100, 30, 0.85) 55%, rgba(220, 80, 20, 0) 100%);
+  animation: flame 1.3s ease-in-out infinite;
+}
+
+.fire-core {
+  width: calc(2px * var(--size, 1));
+  height: calc(3.5px * var(--size, 1));
+  margin-top: calc(-1.5px * var(--size, 1));
+  background: radial-gradient(ellipse at 50% 80%, rgb(255, 246, 200) 0, rgba(255, 210, 120, 0.9) 60%, rgba(255, 190, 90, 0) 100%);
+  animation: flame 0.9s ease-in-out infinite reverse;
+}
+
+// Sparks: a few, now and then, rising and going out.
+.ember {
+  width: 1.5px;
+  height: 1.5px;
+  background: #ffc070;
+  box-shadow: 0 0 3px 1px rgba(255, 140, 60, 0.5);
+  opacity: 0;
+  animation: ember 3.6s ease-out infinite;
+}
+
+@keyframes firelight {
+  0%, 100% { opacity: 0.9; transform: translate(-50%, -50%) scale(1); }
+  9% { opacity: 1; }
+  17% { opacity: 0.78; transform: translate(-50%, -50%) scale(0.97); }
+  31% { opacity: 0.95; }
+  44% { opacity: 0.82; transform: translate(-50%, -50%) scale(1.02); }
+  58% { opacity: 1; }
+  71% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.98); }
+  86% { opacity: 0.96; }
+}
+
+@keyframes flame {
+  0%, 100% { opacity: 0.95; transform: translate(-50%, -50%) scale(1, 1); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(0.85, 1.15); }
+  45% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.1, 0.9); }
+  70% { opacity: 1; transform: translate(-50%, -50%) scale(0.92, 1.1); }
+}
+
+@keyframes ember {
+  0% { opacity: 0; transform: translate(-50%, -50%); }
+  8% { opacity: 0.9; }
+  45% { opacity: 0; transform: translate(calc(-50% + var(--drift, 0px)), calc(-50% - 16px * var(--size, 1))); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--drift, 0px)), calc(-50% - 16px * var(--size, 1))); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   :host {
     transition: none;
@@ -63,5 +236,15 @@
   .firefly {
     animation: none !important;
     opacity: 0.6;
+  }
+
+  // The lights stay lit, but hold still.
+  .window-light::before,
+  .campfire > * {
+    animation: none !important;
+  }
+
+  .ember {
+    display: none;
   }
 }

@@ -16,6 +16,8 @@ export const BACKGROUND_HORIZON_Y = 905;
 export const BACKGROUND_VALLEY = { x: 1350, y: 922 } as const;
 /** The farmhouse's gable end, where a light is left on after dark. */
 export const BACKGROUND_WINDOW = { x: 542, y: 1052 } as const;
+/** The campfire in the yard beside the farmhouse, where the flames sit on the ground. */
+export const BACKGROUND_CAMPFIRE = { x: 672, y: 1071 } as const;
 /** CSS pixels per buffer pixel by default. The component passes 1 / devicePixelRatio for crisp, smooth drawing. */
 export const ART_PIXEL = 1;
 
@@ -77,9 +79,6 @@ export interface SkyLayout {
   /** The painting's valley between the mountains, in buffer pixels. */
   readonly valleyX: number;
   readonly valleyY: number;
-  /** The farmhouse window, in buffer pixels. */
-  readonly windowX: number;
-  readonly windowY: number;
   /** Where the scene's (0, 0) lands and how many buffer pixels one scene pixel spans. */
   readonly imageX: number;
   readonly imageY: number;
@@ -107,8 +106,6 @@ export function computeLayout(viewportWidth: number, viewportHeight: number, art
     scale: Math.max(viewportWidth / 4, horizonCss / 2) / artPixel,
     valleyX: (offsetX + BACKGROUND_VALLEY.x * imageScale) / artPixel,
     valleyY: (offsetY + BACKGROUND_VALLEY.y * imageScale) / artPixel,
-    windowX: (offsetX + BACKGROUND_WINDOW.x * imageScale) / artPixel,
-    windowY: (offsetY + BACKGROUND_WINDOW.y * imageScale) / artPixel,
     imageX: offsetX / artPixel,
     imageY: offsetY / artPixel,
     imageScale: imageScale / artPixel,
@@ -211,7 +208,7 @@ const STAGED: Record<'sunrise' | 'sunset', { top: Rgb; horizon: Rgb; glow: Rgb; 
 const STAGED_SUN_ALT = -3;
 
 /** Radius of the Sun and Moon discs, in buffer pixels (6–13 CSS px, by screen width). */
-function sunDiscRadius(layout: SkyLayout): number {
+export function sunDiscRadius(layout: SkyLayout): number {
   return Math.max(6, Math.min(13, (layout.width * layout.artPixel) / 110)) / layout.artPixel;
 }
 
@@ -274,6 +271,12 @@ export interface SkyInput {
    * the gradient itself (the component does, with the GPU; see `background`).
    */
   readonly paintBackground?: boolean;
+  /**
+   * Draw the Sun's disc and halo (default). False leaves them to the caller,
+   * which gets the place in `sun` (the component draws the Sun itself, so it
+   * can move it between lights).
+   */
+  readonly drawSun?: boolean;
 }
 
 /** The sky's colours, for painting the gradient: zenith → horizon (eased by t²), plus a horizon glow. */
@@ -322,7 +325,13 @@ export interface SkyRenderResult {
   /** Soft halos to add over the finished picture (bright stars, planets, Moon, Sun). */
   readonly glows: readonly SkyGlow[];
   readonly background: SkyBackground;
+  /** Where the Sun is (drawn or not, on screen or not), in buffer pixels, or null if this light has none. */
+  readonly sun: { readonly x: number; readonly y: number; readonly radius: number } | null;
 }
+
+/** The Sun's disc colour, and its halo (radius in disc radii). The component's .sun element uses the same values in CSS. */
+export const SUN_COLOR: Rgb = [255, 250, 232];
+export const SUN_GLOW = { radius: 6, color: [255, 214, 150] as Rgb, strength: 0.55 } as const;
 
 /** A soft halo, in buffer pixels. */
 export interface SkyGlow {
@@ -486,8 +495,10 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   if (look.sun) {
     const p = look.sun;
     if (onScreen(p, discRadius * 4)) {
-      softDisc(p.x, p.y, discRadius, (x, y, coverage) => blend(x, y, [255, 250, 232], coverage));
-      glows.push({ x: p.x, y: p.y, radius: discRadius * 6, color: [255, 214, 150], strength: 0.55 });
+      if (input.drawSun ?? true) {
+        softDisc(p.x, p.y, discRadius, (x, y, coverage) => blend(x, y, SUN_COLOR, coverage));
+        glows.push({ x: p.x, y: p.y, radius: discRadius * SUN_GLOW.radius, color: SUN_GLOW.color, strength: SUN_GLOW.strength });
+      }
       targets.push({ kind: 'sun', name: 'the Sun', x: p.x, y: p.y, radius: discRadius + px(6) });
     }
   }
@@ -540,7 +551,8 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
     }
   }
 
-  return { sunAlt, sunAz: look.sunAz, starsDrawn, moon: moonResult, targets, segments, glows, background: { top, horizon, glow } };
+  return { sunAlt, sunAz: look.sunAz, starsDrawn, moon: moonResult, targets, segments, glows, background: { top, horizon, glow },
+    sun: look.sun ? { x: look.sun.x, y: look.sun.y, radius: discRadius } : null };
 }
 
 /** Finds what's under a point (buffer pixels): the nearest target in reach, else the nearest figure line within `lineReach`. */

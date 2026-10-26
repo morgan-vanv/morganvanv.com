@@ -1,4 +1,4 @@
-import { lookWeights, windowGlow } from './sky-landscape';
+import { lookWeights, nightLights, windowGlow } from './sky-landscape';
 import { computeLayout } from './sky-render';
 
 const sum = (w: Record<string, number | undefined>) => Object.values(w).reduce((a, b) => a! + (b ?? 0), 0);
@@ -20,6 +20,17 @@ describe('sky landscape', () => {
     expect(evening.sunset).toBeGreaterThan(0);
     expect(evening.day).toBeGreaterThan(0);
     for (const alt of [-14, -10, -6, -3, 0, 5, 9, 12]) expect(sum(lookWeights('real', alt, 250))).toBeCloseTo(1, 6);
+  });
+
+  it('puts the window light and the campfire on the farmhouse, in CSS pixels at any resolution', () => {
+    // 1280 × 800: the painting at half size, 26.5 px cropped off the top.
+    const lights = nightLights(computeLayout(1280, 800));
+    expect(lights.window).toEqual({ x: 271, y: 499.5 });
+    expect(lights.fire).toEqual({ x: 336, y: 509 });
+    expect(lights.size).toBe(1);
+    expect(nightLights(computeLayout(1280, 800, 0.5))).toEqual(lights);
+    // Never vanishingly small on a phone.
+    expect(nightLights(computeLayout(390, 844)).size).toBeGreaterThanOrEqual(0.7);
   });
 
   it('the farmhouse light is on after dark and off in daylight', () => {

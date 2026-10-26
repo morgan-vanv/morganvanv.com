@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
 import { REDRAW_INTERVAL_MS, SkyComponent, labelPosition } from './sky.component';
+import { TRANSITION_MS } from './sky-transition';
 import { SkyTarget } from './sky-render';
 import { SkyToggleComponent } from './sky-toggle.component';
 import { SkyService } from './sky.service';
@@ -136,6 +137,70 @@ describe('SkyComponent', () => {
     const sunsetLoads = decode.mock.contexts.filter(img => (img as HTMLImageElement).src.includes('/landscape/sunset.webp'));
     expect(sunsetLoads.length).toBe(1);
     expect(putImageData.mock.calls.length).toBeGreaterThan(5);
+    localStorage.clear();
+  });
+
+  it('eases into a new light: crossfades to it, moves the Sun, then settles on one set of layers', async () => {
+    stubBrowser();
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation(cb => frames.push(cb));
+    vi.spyOn(performance, 'now').mockReturnValue(1000);
+    // Runs everything waiting for the next frame (Angular may be among it), at time `at`.
+    const frame = (at: number) => frames.splice(0).forEach(cb => cb(at));
+    const host: HTMLElement = fixture.nativeElement;
+    const [sky0, sky1] = Array.from(host.querySelectorAll<HTMLCanvasElement>('canvas.sky')).slice(0, 2);
+    const sun = host.querySelector<HTMLElement>('.sun')!;
+    expect(sun.style.display).toBe('none'); // darkness: no Sun
+
+    sky.setLighting('sunset');
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(frames.length).toBeGreaterThan(0));
+    // The new light is drawn on the hidden pair, which fades in over the old.
+    expect(sky1.style.opacity).toBe('0');
+    frame(1000 + TRANSITION_MS / 2);
+    expect(Number(sky1.style.opacity)).toBeCloseTo(0.5, 6);
+    expect(sun.style.display).toBe('block');
+    const rising = sun.style.transform;
+    frame(1000 + TRANSITION_MS * 0.75);
+    expect(sun.style.transform).not.toBe(rising);
+    frame(1000 + TRANSITION_MS);
+    expect(sky1.style.opacity).toBe('');
+    expect(sky0.style.opacity).toBe('0');
+    expect(sky0.width).toBe(0); // its memory given back
+    expect(host.style.getPropertyValue('--night-light')).toBe('0.800');
+    frame(1000 + TRANSITION_MS * 2);
+    expect(frames.length).toBe(0); // and the loop stops
+
+    // Changed again part way: it carries on from what's on screen, and still ends on one pair.
+    sky.setLighting('day');
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(frames.length).toBeGreaterThan(0));
+    frame(1000 + TRANSITION_MS * 0.3);
+    sky.setLighting('darkness');
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(frames.length).toBeGreaterThan(0));
+    for (let i = 0; i < 5 && frames.length; i++) frame(1000 + TRANSITION_MS);
+    const shown = [sky0, sky1].filter(c => c.width > 0);
+    expect(shown.length).toBe(1);
+    expect(shown[0].style.opacity).toBe('');
+    expect(sun.style.display).toBe('none');
+    localStorage.clear();
+  });
+
+  it('changes the light at once under reduced motion', async () => {
+    stubBrowser({ reducedMotion: true });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    sky.setLighting('day');
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    // Nothing fading: one pair on screen, the other put away.
+    const skies = Array.from<HTMLCanvasElement>(fixture.nativeElement.querySelectorAll('canvas.sky')).slice(0, 2);
+    expect(skies.map(c => c.style.opacity).sort()).toEqual(['', '0']);
+    expect(fixture.nativeElement.querySelector('.sun').style.display).toBe('block');
+    expect(document.documentElement.style.getPropertyValue('--daylight')).toBe('1');
     localStorage.clear();
   });
 

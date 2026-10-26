@@ -72,6 +72,21 @@ describe('sky render', () => {
     }
   });
 
+  it('can leave the Sun to the caller, and still says where it is', () => {
+    const layout = computeLayout(1280, 800);
+    const buffer = new Uint8ClampedArray(layout.width * layout.height * 4);
+    const date = new Date('2026-10-26T05:00:00Z');
+    const result = renderSky(buffer, layout, { date, lat, lon, catalog, bodies: null, lighting: 'sunset', drawSun: false });
+    const [x, y] = [Math.round(layout.valleyX), Math.round(layout.valleyY) - 1];
+    const [r, g, b] = Array.from(buffer.slice((y * layout.width + x) * 4, (y * layout.width + x) * 4 + 3));
+    expect(r + g + b).toBeLessThan(650);
+    expect(result.sun?.x).toBeCloseTo(layout.valleyX, 6);
+    expect(result.targets.some(t => t.kind === 'sun')).toBe(true);
+    expect(result.glows.every(g => g.radius !== result.sun!.radius * 6)).toBe(true);
+    // Darkness has no Sun at all.
+    expect(renderSky(buffer, layout, { date, lat, lon, catalog, bodies: null, lighting: 'darkness' }).sun).toBeNull();
+  });
+
   it('day is blue with no stars at midnight', () => {
     const { result, pixel } = render('2026-10-26T05:00:00Z', true, 'day');
     expect(result.starsDrawn).toBe(0);

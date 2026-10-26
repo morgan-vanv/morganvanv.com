@@ -2,11 +2,13 @@ import { readFileSync } from 'node:fs';
 import * as Astronomy from 'astronomy-engine';
 import {
   altAz,
+  altAzToVector,
   gmstDeg,
   j2000ToHorizontalMatrix,
   julianDate,
   multiply,
   projectSouth,
+  unprojectSouth,
   raDecToVector,
   sunHorizontal,
   sunRaDec,
@@ -99,6 +101,15 @@ describe('sky math', () => {
     expect(at(0, -1, 0)).toEqual([2, 0]); // west
     expect(at(0, 0, 1)).toEqual([0, 2]); // zenith
     expect(at(1, 0, 0)).toBeNull(); // north, behind the viewer
+  });
+
+  it('unprojects back to where it came from', () => {
+    for (const [alt, az] of [[0, 180], [30, 120], [-10, 250], [80, 10], [5, 90]]) {
+      const h = altAzToVector(alt, az);
+      const p = projectSouth(h)!;
+      const back = unprojectSouth(p.x, p.y);
+      for (let k = 0; k < 3; k++) expect(back[k]).toBeCloseTo(h[k], 9);
+    }
   });
 
   it('wraps angles into [0, 360)', () => {
