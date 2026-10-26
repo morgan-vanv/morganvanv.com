@@ -109,8 +109,10 @@ export function parseSkyAt(search: string): Date | null {
     <canvas #sky class="sky"></canvas>
     <canvas #sky class="sky"></canvas>
     <div #sun class="sun"></div>
-    <canvas #land class="sky"></canvas>
-    <canvas #land class="sky"></canvas>
+    <div class="land">
+      <canvas #land class="sky"></canvas>
+      <canvas #land class="sky"></canvas>
+    </div>
     <canvas #overlay class="sky overlay"></canvas>
     @if (lights(); as lights) {
       <span class="window-light" [style.left.px]="lights.window.x" [style.top.px]="lights.window.y" [style.--size]="lights.size"></span>
@@ -192,19 +194,19 @@ export class SkyComponent {
   /** What's eased on screen now, and the change under way (if any). */
   private state: LightState | null = null;
   private transition: {
-    from: LightState;
-    to: LightState;
     start: number;
     frame: number;
-    /** The pair fading in, and the one fading out. */
+    /** Which pair is fading in (the other is fading out). */
     incoming: number;
     /** 0…1, eased: how far the crossfade has got. */
     progress: number;
   } | null = null;
   /** Bumped by every redraw, so a change of light still waiting on its look knows if it's been overtaken. */
   private drawId = 0;
-  /** A look arrived mid-change (the night look stood in for it): redraw when the change is over. */
+  /** Something wanted a redraw mid-change (a late look, the minute tick): do it when the change is over. */
   private redrawAfterTransition = false;
+  /** The change of light waiting for its look (it draws when that arrives), if any. */
+  private lookWait: number | null = null;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -228,11 +230,16 @@ export class SkyComponent {
         this.sky.ready.set(true);
 
         const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // Mid-change, these wait for the change to finish.
+        const redraw = () => {
+          if (this.transition) this.redrawAfterTransition = true;
+          else this.draw();
+        };
         const interval = reducedMotion ? undefined : setInterval(() => {
-          if (document.visibilityState === 'visible' && !this.transition) this.draw();
+          if (document.visibilityState === 'visible') redraw();
         }, REDRAW_INTERVAL_MS);
         const onVisibility = () => {
-          if (document.visibilityState === 'visible' && !this.transition) this.draw();
+          if (document.visibilityState === 'visible') redraw();
         };
         let resizeTimer: ReturnType<typeof setTimeout> | undefined;
         const onResize = () => {
@@ -316,9 +323,9 @@ export class SkyComponent {
       this.loadLook(look).then(
         () => {
           this.awaitedLooks.delete(look);
-          // Mid-change, draw it in once the change is over.
+          // Mid-change, ease it in once the change is over; if a change is waiting for it, that draws.
           if (this.transition) this.redrawAfterTransition = true;
-          else if (!this.destroyed) this.draw();
+          else if (!this.destroyed && this.lookWait === null) this.draw(this.mayEase());
         },
         () => this.awaitedLooks.delete(look),
       );
@@ -523,7 +530,8 @@ export class SkyComponent {
    */
   private changeLight(): void {
     const id = ++this.drawId;
-    if (!this.state || !this.layout || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    this.lookWait = null;
+    if (!this.mayEase()) {
       this.draw();
       return;
     }
@@ -532,7 +540,10 @@ export class SkyComponent {
       this.draw(true);
       return;
     }
+    this.lookWait = id;
     const go = () => {
+      if (this.lookWait === id) this.lookWait = null;
+      // Overtaken by another redraw (which drew the light already)? Nothing to do.
       if (id === this.drawId && !this.destroyed) this.draw(true);
     };
     const wait = setTimeout(go, LOOK_WAIT_MS);
@@ -540,6 +551,11 @@ export class SkyComponent {
       clearTimeout(wait);
       go();
     });
+  }
+
+  /** Whether a redraw may ease in (there's a sky on screen to ease from, and motion is welcome). */
+  private mayEase(): boolean {
+    return !!this.state && !!this.layout && !matchMedia('(prefers-reduced-motion: reduce)').matches;
   }
 
   /** The looks the chosen light uses (real time: those for where the Sun is now). */
@@ -553,28 +569,41 @@ export class SkyComponent {
   }
 
   /**
-   * Stops a change of light part way, keeping what's on screen: the pair fading
-   * in is folded into the one under it at its current strength, so the picture
-   * doesn't jump, and that one becomes the pair on screen.
+   * Stops a change of light part way, keeping what's on screen: both pairs are
+   * folded into the first at their current strengths, so the picture doesn't
+   * jump, and that becomes the pair on screen.
    */
   private settleTransition(): void {
     const transition = this.transition;
     if (!transition) return;
     cancelAnimationFrame(transition.frame);
     this.transition = null;
-    // The upper canvas of each pair (DOM order) is the one whose opacity is moving.
-    const [bottom, top] = [0, 1];
-    const topOpacity = transition.incoming === top ? transition.progress : 1 - transition.progress;
-    for (const pair of [this.skies(), this.lands()]) {
-      const [under, over] = [pair[bottom]?.nativeElement, pair[top]?.nativeElement];
-      const context = under?.getContext('2d');
-      if (!under || !over || !context || !over.width) continue;
-      context.globalAlpha = topOpacity;
-      context.drawImage(over, 0, 0);
-      context.globalAlpha = 1;
+    const p = transition.progress;
+    // Strength of pair 0 and pair 1 right now.
+    const [w0, w1] = transition.incoming === 1 ? [1 - p, p] : [p, 1 - p];
+    // The sky: opaque, the second canvas laid over the first at its opacity (as on screen).
+    const [skyUnder, skyOver] = this.skies().map(ref => ref.nativeElement);
+    const skyContext = skyUnder?.getContext('2d');
+    if (skyContext && skyOver?.width) {
+      skyContext.globalAlpha = transition.incoming === 1 ? p : 1 - p;
+      skyContext.drawImage(skyOver, 0, 0);
+      skyContext.globalAlpha = 1;
     }
-    this.shown = bottom;
-    this.showPair(bottom);
+    // The landscape: the two added at their strengths (as on screen; see .land in the styles).
+    const [landA, landB] = this.lands().map(ref => ref.nativeElement);
+    const landContext = landA?.getContext('2d');
+    if (landContext && landB?.width) {
+      landContext.globalCompositeOperation = 'destination-in';
+      landContext.globalAlpha = w0;
+      landContext.fillRect(0, 0, landA.width, landA.height);
+      landContext.globalCompositeOperation = 'lighter';
+      landContext.globalAlpha = w1;
+      landContext.drawImage(landB, 0, 0);
+      landContext.globalAlpha = 1;
+      landContext.globalCompositeOperation = 'source-over';
+    }
+    this.shown = 0;
+    this.showPair(0);
   }
 
   /** Shows one pair fully and hides the other (and gives its memory back: phones are short of it). */
@@ -619,12 +648,7 @@ export class SkyComponent {
     const skyContext = sky?.getContext('2d');
     const landContext = land?.getContext('2d');
     if (!sky || !land || !skyContext || !landContext) return;
-    const visible = [sky, land, this.overlay().nativeElement];
-    if (!from) {
-      const shown = this.skies()[this.shown]?.nativeElement;
-      if (shown) visible.push(shown);
-    }
-    for (const c of visible) {
+    for (const c of [sky, land, this.overlay().nativeElement]) {
       if (c.width !== layout.width || c.height !== layout.height) [c.width, c.height] = [layout.width, layout.height];
       c.style.width = `${layout.width / dpr}px`;
       c.style.height = `${layout.height / dpr}px`;
@@ -692,16 +716,17 @@ export class SkyComponent {
       return;
     }
 
-    // Crossfade: the upper canvas of each pair moves (in, or out over the incoming one).
+    // Crossfade. The skies are opaque: the upper one fades (in, or out over the incoming one).
+    // The landscapes have soft edges, so they're added instead (see .land in the styles): the
+    // incoming one at the progress, the outgoing one at the rest, which keeps their coverage.
     const incoming = target;
     const setFade = (progress: number) => {
-      for (const pair of [this.skies(), this.lands()]) {
-        const [under, over] = [pair[0].nativeElement, pair[1].nativeElement];
-        under.style.opacity = '';
-        over.style.opacity = String(incoming === 1 ? progress : 1 - progress);
-      }
+      const [skyUnder, skyOver] = this.skies().map(ref => ref.nativeElement);
+      skyUnder.style.opacity = '';
+      skyOver.style.opacity = String(incoming === 1 ? progress : 1 - progress);
+      this.lands().forEach((ref, i) => (ref.nativeElement.style.opacity = String(i === incoming ? progress : 1 - progress)));
     };
-    const transition = { from, to: state, start: performance.now(), frame: 0, incoming, progress: 0 };
+    const transition = { start: performance.now(), frame: 0, incoming, progress: 0 };
     const step = (now: number) => {
       if (this.transition !== transition || this.destroyed) return;
       const t = Math.min(1, (now - transition.start) / TRANSITION_MS);
@@ -714,7 +739,7 @@ export class SkyComponent {
         this.setFireflies(layout, state.fireflies > FIREFLY_MIN);
         if (this.redrawAfterTransition) {
           this.redrawAfterTransition = false;
-          this.draw();
+          this.draw(this.mayEase());
         }
         return;
       }
@@ -746,6 +771,8 @@ export class SkyComponent {
     }
     const style = this.host.style;
     style.setProperty('--night-light', state.window.toFixed(3));
+    // Out (and not animating) in daylight.
+    this.host.classList.toggle('night-lit', state.window > 0);
     style.setProperty('--fireflies', smoothstep(FIREFLY_MIN, 0.5, state.fireflies).toFixed(3));
     // 0 at night, 1 in daylight, on <html> so page cards can darken behind their text
     // when the sky behind them is bright (see base-page).
@@ -777,7 +804,8 @@ export function lightState(lighting: Lighting, result: SkyRenderResult, layout: 
     ? null
     : lighting === 'sunrise' || lighting === 'sunset'
       ? (result.sun ? sunPlaceAt(layout, result.sun.x, result.sun.y) : null)
-      : { alt: sunAlt, az: sunAz };
+      // Real time and day: where the renderer has a Sun (real time has none once it's below -1°).
+      : result.sun ? { alt: sunAlt, az: sunAz } : null;
   return {
     sun,
     window: windowGlow(lighting, sunAlt),

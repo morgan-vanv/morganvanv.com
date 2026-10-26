@@ -21,6 +21,19 @@
   left: 0;
 }
 
+// The two landscape canvases are added, not stacked: mid-change they're weighted to sum
+// to one, and as they share one silhouette the soft edges keep their coverage. Isolated so
+// they only add to each other; the group lies over the sky as usual.
+.land {
+  position: absolute;
+  inset: 0;
+  isolation: isolate;
+
+  .sky {
+    mix-blend-mode: plus-lighter;
+  }
+}
+
 // The Sun: a disc with a soft halo, centred on its place (the component sets the
 // transform and --radius). Light adds to the sky behind it, like the halos on the canvas.
 .sun {
@@ -38,15 +51,15 @@
     transform: translate(-50%, -50%);
   }
 
-  // The disc.
-  &::before {
+  // The disc, over its halo.
+  &::after {
     width: calc(2 * var(--radius, 10px));
     height: calc(2 * var(--radius, 10px));
     background: rgb(255, 250, 232);
   }
 
   // The halo: six disc radii, bright at the middle and fading out.
-  &::after {
+  &::before {
     width: calc(12 * var(--radius, 10px));
     height: calc(12 * var(--radius, 10px));
     background: radial-gradient(
@@ -104,10 +117,19 @@
 .window-light,
 .campfire {
   position: absolute;
+  display: none;
   width: 0;
   height: 0;
   opacity: var(--night-light, 0);
   mix-blend-mode: plus-lighter;
+}
+
+// Lit only when there's any night light (so nothing animates in daylight).
+:host(.night-lit) {
+  .window-light,
+  .campfire {
+    display: block;
+  }
 }
 
 .window-light::before,

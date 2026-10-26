@@ -151,6 +151,7 @@ describe('SkyComponent', () => {
     const frame = (at: number) => frames.splice(0).forEach(cb => cb(at));
     const host: HTMLElement = fixture.nativeElement;
     const [sky0, sky1] = Array.from(host.querySelectorAll<HTMLCanvasElement>('canvas.sky')).slice(0, 2);
+    const [land0, land1] = Array.from(host.querySelectorAll<HTMLCanvasElement>('.land canvas'));
     const sun = host.querySelector<HTMLElement>('.sun')!;
     expect(sun.style.display).toBe('none'); // darkness: no Sun
 
@@ -159,8 +160,13 @@ describe('SkyComponent', () => {
     await vi.waitFor(() => expect(frames.length).toBeGreaterThan(0));
     // The new light is drawn on the hidden pair, which fades in over the old.
     expect(sky1.style.opacity).toBe('0');
-    frame(1000 + TRANSITION_MS / 2);
-    expect(Number(sky1.style.opacity)).toBeCloseTo(0.5, 6);
+    frame(1000 + TRANSITION_MS * 0.4);
+    const p = Number(sky1.style.opacity);
+    expect(p).toBeGreaterThan(0);
+    expect(p).toBeLessThan(0.5);
+    // The landscapes are added, weighted to sum to one (their soft edges keep their coverage).
+    expect(Number(land1.style.opacity)).toBeCloseTo(p, 6);
+    expect(Number(land0.style.opacity)).toBeCloseTo(1 - p, 6);
     expect(sun.style.display).toBe('block');
     const rising = sun.style.transform;
     frame(1000 + TRANSITION_MS * 0.75);
@@ -178,14 +184,35 @@ describe('SkyComponent', () => {
     await fixture.whenStable();
     await vi.waitFor(() => expect(frames.length).toBeGreaterThan(0));
     frame(1000 + TRANSITION_MS * 0.3);
+    const [lightBefore, sunBefore] = [host.style.getPropertyValue('--night-light'), sun.style.transform];
     sky.setLighting('darkness');
     await fixture.whenStable();
     await vi.waitFor(() => expect(frames.length).toBeGreaterThan(0));
+    // Nothing jumps: the new change starts from exactly what was on screen.
+    expect(host.style.getPropertyValue('--night-light')).toBe(lightBefore);
+    expect(sun.style.transform).toBe(sunBefore);
     for (let i = 0; i < 5 && frames.length; i++) frame(1000 + TRANSITION_MS);
     const shown = [sky0, sky1].filter(c => c.width > 0);
     expect(shown.length).toBe(1);
     expect(shown[0].style.opacity).toBe('');
     expect(sun.style.display).toBe('none');
+    expect(host.classList).toContain('night-lit');
+    localStorage.clear();
+  });
+
+  it('has no Sun in real time at night, and puts the small lights out by day', async () => {
+    stubBrowser({ reducedMotion: true });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const host: HTMLElement = fixture.nativeElement;
+    sky.setLighting('real'); // the default test date is whenever the test runs, so pin it:
+    (fixture.componentInstance as unknown as { pinnedTime: Date }).pinnedTime = new Date('2026-10-26T05:00:00Z');
+    (fixture.componentInstance as unknown as { draw: () => void }).draw();
+    expect(host.querySelector<HTMLElement>('.sun')!.style.display).toBe('none');
+    expect(host.classList).toContain('night-lit');
+    sky.setLighting('day');
+    await fixture.whenStable();
+    expect(host.classList).not.toContain('night-lit');
     localStorage.clear();
   });
 
