@@ -29,6 +29,8 @@ app-custom-navbar {
   border: 1px solid $main-color;
   border-radius: 2rem;
   backdrop-filter: blur(8px);
+  // Darkens as the live sky brightens (--daylight is set by app-sky), so text stays readable at noon.
+  background-color: rgb(0 18 17 / calc(0.65 * var(--daylight, 0)));
   overflow: hidden;
 
   @media (max-width: $breakpoint-mobile) {

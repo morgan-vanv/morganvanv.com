@@ -1,0 +1,69 @@
+import { TestBed } from '@angular/core/testing';
+import { SkyMenuComponent } from './sky-menu.component';
+import { SkyService } from './sky.service';
+
+async function mount(ready = true) {
+  const fixture = TestBed.createComponent(SkyMenuComponent);
+  TestBed.inject(SkyService).ready.set(ready);
+  await fixture.whenStable();
+  const el: HTMLElement = fixture.nativeElement;
+  return { fixture, el, sky: TestBed.inject(SkyService), button: () => el.querySelector<HTMLButtonElement>('.sky-button') };
+}
+
+describe('SkyMenuComponent', () => {
+  afterEach(() => localStorage.clear());
+
+  it('shows nothing until the sky has drawn', async () => {
+    const { button } = await mount(false);
+    expect(button()).toBeNull();
+  });
+
+  it('opens and closes as a disclosure', async () => {
+    const { fixture, el, button } = await mount();
+    expect(button()!.getAttribute('aria-expanded')).toBe('false');
+    expect(el.querySelector('#sky-menu')).toBeNull();
+    button()!.click();
+    await fixture.whenStable();
+    expect(button()!.getAttribute('aria-expanded')).toBe('true');
+    expect(el.querySelector('#sky-menu')).not.toBeNull();
+    // Outside click closes it.
+    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+    await fixture.whenStable();
+    expect(el.querySelector('#sky-menu')).toBeNull();
+  });
+
+  it('Escape closes it, returns focus, and stops the site-wide Escape', async () => {
+    const { fixture, el, button } = await mount();
+    button()!.click();
+    await fixture.whenStable();
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    el.querySelector('#sky-menu')!.dispatchEvent(event);
+    await fixture.whenStable();
+    expect(event.defaultPrevented).toBe(true);
+    expect(el.querySelector('#sky-menu')).toBeNull();
+    expect(document.activeElement).toBe(button());
+  });
+
+  it('picking a light changes and remembers it', async () => {
+    const { fixture, el, sky, button } = await mount();
+    button()!.click();
+    await fixture.whenStable();
+    const radios = Array.from(el.querySelectorAll<HTMLInputElement>('input[name="sky-lighting"]'));
+    expect(radios.map(r => r.value)).toEqual(['darkness', 'real', 'sunrise', 'sunset', 'day']);
+    expect(radios[0].checked).toBe(true);
+    expect(el.textContent).toContain('darkness [default]');
+    radios[3].click();
+    await fixture.whenStable();
+    expect(sky.lighting()).toBe('sunset');
+    expect(localStorage.getItem('sky-lighting')).toBe('sunset');
+  });
+
+  it('lists what is up right now', async () => {
+    const { fixture, el, sky, button } = await mount();
+    sky.upNow.set({ planets: ['Venus', 'Jupiter'], constellations: ['Orion'], moon: 'Moon, 40% lit' });
+    button()!.click();
+    await fixture.whenStable();
+    const items = Array.from(el.querySelectorAll('.up-now li')).map(li => li.textContent!.trim());
+    expect(items).toEqual(['Venus, Jupiter', 'Orion', 'Moon, 40% lit']);
+  });
+});
