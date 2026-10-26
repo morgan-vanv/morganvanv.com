@@ -1,7 +1,7 @@
 name: Quality
 
 # Lighthouse (performance, best practices, SEO, and axe-core accessibility)
-# against the prerendered build. Accessibility and SEO regressions fail the
+# against the prerendered build, once as desktop and once as a phone. Accessibility and SEO regressions fail the
 # check; performance and best-practice scores only warn because runner
 # timing is noisy.
 
@@ -30,4 +30,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build -- --configuration=production
-      - run: npx --yes @lhci/cli@0.15.x autorun
+      - name: Lighthouse (desktop)
+        run: npx --yes @lhci/cli@0.15.x autorun
+      - name: Lighthouse (mobile)
+        run: npx --yes @lhci/cli@0.15.x autorun --config=./lighthouserc.mobile.json
