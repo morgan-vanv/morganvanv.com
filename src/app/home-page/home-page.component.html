@@ -1,66 +1,55 @@
-<app-base-page [showScrollHint]="false">
+<app-base-page>
 
-  <div class="home-parent-container">
+  <section class="h-card">
 
-    <div class="left-sticky-container h-card">
+    <img src="profile_picture.webp" alt="Morgan Van Valkenburgh" class="profile-picture u-photo" width="112" height="112" fetchpriority="high" />
 
-      <div class="profile-picture-wrapper">
-        <img src="profile_picture.webp" alt="Morgan Van Valkenburgh" class="profile-picture u-photo" fetchpriority="high" />
-      </div>
-
+    <div class="intro">
       <h1 class="p-name">Morgan Van Valkenburgh</h1>
-
-      <div class="social-media-container">
-
-        @for (link of socialLinks; track link.label) {
-          <a [attr.data-tooltip]="link.label"
-             [style.--brand-color]="link.brandColor"
-             [href]="link.href"
-             [attr.aria-label]="link.label"
-             [attr.target]="link.external ? '_blank' : null"
-             [attr.rel]="link.external ? 'me noopener noreferrer' : null">
-            <svg role="img" [attr.viewBox]="link.viewBox" xmlns="http://www.w3.org/2000/svg">
-              <title>{{ link.label }}</title>
-              <path [attr.d]="link.svgPath" [attr.fill-rule]="link.fillRule || null"/>
-            </svg>
-          </a>
-        }
-
-      </div>
-
-      <p class="profile-minor-text p-note">Hey there! Welcome to my personal website. Feel free to explore and connect with me.</p>
-
+      <p class="p-note">Hey there! Welcome to my personal website. Feel free to explore and connect with me.</p>
     </div>
 
-    <div class="right-scroll-wrapper">
-      <div class="right-scroll-container" #rightScrollEl appScrollRegion>
-
-      <section>
-        <h2>What's going on here?</h2>
-        <p>
-          This website originally started as a simple project to showcase my projects and experience in a professional context - a classic portfolio website.
-          After some time, this began to feel uninspired, and limiting to me. I lost motivation and put the project down for a while.
-        </p>
-        <p>
-          However, I have recently become reinspired by the IndieWeb movement, Web Revival, neocities, and the like. So I decided to re-approach this project with those inspirations in mind.
-        </p>
-        <p>
-          This is still a work in progress, so be sure to check back in sometime and see what has changed!
-          And if you are here for professional reasons, don't worry - all of that information is still here.
-        </p>
-      </section>
-
-      <section>
-        <h2>Contact</h2>
-        <p>Feel free to reach out via email or at any of the other platforms linked here. Or if you'd prefer an anonymous submission, you can use the following:</p>
-        <app-ask-morgan-form></app-ask-morgan-form>
-      </section>
-
-      </div>
-      <app-scroll-hint [scrollEl]="rightScrollEl" />
+    <div class="social-media-container">
+      @for (link of socialLinks; track link.label) {
+        <a [attr.data-tooltip]="link.label"
+           [style.--brand-color]="link.brandColor"
+           [href]="link.href"
+           [attr.aria-label]="link.label"
+           [attr.target]="link.external ? '_blank' : null"
+           [attr.rel]="link.external ? 'me noopener noreferrer' : null">
+          <svg role="img" [attr.viewBox]="link.viewBox" xmlns="http://www.w3.org/2000/svg">
+            <title>{{ link.label }}</title>
+            <path [attr.d]="link.svgPath" [attr.fill-rule]="link.fillRule || null"/>
+          </svg>
+        </a>
+      }
     </div>
+
+  </section>
+
+  <div class="home-panels">
+
+    <section class="panel prose" aria-labelledby="home-about">
+      <h2 id="home-about">What's going on here?</h2>
+      <p>
+        This website originally started as a simple project to showcase my projects and experience in a professional context - a classic portfolio website.
+        After some time, this began to feel uninspired, and limiting to me. I lost motivation and put the project down for a while.
+      </p>
+      <p>
+        However, I have recently become reinspired by the IndieWeb movement, Web Revival, neocities, and the like. So I decided to re-approach this project with those inspirations in mind.
+      </p>
+      <p>
+        This is still a work in progress, so be sure to check back in sometime and see what has changed!
+        And if you are here for professional reasons, don't worry - all of that information is still here.
+      </p>
+    </section>
+
+    <section class="panel contact" aria-labelledby="home-contact">
+      <h2 id="home-contact">Contact</h2>
+      <p>Feel free to reach out via email or at any of the other platforms linked here. Or if you'd prefer an anonymous submission, you can use the following:</p>
+      <app-ask-morgan-form></app-ask-morgan-form>
+    </section>
 
   </div>
 
 </app-base-page>
-
