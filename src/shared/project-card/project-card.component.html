@@ -1,34 +1,32 @@
 <article class="project-card">
   <img [src]="project().imageUrl" [alt]="project().imageAlt" class="shot" width="800" height="500" loading="lazy" decoding="async" />
 
-  <div class="body">
-    <h4 class="name">
-      {{ project().name }}
-      @if (project().subtitle; as subtitle) {<span class="subtitle">{{ subtitle }}</span>}
-    </h4>
+  <div class="heading">
+    <h3 class="name">{{ project().name }}</h3>
+    @if (project().subtitle; as subtitle) {<span class="subtitle">{{ subtitle }}</span>}
+  </div>
 
-    <p class="description">{{ project().description }}</p>
+  <p class="description">{{ project().description }}</p>
 
-    @if (project().quote; as quote) {
-      <p class="quote">“{{ quote }}”</p>
+  @if (project().quote; as quote) {
+    <p class="quote">“{{ quote }}”</p>
+  }
+
+  <ul class="tags" aria-label="Built with">
+    @for (tag of project().tags; track tag) {
+      <li class="tag">{{ tag }}</li>
     }
+  </ul>
 
-    <ul class="tags" aria-label="Built with">
-      @for (tag of project().tags; track tag) {
-        <li class="tag">{{ tag }}</li>
+  <div class="footer">
+    <div class="links">
+      @if (project().liveUrl; as liveUrl) {
+        <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗</a>
       }
-    </ul>
-
-    <div class="footer">
-      <div class="links">
-        @if (project().liveUrl; as liveUrl) {
-          <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗</a>
-        }
-        <a [href]="sourceUrl()" target="_blank" rel="noopener noreferrer" class="link">Source ↗</a>
-      </div>
-      @if (updated(); as when) {
-        <span class="updated">updated {{ when }}</span>
-      }
+      <a [href]="sourceUrl()" target="_blank" rel="noopener noreferrer" class="link">Source ↗</a>
     </div>
+    @if (updated(); as when) {
+      <span class="updated">updated {{ when }}</span>
+    }
   </div>
 </article>

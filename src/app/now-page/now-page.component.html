@@ -1,24 +1,24 @@
-<app-base-page pageTitle="Now">
-  <section class="now">
+<app-base-page>
 
-    <header class="now-header">
-      <h2>What I'm up to now</h2>
-      @if (note.length) {
-        <span class="range-label">updated {{ updated }}</span>
-      }
-    </header>
-
+  <app-page-header title="Now" description="What I'm up to now">
     @if (note.length) {
-      <div class="note">
-        @for (paragraph of note; track $index) {
-          <p>{{ paragraph }}</p>
-        }
-      </div>
+      <span pageMeta>updated {{ updated }}</span>
     }
+  </app-page-header>
+
+  @if (note.length) {
+    <div class="note">
+      @for (paragraph of note; track $index) {
+        <p>{{ paragraph }}</p>
+      }
+    </div>
+  }
+
+  <div class="now-panels">
 
     @if (projects.length) {
-      <section class="now-section" aria-labelledby="now-building">
-        <h3 id="now-building" class="section-heading">Building</h3>
+      <section class="panel" aria-labelledby="now-building">
+        <h2 id="now-building">Building <span class="range-label">{{ projectCountLabel }}</span></h2>
         <div class="projects">
           @for (project of projects; track project.id) {
             <app-project-card [project]="project" />
@@ -27,8 +27,8 @@
       </section>
     }
 
-    <section class="now-section" aria-labelledby="now-lately">
-      <h3 id="now-lately" class="section-heading">Lately <span class="range-label">updates on its own</span></h3>
+    <section class="panel lately" aria-labelledby="now-lately">
+      <h2 id="now-lately">Lately <span class="range-label">updates on its own</span></h2>
       <ul class="now-rows">
         @for (row of rows(); track row.key) {
           <li>
@@ -44,27 +44,27 @@
           </li>
         }
       </ul>
+
+      <p class="footnote">
+        This is a <a href="https://nownownow.com/about" target="_blank" rel="noopener noreferrer" class="pill">now page</a>.
+        Everything under “Lately” updates on its own.
+      </p>
     </section>
 
-    <p class="footnote">
-      This is a <a href="https://nownownow.com/about" target="_blank" rel="noopener noreferrer" class="pill">now page</a>.
-      Everything under “Lately” updates on its own.
-    </p>
-
-  </section>
+  </div>
 </app-base-page>
 
 <ng-template #rowBody let-row>
-  <span class="label" [class.live]="row.live">
-    @if (row.live) {<span class="dot" aria-hidden="true"></span>}
-    {{ row.label }}
-  </span>
   @if (row.iconUrl) {
-    <img [src]="row.iconUrl" alt="" class="thumb" [class.pixel]="row.iconStyle === 'pixel'" width="72" height="72" loading="lazy" decoding="async" />
+    <img [src]="row.iconUrl" alt="" class="thumb" [class.pixel]="row.iconStyle === 'pixel'" width="56" height="56" loading="lazy" decoding="async" />
   } @else {
     <span class="thumb thumb--glyph" aria-hidden="true">{{ row.glyph }}</span>
   }
   <span class="text">
+    <span class="label" [class.live]="row.live">
+      @if (row.live) {<span class="dot" aria-hidden="true"></span>}
+      {{ row.label }}@if (row.when) {<span class="label-when">· {{ row.when }}</span>}
+    </span>
     <span class="title" [title]="row.title">{{ row.title }}</span>
     @if (row.detail) {<span class="detail">{{ row.detail }}</span>}
   </span>
