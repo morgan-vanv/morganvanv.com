@@ -8,6 +8,7 @@ Update conventions there, not here. This file only holds Claude-specific rules.
 
 ## Hard rules
 
+- **Never delete `archived-old-website`.** It's the original 2019 site and its history (head `3df4744`). Exclude it from every branch cleanup, and never force-push, rebase or merge into it. A copy also lives in Morgan's Google Drive ("morganvanv.com — archived-old-website backup").
 - **`master` deploys.** Every push to `master` ships to morganvanv.com. Work on a branch and open a PR; never push to `master` directly.
 - **Before calling work done**, all three CI checks must pass locally (`npm run check` runs them in order):
   ```bash
