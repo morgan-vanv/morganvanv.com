@@ -7,6 +7,7 @@ import { SkyService } from './sky.service';
 const files: Record<string, string> = {
   '/data/sky/stars.json': readFileSync('public/data/sky/stars.json', 'utf8'),
   '/data/sky/constellations.json': readFileSync('public/data/sky/constellations.json', 'utf8'),
+  '/data/sky/names.json': readFileSync('public/data/sky/names.json', 'utf8'),
 };
 
 /** Stubs the browser pieces happy-dom doesn't have (canvas, image decoding, media queries) and the data fetches. */
@@ -17,15 +18,18 @@ function stubBrowser({ fetchFails = false, reducedMotion = false } = {}) {
   }));
   vi.spyOn(HTMLImageElement.prototype, 'decode').mockResolvedValue(undefined);
   const putImageData = vi.fn();
+  const drawImage = vi.fn();
   vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
     createImageData: (w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4), width: w, height: h }),
+    getImageData: (_x: number, _y: number, w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4), width: w, height: h }),
     putImageData,
+    drawImage,
   } as unknown as CanvasRenderingContext2D);
   vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: reducedMotion && query.includes('reduce') }) as MediaQueryList);
   const setIntervalSpy = vi.spyOn(window, 'setInterval');
   const geolocation = vi.fn();
   vi.spyOn(navigator, 'geolocation', 'get').mockReturnValue({ getCurrentPosition: geolocation } as unknown as Geolocation);
-  return { putImageData, setIntervalSpy, geolocation };
+  return { putImageData, setIntervalSpy, geolocation, drawImage };
 }
 
 async function mount() {
@@ -41,12 +45,13 @@ describe('SkyComponent', () => {
     document.documentElement.style.removeProperty('--daylight');
   });
 
-  it('draws, shows the foreground, and redraws once a minute', async () => {
-    const { putImageData, setIntervalSpy, geolocation } = stubBrowser();
+  it('draws the sky and the landscape, and redraws once a minute', async () => {
+    const { putImageData, setIntervalSpy, geolocation, drawImage } = stubBrowser();
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(putImageData).toHaveBeenCalled();
-    expect(fixture.nativeElement.querySelector('.foreground img')).not.toBeNull();
+    // The night landscape is rasterised from its image.
+    expect(drawImage.mock.calls.some(([image]) => (image as HTMLImageElement).src.endsWith('/landscape/darkness.webp'))).toBe(true);
     expect(setIntervalSpy.mock.calls.some(([, ms]) => ms === REDRAW_INTERVAL_MS)).toBe(true);
     expect(document.documentElement.style.getPropertyValue('--daylight')).not.toBe('');
     expect(geolocation).not.toHaveBeenCalled();
@@ -67,7 +72,6 @@ describe('SkyComponent', () => {
     await new Promise(resolve => setTimeout(resolve, 200));
     expect(sky.ready()).toBe(false);
     expect(putImageData).not.toHaveBeenCalled();
-    expect(fixture.nativeElement.querySelector('.foreground img')).toBeNull();
     expect(fixture.nativeElement.classList).not.toContain('ready');
   });
 });

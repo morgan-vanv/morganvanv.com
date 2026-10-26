@@ -1,3 +1,5 @@
+@use '../../styles' as *;
+
 // Sits inside the app's .canvas, over the painted background, which shows
 // until the live sky is ready (and stays, if it never is).
 :host {
@@ -21,12 +23,17 @@
   image-rendering: pixelated;
 }
 
-.foreground {
-  position: absolute;
-  inset: 0;
-  filter: brightness(calc(1 + 0.45 * var(--daylight, 0)));
-
-  // Holds the cut-out painting (an <img> added and styled by sky.component.ts once it has loaded).
+// The hover label: a small pill beside the pointer.
+.sky-label {
+  position: fixed;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba($main-color, 0.18);
+  background: rgba($background-color, 0.85);
+  color: $main-color;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

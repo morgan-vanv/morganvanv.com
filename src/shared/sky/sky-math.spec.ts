@@ -122,6 +122,13 @@ describe('sky data', () => {
     expect(sirius[2]).toBeCloseTo(-1.44, 2);
   });
 
+  it('names the bright stars, brightest first', () => {
+    const names = (JSON.parse(readFileSync('public/data/sky/names.json', 'utf8')) as { names: [number, number, string, string][] }).names;
+    expect(names[0].slice(2)).toEqual(['Sirius', 'CMa']);
+    expect(names.map(n => n[2])).toContain('Polaris');
+    expect(names.length).toBeGreaterThan(100);
+  });
+
   it('has 30 constellations, each with lines', () => {
     expect(constellations.constellations.length).toBe(30);
     expect(constellations.constellations.every(c => c.lines.length > 0)).toBe(true);

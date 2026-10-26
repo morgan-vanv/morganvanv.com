@@ -7,6 +7,7 @@ import { Lighting, computeLayout, drawLine, prepareCatalog, renderSky, skyColors
 const catalog = prepareCatalog(
   JSON.parse(readFileSync('public/data/sky/stars.json', 'utf8')),
   JSON.parse(readFileSync('public/data/sky/constellations.json', 'utf8')),
+  JSON.parse(readFileSync('public/data/sky/names.json', 'utf8')),
 );
 const { lat, lon } = CINCINNATI;
 
@@ -129,6 +130,36 @@ describe('sky render', () => {
     const { result } = render('2026-10-26T05:00:00Z', false);
     expect(result.sunAlt).toBeLessThan(-40);
     expect(result.starsDrawn).toBeGreaterThan(100);
+  });
+
+  it('reports what can be hovered: named stars, planets and the Moon, plus figure lines', () => {
+    const { result } = render('2026-01-15T04:00:00Z');
+    const names = result.targets.map(t => t.name);
+    expect(names).toContain('Betelgeuse');
+    expect(names).toContain('Sirius');
+    expect(result.targets.find(t => t.name === 'Betelgeuse')?.constellation).toBe('Ori');
+    expect(result.segments.some(s => s.figure === 'Ori')).toBe(true);
+    // Nothing to point at in a starless daytime sky but the Sun.
+    const day = render('2026-01-15T04:00:00Z', true, 'day').result;
+    expect(day.targets.every(t => t.kind === 'sun' || t.kind === 'moon' || t.kind === 'planet')).toBe(true);
+  });
+
+  it('brightens the hovered figure and rings the hovered object', () => {
+    const plain = render('2026-01-15T04:00:00Z');
+    const betelgeuse = plain.result.targets.find(t => t.name === 'Betelgeuse')!;
+    const layout = computeLayout(1280, 800);
+    const buffer = new Uint8ClampedArray(layout.width * layout.height * 4);
+    const date = new Date('2026-01-15T04:00:00Z');
+    renderSky(buffer, layout, {
+      date, lat, lon, catalog, bodies: computeBodies(Astronomy, date, lat, lon), lighting: 'real',
+      highlight: { figure: 'Ori', target: betelgeuse },
+    });
+    let changed = 0;
+    for (let i = 0; i < buffer.length; i += 4) if (buffer[i] !== plain.buffer[i]) changed++;
+    expect(changed).toBeGreaterThan(20);
+    // The ring is gold, three pixels out.
+    const i = (Math.round(betelgeuse.y) * layout.width + Math.round(betelgeuse.x) + 3) * 4;
+    expect(buffer[i]).toBeGreaterThan(buffer[i + 2]);
   });
 
   it('drawLine steps one pixel at a time and includes both ends', () => {

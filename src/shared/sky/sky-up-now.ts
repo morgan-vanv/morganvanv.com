@@ -2,13 +2,18 @@ import { Bodies } from './sky-bodies';
 import { Mat3, altAz, multiply } from './sky-math';
 import { SkyCatalog } from './sky-render';
 
-/** The 30 constellations drawn, by IAU abbreviation. */
+/** Constellation names by IAU abbreviation: the 30 drawn, plus any that hold a named bright star. */
 export const CONSTELLATION_NAMES: Record<string, string> = {
   And: 'Andromeda', Aql: 'Aquila', Aqr: 'Aquarius', Ari: 'Aries', Aur: 'Auriga', Boo: 'Boötes',
   CMa: 'Canis Major', CMi: 'Canis Minor', Cap: 'Capricornus', Cas: 'Cassiopeia', Cep: 'Cepheus', Cnc: 'Cancer',
   CrB: 'Corona Borealis', Cyg: 'Cygnus', Dra: 'Draco', Gem: 'Gemini', Her: 'Hercules', Leo: 'Leo',
   Lib: 'Libra', Lyr: 'Lyra', Ori: 'Orion', Peg: 'Pegasus', Per: 'Perseus', Psc: 'Pisces',
   Sco: 'Scorpius', Sgr: 'Sagittarius', Tau: 'Taurus', UMa: 'Ursa Major', UMi: 'Ursa Minor', Vir: 'Virgo',
+  // Not drawn, but home to a named bright star.
+  Ara: 'Ara', CVn: 'Canes Venatici', Car: 'Carina', Cen: 'Centaurus', Cet: 'Cetus', Col: 'Columba',
+  Cru: 'Crux', Crv: 'Corvus', Eri: 'Eridanus', Gru: 'Grus', Hya: 'Hydra', Lep: 'Lepus', Lup: 'Lupus',
+  Oph: 'Ophiuchus', Pav: 'Pavo', Phe: 'Phoenix', PsA: 'Piscis Austrinus', Pup: 'Puppis', Ser: 'Serpens',
+  TrA: 'Triangulum Australe', Tri: 'Triangulum', Vel: 'Vela',
 };
 
 /** A plain-text summary of what's above the horizon, for the sky menu (and anyone who can't see the canvas). */
