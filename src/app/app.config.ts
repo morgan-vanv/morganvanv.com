@@ -1,6 +1,6 @@
 import { ApplicationConfig, provideBrowserGlobalErrorListeners, provideZonelessChangeDetection } from '@angular/core';
 import { TitleStrategy, provideRouter, withViewTransitions } from '@angular/router';
-import { provideHttpClient, withFetch } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideClientHydration, withEventReplay, withNoHttpTransferCache } from '@angular/platform-browser';
 
 import { routes } from './app.routes';
@@ -16,6 +16,6 @@ export const appConfig: ApplicationConfig = {
     // Live panels must always be live, so nothing fetched at prerender time
     // is carried over to the browser.
     provideClientHydration(withEventReplay(), withNoHttpTransferCache()),
-    provideHttpClient(withFetch()),
+    provideHttpClient(),
   ]
 };

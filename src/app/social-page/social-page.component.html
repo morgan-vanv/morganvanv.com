@@ -30,14 +30,14 @@
       }
     </div>
 
-    @if (selectedPhoto()) {
+    @if (selectedPhoto(); as photo) {
       <div class="fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Fullscreen photo" tabindex="-1" (click)="onOverlayClick($event)" (keydown.escape)="onEscape($event)" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
         <button type="button" class="close-button" aria-label="Close fullscreen photo" (click)="closeFullscreen()">
           <span>Esc</span>
         </button>
-        <img [src]="selectedPhoto()?.imageUrl" [alt]="selectedPhoto()?.caption || 'Fullscreen photo'" class="fullscreen-image" />
-        @if (selectedPhoto()?.caption) {
-          <div class="fullscreen-caption">{{ selectedPhoto()?.caption }}</div>
+        <img [src]="photo.imageUrl" [alt]="photo.caption || 'Fullscreen photo'" class="fullscreen-image" />
+        @if (photo.caption) {
+          <div class="fullscreen-caption">{{ photo.caption }}</div>
         }
       </div>
     }

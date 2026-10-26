@@ -12,6 +12,9 @@ updates:
         versions: [">=4.1.0"]
       - dependency-name: "@vitest/coverage-v8"
         versions: [">=4.1.0"]
+      # Angular 22's compiler accepts TypeScript >=6.0 <6.1 only. Lift with the next Angular that accepts more.
+      - dependency-name: "typescript"
+        versions: [">=6.1.0"]
     groups:
       angular:
         patterns:
