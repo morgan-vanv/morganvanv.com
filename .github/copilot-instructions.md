@@ -61,6 +61,9 @@ scripts/             # build-info (prebuild hook), sky data + foreground generat
 
 ## Conventions
 
+**Design pillar — night is home:** the site is dark by default and designed against a night sky first. Anything brighter (daylight, sunrise, a light variant) is an opt-in the visitor chooses, never the landing state. When "accurate" and "looks like night" conflict, default to night and offer accuracy as a setting. New UI must still be readable if a visitor opts into a brighter sky.
+
+
 **Standalone components:** All components are standalone. Never use NgModule. Do **not** set `standalone: true`.
 
 **Zoneless + signals:** `provideZonelessChangeDetection()` is on; there is no zone.js. Components use `ChangeDetectionStrategy.OnPush`, hold state in `signal()`/`computed()`, read observables with `toSignal()` or `AsyncPipe`, and never call `markForCheck()`. Use `input()` / `input.required()` and `host: { … }` metadata, never `@Input`, `@Output` or `@HostListener`. In tests, prefer `await fixture.whenStable()` to `fixture.detectChanges()`.
