@@ -63,6 +63,8 @@ describe('InterestsPageComponent', () => {
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
     expect(el.querySelector('app-page-header')).toBeNull();
+    // Still exactly one h1, for screen readers.
+    expect([...el.querySelectorAll('h1')].map(h => h.textContent)).toEqual(['Interests']);
   });
 
   it('switches the visible top list with the tabs', async () => {
