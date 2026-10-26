@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { IconComponent, IconName } from '../icon/icon.component';
@@ -40,6 +40,7 @@ function pathOf(url: string): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(keydown.escape)': 'onEscape($event)',
+    '(focusout)': 'onFocusOut($event)',
   },
 })
 export class CustomNavbarComponent {
@@ -66,7 +67,7 @@ export class CustomNavbarComponent {
   readonly menuOpen = signal(false);
 
   constructor() {
-    this.router.events.pipe(filter(e => e instanceof NavigationEnd)).subscribe(() => this.menuOpen.set(false));
+    this.router.events.pipe(filter(e => e instanceof NavigationEnd), takeUntilDestroyed()).subscribe(() => this.menuOpen.set(false));
     const onPointerDown = (event: PointerEvent) => {
       if (this.menuOpen() && !this.host.contains(event.target as Node)) this.menuOpen.set(false);
     };
@@ -83,6 +84,12 @@ export class CustomNavbarComponent {
 
   toggleMenu(): void {
     this.menuOpen.update(open => !open);
+  }
+
+  /** Tabbing out of the open page list closes it. */
+  onFocusOut(event: FocusEvent): void {
+    const next = event.relatedTarget;
+    if (this.menuOpen() && next instanceof Node && !this.host.contains(next)) this.menuOpen.set(false);
   }
 
   onEscape(event: Event): void {

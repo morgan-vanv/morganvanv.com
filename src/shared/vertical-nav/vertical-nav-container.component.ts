@@ -7,7 +7,6 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
   styleUrl: './vertical-nav-container.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '[class.has-expanded-item]': 'isExpanded()',
     '(document:keydown)': 'handleKeyDown($event)',
   }
 })

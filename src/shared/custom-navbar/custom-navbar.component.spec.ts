@@ -77,4 +77,26 @@ describe('CustomNavbarComponent', () => {
     await goTo('/now');
     expect(el.querySelector('.page-list')).toBeNull();
   });
+
+  it('only points aria-controls at the page list while it exists, and hides the brackets from screen readers', async () => {
+    await goTo('/now');
+    const button = el.querySelector<HTMLButtonElement>('.pager-current')!;
+    expect(button.getAttribute('aria-controls')).toBeNull();
+    expect([...button.querySelectorAll('span[aria-hidden="true"]')].map(s => s.textContent?.trim())).toEqual(['[', ']']);
+    button.click();
+    await fixture.whenStable();
+    expect(button.getAttribute('aria-controls')).toBe('page-list');
+  });
+
+  it('closes the page list when focus leaves the navbar', async () => {
+    await goTo('/home');
+    el.querySelector<HTMLButtonElement>('.pager-current')!.click();
+    await fixture.whenStable();
+    const outside = document.createElement('button');
+    document.body.appendChild(outside);
+    el.querySelector('.page-list a')!.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: outside }));
+    await fixture.whenStable();
+    expect(el.querySelector('.page-list')).toBeNull();
+    outside.remove();
+  });
 });

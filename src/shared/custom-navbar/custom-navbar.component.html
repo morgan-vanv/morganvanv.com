@@ -34,9 +34,9 @@
     } @else {
       <span class="pager-button" aria-hidden="true"></span>
     }
-    <button #menuButton type="button" class="pager-current" aria-controls="page-list"
+    <button #menuButton type="button" class="pager-current" [attr.aria-controls]="menuOpen() ? 'page-list' : null"
             [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">
-      <span>[ {{ current()?.label ?? 'Pages' }} ]</span>
+      <span><span aria-hidden="true">[ </span>{{ current()?.label ?? 'Pages' }}<span aria-hidden="true"> ]</span></span>
       <app-icon [name]="menuOpen() ? 'chevron-up' : 'chevron-down'" class="pager-caret" />
     </button>
     @if (next(); as link) {
@@ -58,7 +58,7 @@
              [routerLinkActiveOptions]="{ exact: !!link.exact }"
              [attr.aria-current]="listRla.isActive ? 'page' : null">
             @if (link.label) {
-              <span>{{ listRla.isActive ? '[ ' + link.label + ' ]' : link.label }}</span>
+              <span>@if (listRla.isActive) {<span aria-hidden="true">[ </span>}{{ link.label }}@if (listRla.isActive) {<span aria-hidden="true"> ]</span>}</span>
             } @else {
               <span>Start <span class="dim">the greeting</span></span>
             }

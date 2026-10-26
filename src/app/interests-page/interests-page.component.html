@@ -23,18 +23,18 @@
 
         <app-last-listened />
 
-        <!-- Tablets and phones show one list at a time; wide screens show all three. -->
-        <div class="list-tabs" role="tablist" aria-label="Top lists">
+        <!-- Tablets and phones show one list at a time (toggle buttons, not ARIA tabs:
+             arrow keys stay the site's page navigation); wide screens show all three. -->
+        <div class="list-tabs" role="group" aria-label="Which top list to show">
           @for (tab of listTabs; track tab.id) {
-            <button type="button" role="tab" class="list-tab" [id]="'music-tab-' + tab.id"
-                    [attr.aria-selected]="activeList() === tab.id" [attr.aria-controls]="'music-list-' + tab.id"
-                    (click)="activeList.set(tab.id)">{{ tab.label }}</button>
+            <button type="button" class="list-tab" [attr.aria-pressed]="activeList() === tab.id"
+                    [attr.aria-controls]="'music-list-' + tab.id" (click)="activeList.set(tab.id)">{{ tab.label }}</button>
           }
         </div>
 
         <div class="stats-columns">
 
-          <div class="stats-column" id="music-list-songs" role="tabpanel" aria-labelledby="music-tab-songs" [class.is-active]="activeList() === 'songs'">
+          <div class="stats-column" id="music-list-songs" [class.is-active]="activeList() === 'songs'">
             <h3>Top Songs <span class="range-label">this week</span></h3>
             @if (topTracks$ | async; as tracks) {
               <ol class="stats-list">
@@ -58,7 +58,7 @@
             }
           </div>
 
-          <div class="stats-column" id="music-list-albums" role="tabpanel" aria-labelledby="music-tab-albums" [class.is-active]="activeList() === 'albums'">
+          <div class="stats-column" id="music-list-albums" [class.is-active]="activeList() === 'albums'">
             <h3>Top Albums <span class="range-label">this month</span></h3>
             @if (topAlbums$ | async; as albums) {
               <ol class="stats-list">
@@ -78,7 +78,7 @@
             }
           </div>
 
-          <div class="stats-column" id="music-list-artists" role="tabpanel" aria-labelledby="music-tab-artists" [class.is-active]="activeList() === 'artists'">
+          <div class="stats-column" id="music-list-artists" [class.is-active]="activeList() === 'artists'">
             <h3>Top Artists <span class="range-label">all time</span></h3>
             @if (topArtists$ | async; as artists) {
               <ol class="stats-list">

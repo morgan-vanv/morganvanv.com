@@ -67,7 +67,7 @@ describe('InterestsPageComponent', () => {
     expect([...el.querySelectorAll('h1')].map(h => h.textContent)).toEqual(['Interests']);
   });
 
-  it('switches the visible top list with the tabs', async () => {
+  it('switches the visible top list with the toggle buttons', async () => {
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -78,6 +78,6 @@ describe('InterestsPageComponent', () => {
     albums.click();
     await fixture.whenStable();
     expect(active()).toEqual(['music-list-albums']);
-    expect(albums.getAttribute('aria-selected')).toBe('true');
+    expect(albums.getAttribute('aria-pressed')).toBe('true');
   });
 });
