@@ -31,7 +31,12 @@
 
   dd {
     margin: 0;
-    font-size: 1.1rem;
+    font-size: $font-size-panel-title;
+
+    // Phones: four across leaves ~48px per value ("2,240").
+    @media (max-width: $breakpoint-phone) {
+      font-size: $font-size-body;
+    }
     font-weight: bold;
     font-variant-numeric: tabular-nums;
   }

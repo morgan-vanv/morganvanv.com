@@ -51,6 +51,8 @@ export class VerticalNavContainerComponent {
     const itemsCount = items.length;
     if (itemsCount === 0) return;
 
+    // ↑/↓ walk the tiles in reading order, even laid out two across: ← → belong
+    // to page navigation, so this is the only way arrow keys reach every tile.
     if (event.key === 'ArrowUp') {
       this.highlightedIndex.update(i => Math.max(0, i - 1));
       this.focusHighlightedItem();
