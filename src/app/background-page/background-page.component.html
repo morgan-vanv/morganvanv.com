@@ -1,30 +1,40 @@
-<app-base-page pageTitle="Background">
+<app-base-page>
 
-  <section>
-    <h2>About Me</h2>
-    <p>
-      So, I'm really just some guy. I grew up in the Greater Cincinnati area (where I recently moved back to), I studied Physics & Applied Mathematics at Ohio University, and I currently work as a Software Engineer for The Home Depot.
-    </p>
-    <p>
-      Outside of that, I mostly spend my time listening to music and podcasts, tinkering with tech stuff, and playing Old School Runescape. I also dabble in photography (astrophotography when I can), collecting vinyl, and even cycling on occasion.
-    </p>
-  </section>
+  <!-- draft copy for Morgan -->
+  <app-page-header title="Background" description="The professional stuff, plus the cat." />
 
-  <section>
-    <p>Also I have a cat named Ada! She is both the light of my life, as well as the bane of my existence.</p>
-    <img src="do_it_for_her.webp" alt="Ada the cat, with the caption: Do it for her" class="ada-image" width="800" height="572" loading="lazy">
-  </section>
+  <div class="background-panels">
 
+    <section class="panel prose" aria-labelledby="background-about">
+      <h2 id="background-about">About Me</h2>
+      <p>
+        So, I'm really just some guy. I grew up in the Greater Cincinnati area (where I recently moved back to), I studied Physics & Applied Mathematics at Ohio University, and I currently work as a Software Engineer for The Home Depot.
+      </p>
+      <p>
+        Outside of that, I mostly spend my time listening to music and podcasts, tinkering with tech stuff, and playing Old School Runescape. I also dabble in photography (astrophotography when I can), collecting vinyl, and even cycling on occasion.
+      </p>
+    </section>
 
-  <section>
-    <h2>Other Notable Experiences</h2>
+    <figure class="panel ada">
+      <img src="do_it_for_her.webp"
+           srcset="do_it_for_her.webp 800w, do_it_for_her-1400.webp 1400w"
+           sizes="(max-width: 1000px) calc(100vw - 3rem), min(36vw, 40rem)"
+           alt="Ada the cat, with the caption: Do it for her"
+           class="ada-image" width="800" height="572" loading="lazy" decoding="async">
+      <figcaption>Also I have a cat named Ada! She is both the light of my life, as well as the bane of my existence.</figcaption>
+    </figure>
+
+    <section class="panel experiences" aria-labelledby="background-experiences">
+      <h2 id="background-experiences">Other Notable Experiences</h2>
       <ul>
-        <li> Undergraduate Research Assistant for <a href="https://moller.jlab.org/" target="_blank" rel="noopener noreferrer" class="pill">The MOLLER Experiment at Jefferson Lab</a></li>
-        <li> Director of University Relations for the Ohio University Student Senate</li>
-        <li> Student Teaching Intern for a period of time (considered teaching as a career path at one point), working as an assistant teacher for Life Sciences in a Middle School</li>
-        <li> In High School I was a founding participant in "Tech Squad", a student-led technology support group supplementing the school's IT staff</li>
-        <li> I was a Boy Scout for many years (never hit Eagle Scout, but still learned a lot)</li>
+        <li><span>Undergraduate Research Assistant for <a href="https://moller.jlab.org/" target="_blank" rel="noopener noreferrer" class="pill">The MOLLER Experiment at Jefferson Lab</a></span></li>
+        <li><span>Director of University Relations for the Ohio University Student Senate</span></li>
+        <li><span>Student Teaching Intern for a period of time (considered teaching as a career path at one point), working as an assistant teacher for Life Sciences in a Middle School</span></li>
+        <li><span>In High School I was a founding participant in "Tech Squad", a student-led technology support group supplementing the school's IT staff</span></li>
+        <li><span>I was a Boy Scout for many years (never hit Eagle Scout, but still learned a lot)</span></li>
       </ul>
-  </section>
+    </section>
+
+  </div>
 
 </app-base-page>
