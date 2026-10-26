@@ -1,32 +1,69 @@
 @use "sass:math";
 @use '../../styles' as *;
+@use '../../shared/shared-styles.scss' as shared;
 
-section {
-  margin-bottom: 3rem;
+// The photo wall beside a narrow shoutbox; stacked on tablets and phones.
+.social-panels {
+  @include shared.panel-grid(minmax(0, 1fr) 18.75rem);
+  align-items: stretch;
 
-  p {
-    font-size: 1.5rem;
-    margin-bottom: 2rem;
-    line-height: 1.5;
+  @media (max-width: $breakpoint-mobile) {
+    align-items: start;
   }
 }
 
-.photo-wall {
+.panel {
+  @include shared.panel;
+  padding: 1rem 1.125rem 0.875rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 0.875rem 0.75rem 0.75rem;
+  }
+
+  h2 {
+    @include shared.panel-heading;
+    margin: 0 0 0.875rem;
+  }
+}
+
+.shoutbox {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2.5rem;
-  justify-content: center;
-  padding: 2rem 0;
+  flex-direction: column;
+
+  app-under-construction {
+    --under-construction-size: 120px;
+    flex: 1;
+    min-height: 8rem;
+  }
+}
+
+// Polaroids fill the panel: four across on a laptop, more on wide screens,
+// exactly two on phones.
+.photo-wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
+  gap: 1.625rem 1.875rem;
+  padding: 0.375rem 0.625rem 0.625rem;
+
+  @media (max-width: $breakpoint-phone) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.125rem 1rem;
+    padding: 0.125rem 0.375rem 0.375rem;
+  }
 }
 
 .polaroid {
   background: white;
-  padding: 1rem 1rem 0.5rem 1rem;
+  padding: 0.5625rem 0.5625rem 0.125rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  width: 220px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
+
+  @media (max-width: $breakpoint-phone) {
+    padding: 0.4375rem 0.4375rem 0;
+  }
 
   &:hover {
     transform: scale(1.05) rotate(2deg);
@@ -39,13 +76,20 @@ section {
     border: 2px solid transparent; // Reserve space so size doesn't shift
     transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 
-    &:hover {
+    &:hover,
+    &:focus-visible {
       border-color: $osrs-gold; // Yellow border
+    }
+
+    &:focus-visible {
+      outline: 2px solid $main-color;
+      outline-offset: 3px;
     }
   }
 
-  // Add some static randomness to the rotation (deterministic modulo-based formula)
-  @for $i from 1 through 24 {
+  // Add some static randomness to the rotation (deterministic modulo-based
+  // formula), one per slot; the wall always has 12.
+  @for $i from 1 through 12 {
     $rot: math.div((($i * 37 + 13) % 60) - 30, 10); // between -3.0 and 3.0
     $hover-rot: math.div((($i * 43 + 29) % 80) - 40, 10); // between -4.0 and 4.0
     &:nth-child(#{$i}) {
@@ -62,6 +106,7 @@ section {
   aspect-ratio: 1 / 1;
   background: #e8e8e8;
   border: 1px solid #ddd;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -78,23 +123,33 @@ section {
 
 .polaroid-placeholder {
   color: #777;
-  font-size: 1.2rem;
+  font-size: $font-size-small;
   text-align: center;
-  padding: 1rem;
+  padding: 0.5rem;
   font-family: 'JetBrains Mono', monospace;
   opacity: 0.7;
 }
 
+// Caveat handwriting; long captions wrap to two lines rather than overflow.
 .polaroid-caption {
-  height: 3rem;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.125rem;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.25rem;
+  line-height: 1;
   color: #1a1a1a;
   text-align: center;
   font-weight: bold;
+  overflow-wrap: anywhere;
+
+  @media (max-width: $breakpoint-phone) {
+    min-height: 2.125rem;
+    font-size: 1.0625rem;
+  }
 }
 
 .fullscreen-overlay {
@@ -116,6 +171,8 @@ section {
     position: absolute;
     top: 1.5rem;
     left: 1.5rem;
+    min-width: 44px;
+    min-height: 44px;
     background: transparent;
     color: $danger-color;
     border: 2px solid $danger-color;
@@ -135,7 +192,7 @@ section {
       color: #ffffff;
       box-shadow: 0 0 10px rgba($danger-color, 0.4);
     }
-    
+
     &:active {
       transform: scale(0.95);
     }
@@ -165,4 +222,3 @@ section {
     cursor: default;
   }
 }
-

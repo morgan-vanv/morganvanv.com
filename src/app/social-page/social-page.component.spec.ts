@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { SocialPageComponent } from './social-page.component';
+import { SocialPageComponent, photoCountLabel } from './social-page.component';
+import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 
 describe('SocialPageComponent', () => {
   let component: SocialPageComponent;
@@ -21,6 +22,20 @@ describe('SocialPageComponent', () => {
     expect(component.photos.length).toBe(12);
     expect(component.photos[0].imageUrl).toBeDefined();
     expect(component.photos[11].placeholderText).toBe('Your Photo Here');
+  });
+
+  it('shows one h1 and the photo count beside the wall heading', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('h1').length).toBe(1);
+    expect(el.querySelector('h1')?.textContent?.trim()).toBe('Social');
+    const wallHeading = [...el.querySelectorAll('h2')].find(h => h.textContent?.includes('Community Photo Wall'));
+    expect(wallHeading?.querySelector('.range-label')?.textContent?.trim()).toBe(photoCountLabel(COMMUNITY_PHOTOS.length));
+  });
+
+  it('counts photos in words', () => {
+    expect(photoCountLabel(1)).toBe('1 photo');
+    expect(photoCountLabel(6)).toBe('6 photos');
+    expect(photoCountLabel(0)).toBe('0 photos');
   });
 
   it('opens fullscreen for a photo with an image', () => {
