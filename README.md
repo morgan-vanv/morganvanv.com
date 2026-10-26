@@ -18,3 +18,7 @@ Pushing to `master` deploys. Work on a branch and open a PR.
 - `docs/decisions.md` — dated one-line decisions
 - `docs/roadmap.md` — what's being built next, with the decisions already made
 - `docs/ideas-later.md` — the ideas backlog
+
+## Art
+
+The lossless original of the background painting is `art/painting.png` (not served). `scripts/build-landscape.py` turns it into the relit landscape looks in `public/landscape/`; edit the script and rerun it rather than editing the images.
