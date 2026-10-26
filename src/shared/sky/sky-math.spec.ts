@@ -2,11 +2,13 @@ import { readFileSync } from 'node:fs';
 import * as Astronomy from 'astronomy-engine';
 import {
   altAz,
+  altAzToVector,
   gmstDeg,
   j2000ToHorizontalMatrix,
   julianDate,
   multiply,
   projectSouth,
+  unprojectSouth,
   raDecToVector,
   sunHorizontal,
   sunRaDec,
@@ -101,6 +103,15 @@ describe('sky math', () => {
     expect(at(1, 0, 0)).toBeNull(); // north, behind the viewer
   });
 
+  it('unprojects back to where it came from', () => {
+    for (const [alt, az] of [[0, 180], [30, 120], [-10, 250], [80, 10], [5, 90]]) {
+      const h = altAzToVector(alt, az);
+      const p = projectSouth(h)!;
+      const back = unprojectSouth(p.x, p.y);
+      for (let k = 0; k < 3; k++) expect(back[k]).toBeCloseTo(h[k], 9);
+    }
+  });
+
   it('wraps angles into [0, 360)', () => {
     expect(wrap360(-30)).toBe(330);
     expect(wrap360(725)).toBe(5);
@@ -120,6 +131,13 @@ describe('sky data', () => {
     const sirius = stars.stars[0];
     expect(sirius[0]).toBeCloseTo(101.287, 2);
     expect(sirius[2]).toBeCloseTo(-1.44, 2);
+  });
+
+  it('names the bright stars, brightest first', () => {
+    const names = (JSON.parse(readFileSync('public/data/sky/names.json', 'utf8')) as { names: [number, number, string, string][] }).names;
+    expect(names[0].slice(2)).toEqual(['Sirius', 'CMa']);
+    expect(names.map(n => n[2])).toContain('Polaris');
+    expect(names.length).toBeGreaterThan(100);
   });
 
   it('has 30 constellations, each with lines', () => {

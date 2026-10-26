@@ -43,6 +43,19 @@ const lines = JSON.parse(readFileSync(join(src, 'data/constellations.lines.json'
   .filter(f => CONSTELLATIONS.includes(f.id))
   .map(f => ({ id: f.id, lines: f.geometry.coordinates.map(line => line.map(([lon, lat]) => [ra(lon), dec(lat)])) }));
 
+/** Stars bright enough to get a hover label, if they have a traditional name. */
+const NAME_MAG_LIMIT = 3;
+const starNames = JSON.parse(readFileSync(join(src, 'data/starnames.json'), 'utf8'));
+const names = JSON.parse(readFileSync(join(src, 'data/stars.6.json'), 'utf8')).features
+  .filter(f => f.properties.mag <= NAME_MAG_LIMIT && starNames[f.id]?.name)
+  .sort((a, b) => a.properties.mag - b.properties.mag)
+  .map(f => {
+    const [lon, lat] = f.geometry.coordinates;
+    return [ra(lon), dec(lat), starNames[f.id].name, starNames[f.id].c];
+  })
+  // A few names are shared by two stars (Alnair); keep the brighter.
+  .filter((entry, i, all) => all.findIndex(other => other[2] === entry[2]) === i);
+
 const missing = CONSTELLATIONS.filter(id => !lines.some(l => l.id === id));
 if (missing.length) throw new Error(`constellations not found: ${missing.join(', ')}`);
 
@@ -51,4 +64,5 @@ mkdirSync(out, { recursive: true });
 const header = { source: 'd3-celestial (BSD-3-Clause, Olaf Frohn); Yale Bright Star Catalog / Hipparcos', epoch: 'J2000' };
 writeFileSync(join(out, 'stars.json'), JSON.stringify({ ...header, format: '[raDeg, decDeg, mag, bv]', magLimit: MAG_LIMIT, stars }));
 writeFileSync(join(out, 'constellations.json'), JSON.stringify({ ...header, format: '[[raDeg, decDeg], ...] polylines', constellations: lines }));
-console.log(`build-sky-data: ${stars.length} stars (mag ≤ ${MAG_LIMIT}), ${lines.length} constellations`);
+writeFileSync(join(out, 'names.json'), JSON.stringify({ ...header, format: '[raDeg, decDeg, name, constellation]', magLimit: NAME_MAG_LIMIT, names }));
+console.log(`build-sky-data: ${stars.length} stars (mag ≤ ${MAG_LIMIT}), ${lines.length} constellations, ${names.length} named stars (mag ≤ ${NAME_MAG_LIMIT})`);

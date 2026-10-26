@@ -7,6 +7,7 @@ import { Lighting, computeLayout, drawLine, prepareCatalog, renderSky, skyColors
 const catalog = prepareCatalog(
   JSON.parse(readFileSync('public/data/sky/stars.json', 'utf8')),
   JSON.parse(readFileSync('public/data/sky/constellations.json', 'utf8')),
+  JSON.parse(readFileSync('public/data/sky/names.json', 'utf8')),
 );
 const { lat, lon } = CINCINNATI;
 
@@ -23,11 +24,15 @@ function render(iso: string, withBodies = true, lighting: Lighting = 'real') {
 describe('sky render', () => {
   it('lines the horizon up with the painting\'s valley floor', () => {
     const layout = computeLayout(1280, 800);
-    expect(layout.width).toBe(427);
-    expect(layout.height).toBe(267);
+    expect(layout.width).toBe(1280);
+    expect(layout.height).toBe(800);
     // background.webp is drawn at half size, 26.5 px cropped off the top; the valley floor is row 905.
-    expect(layout.horizonY * 3).toBeCloseTo(905 * 0.5 - 26.5, 6);
-    expect(layout.scale * 3).toBe(320);
+    expect(layout.horizonY).toBeCloseTo(905 * 0.5 - 26.5, 6);
+    expect(layout.scale).toBe(320);
+    // At device resolution (2× here) everything doubles.
+    const retina = computeLayout(1280, 800, 0.5);
+    expect(retina.width).toBe(2560);
+    expect(retina.horizonY).toBeCloseTo(2 * layout.horizonY, 6);
   });
 
   it('on portrait screens the zenith reaches the top edge', () => {
@@ -37,9 +42,9 @@ describe('sky render', () => {
 
   it('puts the valley between the mountains where the painting has it', () => {
     const layout = computeLayout(1280, 800);
-    // Half size, no horizontal crop at this aspect: x 1350 → 675 px; y 912 → 456 - 26.5 px.
-    expect(layout.valleyX * 3).toBeCloseTo(675, 6);
-    expect(layout.valleyY * 3).toBeCloseTo(912 * 0.5 - 26.5, 6);
+    // Half size, no horizontal crop at this aspect: x 1350 → 675 px; y 922 → 461 - 26.5 px.
+    expect(layout.valleyX).toBeCloseTo(675, 6);
+    expect(layout.valleyY).toBeCloseTo(922 * 0.5 - 26.5, 6);
   });
 
   it('darkness is the default: stars out at noon, night colours, no Sun', () => {
@@ -65,6 +70,21 @@ describe('sky render', () => {
       expect(above[0], lighting).toBeGreaterThan(far[0]);
       expect(result.starsDrawn, lighting).toBeGreaterThan(0);
     }
+  });
+
+  it('can leave the Sun to the caller, and still says where it is', () => {
+    const layout = computeLayout(1280, 800);
+    const buffer = new Uint8ClampedArray(layout.width * layout.height * 4);
+    const date = new Date('2026-10-26T05:00:00Z');
+    const result = renderSky(buffer, layout, { date, lat, lon, catalog, bodies: null, lighting: 'sunset', drawSun: false });
+    const [x, y] = [Math.round(layout.valleyX), Math.round(layout.valleyY) - 1];
+    const [r, g, b] = Array.from(buffer.slice((y * layout.width + x) * 4, (y * layout.width + x) * 4 + 3));
+    expect(r + g + b).toBeLessThan(650);
+    expect(result.sun?.x).toBeCloseTo(layout.valleyX, 6);
+    expect(result.targets.some(t => t.kind === 'sun')).toBe(true);
+    expect(result.glows.every(g => g.radius !== result.sun!.radius * 6)).toBe(true);
+    // Darkness has no Sun at all.
+    expect(renderSky(buffer, layout, { date, lat, lon, catalog, bodies: null, lighting: 'darkness' }).sun).toBeNull();
   });
 
   it('day is blue with no stars at midnight', () => {
@@ -131,15 +151,63 @@ describe('sky render', () => {
     expect(result.starsDrawn).toBeGreaterThan(100);
   });
 
-  it('drawLine steps one pixel at a time and includes both ends', () => {
-    const points: [number, number][] = [];
-    drawLine(0, 0, 5, 2, (x, y) => points.push([x, y]));
-    expect(points[0]).toEqual([0, 0]);
-    expect(points.at(-1)).toEqual([5, 2]);
-    expect(points.length).toBe(6);
-    for (let i = 1; i < points.length; i++) {
-      expect(Math.abs(points[i][0] - points[i - 1][0])).toBeLessThanOrEqual(1);
-      expect(Math.abs(points[i][1] - points[i - 1][1])).toBeLessThanOrEqual(1);
-    }
+  it('reports what can be hovered: named stars, planets and the Moon, plus figure lines', () => {
+    const { result } = render('2026-01-15T04:00:00Z');
+    const names = result.targets.map(t => t.name);
+    expect(names).toContain('Betelgeuse');
+    expect(names).toContain('Sirius');
+    expect(result.targets.find(t => t.name === 'Betelgeuse')?.constellation).toBe('Ori');
+    expect(result.segments.some(s => s.figure === 'Ori')).toBe(true);
+    // Nothing to point at in a starless daytime sky but the Sun.
+    const day = render('2026-01-15T04:00:00Z', true, 'day').result;
+    expect(day.targets.some(t => t.kind === 'sun')).toBe(true);
+    expect(day.targets.every(t => t.kind === 'sun' || t.kind === 'moon' || t.kind === 'planet')).toBe(true);
   });
+
+  it('can leave the gradient to the caller: a transparent layer that lands on the same picture', () => {
+    const layout = computeLayout(640, 400);
+    const date = new Date('2026-10-26T03:00:00Z');
+    const bodies = computeBodies(Astronomy, date, lat, lon);
+    const opaque = new Uint8ClampedArray(layout.width * layout.height * 4);
+    renderSky(opaque, layout, { date, lat, lon, catalog, bodies, lighting: 'darkness' });
+    const layer = new Uint8ClampedArray(opaque.length);
+    const { background } = renderSky(layer, layout, { date, lat, lon, catalog, bodies, lighting: 'darkness', paintBackground: false });
+    expect(background.top).toEqual(skyColors(-30).top);
+    let transparent = 0;
+    let worst = 0;
+    for (let i = 0; i < layer.length; i += 4) {
+      if (layer[i + 3] === 0) {
+        transparent++;
+        continue;
+      }
+      // Lay the layer over the opaque render's own background colour there and compare.
+      const a = layer[i + 3] / 255;
+      const y = Math.floor(i / 4 / layout.width);
+      const t = Math.min(1, y / layout.horizonY) ** 2;
+      for (let c = 0; c < 3; c++) {
+        const under = background.top[c] + (background.horizon[c] - background.top[c]) * t;
+        worst = Math.max(worst, Math.abs(layer[i + c] * a + under * (1 - a) - opaque[i + c]));
+      }
+    }
+    expect(transparent).toBeGreaterThan(layer.length / 4 * 0.9);
+    expect(worst).toBeLessThan(3);
+  });
+
+  it('gives bright things a glow to draw', () => {
+    const { result } = render('2026-10-26T03:00:00Z');
+    // The full Moon, Saturn and the brightest stars.
+    expect(result.glows.length).toBeGreaterThan(3);
+    expect(result.glows.every(g => g.radius > 0 && g.strength > 0 && g.strength <= 1)).toBe(true);
+  });
+
+  it('drawLine is antialiased: two pixels share each step, coverage adding up to one', () => {
+    const cover = new Map<string, number>();
+    drawLine(0, 0, 10, 3.5, (x, y, c) => cover.set(`${x},${y}`, (cover.get(`${x},${y}`) ?? 0) + c));
+    for (let x = 0; x <= 10; x++) {
+      const column = [...cover].filter(([k]) => k.startsWith(`${x},`)).reduce((sum, [, c]) => sum + c, 0);
+      expect(column).toBeCloseTo(1, 6);
+    }
+    expect(cover.get('0,0')).toBeCloseTo(1, 6);
+  });
+
 });
