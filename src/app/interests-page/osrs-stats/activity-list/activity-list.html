@@ -1,12 +1,12 @@
-<div class="activity-panel">
+<div class="panel">
   <h3>{{ title() }}</h3>
   @if (rows().data; as items) {
     <ul class="activities-list">
       @for (row of items; track $index) {
         <li class="activity-item">
-          <img [src]="row.iconUrl" class="activity-icon" [alt]="row.label" loading="lazy" />
+          <img [src]="row.iconUrl" class="activity-icon" alt="" width="32" height="32" loading="lazy" />
           <div class="activity-info">
-            <span class="activity-label">{{ row.label }}</span>
+            <span class="activity-label" [title]="row.label">{{ row.label }}</span>
             <span class="activity-meta">{{ row.meta }}</span>
           </div>
         </li>

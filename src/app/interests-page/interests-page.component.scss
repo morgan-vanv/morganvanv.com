@@ -38,20 +38,11 @@ app-vertical-nav-item.is-expanded [description] {
 }
 
 .stats-column {
+  @include shared.panel;
   flex: 1;
-  min-width: 0;
-  padding: 0.9rem 0.8rem 0.6rem;
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba($main-color, 0.1);
-  border-radius: 10px;
 
   h3 {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin: 0 0.3rem 0.6rem;
-    font-size: 1.1rem;
+    @include shared.panel-heading;
   }
 }
 

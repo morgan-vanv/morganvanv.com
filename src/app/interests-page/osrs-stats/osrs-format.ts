@@ -2,8 +2,14 @@ import { RpActivity } from '../../../shared/services/rune-profile.service';
 
 /** Small, pure formatting helpers shared by the OSRS panels. */
 
+const LOWERCASE_WORDS = new Set(['of', 'the', 'and']);
+
+/** "tombs_of_amascut" → "Tombs of Amascut"; the first word is always capitalised. */
 export function formatBossName(metric: string): string {
-  return metric.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  return metric
+    .split('_')
+    .map((w, i) => (i > 0 && LOWERCASE_WORDS.has(w) ? w : w.charAt(0).toUpperCase() + w.slice(1)))
+    .join(' ');
 }
 
 export function formatNumber(n: number): string {
