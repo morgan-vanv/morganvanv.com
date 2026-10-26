@@ -90,7 +90,7 @@ Grouped by the design pillars.
 - **Colophon.** `S` — How the site is built, what powers each live panel, fonts, hosting. IndieWeb staple; also where the tech stack can live without being the headline.
 - **Vinyl shelf.** `M` — Discogs has a public API for public collections. A shelf of cover art under Interests; hover/expand for pressing details. Discogs is already linked from the Music card.
 - **Podcasts.** `S` — He mentions podcasts on Background. An OPML export → a simple list with artwork.
-- **Tonight's sky, next.** `S` each — A lines on/off toggle in the sky menu; the Milky Way (d3-celestial ships `mw.json`); an "astrophotography tonight?" hint when the Moon is down in astronomical night (a bridge to My Photos); parallax between the scene's layers (the generator already draws them separately); more lived-in details in the spirit of the farmhouse light and fireflies (pillar 7): a shooting star now and then, smoke from the farmhouse chimney on cold nights, snow in winter.
+- **Tonight's sky, next.** `S` each — A lines on/off toggle in the sky menu; the Milky Way (d3-celestial ships `mw.json`); an "astrophotography tonight?" hint when the Moon is down in astronomical night (a bridge to My Photos); split the landscape into real layers (trees, mountains, house) for subtle parallax; more lived-in details in the spirit of the farmhouse light (pillar 7).
 - **Astrophotography gallery (My Photos).** `M` — Drop a photo into `public/photos/`, a build script generates thumbnails + a JSON manifest from EXIF (camera, exposure, ISO, stacked frames, location). Lightbox reuses the photo-wall overlay. The stub already exists.
 
 ### Visitors take part
