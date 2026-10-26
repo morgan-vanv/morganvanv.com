@@ -47,7 +47,7 @@
   justify-content: space-between;
   gap: 0 0.5rem;
   margin: 0 0.3rem 0.6rem;
-  font-size: 1.1rem;
+  font-size: $font-size-panel-title;
 }
 
 // A thin horizontal bar showing completed / total.
@@ -61,5 +61,50 @@
     display: block;
     height: 100%;
     background: $accent-color;
+  }
+}
+
+// A full-width band that anchors a page: the h-card on Home, now playing on
+// Music, the character on OSRS. Same surface as panels, a little rounder.
+@mixin band {
+  @include surface;
+  box-sizing: border-box;
+  border-radius: 12px;
+}
+
+// Small gold caps for labels and live state ("LAST LISTENED", "COMBAT").
+@mixin label {
+  font-size: $font-size-label;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: $accent-color;
+}
+
+// Reading text: comfortable size and measure.
+@mixin prose {
+  font-size: $font-size-prose;
+  line-height: 1.65;
+
+  p {
+    margin: 0 0 0.75rem;
+    max-width: 68ch;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+// Panels side by side that fall to one column on tablets and phones.
+// $columns is any grid-template-columns value.
+@mixin panel-grid($columns) {
+  display: grid;
+  grid-template-columns: $columns;
+  gap: 1.25rem;
+  align-items: start;
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.875rem;
   }
 }

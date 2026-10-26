@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
+import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
@@ -8,14 +9,19 @@ import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const'
 interface PhotoSpot {
   id: number;
   imageUrl?: string;
+  thumbUrl?: string;
   placeholderText?: string;
   caption?: string;
 }
 
+/** "1 photo", "6 photos": the dim count beside the wall's heading. */
+export function photoCountLabel(count: number): string {
+  return `${count} ${count === 1 ? 'photo' : 'photos'}`;
+}
 
 @Component({
   selector: 'app-social-page',
-  imports: [BasePageComponent, UnderConstructionComponent, A11yModule],
+  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, A11yModule],
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,6 +33,8 @@ export class SocialPageComponent {
   readonly siteEmail = SITE_CONFIG.email;
   readonly selectedPhoto = signal<PhotoSpot | null>(null);
   private lastFocusedElement: HTMLElement | null = null;
+
+  readonly photoCountLabel = photoCountLabel(COMMUNITY_PHOTOS.length);
 
   readonly photos: PhotoSpot[] = Array.from({ length: 12 }, (_, i) => {
     const submitted = COMMUNITY_PHOTOS[i];

@@ -1,28 +1,19 @@
 @use '../../../styles' as *;
 
 .ask-morgan-container {
+  // Sits inside the Contact panel, so it has no box of its own until it
+  // shows the success state.
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 1.5rem;
-  padding: 2rem;
-  margin-top: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  border: 1px solid transparent;
   transition: all 0.3s ease;
-
-  @media (max-width: $breakpoint-mobile) {
-    padding: 1.5rem;
-    border-radius: 1rem;
-    margin-top: 1rem;
-  }
 
   &.success-state {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 250px;
+    padding: 1.5rem 1rem;
     background: rgba(76, 175, 80, 0.05);
     border-color: rgba(76, 175, 80, 0.3);
   }
@@ -41,26 +32,26 @@
   margin-bottom: 0.75rem;
 
   label {
-    margin-bottom: 0.75rem;
-    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+    font-size: $font-size-small;
     color: rgba(255, 255, 255, 0.8);
   }
 
   textarea {
     resize: vertical;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 0.625rem 0.75rem;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
     background: rgba(0, 0, 0, 0.2);
     color: $main-color;
     font-family: inherit;
     font-size: 1rem;
     transition: border-color 0.2s ease, background-color 0.2s ease;
-    min-height: 100px;
+    min-height: 110px;
 
     &:focus {
       outline: none;
-      border-color: rgba(255, 255, 255, 0.4);
+      border-color: rgba(255, 255, 255, 0.75);
       background: rgba(0, 0, 0, 0.3);
     }
     
@@ -75,7 +66,7 @@
   text-align: right;
   font-size: 0.8rem;
   color: rgba(255, 255, 255, 0.5);
-  margin-top: 0.5rem;
+  margin-top: 0.35rem;
   transition: color 0.3s ease;
 
   &.warning {
@@ -102,7 +93,8 @@ button.submit-btn, button.reset-btn {
   background: rgba(255, 255, 255, 0.08);
   color: $main-color;
   border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.75rem 2rem;
+  min-height: 44px;
+  padding: 0.6rem 2rem;
   border-radius: 999px; /* Pill shape to match website */
   cursor: pointer;
   font-weight: 500;
@@ -121,6 +113,11 @@ button.submit-btn, button.reset-btn {
     transform: translateY(1px);
   }
 
+  &:focus-visible {
+    outline: 2px solid $main-color;
+    outline-offset: 2px;
+  }
+
   &:disabled {
     background: rgba(255, 255, 255, 0.05);
     color: rgba(255, 255, 255, 0.4);
@@ -131,6 +128,10 @@ button.submit-btn, button.reset-btn {
 
 button.submit-btn {
   width: 100%;
+
+  @media (max-width: $breakpoint-mobile) {
+    min-height: 48px;
+  }
 }
 
 button.reset-btn {

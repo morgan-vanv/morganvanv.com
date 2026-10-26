@@ -5,10 +5,14 @@
     <p class="subtitle" [class.hidden]="!subtitleVisible()">{{ subtitle() }}</p>
   </div>
 
-  <button type="button" class="custom-arrow-button" routerLink="/home">
-    <app-icon name="chevron-down" class="prompt-arrow" />
-    <span class="arrow-label">Click / Arrow Keys</span>
-  </button>
-
+  <div class="enter-prompt">
+    <a class="enter" routerLink="/home">
+      <span class="bracket" aria-hidden="true">[</span>
+      <span>come on in</span>
+      <app-icon name="chevron-right" class="enter-arrow" />
+      <span class="bracket" aria-hidden="true">]</span>
+    </a>
+    <p class="hint">or press <kbd>→</kbd></p>
+  </div>
 
 </div>

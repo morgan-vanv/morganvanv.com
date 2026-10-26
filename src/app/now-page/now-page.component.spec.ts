@@ -52,14 +52,23 @@ describe('NowPageComponent', () => {
     await fixture.whenStable();
   });
 
-  it('lists the projects under Building', () => {
+  it('has one h1, from the page header', () => {
+    const headings = (fixture.nativeElement as HTMLElement).querySelectorAll('h1');
+    expect(headings.length).toBe(1);
+    expect(headings[0].textContent?.trim()).toBe('Now');
+  });
+
+  it('lists the projects under Building, with a count', () => {
     expect(text()).toContain('Building');
+    const count = (fixture.nativeElement as HTMLElement).querySelector('#now-building .range-label');
+    expect(count?.textContent?.trim()).toBe(`${PROJECTS.length} ${PROJECTS.length === 1 ? 'project' : 'projects'}`);
     expect((fixture.nativeElement as HTMLElement).querySelectorAll('app-project-card').length).toBe(PROJECTS.length);
     http.match(r => new URL(r.url).hostname === 'api.github.com');
   });
 
   it('hides the note and its date while the note is empty, and shows the static rows', () => {
     expect((fixture.nativeElement as HTMLElement).querySelector('.note')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[pageMeta]')).toBeNull();
     expect(text()).not.toContain('updated October');
     expect(text()).toContain("What I'm up to now");
     expect(rowKeys()).toEqual(['community', 'site']);
@@ -148,6 +157,6 @@ describe('NowPageComponent with a note', () => {
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect([...el.querySelectorAll('.note p')].map(p => p.textContent)).toEqual(['Mostly building a castle.', 'And a website.']);
-    expect(el.textContent).toContain('updated November 2, 2026');
+    expect(el.querySelector('app-page-header [pageMeta]')?.textContent?.trim()).toBe('updated November 2, 2026');
   });
 });

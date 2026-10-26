@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet } from '@angular/common';
 import { catchError, map, of } from 'rxjs';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
+import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
 import { RecentStreamService } from '../../shared/services/recent-stream.service';
 import { RuneProfileService, RpActivity } from '../../shared/services/rune-profile.service';
 import { relativeTime } from '../../shared/services/relative-time';
@@ -54,7 +55,7 @@ export function formatDay(value: string): string {
  */
 @Component({
   selector: 'app-now-page',
-  imports: [BasePageComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent],
+  imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -67,6 +68,7 @@ export class NowPageComponent {
   private readonly content = inject(NOW_CONTENT_TOKEN);
   readonly note = this.content.paragraphs;
   readonly projects = PROJECTS;
+  readonly projectCountLabel = `${PROJECTS.length} ${PROJECTS.length === 1 ? 'project' : 'projects'}`;
   readonly updated = formatDay(this.content.updated);
 
   private readonly latestAchievement = toSignal(this.latestActivity(ACHIEVEMENT_ACTIVITY_TYPES), { initialValue: null });
@@ -101,7 +103,7 @@ export class NowPageComponent {
     const newest = COMMUNITY_PHOTOS.at(-1);
     if (!newest) return null;
     return {
-      key: 'community', label: 'Community', iconUrl: newest.imageUrl, iconStyle: 'cover', glyph: '✿',
+      key: 'community', label: 'Community', iconUrl: newest.thumbUrl, iconStyle: 'cover', glyph: '✿',
       title: newest.caption ?? 'A new photo',
       detail: 'newest photo on the community wall', href: '/social', internal: true,
     };

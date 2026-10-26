@@ -1,14 +1,17 @@
 <div class="character-band">
-  <model-viewer
-    src="tipodissdong.glb"
-    poster="osrs-character.webp"
-    [attr.alt]="username + ', 3D character model'"
-    [attr.auto-rotate]="autoRotate() ? '' : null"
-    camera-controls
-    disable-zoom
-    shadow-intensity="1"
-    class="character-model">
-  </model-viewer>
+  <div class="stage">
+    <model-viewer
+      src="tipodissdong.glb"
+      poster="osrs-character.webp"
+      [attr.alt]="username + ', 3D character model'"
+      [attr.auto-rotate]="autoRotate() ? '' : null"
+      camera-controls
+      disable-zoom
+      camera-orbit="0deg 80deg 92%"
+      shadow-intensity="1"
+      class="character-model">
+    </model-viewer>
+  </div>
 
   <div class="identity">
     <h3 class="name">{{ username }}</h3>
@@ -22,13 +25,24 @@
       }
     </div>
 
-    <dl class="headline">
-      @for (stat of headline(); track stat.label) {
-        <div class="stat" [title]="stat.title">
-          <dt>{{ stat.label }}</dt>
-          <dd>{{ stat.value }}</dd>
-        </div>
-      }
-    </dl>
+    <div class="max-progress">
+      <div class="max-row">
+        <span class="max-label">99s</span>
+        <span class="max-count">{{ maxed().maxed }}<span class="denom"> / {{ maxed().total }}</span></span>
+        @if (hoursToMax(); as hours) {
+          <span class="ttm" title="Efficient hours to max, per Wise Old Man">≈ {{ hours }} hrs to max</span>
+        }
+      </div>
+      <div class="bar" aria-hidden="true"><span [style.width.%]="maxedPercent()"></span></div>
+    </div>
   </div>
+
+  <dl class="headline">
+    @for (stat of headline(); track stat.label) {
+      <div class="stat" [title]="stat.title">
+        <dt>{{ stat.label }}</dt>
+        <dd>{{ stat.value }}</dd>
+      </div>
+    }
+  </dl>
 </div>

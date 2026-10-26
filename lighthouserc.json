@@ -8,7 +8,9 @@
         "http://localhost/now",
         "http://localhost/background",
         "http://localhost/social",
-        "http://localhost/interests"
+        "http://localhost/interests",
+        "http://localhost/projects",
+        "http://localhost/blog"
       ],
       "numberOfRuns": 1,
       "settings": {

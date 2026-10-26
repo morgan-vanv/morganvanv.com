@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, CUSTOM_ELEMENTS_SCHEMA, OnInit, computed, input, signal } from '@angular/core';
 import { CHARACTER_BADGES, WOM_USERNAME } from '../../../../shared/constants/osrs-stats.const';
 import { WomPlayer } from '../../../../shared/services/wise-old-man.service';
-import { formatNumber } from '../osrs-format';
+import { formatNumber, maxedSkills } from '../osrs-format';
 
 interface HeadlineStat {
   label: string;
@@ -9,7 +9,7 @@ interface HeadlineStat {
   title: string;
 }
 
-/** The character band: 3D model, name, group/clan badges and the headline numbers. */
+/** The character band: 3D model, name, group/clan badges, progress to max and the headline numbers. */
 @Component({
   selector: 'app-osrs-character-panel',
   templateUrl: './character-panel.html',
@@ -33,6 +33,18 @@ export class OsrsCharacterPanelComponent implements OnInit {
       { label: 'EHP', value: formatNumber(p.ehp), title: 'Efficient hours played' },
       { label: 'EHB', value: formatNumber(p.ehb), title: 'Efficient hours bossed' },
     ];
+  });
+
+  /** Skills at 99 out of all skills. */
+  readonly maxed = computed(() => maxedSkills(this.player().latestSnapshot.data.skills));
+  readonly maxedPercent = computed(() => {
+    const { maxed, total } = this.maxed();
+    return total ? (maxed / total) * 100 : 0;
+  });
+  /** Wise Old Man's efficient hours to max, rounded; null when maxed or unknown. */
+  readonly hoursToMax = computed(() => {
+    const ttm = this.player().ttm;
+    return ttm && ttm > 0 ? formatNumber(ttm) : null;
   });
 
   ngOnInit(): void {

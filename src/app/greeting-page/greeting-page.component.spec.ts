@@ -42,4 +42,13 @@ describe('GreetingPageComponent', () => {
     await fixture.whenStable();
     expect(shown()).toBe('last listened: A by B · 1 minute ago');
   });
+
+  it('links the way in to /home, with a keyboard hint', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const enter = el.querySelector<HTMLAnchorElement>('a.enter')!;
+    expect(enter.getAttribute('href')).toBe('/home');
+    expect(enter.textContent?.trim()).toBe('[come on in]');
+    expect([...enter.querySelectorAll('.bracket')].every(b => b.getAttribute('aria-hidden') === 'true')).toBe(true);
+    expect(el.querySelector('.hint kbd')?.textContent).toBe('→');
+  });
 });

@@ -20,10 +20,17 @@
   grid-template-columns: repeat(3, auto);
   justify-content: center;
   gap: 2px 0.25rem;
+
+  // Phones: four across, so the 24 skills take six short rows.
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    justify-content: stretch;
+  }
 }
 
 .skill-cell {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: 6px;
   padding: 4px 8px;

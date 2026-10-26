@@ -1,13 +1,87 @@
-p, li {
-  font-size: 1.5rem;
+@use '../../styles' as *;
+@use '../../shared/shared-styles.scss' as shared;
+
+// About Me beside Ada, then the experiences across the full width.
+.background-panels {
+  @include shared.panel-grid(minmax(0, 1.5fr) minmax(0, 1fr));
+
+  // Landscape phones keep About Me and Ada side by side.
+  @media (max-width: $breakpoint-mobile) and (max-height: $breakpoint-short) {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: 0.625rem;
+  }
 }
 
-.ada-image {
-  width: 80%;
-  height: auto;
-  display: block;
-  margin-top: 1.5rem;
-  margin-left: auto;
-  margin-right: auto;
-  border-radius: 1rem;
+.panel {
+  @include shared.panel;
+  padding: 1rem 1.125rem 0.875rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 0.875rem 0.8rem 0.75rem;
+  }
+
+  h2 {
+    @include shared.panel-heading;
+    margin: 0 0 0.75rem;
+  }
+}
+
+.prose {
+  @include shared.prose;
+}
+
+// The Ada collage has a transparent background: show all of it, no frame.
+.ada {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 800 / 572;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+  }
+
+  figcaption {
+    font-size: $font-size-small;
+    line-height: 1.55;
+    opacity: 0.85;
+  }
+}
+
+.experiences {
+  grid-column: 1 / -1;
+
+  ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1.25rem;
+
+    @media (max-width: $breakpoint-mobile) {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0.25rem;
+    }
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 0.875rem minmax(0, 1fr);
+    gap: 0.625rem;
+    padding: 0.375rem 0.25rem;
+    font-size: 0.95rem;
+    line-height: 1.55;
+
+    &::before {
+      content: '›';
+      color: $accent-color;
+      font-weight: bold;
+    }
+  }
 }

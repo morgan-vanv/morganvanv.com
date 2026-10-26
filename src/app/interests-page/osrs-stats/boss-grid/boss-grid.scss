@@ -18,6 +18,11 @@
 .boss-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(215px, 100%), 1fr));
+
+  @media (max-width: $breakpoint-phone) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.1rem 0.5rem;
+  }
   gap: 0.15rem 0.75rem;
   list-style: none;
   padding: 0;

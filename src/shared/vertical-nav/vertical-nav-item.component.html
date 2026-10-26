@@ -31,6 +31,10 @@
       <ng-content select="[description]"></ng-content>
     </div>
 
+    @if (!isExpanded()) {
+      <div class="item-preview"><ng-content select="[preview]"></ng-content></div>
+    }
+
     @if (isExpanded()) {
       <div class="item-content">
         @if (isUnderConstruction()) {

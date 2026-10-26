@@ -1,6 +1,8 @@
+import { existsSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { SocialPageComponent } from './social-page.component';
+import { SocialPageComponent, photoCountLabel } from './social-page.component';
+import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 
 describe('SocialPageComponent', () => {
   let component: SocialPageComponent;
@@ -21,6 +23,20 @@ describe('SocialPageComponent', () => {
     expect(component.photos.length).toBe(12);
     expect(component.photos[0].imageUrl).toBeDefined();
     expect(component.photos[11].placeholderText).toBe('Your Photo Here');
+  });
+
+  it('shows one h1 and the photo count beside the wall heading', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelectorAll('h1').length).toBe(1);
+    expect(el.querySelector('h1')?.textContent?.trim()).toBe('Social');
+    const wallHeading = [...el.querySelectorAll('h2')].find(h => h.textContent?.includes('Community Photo Wall'));
+    expect(wallHeading?.querySelector('.range-label')?.textContent?.trim()).toBe(photoCountLabel(COMMUNITY_PHOTOS.length));
+  });
+
+  it('counts photos in words', () => {
+    expect(photoCountLabel(1)).toBe('1 photo');
+    expect(photoCountLabel(6)).toBe('6 photos');
+    expect(photoCountLabel(0)).toBe('0 photos');
   });
 
   it('opens fullscreen for a photo with an image', () => {
@@ -58,5 +74,20 @@ describe('SocialPageComponent', () => {
     const event = { target: overlay, currentTarget: overlay } as unknown as MouseEvent;
     component.onOverlayClick(event);
     expect(component.selectedPhoto()).toBeNull();
+  });
+
+  it('has the full photo and its wall thumbnail on disk for every community photo', () => {
+    for (const photo of COMMUNITY_PHOTOS) {
+      expect(existsSync(`public/${photo.imageUrl}`), photo.imageUrl).toBe(true);
+      expect(existsSync(`public/${photo.thumbUrl}`), photo.thumbUrl).toBe(true);
+    }
+  });
+
+  it('shows thumbnails on the wall and the full photo fullscreen', async () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.polaroid-image')?.getAttribute('src')).toBe(COMMUNITY_PHOTOS[0].thumbUrl);
+    component.openFullscreen(component.photos[0]);
+    await fixture.whenStable();
+    expect(el.querySelector('.fullscreen-image')?.getAttribute('src')).toBe(COMMUNITY_PHOTOS[0].imageUrl);
   });
 });

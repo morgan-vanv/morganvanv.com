@@ -1,5 +1,6 @@
-<nav>
-  <ul>
+<nav aria-label="Main">
+  <!-- Wide screens: every page on one line. -->
+  <ul class="links">
     @for (link of navLinks; track link.route; let i = $index) {
       <li>
         <a [routerLink]="link.route"
@@ -22,4 +23,48 @@
       </li>
     }
   </ul>
+
+  <!-- Tablets and phones: the pager. -->
+  <div class="pager">
+    <a class="pager-button" routerLink="/" aria-label="Greeting"><app-icon name="exit" class="nav-icon" /></a>
+    @if (previous(); as link) {
+      <a class="pager-button pager-arrow" [routerLink]="link.route" [attr.aria-label]="arrowLabel('Previous', link)">
+        <app-icon name="chevron-left" />
+      </a>
+    } @else {
+      <span class="pager-button" aria-hidden="true"></span>
+    }
+    <button #menuButton type="button" class="pager-current" [attr.aria-controls]="menuOpen() ? 'page-list' : null"
+            [attr.aria-expanded]="menuOpen()" (click)="toggleMenu()">
+      <span><span aria-hidden="true">[ </span>{{ current()?.label ?? 'Pages' }}<span aria-hidden="true"> ]</span></span>
+      <app-icon [name]="menuOpen() ? 'chevron-up' : 'chevron-down'" class="pager-caret" />
+    </button>
+    @if (next(); as link) {
+      <a class="pager-button pager-arrow" [routerLink]="link.route" [attr.aria-label]="arrowLabel('Next', link)">
+        <app-icon name="chevron-right" />
+      </a>
+    } @else {
+      <span class="pager-button" aria-hidden="true"></span>
+    }
+  </div>
+
+  @if (menuOpen()) {
+    <ul id="page-list" class="page-list">
+      @for (link of navLinks; track link.route; let first = $first) {
+        <li [class.first]="first">
+          <a [routerLink]="link.route"
+             routerLinkActive="active-link"
+             #listRla="routerLinkActive"
+             [routerLinkActiveOptions]="{ exact: !!link.exact }"
+             [attr.aria-current]="listRla.isActive ? 'page' : null">
+            @if (link.label) {
+              <span>@if (listRla.isActive) {<span aria-hidden="true">[ </span>}{{ link.label }}@if (listRla.isActive) {<span aria-hidden="true"> ]</span>}</span>
+            } @else {
+              <span>Start <span class="dim">the greeting</span></span>
+            }
+          </a>
+        </li>
+      }
+    </ul>
+  }
 </nav>

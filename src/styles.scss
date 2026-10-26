@@ -5,15 +5,35 @@ $background-color: #001211;
 $background-sky-color: #001d2c;
 $main-color: #ffffff;
 $accent-color: #c9922a;
-$breakpoint-mobile: 1000px;
 $osrs-gold: #ffd700;
 $danger-color: #ff4d4d;
 
+// Breakpoints. Widths are max-width queries; $breakpoint-short is a max-height
+// query (landscape phones). Use these names, never raw px.
+$breakpoint-phone: 600px;   // phones in portrait: tighter grids (2-up walls, 4-up stats)
+$breakpoint-mobile: 1000px; // tablets and phones: the pager navbar, one-column layouts
+$breakpoint-short: 500px;   // short windows (landscape phones): tighter vertical spacing
+$breakpoint-wide: 1600px;   // where the page card stops growing
+
+// The page card: 90% of the window on desktop, capped so ultrawide keeps the
+// painting on both sides; 0.5rem from the edges on tablets and phones.
+$card-max-width: $breakpoint-wide;
+$card-inset-mobile: 0.5rem;
+$navbar-height: 3.5rem;
+
+// Type scale (rem, from a 16px root). Fixed sizes, not tied to window height.
+$font-size-page-title: 1.5rem;
+$font-size-panel-title: 1.1rem;
+$font-size-prose: 1.03rem;
+$font-size-body: 1rem;
+$font-size-small: 0.9rem;
+$font-size-meta: 0.8rem;
+$font-size-label: 0.72rem;
+
 body {
   font-family: 'JetBrains Mono', monospace;
-  // Scales with the viewport height so the no-scroll layouts fit, but never
-  // below 1rem (landscape phones) or above 1.4rem (tall monitors).
-  font-size: clamp(1rem, 2.5dvh, 1.4rem);
+  font-size: $font-size-body;
+  line-height: 1.45;
   box-sizing: border-box;
   margin: 0;
   position: relative;
@@ -54,8 +74,10 @@ body {
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
-  padding: 0.3rem 0.85rem;
-  font-size: 1.2rem;
+  // Sized relative to the text around it, so a pill fits a dim description as
+  // well as a paragraph.
+  padding: 0.1em 0.65em;
+  font-size: 0.9em;
   color: inherit;
   text-decoration: none;
   opacity: 0.9;

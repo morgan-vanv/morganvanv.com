@@ -20,4 +20,10 @@ describe('ProjectsPageComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('has one h1, from the page header', () => {
+    const headings = (fixture.nativeElement as HTMLElement).querySelectorAll('h1');
+    expect(headings.length).toBe(1);
+    expect(headings[0].textContent?.trim()).toBe('Projects');
+  });
 });

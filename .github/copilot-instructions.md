@@ -32,16 +32,18 @@ src/
     app.routes.ts            # lazy route table, built from MAIN_ROUTES
     app.routes.server.ts     # RenderMode.Prerender for everything
   shared/            # Reusable components, directives, services, styles
-    base-page/       # Shell component wrapping CustomNavbarComponent (+ optional visually-hidden <h1>)
-    custom-navbar/   # Navigation bar; links derived from MAIN_ROUTES
+    base-page/       # Shell: the glass page card + navbar (+ optional visually-hidden <h1>)
+    page-header/     # <app-page-header>: a page's visible h1, dim one-liner, optional meta
+    custom-navbar/   # Navigation: one line on wide screens, a pager on tablets/phones; links from MAIN_ROUTES
     icon/            # <app-icon name="…">: the site's few glyphs as inline SVG
+    vertical-nav/    # Interests tiles: a [preview] slot while collapsed, ↑/↓ + Enter/Esc, one section expanded at a time
     scroll-region/   # ScrollRegionService + [appScrollRegion] for arrow-key scrolling
     config/site.config.ts    # every handle, URL and endpoint the site uses
     services/        # KeyboardNavService, SeoTitleStrategy, ApiCacheService, API clients
     sky/             # Tonight's sky: live canvas behind every page (see below)
     route-transition.ts  # View Transitions direction logic
     main-routes.ts       # the main pages: path, title, description
-    shared-styles.scss   # Shared utility mixins (e.g. scrollbar-styled)
+    shared-styles.scss   # Shared mixins: surface, panel, band, panel-grid, prose, label, progress-bar, scrollbar-styled
   styles.scss        # Global styles, color variables, route-transition CSS
 public/              # static assets, robots.txt, sitemap.xml, humans.txt, site.webmanifest, data/sky/
 scripts/             # build-info (prebuild hook); sky data and landscape generators (one-off)
@@ -52,7 +54,7 @@ art/                 # source art (the painting, lossless); not served
 
 **Routing:** Main routes are declared once in `MAIN_ROUTES` (`src/shared/main-routes.ts`) with a `path`, `title` and `description`. Their order drives arrow-key navigation (`KeyboardNavService`), the navbar, slide direction, titles and meta tags. `src/app/app.routes.ts` maps each path to a lazy `loadComponent` via `lazyRouteComponents` and derives `data.animation` / `data.description` from the route. Don't hand-write `animation` values.
 
-**Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget), and give the page `<app-base-page pageTitle="…">` unless it renders its own `<h1>`. The navbar updates itself.
+**Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget), and give the page a header: `<app-page-header title="…" description="…">` inside `<app-base-page>` (or a visually-hidden h1 when the page shows its title another way: `<app-base-page pageTitle="…">`, or its own as Interests does while a section is open). Exactly one `<h1>` per page. The navbar and pager update themselves.
 
 **Build info:** `npm run build` runs `scripts/write-build-info.mjs` first (the `prebuild` hook), writing the gitignored `src/build-info.prod.ts` that the production configuration swaps in for `src/build-info.ts`. Always build production through `npm run build`; a bare `ng build` skips the hook and fails on the missing file.
 
@@ -83,6 +85,8 @@ For navigation, prefer `routerLink` over imperative `Router.navigate()` whenever
 
 **Fonts:** JetBrains Mono and Caveat are bundled from `@fontsource` (latin subsets, listed in `angular.json` `styles`). Never add a Google Fonts `<link>`; the build must not need the network.
 
+**Keyboard:** ← → always page between routes (`KeyboardNavService`), Escape returns to the greeting, ↑/↓ scroll or move within a page. Don't give a widget arrow-key semantics that fight that: use toggle buttons with `aria-pressed` rather than ARIA tabs or radio groups (the Music list switcher does), and ↑/↓ walk the Interests tiles in reading order even when they sit two across. Navigation UI marks the current/hovered item with the gold `[ ]` brackets (navbar, pager, tiles, the greeting's way in), reserving their space so nothing shifts.
+
 **Scroll regions:** Put `appScrollRegion` on the element arrow keys should scroll (`[appScrollRegion]="false"` withdraws it). The innermost registered region wins.
 
 **Config:** External handles, usernames, URLs and the Ask Morgan endpoint live in `SITE_CONFIG` (`src/shared/config/site.config.ts`). API clients go through `ApiCacheService.get(url, ttlMs?)` (sessionStorage, 10-minute TTL by default; `0` bypasses the cache). `provideHttpClient()` uses Fetch by default since Angular 22: don't add the deprecated `withFetch()`, and only add `withXhr()` if something needs upload progress. In tests, `provideHttpClient()` + `provideHttpClientTesting()` is enough.
@@ -103,21 +107,26 @@ For navigation, prefer `routerLink` over imperative `Router.navigate()` whenever
 **SCSS — global variables:** Import and use the global color variables and breakpoint rather than hardcoding values.
 ```scss
 @use '../../styles' as *;
-// Available: $background-color, $background-sky-color, $main-color, $accent-color, $osrs-gold, $danger-color, $breakpoint-mobile
+// Available: $background-color, $background-sky-color, $main-color, $accent-color, $osrs-gold, $danger-color,
+// breakpoints ($breakpoint-phone/-mobile/-short/-wide), card/navbar tokens, and the $font-size-* scale
 ```
 A `--accent-color` CSS custom property is also set on `body` for inline template styles.
 
 **Data-driven lists:** Use typed arrays in the component class + `@for` loops for any repeated structural elements.
 
-**SCSS — shared utilities:** Cards use `@include shared.surface` (dark fill + faint border) or `shared.panel` (surface + padding/radius), with `shared.panel-heading` for a title + dim qualifier; bars use `shared.progress-bar`. Use `@include shared.scrollbar-styled` in any scrollable container's SCSS. Import it with `@use '../../shared/shared-styles.scss' as shared;`. Sub-components that should lay out as if they were their parent's flex item use `:host { display: contents; }`.
+**Page layout (the face-lift system):** every page is a compact header (`<app-page-header>`), an optional full-width band (`shared.band`: the h-card, now playing, the OSRS character), then panels (`shared.panel` + `shared.panel-heading`) laid out with `shared.panel-grid(<columns>)`, which stacks them on tablets and phones. Reading text uses `shared.prose`; gold caps labels use `shared.label`. Type comes from the `$font-size-*` scale in `styles.scss` (fixed rem, not tied to window height). The page card is 90% of the window up to `$card-max-width` (the painting stays visible around it) and `$card-inset-mobile` from the edges on tablets and phones; `base-page`'s `.page-content` is the one scroll container, so pages shouldn't add their own unless a panel needs it.
 
-**SCSS — breakpoints:** Use `$breakpoint-mobile` (1000px) for all responsive media queries. Never hardcode `1000px`.
+**SCSS — shared utilities:** Cards use `@include shared.surface` (dark fill + faint border) or `shared.panel` (surface + padding/radius), with `shared.panel-heading` for a title + dim qualifier; bars use `shared.progress-bar`; anchors use `shared.band`; text uses `shared.prose` / `shared.label`; side-by-side panels use `shared.panel-grid`. Use `@include shared.scrollbar-styled` in any scrollable container's SCSS. Import it with `@use '../../shared/shared-styles.scss' as shared;`. Sub-components that should lay out as if they were their parent's flex item use `:host { display: contents; }`.
 
-**Global layout:** `body` has `overflow: hidden` globally (no page-level scroll). Each page is responsible for its own internal scroll areas. Body type is `clamp(1rem, 2.5dvh, 1.4rem)`.
+**SCSS — breakpoints:** Use the named breakpoints, never raw px: `$breakpoint-mobile` (1000px, `max-width`: tablets and phones get the pager navbar and one-column layouts), `$breakpoint-phone` (600px, `max-width`: phone-only tweaks such as 2-up walls), `$breakpoint-short` (500px, `max-height`: landscape phones) and `$breakpoint-wide` (1600px, where the card stops growing). Pages must work from 360×740 to 2560×1080, including 740×360, with no horizontal scroll and ≥ 44px tap targets.
+
+**Navbar and ☾:** on tablets and phones the navbar is a pager (greeting, ‹ previous, `[ current ]` opening the page list, next ›) whose right end is left free; `app-sky-menu` is fixed over that slot at those sizes, so the ☾ reads as one of its buttons. Keep the two in step if either moves.
+
+**Global layout:** `body` has `overflow: hidden` globally (no page-level scroll); `base-page`'s `.page-content` scrolls. Body type is `$font-size-body` (1rem); pills (`.pill`) size with the text around them (`0.9em`).
 
 **Motion:** Route changes use the View Transitions API (`withViewTransitions` + `onViewTransitionCreated` in `route-transition.ts`; CSS in `styles.scss`). `@angular/animations` is not a dependency; use CSS. Everything decorative must respect `prefers-reduced-motion` (a global rule covers CSS animations; JS-driven motion such as the 3D model's auto-rotate and the sky's light changes checks `matchMedia`).
 
-**Images:** compressed `.webp` in `public/` with real `alt` (or `alt=""` when decorative), and `width`/`height` attributes where the CSS doesn't already fix the box. `og-image.jpg` is the one deliberate non-webp (link previews don't all support webp).
+**Images:** compressed `.webp` in `public/` with real `alt` (or `alt=""` when decorative), and `width`/`height` attributes where the CSS doesn't already fix the box. Encode from the lossless original (history has them, e.g. the Ada collage's PNG in `cfa9dd2`), never from an already-compressed copy; offer a larger `srcset` variant when the image is shown big. `og-image.jpg` is the one deliberate non-webp (link previews don't all support webp).
 
 **ESLint rules:** Component selectors must use `app-` prefix in kebab-case; directive selectors must use `app` prefix in camelCase.
 

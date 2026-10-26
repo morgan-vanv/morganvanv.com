@@ -1,50 +1,55 @@
-<app-base-page pageTitle="Social">
-  <section>
-    <h2>Community Photo Wall</h2>
-    <p>
+<app-base-page>
+
+  <app-page-header title="Social">
+    <span pageDescription>
       If you would like to submit a photo to the wall, please email it to me (with an optional caption) at
       <a [href]="'mailto:' + siteEmail" class="pill">{{ siteEmail }}</a>
-    </p>
+    </span>
+  </app-page-header>
 
-    <div class="photo-wall">
-      @for (photo of photos; track photo.id) {
-        <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null"
-             [attr.role]="photo.imageUrl ? 'button' : null"
-             [attr.tabindex]="photo.imageUrl ? 0 : null"
-             [class.clickable]="!!photo.imageUrl"
-             (click)="openFullscreen(photo)"
-             (keydown.enter)="openFullscreen(photo)"
-             (keydown.space)="openFullscreen(photo); $event.preventDefault()">
-          <div class="polaroid-image-container">
-            @if (photo.imageUrl) {
-              <img [src]="photo.imageUrl" [alt]="'Community photo' + (photo.caption ? ': ' + photo.caption : '')" class="polaroid-image" width="1200" height="1600" loading="lazy" decoding="async" />
-            } @else {
-              <div class="polaroid-placeholder">{{ photo.placeholderText }}</div>
-            }
-          </div>
-          <!-- Blank space or annotation/caption -->
-          <div class="polaroid-caption">
-            {{ photo.caption || '' }}
-          </div>
-        </div>
-      }
-    </div>
+  <div class="social-panels">
+    <section class="panel" aria-labelledby="social-wall">
+      <h2 id="social-wall">Community Photo Wall <span class="range-label">{{ photoCountLabel }}</span></h2>
 
-    @if (selectedPhoto(); as photo) {
-      <div class="fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Fullscreen photo" tabindex="-1" (click)="onOverlayClick($event)" (keydown.escape)="onEscape($event)" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
-        <button type="button" class="close-button" aria-label="Close fullscreen photo" (click)="closeFullscreen()">
-          <span>Esc</span>
-        </button>
-        <img [src]="photo.imageUrl" [alt]="photo.caption || 'Fullscreen photo'" class="fullscreen-image" />
-        @if (photo.caption) {
-          <div class="fullscreen-caption">{{ photo.caption }}</div>
+      <div class="photo-wall">
+        @for (photo of photos; track photo.id) {
+          <div class="polaroid" [attr.aria-label]="!photo.imageUrl ? 'Empty community photo spot' : null"
+               [attr.role]="photo.imageUrl ? 'button' : null"
+               [attr.tabindex]="photo.imageUrl ? 0 : null"
+               [class.clickable]="!!photo.imageUrl"
+               (click)="openFullscreen(photo)"
+               (keydown.enter)="openFullscreen(photo)"
+               (keydown.space)="openFullscreen(photo); $event.preventDefault()">
+            <div class="polaroid-image-container">
+              @if (photo.imageUrl) {
+                <img [src]="photo.thumbUrl ?? photo.imageUrl" [alt]="'Community photo' + (photo.caption ? ': ' + photo.caption : '')" class="polaroid-image" width="480" height="640" loading="lazy" decoding="async" />
+              } @else {
+                <div class="polaroid-placeholder">{{ photo.placeholderText }}</div>
+              }
+            </div>
+                <div class="polaroid-caption">
+              {{ photo.caption || '' }}
+            </div>
+          </div>
         }
       </div>
-    }
-  </section>
 
-  <section>
-    <h2>IRC Shoutbox</h2>
-    <app-under-construction></app-under-construction>
-  </section>
+      @if (selectedPhoto(); as photo) {
+        <div class="fullscreen-overlay" role="dialog" aria-modal="true" aria-label="Fullscreen photo" tabindex="-1" (click)="onOverlayClick($event)" (keydown.escape)="onEscape($event)" cdkTrapFocus [cdkTrapFocusAutoCapture]="true">
+          <button type="button" class="close-button" aria-label="Close fullscreen photo" (click)="closeFullscreen()">
+            <span>Esc</span>
+          </button>
+          <img [src]="photo.imageUrl" [alt]="photo.caption || 'Fullscreen photo'" class="fullscreen-image" />
+          @if (photo.caption) {
+            <div class="fullscreen-caption">{{ photo.caption }}</div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="panel shoutbox" aria-labelledby="social-shoutbox">
+      <h2 id="social-shoutbox">IRC Shoutbox</h2>
+      <app-under-construction />
+    </section>
+  </div>
 </app-base-page>

@@ -1,0 +1,43 @@
+@use '../../../../styles' as *;
+@use '../../../../shared/shared-styles.scss' as shared;
+
+:host {
+  display: block;
+}
+
+.stats {
+  @include shared.surface;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 10px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.25rem 0.375rem;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+
+  dt {
+    @include shared.label;
+    font-size: 0.65rem;
+  }
+
+  dd {
+    margin: 0;
+    font-size: $font-size-panel-title;
+
+    // Phones: four across leaves ~48px per value ("2,240").
+    @media (max-width: $breakpoint-phone) {
+      font-size: $font-size-body;
+    }
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+  }
+}
