@@ -1,4 +1,4 @@
-import { LandscapeLayer, compositeLandscape, isLand, lookWeights, windowGlow } from './sky-landscape';
+import { lookWeights, windowGlow } from './sky-landscape';
 import { computeLayout } from './sky-render';
 
 const sum = (w: Record<string, number | undefined>) => Object.values(w).reduce((a, b) => a! + (b ?? 0), 0);
@@ -30,32 +30,7 @@ describe('sky landscape', () => {
     expect(windowGlow('sunset', -3)).toBeGreaterThan(windowGlow('sunrise', -3));
   });
 
-  it('composites only solid land pixels, blending looks by weight, and lights the window', () => {
-    const layout = computeLayout(1280, 800);
-    const size = layout.width * layout.height * 4;
-    const sky = new Uint8ClampedArray(size).fill(10);
-    const make = (value: number, alpha: (i: number) => number): LandscapeLayer => {
-      const data = new Uint8ClampedArray(size);
-      for (let i = 0; i < size; i += 4) data.set([value, value, value, alpha(i)], i);
-      return { look: 'darkness', data };
-    };
-    // Land in the bottom half only.
-    const half = Math.floor(layout.height / 2) * layout.width * 4;
-    const land = (i: number) => (i >= half ? 255 : 0);
-    const a = make(100, land);
-    const b = { ...make(200, land), look: 'day' as const };
-    compositeLandscape(sky, layout, [{ layer: a, weight: 0.25 }, { layer: b, weight: 0.75 }], 0);
-    expect(sky[0]).toBe(10);
-    expect(sky[size - 4]).toBe(175);
-    expect(isLand(a, layout, 1, 1)).toBe(false);
-    expect(isLand(a, layout, 1, layout.height - 1)).toBe(true);
 
-    const lit = new Uint8ClampedArray(size).fill(10);
-    compositeLandscape(lit, layout, [{ layer: make(20, () => 255), weight: 1 }], 1);
-    const i = (Math.round(layout.windowY) * layout.width + Math.round(layout.windowX)) * 4;
-    expect(lit[i]).toBeGreaterThan(200);
-    expect(lit[i]).toBeGreaterThan(lit[i + 2]);
-  });
 });
 
 describe('fireflies', () => {
@@ -70,18 +45,19 @@ describe('fireflies', () => {
     expect(fireflyAmount('real', -25, 300)).toBe(0);
   });
 
-  it('are scattered over the meadow, on the art-pixel grid, the same every time', async () => {
+  it('are scattered over the meadow, the same every time, in CSS pixels at any resolution', async () => {
     const { fireflies } = await import('./sky-landscape');
     const layout = computeLayout(1280, 800);
-    const a = fireflies(layout, 14, 3);
-    expect(a).toEqual(fireflies(layout, 14, 3));
+    const a = fireflies(layout, 14);
+    expect(a).toEqual(fireflies(layout, 14));
+    expect(fireflies(computeLayout(1280, 800, 0.5), 14)).toEqual(a);
     expect(a.length).toBe(14);
     for (const fly of a) {
-      expect(fly.x % 3).toBe(0);
-      expect(fly.y % 3).toBe(0);
       // Below the treeline, above the bottom of the screen.
-      expect(fly.y / 3).toBeGreaterThan(layout.horizonY);
+      expect(fly.y).toBeGreaterThan(layout.horizonY);
       expect(fly.y).toBeLessThan(800);
+      expect(fly.x).toBeGreaterThan(0);
+      expect(fly.x).toBeLessThan(1280);
     }
   });
 });

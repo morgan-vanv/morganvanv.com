@@ -24,11 +24,15 @@ function render(iso: string, withBodies = true, lighting: Lighting = 'real') {
 describe('sky render', () => {
   it('lines the horizon up with the painting\'s valley floor', () => {
     const layout = computeLayout(1280, 800);
-    expect(layout.width).toBe(427);
-    expect(layout.height).toBe(267);
+    expect(layout.width).toBe(1280);
+    expect(layout.height).toBe(800);
     // background.webp is drawn at half size, 26.5 px cropped off the top; the valley floor is row 905.
-    expect(layout.horizonY * 3).toBeCloseTo(905 * 0.5 - 26.5, 6);
-    expect(layout.scale * 3).toBe(320);
+    expect(layout.horizonY).toBeCloseTo(905 * 0.5 - 26.5, 6);
+    expect(layout.scale).toBe(320);
+    // At device resolution (2× here) everything doubles.
+    const retina = computeLayout(1280, 800, 0.5);
+    expect(retina.width).toBe(2560);
+    expect(retina.horizonY).toBeCloseTo(2 * layout.horizonY, 6);
   });
 
   it('on portrait screens the zenith reaches the top edge', () => {
@@ -38,9 +42,9 @@ describe('sky render', () => {
 
   it('puts the valley between the mountains where the painting has it', () => {
     const layout = computeLayout(1280, 800);
-    // Half size, no horizontal crop at this aspect: x 1350 → 675 px; y 912 → 456 - 26.5 px.
-    expect(layout.valleyX * 3).toBeCloseTo(675, 6);
-    expect(layout.valleyY * 3).toBeCloseTo(912 * 0.5 - 26.5, 6);
+    // Half size, no horizontal crop at this aspect: x 1350 → 675 px; y 922 → 461 - 26.5 px.
+    expect(layout.valleyX).toBeCloseTo(675, 6);
+    expect(layout.valleyY).toBeCloseTo(922 * 0.5 - 26.5, 6);
   });
 
   it('darkness is the default: stars out at noon, night colours, no Sun', () => {
@@ -145,33 +149,21 @@ describe('sky render', () => {
     expect(day.targets.every(t => t.kind === 'sun' || t.kind === 'moon' || t.kind === 'planet')).toBe(true);
   });
 
-  it('brightens the hovered figure and rings the hovered object', () => {
-    const plain = render('2026-01-15T04:00:00Z');
-    const betelgeuse = plain.result.targets.find(t => t.name === 'Betelgeuse')!;
-    const layout = computeLayout(1280, 800);
-    const buffer = new Uint8ClampedArray(layout.width * layout.height * 4);
-    const date = new Date('2026-01-15T04:00:00Z');
-    renderSky(buffer, layout, {
-      date, lat, lon, catalog, bodies: computeBodies(Astronomy, date, lat, lon), lighting: 'real',
-      highlight: { figure: 'Ori', target: betelgeuse },
-    });
-    let changed = 0;
-    for (let i = 0; i < buffer.length; i += 4) if (buffer[i] !== plain.buffer[i]) changed++;
-    expect(changed).toBeGreaterThan(20);
-    // The ring is gold, three pixels out.
-    const i = (Math.round(betelgeuse.y) * layout.width + Math.round(betelgeuse.x) + 3) * 4;
-    expect(buffer[i]).toBeGreaterThan(buffer[i + 2]);
+  it('gives bright things a glow to draw', () => {
+    const { result } = render('2026-10-26T03:00:00Z');
+    // The full Moon, Saturn and the brightest stars.
+    expect(result.glows.length).toBeGreaterThan(3);
+    expect(result.glows.every(g => g.radius > 0 && g.strength > 0 && g.strength <= 1)).toBe(true);
   });
 
-  it('drawLine steps one pixel at a time and includes both ends', () => {
-    const points: [number, number][] = [];
-    drawLine(0, 0, 5, 2, (x, y) => points.push([x, y]));
-    expect(points[0]).toEqual([0, 0]);
-    expect(points.at(-1)).toEqual([5, 2]);
-    expect(points.length).toBe(6);
-    for (let i = 1; i < points.length; i++) {
-      expect(Math.abs(points[i][0] - points[i - 1][0])).toBeLessThanOrEqual(1);
-      expect(Math.abs(points[i][1] - points[i - 1][1])).toBeLessThanOrEqual(1);
+  it('drawLine is antialiased: two pixels share each step, coverage adding up to one', () => {
+    const cover = new Map<string, number>();
+    drawLine(0, 0, 10, 3.5, (x, y, c) => cover.set(`${x},${y}`, (cover.get(`${x},${y}`) ?? 0) + c));
+    for (let x = 0; x <= 10; x++) {
+      const column = [...cover].filter(([k]) => k.startsWith(`${x},`)).reduce((sum, [, c]) => sum + c, 0);
+      expect(column).toBeCloseTo(1, 6);
     }
+    expect(cover.get('0,0')).toBeCloseTo(1, 6);
   });
+
 });

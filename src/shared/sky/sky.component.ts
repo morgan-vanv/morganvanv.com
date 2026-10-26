@@ -17,24 +17,22 @@ import { AstronomyModule, Bodies, computeBodies, loadAstronomy } from './sky-bod
 import { NO_HOVER, SkyHover, hoverAt, hoverLabel, isOpenSky, sameHover } from './sky-hover';
 import {
   Firefly,
-  LandscapeLayer,
+  LandscapeLook,
   fireflies,
   fireflyAmount,
-  LandscapeLook,
-  compositeLandscape,
-  isLand,
   landscapeUrl,
   lookWeights,
   windowGlow,
 } from './sky-landscape';
 import {
-  ART_PIXEL,
   BACKGROUND_SIZE,
   ConstellationFile,
   LIGHTINGS,
   Lighting,
   NameFile,
+  SkyBackground,
   SkyCatalog,
+  SkyGlow,
   SkyLayout,
   SkySegment,
   SkyTarget,
@@ -52,6 +50,10 @@ const RESIZE_DEBOUNCE_MS = 150;
 const FIREFLY_COUNT = 14;
 /** How long a tapped label stays up on touch screens. */
 const TOUCH_LABEL_MS = 3000;
+/** Drawing resolution: device pixels, but no more than 2 per CSS pixel (the sky is redrawn in JS). */
+const MAX_DPR = 2;
+/** How close (CSS px) the pointer must be to a constellation line to name it. */
+const LINE_REACH_CSS = 6;
 
 /**
  * `?sky-at=2026-01-15T04:00Z` pins the sky to a moment, for checking how it
@@ -66,8 +68,9 @@ export function parseSkyAt(search: string): Date | null {
 
 /**
  * Tonight's sky: the real sky over Cincinnati (or the visitor's own, on
- * request) and the landscape in front of it, drawn together as one piece of
- * pixel art on a canvas at a third of screen resolution.
+ * request) with Morgan's painting in front of it, drawn on a canvas at device
+ * resolution: a smooth gradient, soft stars, the painting relit for the
+ * chosen light, a little glow on anything that shines.
  *
  * Nothing here runs during prerendering or first paint: the painted
  * background shows until the star data and the night landscape have loaded
@@ -77,12 +80,15 @@ export function parseSkyAt(search: string): Date | null {
  * Other landscape looks (sunrise, sunset, day) load when first needed.
  *
  * No animation loop: the sky is redrawn once a minute while the tab is
- * visible, and never on a timer for visitors who prefer reduced motion.
+ * visible, and never on a timer for visitors who prefer reduced motion. Hover
+ * highlights go on a second, cheap canvas, so pointing at stars never redraws
+ * the sky.
  */
 @Component({
   selector: 'app-sky',
   template: `
     <canvas #canvas class="sky"></canvas>
+    <canvas #overlay class="sky overlay"></canvas>
     @for (fly of fireflies(); track $index) {
       <span class="firefly" [style.left.px]="fly.x" [style.top.px]="fly.y"
         [style.animation-delay.s]="fly.delay" [style.animation-duration.s]="fly.duration"></span>
@@ -102,6 +108,7 @@ export class SkyComponent {
   protected readonly sky = inject(SkyService);
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
+  private readonly overlay = viewChild.required<ElementRef<HTMLCanvasElement>>('overlay');
 
   /** Fireflies on the meadow at dusk (CSS-animated; nothing at all otherwise). */
   protected readonly fireflies = signal<readonly Firefly[]>([]);
@@ -111,22 +118,22 @@ export class SkyComponent {
   private catalog: SkyCatalog | null = null;
   private astronomy: AstronomyModule | null = null;
   private pinnedTime: Date | null = null;
-  /** The last draw's inputs and hover targets; a hover-only redraw reuses them instead of recomputing the Moon and planets. */
-  private scene: { date: Date; lat: number; lon: number; bodies: Bodies | null; targets: readonly SkyTarget[]; segments: readonly SkySegment[] } | null = null;
+  /** What the last draw put where, for hover. */
+  private scene: { targets: readonly SkyTarget[]; segments: readonly SkySegment[] } | null = null;
   private hover: SkyHover = NO_HOVER;
+  private layout: SkyLayout | null = null;
 
-  /** Landscape looks: the loaded images, and their rasterisation at the current art size. */
+  /** Landscape looks, loaded on demand. */
   private readonly lookImages = new Map<LandscapeLook, HTMLImageElement>();
   private readonly lookLoads = new Map<LandscapeLook, Promise<void>>();
   /** Looks that failed to load; not retried (the darkness look stands in). */
   private readonly failedLooks = new Set<LandscapeLook>();
   /** Looks a redraw is already waiting on. */
   private readonly awaitedLooks = new Set<LandscapeLook>();
-  private scratch: HTMLCanvasElement | null = null;
+  /** Where the landscape covers the sky (alpha), at a quarter of CSS resolution, for hover. */
+  private landMask: { width: number; height: number; alpha: Uint8ClampedArray } | null = null;
   private destroyed = false;
-  private readonly layers = new Map<LandscapeLook, LandscapeLayer>();
-  private layersSize = '';
-  private layout: SkyLayout | null = null;
+  private points: HTMLCanvasElement | null = null;
   private fireflyKey = '';
 
   constructor() {
@@ -215,58 +222,27 @@ export class SkyComponent {
     return pending;
   }
 
-  /**
-   * A look rasterised at art resolution, with the same `cover` fit CSS gives the
-   * painting. Null if it hasn't loaded yet (in which case loading starts and the
-   * sky redraws when it arrives).
-   */
-  private layer(look: LandscapeLook, layout: SkyLayout): LandscapeLayer | null {
-    const size = `${layout.width}x${layout.height}`;
-    if (size !== this.layersSize) {
-      this.layers.clear();
-      this.layersSize = size;
-    }
-    const cached = this.layers.get(look);
-    if (cached) return cached;
+  /** A loaded look, or null (starting the load, once, and redrawing once when it arrives). */
+  private look(look: LandscapeLook): HTMLImageElement | null {
     const image = this.lookImages.get(look);
-    if (!image) {
-      // Start loading (once) and redraw (once) when it arrives; a failed look stays missing.
-      if (!this.failedLooks.has(look) && !this.awaitedLooks.has(look)) {
-        this.awaitedLooks.add(look);
-        this.loadLook(look).then(
-          () => {
-            this.awaitedLooks.delete(look);
-            if (!this.destroyed) this.draw();
-          },
-          () => this.awaitedLooks.delete(look),
-        );
-      }
-      return null;
-    }
-    try {
-      // One scratch canvas, reused, so resizes don't pile up canvas memory (iOS caps it).
-      const canvas = (this.scratch ??= document.createElement('canvas'));
-      canvas.width = layout.width;
-      canvas.height = layout.height;
-      const context = canvas.getContext('2d', { willReadFrequently: true });
-      if (!context) return null;
-      // Sized like the painting (BACKGROUND_SIZE, which the layout is built on), whatever the asset's own size.
-      const scale = Math.max(this.viewWidth() / BACKGROUND_SIZE.width, this.viewHeight() / BACKGROUND_SIZE.height) / ART_PIXEL;
-      const [drawWidth, drawHeight] = [BACKGROUND_SIZE.width * scale, BACKGROUND_SIZE.height * scale];
-      context.clearRect(0, 0, layout.width, layout.height);
-      // Shrinking averages neighbouring pixels; enlarging (huge screens) keeps them crisp.
-      context.imageSmoothingEnabled = drawWidth < image.naturalWidth;
-      context.imageSmoothingQuality = 'high';
-      context.drawImage(
-        image,
-        (this.viewWidth() / ART_PIXEL - drawWidth) / 2,
-        (this.viewHeight() / ART_PIXEL - drawHeight) / 2,
-        drawWidth,
-        drawHeight,
+    if (image) return image;
+    if (!this.failedLooks.has(look) && !this.awaitedLooks.has(look)) {
+      this.awaitedLooks.add(look);
+      this.loadLook(look).then(
+        () => {
+          this.awaitedLooks.delete(look);
+          if (!this.destroyed) this.draw();
+        },
+        () => this.awaitedLooks.delete(look),
       );
-      const layer = { look, data: context.getImageData(0, 0, layout.width, layout.height).data };
-      this.layers.set(look, layer);
-      return layer;
+    }
+    return null;
+  }
+
+  /** A reusable offscreen canvas for the stars layer. */
+  private pointsCanvas(): HTMLCanvasElement | null {
+    try {
+      return (this.points ??= document.createElement('canvas'));
     } catch {
       return null;
     }
@@ -280,10 +256,16 @@ export class SkyComponent {
     return this.host.clientHeight || window.innerHeight;
   }
 
+  /** Draws a landscape image the way CSS draws the painting (`cover`, centred), in buffer pixels. */
+  private drawCover(context: CanvasRenderingContext2D, image: CanvasImageSource, layout: SkyLayout): void {
+    const scale = layout.imageScale;
+    context.drawImage(image, layout.imageX, layout.imageY, BACKGROUND_SIZE.width * scale, BACKGROUND_SIZE.height * scale);
+  }
+
   /**
    * Hover (mouse and pen) and tap (touch) on open sky name what's there. Hit
-   * testing runs at most once a frame and only redraws when the answer changes.
-   * Returns a function that removes the listeners.
+   * testing runs at most once a frame; only the overlay redraws, and only when
+   * the answer changes. Returns a function that removes the listeners.
    */
   private listenForHover(): () => void {
     let frame = 0;
@@ -291,9 +273,11 @@ export class SkyComponent {
     let touchTimer: ReturnType<typeof setTimeout> | undefined;
     const check = (event: PointerEvent) => {
       const scene = this.scene;
-      const [x, y] = [event.clientX / ART_PIXEL, event.clientY / ART_PIXEL];
-      const overLand = this.layout ? isLand(this.layers.get('darkness') ?? null, this.layout, x, y) : false;
-      const hover = scene && !overLand && isOpenSky(event.target) ? hoverAt(x, y, scene.targets, scene.segments) : NO_HOVER;
+      const layout = this.layout;
+      const open = !!scene && !!layout && isOpenSky(event.target) && !this.isLand(event.clientX, event.clientY);
+      const hover = open
+        ? hoverAt(event.clientX / layout!.artPixel, event.clientY / layout!.artPixel, scene!.targets, scene!.segments, LINE_REACH_CSS / layout!.artPixel)
+        : NO_HOVER;
       this.setHover(hover, event.clientX, event.clientY);
     };
     const onMove = (event: PointerEvent) => {
@@ -327,6 +311,30 @@ export class SkyComponent {
     };
   }
 
+  /** True where the landscape covers the sky at a CSS-pixel point. */
+  private isLand(clientX: number, clientY: number): boolean {
+    const mask = this.landMask;
+    if (!mask) return false;
+    const [x, y] = [Math.floor(clientX / 4), Math.floor(clientY / 4)];
+    if (x < 0 || y < 0 || x >= mask.width || y >= mask.height) return false;
+    return mask.alpha[(y * mask.width + x) * 4 + 3] > 128;
+  }
+
+  private updateLandMask(image: HTMLImageElement): void {
+    const [width, height] = [Math.ceil(this.viewWidth() / 4), Math.ceil(this.viewHeight() / 4)];
+    if (this.landMask?.width === width && this.landMask.height === height) return;
+    try {
+      const canvas = document.createElement('canvas');
+      [canvas.width, canvas.height] = [width, height];
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      if (!context) return;
+      this.drawCover(context, image, computeLayout(this.viewWidth(), this.viewHeight(), 4));
+      this.landMask = { width, height, alpha: context.getImageData(0, 0, width, height).data };
+    } catch {
+      this.landMask = null;
+    }
+  }
+
   private setHover(hover: SkyHover, clientX: number, clientY: number): void {
     const text = hoverLabel(hover);
     if (text) {
@@ -336,73 +344,115 @@ export class SkyComponent {
     }
     if (sameHover(hover, this.hover)) return;
     this.hover = hover;
-    this.draw(true);
+    this.drawOverlay();
   }
 
-  /** Draws the sky and landscape. `hoverOnly` reuses the last computed positions (only the highlight changed). */
-  private draw(hoverOnly = false): void {
+  /** The hovered figure's lines, brighter, and a ring round the hovered object; never over the landscape. */
+  private drawOverlay(): void {
+    const canvas = this.overlay().nativeElement;
+    const context = canvas.getContext('2d');
+    const layout = this.layout;
+    const scene = this.scene;
+    if (!context || !layout) return;
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (!scene || (!this.hover.figure && !this.hover.target)) return;
+    const css = 1 / layout.artPixel;
+    context.lineCap = 'round';
+    if (this.hover.figure) {
+      context.strokeStyle = 'rgba(170, 206, 226, 0.7)';
+      context.lineWidth = 1.2 * css;
+      context.beginPath();
+      for (const s of scene.segments) {
+        if (s.figure !== this.hover.figure) continue;
+        context.moveTo(s.ax, s.ay);
+        context.lineTo(s.bx, s.by);
+      }
+      context.stroke();
+    }
+    const wanted = this.hover.target;
+    const target = wanted && scene.targets.find(t => t.kind === wanted.kind && t.name === wanted.name);
+    if (target) {
+      context.strokeStyle = 'rgba(201, 146, 42, 0.9)';
+      context.lineWidth = 1.5 * css;
+      context.beginPath();
+      context.arc(target.x, target.y, Math.max(7 * css, target.radius * 0.8), 0, Math.PI * 2);
+      context.stroke();
+    }
+    // Lines that run behind the trees stay behind them.
+    const night = this.lookImages.get('darkness');
+    if (night) {
+      context.globalCompositeOperation = 'destination-out';
+      this.drawCover(context, night, layout);
+      context.globalCompositeOperation = 'source-over';
+    }
+  }
+
+  /** Draws the sky and landscape. */
+  private draw(): void {
     const catalog = this.catalog;
     if (!catalog) return;
     const canvas = this.canvas().nativeElement;
     const context = canvas.getContext('2d');
     if (!context) return;
-
-    const layout = computeLayout(this.viewWidth(), this.viewHeight());
-    this.layout = layout;
-    if (canvas.width !== layout.width || canvas.height !== layout.height) {
-      canvas.width = layout.width;
-      canvas.height = layout.height;
-    }
-    canvas.style.width = `${layout.width * ART_PIXEL}px`;
-    canvas.style.height = `${layout.height * ART_PIXEL}px`;
-
-    let date: Date;
-    let lat: number;
-    let lon: number;
-    let bodies: Bodies | null;
-    if (hoverOnly && this.scene) {
-      ({ date, lat, lon, bodies } = this.scene);
-    } else {
-      date = this.pinnedTime ?? new Date();
-      ({ lat, lon } = this.sky.location());
-      try {
-        bodies = this.astronomy ? computeBodies(this.astronomy, date, lat, lon) : null;
-      } catch {
-        bodies = null;
-      }
-    }
     // Without the night landscape there's nothing to put in front of the sky; leave the painting.
-    const night = this.layer('darkness', layout);
+    const night = this.look('darkness');
     if (!night) return;
 
+    const dpr = Math.min(MAX_DPR, Math.max(1, window.devicePixelRatio || 1));
+    const layout = computeLayout(this.viewWidth(), this.viewHeight(), 1 / dpr);
+    this.layout = layout;
+    for (const c of [canvas, this.overlay().nativeElement]) {
+      if (c.width !== layout.width || c.height !== layout.height) [c.width, c.height] = [layout.width, layout.height];
+      c.style.width = `${layout.width / dpr}px`;
+      c.style.height = `${layout.height / dpr}px`;
+    }
+
+    const date = this.pinnedTime ?? new Date();
+    const { lat, lon } = this.sky.location();
+    let bodies: Bodies | null;
+    try {
+      bodies = this.astronomy ? computeBodies(this.astronomy, date, lat, lon) : null;
+    } catch {
+      bodies = null;
+    }
     const lighting = this.sky.lighting();
+    // The gradient is painted by the canvas (fast, smooth); everything that's a point, a line
+    // or a disc is drawn in JS onto a transparent layer and laid over it.
     const image = context.createImageData(layout.width, layout.height);
-    const { sunAlt, sunAz, targets, segments } = renderSky(image.data, layout, {
-      date, lat, lon, catalog, bodies, lighting,
-      highlight: { figure: this.hover.figure, target: this.hover.target },
+    const { sunAlt, sunAz, targets, segments, glows, background } = renderSky(image.data, layout, {
+      date, lat, lon, catalog, bodies, lighting, paintBackground: false,
     });
+    paintSky(context, layout, background);
+    const points = this.pointsCanvas();
+    if (points) {
+      [points.width, points.height] = [layout.width, layout.height];
+      points.getContext('2d')?.putImageData(image, 0, 0);
+      context.drawImage(points, 0, 0);
+    }
+    drawGlows(context, glows);
 
-    // The landscape: the weighted looks. A look that hasn't loaded (or failed) lends its weight
-    // to the night look until it arrives. The night look goes first: it decides the silhouette,
-    // which all looks share.
-    const layers: { layer: LandscapeLayer; weight: number }[] = [{ layer: night, weight: 0 }];
+    // The landscape: the weighted looks, blended in turn. A look that hasn't loaded (or
+    // failed) lends its weight to the night look until it arrives.
+    let nightWeight = 0;
+    const layers: { image: HTMLImageElement; weight: number }[] = [];
     for (const [look, weight] of Object.entries(lookWeights(lighting, sunAlt, sunAz)) as [LandscapeLook, number][]) {
-      const layer: LandscapeLayer | null = look === 'darkness' ? night : this.layer(look, layout);
-      if (layer && layer !== night) layers.push({ layer, weight });
-      else layers[0].weight += weight;
+      const img = look === 'darkness' ? null : this.look(look);
+      if (img) layers.push({ image: img, weight });
+      else nightWeight += weight;
     }
-    compositeLandscape(image.data, layout, layers, windowGlow(lighting, sunAlt));
-    // Only touch the DOM when the fireflies actually change (they come or go, or the screen resizes).
-    const flies = fireflyAmount(lighting, sunAlt, sunAz) > 0.3 ? FIREFLY_COUNT : 0;
-    const fireflyKey = `${flies}@${layout.width}x${layout.height}`;
-    if (fireflyKey !== this.fireflyKey) {
-      this.fireflyKey = fireflyKey;
-      this.fireflies.set(flies ? fireflies(layout, flies, ART_PIXEL) : []);
+    if (nightWeight > 0) layers.unshift({ image: night, weight: nightWeight });
+    let drawn = 0;
+    for (const { image: img, weight } of layers) {
+      drawn += weight;
+      context.globalAlpha = drawn ? weight / drawn : 1;
+      this.drawCover(context, img, layout);
     }
+    context.globalAlpha = 1;
 
-    context.putImageData(image, 0, 0);
-    this.scene = { date, lat, lon, bodies, targets, segments };
-    if (hoverOnly) return;
+    drawWindowLight(context, layout, windowGlow(lighting, sunAlt));
+    this.updateLandMask(night);
+
+    this.scene = { targets, segments };
     // The sky moved (or changed): drop a hover whose object is no longer there.
     const { target, figure } = this.hover;
     const stillThere = target
@@ -412,11 +462,80 @@ export class SkyComponent {
       this.hover = NO_HOVER;
       this.label.set(null);
     }
+    this.drawOverlay();
+
+    // Only touch the DOM when the fireflies actually change (they come or go, or the screen resizes).
+    const flies = fireflyAmount(lighting, sunAlt, sunAz) > 0.3 ? FIREFLY_COUNT : 0;
+    const fireflyKey = `${flies}@${layout.width}x${layout.height}`;
+    if (fireflyKey !== this.fireflyKey) {
+      this.fireflyKey = fireflyKey;
+      this.fireflies.set(flies ? fireflies(layout, flies) : []);
+    }
+
     this.sky.upNow.set(upNow(bodies, catalog, j2000ToHorizontalMatrix(date, lat, lon)));
     // 0 at night, 1 in daylight, on <html> so page cards can darken behind their text
     // when the sky behind them is bright (see base-page).
     document.documentElement.style.setProperty('--daylight', String(Math.round(smoothstep(-6, 6, sunAlt) * 100) / 100));
   }
+}
+
+const rgba = ([r, g, b]: readonly number[], a: number) => `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
+
+/** The sky gradient (zenith to horizon, eased like the renderer's), and the horizon glow. */
+function paintSky(context: CanvasRenderingContext2D, layout: SkyLayout, background: SkyBackground): void {
+  const { top, horizon, glow } = background;
+  const horizonY = Math.max(1, layout.horizonY);
+  const gradient = context.createLinearGradient(0, 0, 0, horizonY);
+  for (let k = 0; k <= 10; k++) {
+    const t = (k / 10) ** 2;
+    gradient.addColorStop(k / 10, rgba(top.map((c, i) => c + (horizon[i] - c) * t), 1));
+  }
+  context.fillStyle = gradient;
+  context.fillRect(0, 0, layout.width, layout.height);
+  if (!glow) return;
+  // The renderer's glow is strength × t³ × 0.55 across, × a Gaussian along: an ellipse on the horizon.
+  const [rx, ry] = [layout.width * 0.3 * 1.6, horizonY];
+  context.save();
+  context.translate(glow.x, horizonY);
+  context.scale(1, ry / rx);
+  const halo = context.createRadialGradient(0, 0, 0, 0, 0, rx);
+  for (const [stop, share] of [[0, 1], [0.25, 0.62], [0.5, 0.28], [0.75, 0.08], [1, 0]] as const) {
+    halo.addColorStop(stop, rgba(glow.color, glow.strength * 0.55 * share));
+  }
+  context.fillStyle = halo;
+  context.fillRect(-rx, -rx, rx * 2, rx * 2);
+  context.restore();
+}
+
+/** Soft halos round things that shine. */
+function drawGlows(context: CanvasRenderingContext2D, glows: readonly SkyGlow[]): void {
+  context.globalCompositeOperation = 'lighter';
+  for (const glow of glows) {
+    const gradient = context.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, glow.radius);
+    gradient.addColorStop(0, rgba(glow.color, glow.strength));
+    gradient.addColorStop(0.35, rgba(glow.color, glow.strength * 0.35));
+    gradient.addColorStop(1, rgba(glow.color, 0));
+    context.fillStyle = gradient;
+    context.fillRect(glow.x - glow.radius, glow.y - glow.radius, glow.radius * 2, glow.radius * 2);
+  }
+  context.globalCompositeOperation = 'source-over';
+}
+
+/** A warm light left on in the farmhouse: a bright core and a wide, faint halo. */
+function drawWindowLight(context: CanvasRenderingContext2D, layout: SkyLayout, strength: number): void {
+  if (strength <= 0) return;
+  const css = 1 / layout.artPixel;
+  const [x, y] = [layout.windowX, layout.windowY];
+  context.globalCompositeOperation = 'lighter';
+  for (const [radius, alpha] of [[2.2, 0.95], [7, 0.35], [26, 0.12]] as const) {
+    const r = radius * css * Math.max(0.7, layout.imageScale * layout.artPixel * 2);
+    const gradient = context.createRadialGradient(x, y, 0, x, y, r);
+    gradient.addColorStop(0, `rgba(255, 206, 128, ${alpha * strength})`);
+    gradient.addColorStop(1, 'rgba(255, 170, 90, 0)');
+    context.fillStyle = gradient;
+    context.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  context.globalCompositeOperation = 'source-over';
 }
 
 /** Rough size of a label, in CSS pixels (0.75rem monospace plus padding). */

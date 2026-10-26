@@ -22,7 +22,8 @@ function stubBrowser({ fetchFails = false, reducedMotion = false, landBelow = 1,
   });
   const putImageData = vi.fn();
   const drawImage = vi.fn();
-  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+  // A 2D context that records the calls we care about and accepts everything else.
+  const context = new Proxy({
     createImageData: (w: number, h: number) => ({ data: new Uint8ClampedArray(w * h * 4), width: w, height: h }),
     // The landscape covers the bottom (1 - landBelow) of the screen.
     getImageData: (_x: number, _y: number, w: number, h: number) => {
@@ -30,10 +31,15 @@ function stubBrowser({ fetchFails = false, reducedMotion = false, landBelow = 1,
       for (let y = Math.floor(h * landBelow); y < h; y++) for (let x = 0; x < w; x++) data[(y * w + x) * 4 + 3] = 255;
       return { data, width: w, height: h };
     },
+    createRadialGradient: () => ({ addColorStop: vi.fn() }),
+    createLinearGradient: () => ({ addColorStop: vi.fn() }),
     putImageData,
     drawImage,
-    clearRect: vi.fn(),
-  } as unknown as CanvasRenderingContext2D);
+  } as Record<string, unknown>, {
+    get: (target, key: string) => (key in target ? target[key] : vi.fn()),
+    set: () => true,
+  });
+  vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as unknown as CanvasRenderingContext2D);
   vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: reducedMotion && query.includes('reduce') }) as MediaQueryList);
   const setIntervalSpy = vi.spyOn(window, 'setInterval');
   const geolocation = vi.fn();
@@ -60,7 +66,7 @@ describe('SkyComponent', () => {
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(putImageData).toHaveBeenCalled();
     // The night landscape is rasterised from its image.
-    expect(drawImage.mock.calls.some(([image]) => (image as HTMLImageElement).src.endsWith('/landscape/darkness.webp'))).toBe(true);
+    expect(drawImage.mock.calls.some(([image]) => (image as HTMLImageElement).src?.endsWith('/landscape/darkness.webp'))).toBe(true);
     expect(setIntervalSpy.mock.calls.some(([, ms]) => ms === REDRAW_INTERVAL_MS)).toBe(true);
     expect(document.documentElement.style.getPropertyValue('--daylight')).not.toBe('');
     expect(geolocation).not.toHaveBeenCalled();
@@ -80,7 +86,7 @@ describe('SkyComponent', () => {
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     const scene = (fixture.componentInstance as unknown as { scene: { targets: SkyTarget[] } }).scene;
-    const height = window.innerHeight / 3;
+    const height = window.innerHeight;
     const star = scene.targets.find(t => t.kind === 'star' && t.y < height * 0.5);
     expect(star).toBeTruthy();
     const open = document.createElement('div');
@@ -90,7 +96,7 @@ describe('SkyComponent', () => {
       await new Promise(resolve => requestAnimationFrame(() => resolve(null)));
       await fixture.whenStable();
     };
-    await move(star!.x * 3, star!.y * 3);
+    await move(star!.x, star!.y); // devicePixelRatio is 1 here, so buffer pixels are CSS pixels
     expect(fixture.nativeElement.querySelector('.sky-label')?.textContent).toContain(star!.name);
     // Low on the screen is landscape here: nothing to name.
     await move(30, window.innerHeight - 10);

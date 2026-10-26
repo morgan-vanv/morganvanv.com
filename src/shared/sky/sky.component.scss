@@ -19,8 +19,6 @@
   position: absolute;
   top: 0;
   left: 0;
-  // Each canvas pixel is one chunky art pixel.
-  image-rendering: pixelated;
 }
 
 // The hover label: a small pill beside the pointer.
@@ -36,27 +34,24 @@
   pointer-events: none;
 }
 
-// Fireflies: one warm art pixel with a faint cross of glow, blinking slowly and drifting a pixel.
+// Fireflies: a small warm point with a soft glow, drifting and fading slowly.
 .firefly {
   position: absolute;
   width: 3px;
   height: 3px;
-  background: #f6ffb0;
-  box-shadow:
-    3px 0 rgba(214, 240, 120, 0.35),
-    -3px 0 rgba(214, 240, 120, 0.35),
-    0 3px rgba(214, 240, 120, 0.35),
-    0 -3px rgba(214, 240, 120, 0.35);
+  border-radius: 50%;
+  background: #fbffc8;
+  box-shadow: 0 0 6px 2px rgba(222, 246, 130, 0.55), 0 0 16px 6px rgba(222, 246, 130, 0.18);
   opacity: 0;
-  animation: firefly 4s steps(8) infinite;
+  animation: firefly 6s ease-in-out infinite;
 }
 
 @keyframes firefly {
   0%,
   100% { opacity: 0; transform: translate(0, 0); }
-  35% { opacity: 1; }
-  55% { opacity: 0.85; transform: translate(3px, -3px); }
-  75% { opacity: 0; transform: translate(6px, -3px); }
+  30% { opacity: 0.9; }
+  55% { opacity: 0.75; transform: translate(6px, -5px); }
+  80% { opacity: 0; transform: translate(10px, -3px); }
 }
 
 @media (prefers-reduced-motion: reduce) {

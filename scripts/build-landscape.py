@@ -1,22 +1,26 @@
 """Builds the landscape the live sky sits behind: public/landscape/<look>.webp,
-one per lighting look (darkness, sunrise, sunset, day). Each is the painting
-with the sky cut out, relit, at half size (the site draws it as pixel art at
-a third of screen resolution, so half size is plenty up to 4K).
+one per lighting look (darkness, sunrise, sunset, day). Each is Morgan's
+painting (art/painting.png, the lossless original) with the sky cut out softly
+and relit, at 3/4 size (1920x1280).
 
-    python3 scripts/build-landscape.py public/background.webp public/landscape
+    python3 scripts/build-landscape.py art/painting.png public/landscape
 
-Needs numpy, scipy and Pillow. Rerun if background.webp or a ramp changes.
+Needs numpy, scipy and Pillow. Rerun if the painting or a colour ramp changes.
 
 How:
-1. Cut the sky out (same flood + gradient test as before), then clean the edge:
-   pixels in a thin band along the silhouettes take the colour of the nearest
-   pixel further inside, so no old sky colour bleeds into a new sky.
-2. Relight. Every pixel is a soft mix of three materials, by colour: distant
+1. A hard cut finds roughly where the sky is (flood from the top through the
+   smooth painted gradient, then drop anything darker than the sky above it).
+2. A soft matte settles the edges: the painted sky is modelled row by row, and
+   each edge pixel (and any sky glimpsed through gaps in the crowns) is solved
+   as a mix of that sky and the foreground beside it, then unmixed. Soft,
+   antialiased silhouettes with no old sky left in them.
+3. Relight. Every pixel is a soft mix of three materials, by colour: distant
    blue (the mountains), warm (the field, the farmhouse) and green (everything
    else). Each material's brightness is mapped through a colour ramp per look,
    so the painting's own light and shade drive the result. Sunrise and sunset
-   add a rim of light along the silhouettes, strongest near the valley where
-   the staged Sun sits, on edges with open sky directly above. Darkness is the original painting, untouched."""
+   add a rim of light on top edges, strongest near the valley where the staged
+   Sun sits; sunrise adds low morning fog over the field and meadow, kept
+   off the big trees in front. Darkness keeps the painting's own colours."""
 import sys
 from collections import deque
 import numpy as np
@@ -78,18 +82,81 @@ sizes = ndimage.sum(np.ones_like(holes), holes, range(1, n + 1))
 small = np.zeros(n + 1, bool)
 small[1:] = sizes < 400
 sky |= small[holes]
-land = ~ndimage.binary_erosion(sky, iterations=1, border_value=1)
+# The glow low in the valley is as bright as the sky above it but fails the colour
+# tests; carry the sky down each column while it stays that bright.
+glow_lum = a[..., 1].astype(np.float32) + a[..., 2]
+for x in range(W):
+    col = sky[:, x]
+    if not col.any():
+        continue
+    top_land = int(np.argmax(~col[np.argmax(col):]) + np.argmax(col))
+    if not 870 <= top_land <= 930:
+        continue
+    reference = glow_lum[top_land - 2, x]
+    y = top_land
+    while y < 935 and glow_lum[y, x] >= reference - 18:
+        sky[y, x] = True
+        y += 1
+# --- 2. soft matte -------------------------------------------------------------
+# The hard cut above is only a trimap: pixels well inside either side are settled;
+# the band between them (and sky glimpsed through gaps in the crowns) is solved
+# properly. The painted sky is smooth, so it can be modelled exactly, row by row;
+# each band pixel is then a mix of that sky and the foreground colour nearby:
+#   pixel = a * foreground + (1 - a) * sky   →   a by projection, colour by unmixing.
+# That gives soft, antialiased edges with none of the old sky left in them.
+P = rgb_u8.astype(np.float32)
+sure_sky = ndimage.binary_erosion(sky, iterations=6)
+sure_land = ndimage.binary_erosion(~sky, iterations=6)
+band = ~sure_sky & ~sure_land
 
-# Edge clean-up: the outermost EDGE_PX of the land take the colour of the nearest pixel deeper inside.
-EDGE_PX = 4
-depth = ndimage.distance_transform_edt(land)
-inner = depth > EDGE_PX
-_, (iy, ix) = ndimage.distance_transform_edt(~inner, return_indices=True)
-rgb = rgb_u8.astype(np.float32)
-band = land & ~inner
-rgb[band] = rgb[iy[band], ix[band]]
+lum_all = P.sum(2)
+not_star = np.abs(lum_all - ndimage.median_filter(lum_all, size=5)) < 12
+B = np.zeros_like(P)
+last = None
+for y in range(H):
+    sel = sure_sky[y] & not_star[y]
+    if sel.sum() > 30:
+        last = [np.polyfit(xs[sel], P[y, sel, c], 2) for c in range(3)]
+    if last is not None:
+        for c in range(3):
+            B[y, :, c] = np.polyval(last[c], xs)
 
-# --- 2. relight ---------------------------------------------------------------
+_, (iy, ix) = ndimage.distance_transform_edt(~sure_land, return_indices=True)
+F = ndimage.uniform_filter(P[iy, ix], size=(5, 5, 1))
+
+def solve(F):
+    d = F - B
+    return np.clip(((P - B) * d).sum(2) / ((d * d).sum(2) + 1e-3), 0, 1)
+
+alpha = solve(F)
+alpha = np.where(sure_land, 1, np.where(sure_sky, 0, alpha))
+
+# Sky seen through gaps in the crowns (above the horizon, coloured like the sky there).
+# (A little below the horizon too: the glow in the valley between the peaks is sky.)
+HORIZON = 925
+above = np.arange(H)[:, None] < HORIZON
+candidate = above & ~sky & (np.abs(P - B).max(2) < 14)
+# Real gaps are either open to the sky (the glow in the valley) or sit inside a green
+# crown; sky-coloured patches on the mountains' lit slopes are neither and stay land.
+labels, _ = ndimage.label(candidate, structure=np.ones((3, 3)))
+open_ids = np.unique(labels[ndimage.binary_dilation(sky, iterations=2) & candidate])
+greenish = (P[..., 1] >= P[..., 2] - 4).astype(np.float32)
+in_crown = ndimage.uniform_filter(np.where(candidate, 0, greenish), size=15) > 0.45
+crown_ids = np.unique(labels[candidate & in_crown])
+pocket = np.isin(labels, np.setdiff1d(np.union1d(open_ids, crown_ids), [0]))
+pocket = ndimage.binary_dilation(pocket, iterations=1) & above & ~sky
+weight = ndimage.uniform_filter((~pocket).astype(np.float32), size=9)
+local_f = ndimage.uniform_filter(np.where(pocket[..., None], 0, P), size=(9, 9, 1)) / np.maximum(weight, 1e-3)[..., None]
+alpha = np.where(pocket, np.minimum(alpha, solve(local_f)), alpha)
+F = np.where(pocket[..., None], local_f, F)
+band |= pocket
+alpha = np.where(band & (alpha < 0.08), 0, alpha)  # stars and specks caught in the band belong to the sky
+
+a3 = alpha[..., None]
+rgb = np.clip(np.where(a3 > 0.15, (P - (1 - a3) * B) / np.maximum(a3, 1e-3), F), 0, 255)
+land = alpha > 0.5
+
+# --- 3. relight ---------------------------------------------------------------
 r, g, b = rgb[..., 0], rgb[..., 1], rgb[..., 2]
 lum = 0.3 * r + 0.59 * g + 0.11 * b
 
@@ -140,6 +207,21 @@ for y in range(H):
     below_sky[y] = run
 rim_shape = np.exp(-below_sky / 8)
 
+# Morning fog for the sunrise look: low banks over the field and meadow, kept off the big
+# trees in front (anything connected to the top of the picture through non-mountain land).
+yy = np.arange(H, dtype=np.float32)[:, None]
+xx = np.arange(W, dtype=np.float32)[None, :]
+labels, _ = ndimage.label(land & (w_blue < 0.5) & (yy < 1180))
+near_ids = np.unique(labels[:760][labels[:760] > 0])
+near = ndimage.gaussian_filter(np.isin(labels, near_ids).astype(np.float32), 4)
+waves = np.random.default_rng(5).uniform(0.55, 1.0, 12)
+drift = np.interp(xx, np.linspace(0, W, 12), waves)
+fog = (0.38 * np.exp(-((yy - 1045) / 30) ** 2) * drift
+       + 0.2 * np.exp(-((yy - 1190) / 26) ** 2) * (1.55 - drift)
+       + 0.12 * np.exp(-((yy - 975) / 22) ** 2) * drift)
+fog = fog * (1 - near)
+FOG = np.array((214, 206, 218), np.float32)
+
 def relit(look):
     if look == 'darkness':
         return rgb
@@ -150,12 +232,15 @@ def relit(look):
     if look in RIM:
         rim = (rim_shape * toward_valley * 0.6)[..., None]
         out = out * (1 - rim) + np.array(RIM[look], np.float32) * rim
+    if look == 'sunrise':
+        out = out * (1 - fog[..., None]) + FOG * fog[..., None]
     return out
 
-alpha = np.where(land, 255, 0).astype(np.uint8)
+alpha_u8 = (alpha * 255).round().astype(np.uint8)
 for look in ('darkness', 'sunrise', 'sunset', 'day'):
-    pixels = np.dstack([np.clip(relit(look), 0, 255).astype(np.uint8), alpha])
-    image = Image.fromarray(pixels, 'RGBA').resize((W // 2, H // 2), Image.BOX)
+    pixels = np.dstack([np.clip(relit(look), 0, 255).astype(np.uint8), alpha_u8])
     path = f'{out_dir}/{look}.webp'
-    image.save(path, quality=90, method=6, alpha_quality=100)
+    # 3/4 size: plenty for any screen once the sky is drawn over it, and a lot lighter.
+    image = Image.fromarray(pixels, 'RGBA').resize((W * 3 // 4, H * 3 // 4), Image.LANCZOS)
+    image.save(path, quality=78, method=6, alpha_quality=90)
     print(path)

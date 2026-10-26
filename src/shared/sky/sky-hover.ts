@@ -25,9 +25,9 @@ export function sameHover(a: SkyHover, b: SkyHover): boolean {
   return a.figure === b.figure && a.target?.name === b.target?.name && a.target?.kind === b.target?.kind;
 }
 
-/** What's at a point in art pixels. */
-export function hoverAt(x: number, y: number, targets: readonly SkyTarget[], segments: readonly SkySegment[]): SkyHover {
-  return hitTest(x, y, targets, segments);
+/** What's at a point, in buffer pixels. */
+export function hoverAt(x: number, y: number, targets: readonly SkyTarget[], segments: readonly SkySegment[], lineReach?: number): SkyHover {
+  return hitTest(x, y, targets, segments, lineReach);
 }
 
 /** "Regulus · Leo", "Jupiter", "the Moon · 99% lit", or just "Orion" for a figure. */
