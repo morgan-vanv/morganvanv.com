@@ -90,7 +90,7 @@ Grouped by the design pillars.
 - **Colophon.** `S` — How the site is built, what powers each live panel, fonts, hosting. IndieWeb staple; also where the tech stack can live without being the headline.
 - **Vinyl shelf.** `M` — Discogs has a public API for public collections. A shelf of cover art under Interests; hover/expand for pressing details. Discogs is already linked from the Music card.
 - **Podcasts.** `S` — He mentions podcasts on Background. An OPML export → a simple list with artwork.
-- **Tonight's sky, v2.** `S` each — A lines on/off toggle beside "show my sky"; constellation and bright-star names on hover; an "astrophotography tonight?" hint when the Moon is down in astronomical night (a bridge to My Photos); a properly layered redraw of the background so the foreground no longer needs `scripts/cut-foreground.py`.
+- **Tonight's sky, v2.** `S` each — Hover labels for stars, planets, the Moon and constellations (agreed 2026-10-26 as the next sky PR: d3-celestial's `starnames.json` has the names; hit-test the pointer over open sky only, highlight the hovered figure; the menu's "up right now" list is the accessible equivalent); a lines on/off toggle in the sky menu; the Milky Way (d3-celestial ships `mw.json`); an "astrophotography tonight?" hint when the Moon is down in astronomical night (a bridge to My Photos); a properly layered redraw of the background so the foreground no longer needs `scripts/cut-foreground.py`.
 - **Astrophotography gallery (My Photos).** `M` — Drop a photo into `public/photos/`, a build script generates thumbnails + a JSON manifest from EXIF (camera, exposure, ISO, stacked frames, location). Lightbox reuses the photo-wall overlay. The stub already exists.
 
 ### Visitors take part

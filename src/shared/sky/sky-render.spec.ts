@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import * as Astronomy from 'astronomy-engine';
 import { computeBodies } from './sky-bodies';
 import { CINCINNATI } from './sky.service';
-import { computeLayout, drawLine, prepareCatalog, renderSky, skyColors, starVisibility } from './sky-render';
+import { Lighting, computeLayout, drawLine, prepareCatalog, renderSky, skyColors, starVisibility } from './sky-render';
 
 const catalog = prepareCatalog(
   JSON.parse(readFileSync('public/data/sky/stars.json', 'utf8')),
@@ -10,12 +10,12 @@ const catalog = prepareCatalog(
 );
 const { lat, lon } = CINCINNATI;
 
-function render(iso: string, withBodies = true) {
+function render(iso: string, withBodies = true, lighting: Lighting = 'real') {
   const layout = computeLayout(1280, 800);
   const buffer = new Uint8ClampedArray(layout.width * layout.height * 4);
   const date = new Date(iso);
   const bodies = withBodies ? computeBodies(Astronomy, date, lat, lon) : null;
-  const result = renderSky(buffer, layout, { date, lat, lon, catalog, bodies });
+  const result = renderSky(buffer, layout, { date, lat, lon, catalog, bodies, lighting });
   const pixel = (x: number, y: number) => Array.from(buffer.slice((y * layout.width + x) * 4, (y * layout.width + x) * 4 + 4));
   return { layout, buffer, result, pixel, bodies };
 }
@@ -35,7 +35,46 @@ describe('sky render', () => {
     expect(layout.horizonY - 2 * layout.scale).toBeCloseTo(0, 6);
   });
 
-  it('noon is a blue sky with no stars', () => {
+  it('puts the valley between the mountains where the painting has it', () => {
+    const layout = computeLayout(1280, 800);
+    // Half size, no horizontal crop at this aspect: x 1350 → 675 px; y 912 → 456 - 26.5 px.
+    expect(layout.valleyX * 3).toBeCloseTo(675, 6);
+    expect(layout.valleyY * 3).toBeCloseTo(912 * 0.5 - 26.5, 6);
+  });
+
+  it('darkness is the default: stars out at noon, night colours, no Sun', () => {
+    const layout = computeLayout(1280, 800);
+    const buffer = new Uint8ClampedArray(layout.width * layout.height * 4);
+    const date = new Date('2026-06-21T17:30:00Z');
+    const result = renderSky(buffer, layout, { date, lat, lon, catalog, bodies: computeBodies(Astronomy, date, lat, lon) });
+    expect(result.sunAlt).toBeLessThan(-18);
+    expect(result.starsDrawn).toBeGreaterThan(100);
+    const [r, g, b] = Array.from(buffer.slice(0, 3));
+    expect(r + g + b).toBeLessThan(120);
+  });
+
+  it('sunrise and sunset put the Sun in the valley, glowing, whatever the real time', () => {
+    for (const lighting of ['sunrise', 'sunset'] as const) {
+      const { layout, pixel, result } = render('2026-10-26T05:00:00Z', true, lighting);
+      const [r, g, b] = pixel(Math.round(layout.valleyX), Math.round(layout.valleyY) - 1);
+      expect(r + g + b, lighting).toBeGreaterThan(650);
+      // The glow is warm on the horizon right above the valley, and stronger there than far to the side.
+      const above = pixel(Math.round(layout.valleyX), Math.round(layout.horizonY) - 8);
+      const far = pixel(Math.round(layout.valleyX) > layout.width / 2 ? 2 : layout.width - 3, Math.round(layout.horizonY) - 8);
+      expect(above[0], lighting).toBeGreaterThan(above[2]);
+      expect(above[0], lighting).toBeGreaterThan(far[0]);
+      expect(result.starsDrawn, lighting).toBeGreaterThan(0);
+    }
+  });
+
+  it('day is blue with no stars at midnight', () => {
+    const { result, pixel } = render('2026-10-26T05:00:00Z', true, 'day');
+    expect(result.starsDrawn).toBe(0);
+    const [r, , b] = pixel(10, 10);
+    expect(b).toBeGreaterThan(r + 80);
+  });
+
+  it('real time at noon is a blue sky with no stars', () => {
     const { result, pixel } = render('2026-06-21T17:30:00Z');
     expect(result.sunAlt).toBeGreaterThan(70);
     expect(result.starsDrawn).toBe(0);

@@ -10,8 +10,10 @@ import {
   viewChild,
 } from '@angular/core';
 import { SkyService } from './sky.service';
+import { j2000ToHorizontalMatrix } from './sky-math';
+import { upNow } from './sky-up-now';
 import { AstronomyModule, Bodies, computeBodies, loadAstronomy } from './sky-bodies';
-import { ART_PIXEL, ConstellationFile, SkyCatalog, StarFile, computeLayout, prepareCatalog, renderSky, smoothstep } from './sky-render';
+import { ART_PIXEL, ConstellationFile, LIGHTINGS, Lighting, SkyCatalog, StarFile, computeLayout, prepareCatalog, renderSky, smoothstep } from './sky-render';
 
 /** How often the sky is redrawn while the tab is visible (the sky turns about 0.25° a minute). */
 export const REDRAW_INTERVAL_MS = 60_000;
@@ -68,6 +70,7 @@ export class SkyComponent {
     // Redraw when the visitor switches between Cincinnati and their own sky.
     effect(() => {
       this.sky.location();
+      this.sky.lighting();
       untracked(() => this.draw());
     });
 
@@ -75,6 +78,8 @@ export class SkyComponent {
       let destroyed = false;
       destroyRef.onDestroy(() => (destroyed = true));
       this.pinnedTime = parseSkyAt(location.search);
+      const forcedLighting = new URLSearchParams(location.search).get('sky-light') as Lighting | null;
+      if (forcedLighting && LIGHTINGS.includes(forcedLighting)) this.sky.lighting.set(forcedLighting);
 
       void this.load().then(ok => {
         if (!ok || destroyed) return;
@@ -162,8 +167,9 @@ export class SkyComponent {
       bodies = null;
     }
     const image = context.createImageData(layout.width, layout.height);
-    const { sunAlt } = renderSky(image.data, layout, { date, lat, lon, catalog, bodies });
+    const { sunAlt } = renderSky(image.data, layout, { date, lat, lon, catalog, bodies, lighting: this.sky.lighting() });
     context.putImageData(image, 0, 0);
+    this.sky.upNow.set(upNow(bodies, catalog, j2000ToHorizontalMatrix(date, lat, lon)));
     // 0 at night, 1 in daylight, on <html> so page cards can darken behind their text
     // when the sky behind them is bright (see base-page), and the trees can brighten a little.
     document.documentElement.style.setProperty('--daylight', String(Math.round(smoothstep(-6, 6, sunAlt) * 100) / 100));

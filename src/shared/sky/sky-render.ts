@@ -1,5 +1,5 @@
 import { Bodies, PlanetName } from './sky-bodies';
-import { Vec3, j2000ToHorizontalMatrix, multiply, projectSouth, raDecToVector, sunHorizontal, altAz } from './sky-math';
+import { Vec3, altAz, altAzToVector, j2000ToHorizontalMatrix, multiply, projectSouth, raDecToVector, sunHorizontal } from './sky-math';
 
 /**
  * Draws the sky into a small RGBA buffer, one buffer pixel per "art" pixel;
@@ -10,6 +10,8 @@ import { Vec3, j2000ToHorizontalMatrix, multiply, projectSouth, raDecToVector, s
 /** Size of public/background.webp, and the row where its horizon (the valley floor) sits. */
 export const BACKGROUND_SIZE = { width: 2560, height: 1706 } as const;
 export const BACKGROUND_HORIZON_Y = 905;
+/** The low point of the valley between the painted mountains, where the pretend sunrise and sunset happen. */
+export const BACKGROUND_VALLEY = { x: 1350, y: 912 } as const;
 /** One art pixel is this many CSS pixels. */
 export const ART_PIXEL = 3;
 
@@ -25,12 +27,25 @@ export interface ConstellationFile {
 export interface SkyCatalog {
   readonly stars: readonly { readonly v: Vec3; readonly mag: number; readonly color: readonly [number, number, number] }[];
   readonly lines: readonly (readonly Vec3[])[];
+  /** Each constellation figure's id and the (normalised) mean direction of its vertices. */
+  readonly figures: readonly { readonly id: string; readonly center: Vec3 }[];
 }
 
 export function prepareCatalog(stars: StarFile, constellations: ConstellationFile): SkyCatalog {
   return {
     stars: stars.stars.map(([ra, dec, mag, bv]) => ({ v: raDecToVector(ra, dec), mag, color: starColor(bv) })),
     lines: constellations.constellations.flatMap(c => c.lines.map(line => line.map(([ra, dec]) => raDecToVector(ra, dec)))),
+    figures: constellations.constellations.map(c => {
+      const sum = [0, 0, 0];
+      for (const [ra, dec] of c.lines.flat()) {
+        const v = raDecToVector(ra, dec);
+        sum[0] += v[0];
+        sum[1] += v[1];
+        sum[2] += v[2];
+      }
+      const length = Math.hypot(sum[0], sum[1], sum[2]) || 1;
+      return { id: c.id, center: [sum[0] / length, sum[1] / length, sum[2] / length] as Vec3 };
+    }),
   };
 }
 
@@ -43,6 +58,9 @@ export interface SkyLayout {
   readonly horizonY: number;
   /** Projection scale: the zenith is 2 × scale above the horizon, east and west 2 × scale either side. */
   readonly scale: number;
+  /** The painting's valley between the mountains, in art pixels. */
+  readonly valleyX: number;
+  readonly valleyY: number;
 }
 
 /**
@@ -54,6 +72,7 @@ export interface SkyLayout {
 export function computeLayout(viewportWidth: number, viewportHeight: number, artPixel = ART_PIXEL): SkyLayout {
   const imageScale = Math.max(viewportWidth / BACKGROUND_SIZE.width, viewportHeight / BACKGROUND_SIZE.height);
   const offsetY = (viewportHeight - BACKGROUND_SIZE.height * imageScale) / 2;
+  const offsetX = (viewportWidth - BACKGROUND_SIZE.width * imageScale) / 2;
   const horizonCss = offsetY + BACKGROUND_HORIZON_Y * imageScale;
   const width = Math.max(1, Math.ceil(viewportWidth / artPixel));
   return {
@@ -62,6 +81,8 @@ export function computeLayout(viewportWidth: number, viewportHeight: number, art
     centerX: viewportWidth / 2 / artPixel,
     horizonY: horizonCss / artPixel,
     scale: Math.max(viewportWidth / 4, horizonCss / 2) / artPixel,
+    valleyX: (offsetX + BACKGROUND_VALLEY.x * imageScale) / artPixel,
+    valleyY: (offsetY + BACKGROUND_VALLEY.y * imageScale) / artPixel,
   };
 }
 
@@ -120,6 +141,85 @@ const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
 /** The sky gradient steps in this many colour levels per channel; dithering covers the steps. */
 const GRADIENT_STEP = 4;
 
+/**
+ * How the sky is lit. Star, Moon and planet positions are always real; only the
+ * light changes. 'darkness' (the default) ignores the Sun so the stars are always
+ * out; 'real' follows the actual Sun; 'sunrise' and 'sunset' are staged, with the
+ * Sun sitting in the valley between the painted mountains; 'day' is a fixed midday.
+ */
+export type Lighting = 'darkness' | 'real' | 'sunrise' | 'sunset' | 'day';
+export const LIGHTINGS: readonly Lighting[] = ['darkness', 'real', 'sunrise', 'sunset', 'day'];
+
+/** Everything about the light that the drawing needs, whatever produced it. */
+interface Look {
+  readonly top: Rgb;
+  readonly horizon: Rgb;
+  /** A warm glow along the horizon, centred on `x` (art pixels). */
+  readonly glow: { readonly x: number; readonly color: Rgb; readonly strength: number } | null;
+  /** 0…1: how visible stars (and constellation lines) are. */
+  readonly stars: number;
+  /** 0…1: the same for the brightest planets, which show up first. */
+  readonly brightPlanets: number;
+  /** Where to draw the Sun's disc, in art pixels, or null for no Sun. */
+  readonly sun: { readonly x: number; readonly y: number } | null;
+  /** The Sun altitude this look stands for (drives how much page cards darken). */
+  readonly sunAlt: number;
+}
+
+const DARKNESS_SUN_ALT = -30;
+const DAY_SUN = { alt: 40, az: 200 } as const;
+
+/** The staged sunrise and sunset: their own palettes, the Sun half sunk into the valley. */
+const STAGED: Record<'sunrise' | 'sunset', { top: Rgb; horizon: Rgb; glow: Rgb; stars: number; sunDy: number }> = {
+  // Cooler and pinker, the Sun just clearing the valley floor, a few stars hanging on.
+  sunrise: { top: [28, 58, 104], horizon: [238, 172, 136], glow: [255, 196, 150], stars: 0.2, sunDy: -1 },
+  // Warmer and deeper, the Sun mostly gone, the first stars coming out.
+  sunset: { top: [20, 44, 86], horizon: [228, 132, 84], glow: [255, 128, 64], stars: 0.35, sunDy: 1 },
+};
+const STAGED_SUN_ALT = -3;
+
+/** Gaussian-ish glow strength for the real Sun near the horizon. */
+const twilightGlow = (sunAlt: number) => smoothstep(-14, -4, sunAlt) * (1 - smoothstep(2, 12, sunAlt));
+
+function lookFor(lighting: Lighting, realSun: Vec3, layout: SkyLayout, toScreen: (h: Vec3) => { x: number; y: number } | null): Look {
+  switch (lighting) {
+    case 'darkness': {
+      const { top, horizon } = skyColors(DARKNESS_SUN_ALT);
+      return { top, horizon, glow: null, stars: 1, brightPlanets: 1, sun: null, sunAlt: DARKNESS_SUN_ALT };
+    }
+    case 'sunrise':
+    case 'sunset': {
+      const staged = STAGED[lighting];
+      return {
+        top: staged.top,
+        horizon: staged.horizon,
+        glow: { x: layout.valleyX, color: staged.glow, strength: 1 },
+        stars: staged.stars,
+        brightPlanets: Math.min(1, staged.stars * 2.5),
+        sun: { x: layout.valleyX, y: layout.valleyY + staged.sunDy },
+        sunAlt: STAGED_SUN_ALT,
+      };
+    }
+    case 'day':
+    case 'real': {
+      const sunVector = lighting === 'day' ? altAzToVector(DAY_SUN.alt, DAY_SUN.az) : realSun;
+      const sunAlt = altAz(sunVector).alt;
+      const { top, horizon } = skyColors(sunAlt);
+      const glowStrength = twilightGlow(sunAlt);
+      const projected = glowStrength > 0 || sunAlt > -1 ? toScreen(sunVector) : null;
+      return {
+        top,
+        horizon,
+        glow: glowStrength > 0 && projected ? { x: projected.x, color: [255, 150, 92], strength: glowStrength } : null,
+        stars: starVisibility(sunAlt),
+        brightPlanets: smoothstep(-2, -9, sunAlt),
+        sun: sunAlt > -1 ? projected : null,
+        sunAlt,
+      };
+    }
+  }
+}
+
 export interface SkyInput {
   readonly date: Date;
   readonly lat: number;
@@ -127,6 +227,8 @@ export interface SkyInput {
   readonly catalog: SkyCatalog;
   /** From astronomy-engine; without it the sky still has stars and the right colour, just no Moon or planets. */
   readonly bodies: Bodies | null;
+  /** Defaults to 'darkness'. */
+  readonly lighting?: Lighting;
 }
 
 export interface SkyRenderResult {
@@ -139,20 +241,35 @@ export interface SkyRenderResult {
 
 export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: SkyInput): SkyRenderResult {
   const { width, height, centerX, horizonY, scale } = layout;
+  // The real Sun always lights the Moon, so its phase is right whatever the lighting.
   const sunH = input.bodies?.sun.h ?? sunHorizontal(input.date, input.lat, input.lon);
-  const sunAlt = altAz(sunH).alt;
+  const toScreen = (h: Vec3) => {
+    const p = projectSouth(h);
+    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return null;
+    return { x: centerX + p.x * scale, y: horizonY - p.y * scale };
+  };
+  const look = lookFor(input.lighting ?? 'darkness', sunH, layout, toScreen);
+  const sunAlt = look.sunAlt;
 
-  // Sky gradient, zenith colour at the top of the screen to horizon colour at altitude 0.
-  const { top, horizon } = skyColors(sunAlt);
+  // Sky gradient, zenith colour at the top of the screen to horizon colour at altitude 0,
+  // plus the glow along the horizon on the Sun's side.
+  const { top, horizon, glow } = look;
   for (let y = 0; y < height; y++) {
     const t = clamp01(y / Math.max(1, horizonY));
     const eased = t * t;
     const base = [mix(top[0], horizon[0], eased), mix(top[1], horizon[1], eased), mix(top[2], horizon[2], eased)];
+    const rowGlow = glow ? glow.strength * t * t * t * 0.55 : 0;
     for (let x = 0; x < width; x++) {
       const threshold = (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
       const i = (y * width + x) * 4;
+      let amount = 0;
+      if (glow) {
+        const dx = (x - glow.x) / (width * 0.3);
+        amount = rowGlow * Math.exp(-dx * dx);
+      }
       for (let c = 0; c < 3; c++) {
-        buffer[i + c] = Math.floor(base[c] / GRADIENT_STEP + threshold) * GRADIENT_STEP;
+        const value = glow ? mix(base[c], glow.color[c], amount) : base[c];
+        buffer[i + c] = Math.floor(value / GRADIENT_STEP + threshold) * GRADIENT_STEP;
       }
       buffer[i + 3] = 255;
     }
@@ -168,15 +285,10 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
     buffer[i + 1] = mix(buffer[i + 1], color[1], a);
     buffer[i + 2] = mix(buffer[i + 2], color[2], a);
   };
-  const toScreen = (h: Vec3) => {
-    const p = projectSouth(h);
-    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return null;
-    return { x: centerX + p.x * scale, y: horizonY - p.y * scale };
-  };
   const onScreen = (p: { x: number; y: number }, margin = 2) =>
     p.x >= -margin && p.y >= -margin && p.x < width + margin && p.y < height + margin;
 
-  const stars = starVisibility(sunAlt);
+  const stars = look.stars;
   const matrix = j2000ToHorizontalMatrix(input.date, input.lat, input.lon);
   let starsDrawn = 0;
 
@@ -213,7 +325,7 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   if (input.bodies) {
     for (const planet of input.bodies.planets) {
       // The brightest planets (usually Venus and Jupiter) show up a little before the stars do.
-      const visibility = planet.mag < -1.5 ? smoothstep(-2, -9, sunAlt) : stars;
+      const visibility = planet.mag < -1.5 ? look.brightPlanets : stars;
       if (planet.alt < 0 || visibility <= 0) continue;
       const p = toScreen(planet.h);
       if (!p || !onScreen(p, 0)) continue;
@@ -225,9 +337,9 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
 
   const discRadius = Math.max(3, Math.min(6, Math.round(width / 120)));
 
-  if (sunAlt > -1) {
-    const p = toScreen(sunH);
-    if (p && onScreen(p, discRadius + 2)) {
+  if (look.sun) {
+    const p = look.sun;
+    if (onScreen(p, discRadius + 2)) {
       disc(p.x, p.y, discRadius + 1, (x, y) => blend(x, y, [255, 236, 190], 0.35));
       disc(p.x, p.y, discRadius, (x, y) => blend(x, y, [255, 250, 232], 1));
     }

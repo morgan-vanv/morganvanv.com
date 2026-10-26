@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { SkyService } from './sky.service';
 
 /**
- * The one control for the live sky: whose sky it is. Takes its space from the
- * start (so nothing shifts) but stays invisible until the sky has actually
- * drawn, so it never offers something that isn't there. One persistent button,
- * so keyboard focus survives every state change. Copy is a draft for Morgan.
+ * Whose sky it is (Cincinnati or the visitor's own), shown in the sky menu.
+ * One persistent button, so keyboard focus survives every state change; the
+ * status line is a live region. Only the button's click ever asks for a
+ * location. Copy is a draft for Morgan.
  */
 @Component({
   selector: 'app-sky-toggle',

@@ -2,7 +2,6 @@ import { Component, DestroyRef, afterNextRender, computed, inject, signal, Chang
 import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { RecentStreamService } from '../../shared/services/recent-stream.service';
-import { SkyToggleComponent } from '../../shared/sky/sky-toggle.component';
 
 export const SUBTITLES = [
   'a real human man',
@@ -17,7 +16,7 @@ const FADE_DURATION_MS = 400;
 
 @Component({
   selector: 'app-greeting-page',
-  imports: [RouterLink, IconComponent, SkyToggleComponent],
+  imports: [RouterLink, IconComponent],
   templateUrl: './greeting-page.component.html',
   styleUrl: './greeting-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

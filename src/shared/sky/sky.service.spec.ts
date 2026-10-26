@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { CINCINNATI, LOCATE_GIVE_UP_MS, SKY_LOCATION_KEY, SkyService, parseStoredLocation } from './sky.service';
+import { CINCINNATI, LOCATE_GIVE_UP_MS, SKY_LIGHTING_KEY, SKY_LOCATION_KEY, SkyService, parseStoredLocation } from './sky.service';
 import { parseSkyAt } from './sky.component';
 
 describe('SkyService', () => {
@@ -110,5 +110,26 @@ describe('SkyService edge cases', () => {
     expect(service.location()).toEqual(CINCINNATI);
     expect(service.status()).toBe('idle');
     expect(localStorage.getItem(SKY_LOCATION_KEY)).toBeNull();
+  });
+});
+
+describe('SkyService lighting', () => {
+  afterEach(() => localStorage.clear());
+
+  it('defaults to darkness and remembers any other choice', () => {
+    const service = TestBed.inject(SkyService);
+    expect(service.lighting()).toBe('darkness');
+    service.setLighting('sunset');
+    expect(localStorage.getItem(SKY_LIGHTING_KEY)).toBe('sunset');
+    service.setLighting('darkness');
+    expect(localStorage.getItem(SKY_LIGHTING_KEY)).toBeNull();
+  });
+
+  it('restores a stored choice and ignores junk', () => {
+    localStorage.setItem(SKY_LIGHTING_KEY, 'day');
+    expect(TestBed.inject(SkyService).lighting()).toBe('day');
+    TestBed.resetTestingModule();
+    localStorage.setItem(SKY_LIGHTING_KEY, 'noon-ish');
+    expect(TestBed.inject(SkyService).lighting()).toBe('darkness');
   });
 });

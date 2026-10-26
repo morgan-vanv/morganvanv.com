@@ -1,5 +1,7 @@
 import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { LIGHTINGS, Lighting } from './sky-render';
+import { UpNow } from './sky-up-now';
 
 export interface SkyLocation {
   readonly lat: number;
@@ -12,6 +14,9 @@ export const CINCINNATI: SkyLocation = { lat: 39.1, lon: -84.51, mine: false };
 
 /** localStorage key for the visitor's own sky, rounded to 0.1° (about 10 km): the sky doesn't need more. */
 export const SKY_LOCATION_KEY = 'sky-location';
+
+/** localStorage key for the chosen lighting. */
+export const SKY_LIGHTING_KEY = 'sky-lighting';
 
 export type LocateStatus = 'idle' | 'locating' | 'failed';
 
@@ -44,15 +49,26 @@ export class SkyService {
 
   readonly location = signal<SkyLocation>(CINCINNATI);
   readonly status = signal<LocateStatus>('idle');
+  /** How the sky is lit; darkness unless the visitor picks otherwise. */
+  readonly lighting = signal<Lighting>('darkness');
   /** True once the live sky has drawn its first frame (until then the painted sky shows). */
   readonly ready = signal(false);
+  /** What's above the horizon at the last redraw, as text. */
+  readonly upNow = signal<UpNow | null>(null);
 
   private attempt = 0;
 
   constructor() {
     if (!this.isBrowser) return;
-    const stored = parseStoredLocation(readStorage());
+    const stored = parseStoredLocation(readStorage(SKY_LOCATION_KEY));
     if (stored) this.location.set(stored);
+    const lighting = readStorage(SKY_LIGHTING_KEY);
+    if (LIGHTINGS.includes(lighting as Lighting)) this.lighting.set(lighting as Lighting);
+  }
+
+  setLighting(lighting: Lighting): void {
+    this.lighting.set(lighting);
+    writeStorage(SKY_LIGHTING_KEY, lighting === 'darkness' ? null : lighting);
   }
 
   showMine(): void {
@@ -75,7 +91,7 @@ export class SkyService {
         if (!isCurrent()) return;
         const location = { lat: round1(position.coords.latitude), lon: round1(position.coords.longitude), mine: true };
         this.location.set(location);
-        writeStorage(JSON.stringify({ lat: location.lat, lon: location.lon }));
+        writeStorage(SKY_LOCATION_KEY, JSON.stringify({ lat: location.lat, lon: location.lon }));
         this.status.set('idle');
       },
       () => {
@@ -91,23 +107,23 @@ export class SkyService {
     this.attempt++;
     this.location.set(CINCINNATI);
     this.status.set('idle');
-    writeStorage(null);
+    writeStorage(SKY_LOCATION_KEY, null);
   }
 }
 
 // Storage can be unavailable (private mode, blocked cookies); the sky just forgets.
-function readStorage(): string | null {
+function readStorage(key: string): string | null {
   try {
-    return localStorage.getItem(SKY_LOCATION_KEY);
+    return localStorage.getItem(key);
   } catch {
     return null;
   }
 }
 
-function writeStorage(value: string | null): void {
+function writeStorage(key: string, value: string | null): void {
   try {
-    if (value === null) localStorage.removeItem(SKY_LOCATION_KEY);
-    else localStorage.setItem(SKY_LOCATION_KEY, value);
+    if (value === null) localStorage.removeItem(key);
+    else localStorage.setItem(key, value);
   } catch {
     // ignore
   }
