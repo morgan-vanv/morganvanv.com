@@ -121,7 +121,7 @@ Grouped by the design pillars.
 - **Subtitle list as data.** `S` — Move `SUBTITLES` out of the component into a data file so adding one doesn't touch TS (and time-aware ones have somewhere to live).
 
 ### Projects page (currently 🚧)
-- `M` — A curated allowlist of repos with blurbs in a constant, enriched live from the public GitHub REST API (`/users/morgan-vanv/repos`: language, stars, last push). Plus non-code projects (the astro rig, the site itself with its changelog). Each project is a card; no logo grids.
+- `M` — **Started as a stub (2026-10-25):** projects are data in `shared/constants/projects.const.ts`, rendered by `app-project-card` (screenshot, blurb, play/source links, live "updated N ago" from the GitHub API). `/now` shows them under "Building". The Projects page itself can list the same cards, then add non-code projects (the astro rig, the site itself with its changelog) and maybe a per-project changelog from the repo's commits.
 
 ### Blog (currently 🚧)
 - `M`/`L` — Markdown posts in `src/content/`, converted at build time (`marked` in a Node script, not at runtime) to JSON + prerendered routes. **RSS/Atom feed is non-negotiable** for the IndieWeb crowd. Reading time, tags, a `/blog/feed.xml`. Consider a "notes" microblog format (short, frequent) alongside or instead of long posts — it fits the voice better.

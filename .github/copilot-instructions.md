@@ -97,7 +97,7 @@ A `--accent-color` CSS custom property is also set on `body` for inline template
 
 **Data-driven lists:** Use typed arrays in the component class + `@for` loops for any repeated structural elements.
 
-**SCSS — shared utilities:** Use `@include shared.scrollbar-styled` in any scrollable container's SCSS. Import it with `@use '../../shared/shared-styles.scss' as shared;`. Sub-components that should lay out as if they were their parent's flex item use `:host { display: contents; }`.
+**SCSS — shared utilities:** Cards use `@include shared.surface` (dark fill + faint border) or `shared.panel` (surface + padding/radius), with `shared.panel-heading` for a title + dim qualifier; bars use `shared.progress-bar`. Use `@include shared.scrollbar-styled` in any scrollable container's SCSS. Import it with `@use '../../shared/shared-styles.scss' as shared;`. Sub-components that should lay out as if they were their parent's flex item use `:host { display: contents; }`.
 
 **SCSS — breakpoints:** Use `$breakpoint-mobile` (1000px) for all responsive media queries. Never hardcode `1000px`.
 
