@@ -108,8 +108,6 @@ describe('StarNamingComponent', () => {
   });
 
   it('submitting the form sends the suggestion and shows the sent state, focusing "name another"', async () => {
-    vi.useFakeTimers({ toFake: ['Date'] });
-    vi.setSystemTime(new Date(2026, 9, 27, 21, 0));
     await type('#star-name', ' Gerald ');
     await type('#star-credit', 'sam');
     const form = el.querySelector('form')!;
@@ -119,7 +117,7 @@ describe('StarNamingComponent', () => {
     const req = http.expectOne(SITE_CONFIG.askMorganSubmitUrl);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
-      question: '⭐ Star name suggestion\n"Gerald" for the unnamed star near Vega (magnitude 4.2)\nnamed by: sam\napprove: [283.626, 36.899, "Gerald", "sam", "2026-10"]',
+      question: '⭐ Star name suggestion\n"Gerald" for the unnamed star near Vega (magnitude 4.2)\nnamed by: sam',
       username_honey: '',
       kind: 'star',
       name: 'Gerald',

@@ -4,6 +4,8 @@ const tseslint = require("typescript-eslint");
 const angular = require("angular-eslint");
 
 module.exports = tseslint.config(
+  // Generated from content/ before every build, test and dev server (scripts/build-visitor-content.mjs).
+  { ignores: ["src/generated/"] },
   {
     files: ["**/*.ts"],
     extends: [

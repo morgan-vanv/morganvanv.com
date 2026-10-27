@@ -1,4 +1,6 @@
 import { InjectionToken } from '@angular/core';
+import { GUEST_SUBTITLES } from '../../generated/guest-subtitles';
+import { GuestSubtitle } from '../visitor-content/visitor-content';
 
 /** The greeting's rotating lines under Morgan's name. The first is the one prerendered. */
 export const SUBTITLES: readonly string[] = [
@@ -9,27 +11,10 @@ export const SUBTITLES: readonly string[] = [
   'probably clicking on virtual trees and rocks',
 ];
 
-/** Longest subtitle a visitor can suggest: about as long as Morgan's own longest (it wraps on a phone, as his do). */
-export const SUBTITLE_MAX_LENGTH = 60;
-/** Longest name a visitor can be credited as. */
-export const CREDIT_MAX_LENGTH = 24;
-
 /**
- * A line a visitor suggested through the Contact form's "suggest a subtitle" mode and Morgan
- * approved. Each suggestion arrives in Discord with an `approve:` line: paste it into
- * `GUEST_SUBTITLES` below, in a PR like any other change.
+ * The visitors' lines Morgan approved, oldest first: one file each in content/subtitles/, gathered at build
+ * time (scripts/build-visitor-content.mjs). A token so specs can supply their own.
  */
-export interface GuestSubtitle {
-  readonly text: string;
-  /** How they asked to be credited; null for anonymous ("a stranger"). */
-  readonly by: string | null;
-  /** When it was suggested, YYYY-MM (the `approve:` line fills it in). */
-  readonly added: string;
-}
-
-export const GUEST_SUBTITLES: readonly GuestSubtitle[] = [];
-
-/** The approved guest lines; a token so specs can supply their own. */
 export const GUEST_SUBTITLES_TOKEN = new InjectionToken<readonly GuestSubtitle[]>('GUEST_SUBTITLES', {
   providedIn: 'root',
   factory: () => GUEST_SUBTITLES,

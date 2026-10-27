@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { SITE_CONFIG } from '../../../shared/config/site.config';
-import { CREDIT_MAX_LENGTH, SUBTITLE_MAX_LENGTH } from '../../../shared/constants/subtitles.const';
+import { CREDIT_MAX_LENGTH, QUESTION_MAX_LENGTH, SUBTITLE_MAX_LENGTH } from '../../../shared/visitor-content/visitor-content';
 import {
   ContactKind,
   ContactSubmission,
@@ -13,7 +13,6 @@ import {
   subtitleSubmission,
 } from './contact-submission';
 
-export const QUESTION_MAX_LENGTH = 500;
 const ERROR_MESSAGE = 'An error occurred while sending your message. Please try again later.';
 
 /** One of the form's three jobs, and the words that change with it. Draft copy, Morgan's to edit. */
@@ -34,9 +33,9 @@ export const CONTACT_MODES: readonly ContactMode[] = [
     label: 'ask me something',
     fieldLabel: 'Your question (anonymous)',
     placeholder: 'What do you want to know?',
-    note: 'Anonymous, so I can\'t write back. Email me if you\'d like an answer.',
+    note: 'Anonymous, so I can\'t write back. Good ones get answered in public, in the mailbag on Social.',
     submit: 'Ask',
-    success: 'Thanks! Your question was sent anonymously.',
+    success: 'Sent, anonymously. If it\'s a good one, the answer turns up on Social.',
     again: 'Ask another question',
   },
   {
@@ -157,7 +156,7 @@ export class AskMorganFormComponent {
 
   private submission(): ContactSubmission {
     switch (this.kind()) {
-      case 'subtitle': return subtitleSubmission(this.subtitle(), this.credit(), new Date());
+      case 'subtitle': return subtitleSubmission(this.subtitle(), this.credit());
       case 'message': return dropboxSubmission(this.message());
       default: return questionSubmission(this.question());
     }

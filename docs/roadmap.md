@@ -16,7 +16,7 @@ PR #80. `RecentStreamService` (`src/shared/services/recent-stream.service.ts`) i
 
 ## 3. Tonight's sky — shipped
 
-PR #84 (sky, lighting modes, ☾ menu), then PR #85: hover labels, the painting soft-matted and relit for each light, a smooth sky, eased changes of light with a travelling Sun, fog, fireflies, the farmhouse light and a campfire. How it works: `.github/copilot-instructions.md` (Architecture → Tonight's sky). Then look up (hide the page from the ☾ menu) and name a star (visitors suggest names for unnamed stars; Morgan approves by pasting a row into `public/data/sky/visitor-names.json`). What's left is in `ideas-later.md` §4 (Alive).
+PR #84 (sky, lighting modes, ☾ menu), then PR #85: hover labels, the painting soft-matted and relit for each light, a smooth sky, eased changes of light with a travelling Sun, fog, fireflies, the farmhouse light and a campfire. How it works: `.github/copilot-instructions.md` (Architecture → Tonight's sky). Then look up (hide the page from the ☾ menu) and name a star (visitors suggest names for unnamed stars; Morgan approves with one click from Discord, which opens a PR adding a file to `content/stars/`). What's left is in `ideas-later.md` §4 (Alive).
 
 All three roadmap items are done, and so is the face-lift. Nothing new is agreed yet; pick the next thing from `ideas-later.md`.
 

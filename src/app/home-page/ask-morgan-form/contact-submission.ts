@@ -1,3 +1,5 @@
+import { oneLine } from '../../../shared/visitor-content/visitor-content';
+
 /**
  * What the Contact form sends to the Ask Morgan function, which forwards it to Morgan's Discord.
  *
@@ -14,12 +16,10 @@ export interface ContactSubmission {
 }
 
 /**
- * One clean line: invisible formatting and control characters dropped (they could make a line read
- * differently in Discord than in the source it's pasted into), runs of whitespace folded to one space.
+ * One clean line: invisible formatting and control characters dropped, runs of whitespace folded to one
+ * space. The same cleaning the backend and the content checks use, so what Discord shows is what publishes.
  */
-export function oneLine(text: string): string {
-  return text.replace(/[\p{Cf}]/gu, '').replace(/\s+/g, ' ').replace(/\p{Cc}/gu, '').trim();
-}
+export { oneLine };
 
 export function questionSubmission(text: string): ContactSubmission {
   const body = text.trim();
@@ -32,28 +32,21 @@ export function dropboxSubmission(text: string): ContactSubmission {
 }
 
 /**
- * A suggested greeting subtitle. The message ends with the exact entry to paste into
- * `GUEST_SUBTITLES` (src/shared/constants/subtitles.const.ts) to approve it.
+ * A suggested greeting subtitle. The message is exactly what morganvanv.com-backend's `ask/submit` checks
+ * the structured fields against before it offers a "Publish as PR" link (its `matchesMessage`): the
+ * title, the line in quotes, the credit, and nothing else.
  */
-export function subtitleSubmission(line: string, credit: string, now: Date): ContactSubmission {
+export function subtitleSubmission(line: string, credit: string): ContactSubmission {
   const subtitle = oneLine(line);
   const by = oneLine(credit) || null;
-  const added = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const entry = `{ text: ${tsString(subtitle)}, by: ${by === null ? 'null' : tsString(by)}, added: '${added}' },`;
   return {
     question: [
       '✨ Subtitle suggestion',
       `"${subtitle}"`,
       `credit: ${by ?? 'anonymous'}`,
-      `approve: ${entry}`,
     ].join('\n'),
     kind: 'subtitle',
     subtitle,
     credit: by,
   };
-}
-
-/** A single-quoted TypeScript string literal for `text`. */
-export function tsString(text: string): string {
-  return `'${text.replace(/\\/g, '\\\\').replace(/'/g, '\\\'')}'`;
 }

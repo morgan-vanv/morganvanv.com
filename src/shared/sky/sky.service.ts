@@ -1,9 +1,20 @@
-import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { InjectionToken, Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LIGHTINGS, Lighting } from './sky-render';
 import { UpNow } from './sky-up-now';
 import { StarAround, StarOnScreen, UnnamedStar, VisitorName, brightest, nearestTo, stepAround } from './sky-naming';
 import { FACE_SOUTH, LookView, clampView, spokenView } from './sky-view';
+import { VisitorStar } from '../visitor-content/visitor-content';
+import { VISITOR_STARS } from '../../generated/visitor-stars';
+
+/**
+ * The stars visitors named and Morgan approved: one file each in content/stars/, gathered at build time
+ * (scripts/build-visitor-content.mjs). A token so specs can supply their own.
+ */
+export const VISITOR_STARS_TOKEN = new InjectionToken<readonly VisitorStar[]>('VISITOR_STARS', {
+  providedIn: 'root',
+  factory: () => VISITOR_STARS,
+});
 
 export interface SkyLocation {
   readonly lat: number;
@@ -70,7 +81,7 @@ export class SkyService {
   readonly naming = signal(false);
   /** Stars with no name yet (catalogue minus proper names minus visitor names), brightest first; set when the sky loads. */
   readonly unnamed = signal<readonly UnnamedStar[]>([]);
-  /** Stars visitors have named (approved by Morgan), from visitor-names.json; empty if it didn't load. */
+  /** Stars visitors have named (approved by Morgan, from content/stars/), with what they're near; set when the sky loads. */
   readonly visitorNames = signal<readonly VisitorName[]>([]);
   /** Unnamed stars a visitor can see and pick right now, left to right, in CSS pixels (set by the sky while naming). */
   readonly candidates = signal<readonly StarOnScreen[]>([]);
