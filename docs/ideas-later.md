@@ -97,21 +97,32 @@ Grouped by the design pillars.
 - **Colophon.** `S` — How the site is built, what powers each live panel, fonts, hosting. IndieWeb staple; also where the tech stack can live without being the headline.
 - **Vinyl shelf.** `M` — Discogs has a public API for public collections. A shelf of cover art under Interests; hover/expand for pressing details. Discogs is already linked from the Music card.
 - **Podcasts.** `S` — He mentions podcasts on Background. An OPML export → a simple list with artwork.
-- **Tonight's sky, next.** `S` each — A lines on/off toggle in the sky menu; the Milky Way (d3-celestial ships `mw.json`); an "astrophotography tonight?" hint when the Moon is down in astronomical night (a bridge to My Photos); split the landscape into real layers (trees, mountains, house) for subtle parallax; more lived-in details in the spirit of the farmhouse light and campfire (pillar 7): a rare shooting star, chimney smoke on cold nights, snow in winter. Rotate the stars when switching to "show my sky" (it crossfades today).
+- **Tonight's sky, next.** `S` each — A lines on/off toggle in the sky menu; the Milky Way (d3-celestial ships `mw.json`); an "astrophotography tonight?" hint when the Moon is down in astronomical night (a bridge to My Photos); split the landscape into real layers (trees, mountains, house) for subtle parallax; more lived-in details in the spirit of the farmhouse light and campfire (pillar 7): a rare shooting star, chimney smoke on cold nights, snow in winter. Rotate the stars when switching to "show my sky" (it crossfades today). Name a star, next (2026-10-27): the per-kind Discord embed (with the `approve:` row in a code block) is morganvanv.com-backend PR #1 (`feat/submission-kinds`); beyond that, the function could open the approval PR itself, so approving is one click. Also a "visitor stars" highlight and a permalink that opens look-up on a visitor's star.
 - **Astrophotography gallery (My Photos).** `M` — Drop a photo into `public/photos/`, a build script generates thumbnails + a JSON manifest from EXIF (camera, exposure, ISO, stacked frames, location). Lightbox reuses the photo-wall overlay. The stub already exists.
 
 ### Visitors take part
-- **IRC Shoutbox, three ways.** `M`–`L`, `backend`
-  1. *Guestbook-as-PR* — the form posts to a DO function that opens a GitHub PR appending to `public/data/guestbook.json`. Morgan merging the PR is moderation; the site stays static; entries deploy like everything else. Very IndieWeb.
-  2. *KV-backed* — DO function + a small free store (Upstash Redis / DO Spaces JSON), honeypot + rate limit, hard cap on length, a moderation list. Real-time-ish.
-  3. *giscus* — zero backend, GitHub Discussions-backed, but requires GitHub login, which fights the anonymous-visitor vibe.
-  Option 1 reuses the entire existing workflow and is the most "on brand".
+*From the 2026-10-26 interactivity brainstorm, Morgan picked guest subtitles, Hotline Webring, real IRC, Name a star, the shoutbox and the odometer (2026-10-27). The webring and IRC link, guest subtitles and Name a star ride the existing Ask Morgan function; the shoutbox and odometer run on **the campfire**, a Cloudflare Worker + SQLite Durable Object in `morganvanv.com-backend`. Everything below is what's left.*
+
+**Shelved by Morgan as follow-ups (2026-10-27):**
+- **Ask Morgan: the mailbag.** `S` — Answer the good Ask Morgan questions on a public letters page ("you asked, I answered, eventually"). No new backend: answers are a hand-edited data file. Submissions already land in Morgan's Discord.
+- **Friends' buttons.** `S` — Friends' 88×31s as a link exchange in the Buttons panel on `/now`, beside the webring row; copied with permission rather than hotlinked so they don't rot `[TODO: Morgan: whose]`.
+
+**Not picked yet (2026-10-26 brainstorm):**
+- **The logbook (guestbook).** `M`, `backend` — Sign the logbook by the farmhouse door: name, a line, optional website and their own 88×31 (so it doubles as the friends'-buttons wall). A function opens a PR appending to `public/data/guestbook.json`; merging is moderation; the site stays static. The same pipe could automate Name a star and guest subtitle approvals.
+- **Draw a constellation.** `L`, `backend` — Connect stars into your own figure and name it; approved ones join a "community constellations" toggle in the ☾ menu. Name a star's bigger sibling.
+- **Fireflies are visitors.** `M`, `backend` — Each firefly over the field is someone on the site right now (campfire presence). Variant: the farmhouse window lights only when someone else is here.
+- **Shared shooting stars.** `M`, `backend` — "Make a wish" sends a shooting star across the sky for everyone on the site at that moment. Wishes are never shown, so nothing to moderate. Needs the campfire's WebSocket side.
+- **Lanterns until dawn.** `M`, `backend` — Light a lantern in the field with a few words; it burns until local sunrise.
+- **Message in a bottle.** `M`, `backend` — Leave a note for a stranger, get one from a previous visitor.
+- **Polls, with Ada as host.** `M`, `backend` — "Ada asks: is the campfire too bright?" Campfire counters.
+- **Listening along.** `S`, `backend` — "2 others listening along" while stats.fm shows something playing.
+- **Visitor pixel canvas** (r/place in miniature). `L`, `backend` — The campfire is the backend pattern this was waiting for; one pixel per visitor per hour, maybe an 88×31 the community paints.
+- **Where the light came from.** `S`, `backend` — Tonight's visitors by country only (Cloudflare's coarse header, nothing stored). Privacy-adjacent: needs a colophon note.
+- **Secret hunt.** `S` — Seven hidden easter eggs, progress kept only in the visitor's browser; finishers get a mark in the logbook.
+- **Bluesky replies as comments.** `S` — For blog posts: replies to a linked Bluesky post, read from Bluesky's public API, no backend.
 - **Webmentions.** `S` — `webmention.io` + Bridgy to receive replies/likes from the fediverse on blog posts. Pairs with `rel="me"`.
 - **Spirograph wall.** see Games.
-- **Photo wall self-serve.** `M`, `backend` — Upload via a DO function to Spaces with a pending queue Morgan approves. Until then, a "Submit a photo" pill that opens a prefilled `mailto:` (subject + caption prompt) is an `S` improvement.
-- **Webrings and friends' buttons.** `S` — Morgan's follow-up to the badge strip (2026-10-26). Research which rings are active and what they ask (most want their prev/next widget kept working; prefer plain links over a JS embed, for the "no trackers" badge and prerendering), then join one or two `[TODO: Morgan]`. Friends' 88×31s as a link exchange, copied with permission rather than hotlinked so they don't rot `[TODO: Morgan]`. Both would sit in the Buttons panel on `/now`.
-- **Visitor pixel canvas** (r/place in miniature). `L`, `backend` — Fun, needs real-time state. Park until a backend pattern exists.
-- **Polls** ("which subtitle is best?"). `M`, `backend` — Same dependency.
+- **Photo wall self-serve.** `M`, `backend` — Upload into a pending queue Morgan approves (the logbook pipe could carry it). Until then, a "Submit a photo" pill that opens a prefilled `mailto:` (subject + caption prompt) is an `S` improvement.
 
 ### Playful to navigate
 - **Command palette (Cmd+K / `/`).** `M` — Fuzzy jump to pages and Interests items, plus joke commands (`:q`, `sudo`, `ada`). Fits "now navigable via keyboard".
@@ -132,7 +143,6 @@ Grouped by the design pillars.
 - **Unify under-construction.** `S` — Pages use the gif; Interests items use a text banner. Make `UnderConstructionComponent` take a `variant` and use it everywhere.
 - **Loading states.** `S` — The live panels show "Loading…" text; skeleton rows in the site's dark/translucent style would feel less static.
 - **OSRS item icons from RuneLite's CDN.** note — Works, but it's a third-party hotlink; if it ever breaks, the Action pattern can cache them.
-- **Subtitle list as data.** `S` — Move `SUBTITLES` out of the component into a data file so adding one doesn't touch TS (and time-aware ones have somewhere to live).
 
 ### Projects page (currently 🚧)
 - `M` — **Started as a stub (2026-10-25):** projects are data in `shared/constants/projects.const.ts`, rendered by `app-project-card` (screenshot, blurb, play/source links, live "updated N ago" from the GitHub API). `/now` shows them under "Building". The Projects page itself can list the same cards, then add non-code projects (the astro rig, the site itself with its changelog) and maybe a per-project changelog from the repo's commits.

@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, effect, inject, untracked, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, effect, inject, untracked, viewChild } from '@angular/core';
 import { IconComponent } from '../icon/icon.component';
 import { SkyService } from './sky.service';
 import { SkyToggleComponent } from './sky-toggle.component';
 import { Lighting } from './sky-render';
+import { visitorMenuLine } from './sky-naming';
 
 /** Lighting choices in menu order. Labels and hints are drafts for Morgan. */
 export const LIGHT_OPTIONS: readonly { id: Lighting; label: string; hint: string }[] = [
@@ -15,7 +16,8 @@ export const LIGHT_OPTIONS: readonly { id: Lighting; label: string; hint: string
 
 /**
  * The ☾ button in the top-right corner and the small panel it opens: how the
- * sky is lit, whose sky it is, and what's up right now (the text version of the
+ * sky is lit, whose sky it is, look up (hide the page, name a star), the stars
+ * visitors have named, and what's up right now (the text version of the
  * sky, for anyone who can't see the canvas). A disclosure, not a modal: Esc or a
  * click outside closes it. Only shown once the live sky has drawn.
  */
@@ -27,6 +29,7 @@ export const LIGHT_OPTIONS: readonly { id: Lighting; label: string; hint: string
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(keydown.escape)': 'onEscape($event)',
+    '[class.looking-up]': 'sky.lookingUp()',
   },
 })
 export class SkyMenuComponent {
@@ -36,6 +39,8 @@ export class SkyMenuComponent {
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
   private readonly button = viewChild<ElementRef<HTMLButtonElement>>('button');
+  /** "Gerald · near Vega · by sam": the text version of the visitor names' hover labels. */
+  protected readonly visitorLines = computed(() => this.sky.visitorNames().map(visitorMenuLine));
 
   constructor() {
     const onPointerDown = (event: PointerEvent) => {
@@ -61,6 +66,11 @@ export class SkyMenuComponent {
   protected toggleOpen(): void {
     this.sky.menuOpener = null;
     this.open.update(open => !open);
+  }
+
+  /** Looks up with the naming panel open; closing it later hands focus back to the ☾ button. */
+  protected nameAStar(): void {
+    this.sky.startNaming(this.button()?.nativeElement ?? null);
   }
 
   protected choose(lighting: Lighting): void {

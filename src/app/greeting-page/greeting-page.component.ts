@@ -2,14 +2,14 @@ import { Component, DestroyRef, afterNextRender, computed, inject, signal, Chang
 import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { RecentStreamService } from '../../shared/services/recent-stream.service';
+import { GUEST_SUBTITLES_TOKEN, SUBTITLES, guestCredit } from '../../shared/constants/subtitles.const';
 
-export const SUBTITLES = [
-  'a real human man',
-  'currently testing in production',
-  'relentlessly creating shareholder value',
-  'now navigable via keyboard! press those arrow keys!',
-  'probably clicking on virtual trees and rocks',
-];
+/** One line under the name; visitors' lines carry a handwritten credit. */
+export interface GreetingLine {
+  readonly text: string;
+  readonly credit: string | null;
+}
+
 
 const CYCLE_INTERVAL_MS = 10000;
 const FADE_DURATION_MS = 400;
@@ -28,10 +28,16 @@ export class GreetingPageComponent {
   // the browser then picks a random one and starts cycling.
   private readonly currentIndex = signal(0);
 
-  /** The static jokes plus, once known, a live "last listened" line that rotates in with them. */
-  protected readonly subtitles = computed(() => {
+  /** Morgan's own lines and the visitors' ones he approved, which never change while the page is open. */
+  private readonly fixedLines: readonly GreetingLine[] = [
+    ...SUBTITLES.map(text => ({ text, credit: null })),
+    ...inject(GUEST_SUBTITLES_TOKEN).map(guest => ({ text: guest.text, credit: guestCredit(guest.by) })),
+  ];
+
+  /** The fixed lines plus, once known, a live "last listened" line that rotates in with them. */
+  protected readonly subtitles = computed<readonly GreetingLine[]>(() => {
     const live = this.recentStream.summary();
-    return live ? [...SUBTITLES, live] : SUBTITLES;
+    return live ? [...this.fixedLines, { text: live, credit: null }] : this.fixedLines;
   });
 
   protected readonly subtitle = computed(() => {
@@ -45,7 +51,7 @@ export class GreetingPageComponent {
 
   constructor() {
     afterNextRender(() => {
-      this.currentIndex.set(Math.floor(Math.random() * SUBTITLES.length));
+      this.currentIndex.set(Math.floor(Math.random() * this.fixedLines.length));
       this.intervalId = setInterval(() => this.cycleSubtitle(), CYCLE_INTERVAL_MS);
     });
     inject(DestroyRef).onDestroy(() => {

@@ -2,6 +2,7 @@ import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LIGHTINGS, Lighting } from './sky-render';
 import { UpNow } from './sky-up-now';
+import { StarOnScreen, UnnamedStar, VisitorName, brightest, nearestTo, stepStar } from './sky-naming';
 
 export interface SkyLocation {
   readonly lat: number;
@@ -62,6 +63,25 @@ export class SkyService {
   /** What opened the menu from elsewhere, so Escape can hand focus back to it. */
   menuOpener: HTMLElement | null = null;
 
+  /** Look up: the page fades away and the whole window is sky. */
+  readonly lookingUp = signal(false);
+  /** The name-a-star panel is open (only while looking up). */
+  readonly naming = signal(false);
+  /** Stars with no name yet (catalogue minus proper names minus visitor names), brightest first; set when the sky loads. */
+  readonly unnamed = signal<readonly UnnamedStar[]>([]);
+  /** Stars visitors have named (approved by Morgan), from visitor-names.json; empty if it didn't load. */
+  readonly visitorNames = signal<readonly VisitorName[]>([]);
+  /** Unnamed stars a visitor can see and pick right now, left to right, in CSS pixels (set by the sky while naming). */
+  readonly candidates = signal<readonly StarOnScreen[]>([]);
+  /** The star being named. */
+  readonly selected = signal<UnnamedStar | null>(null);
+  /** Where the selected star is on screen (CSS pixels), for its ring; null when it isn't up. */
+  readonly selectedPoint = signal<{ x: number; y: number } | null>(null);
+  /** A name for the selected star has just been sent (the ring sparkles). */
+  readonly sent = signal(false);
+  /** What started naming, so closing the panel can hand focus back. */
+  namingOpener: HTMLElement | null = null;
+
   private attempt = 0;
 
   constructor() {
@@ -78,6 +98,67 @@ export class SkyService {
     this.menuOpener = active instanceof HTMLElement && active !== document.body ? active : null;
     this.menuOpen.set(true);
     this.menuFocusRequests.update(count => count + 1);
+  }
+
+  enterLookUp(): void {
+    this.lookingUp.set(true);
+  }
+
+  /** Back to the page; closes the naming panel too. */
+  leaveLookUp(): void {
+    this.lookingUp.set(false);
+    this.stopNaming();
+  }
+
+  toggleLookUp(): void {
+    if (this.lookingUp()) this.leaveLookUp();
+    else this.enterLookUp();
+  }
+
+  /** Looks up with the naming panel open; the sky selects the brightest candidate once it knows what's on screen. */
+  startNaming(opener: HTMLElement | null = null): void {
+    this.namingOpener = opener;
+    this.menuOpen.set(false);
+    this.sent.set(false);
+    this.lookingUp.set(true);
+    this.naming.set(true);
+  }
+
+  /** Closes the panel (still looking up). */
+  stopNaming(): void {
+    this.naming.set(false);
+    this.selected.set(null);
+    this.selectedPoint.set(null);
+    this.candidates.set([]);
+    this.sent.set(false);
+  }
+
+  select(star: UnnamedStar | null): void {
+    if (star !== this.selected()) this.sent.set(false);
+    this.selected.set(star);
+  }
+
+  /**
+   * The sky has worked out what can be picked. The selection stays put (the sky
+   * drops it only once the star has set or left the screen), so nothing changes
+   * under a visitor who's typing; with nothing selected, the brightest is picked.
+   */
+  setCandidates(list: readonly StarOnScreen[]): void {
+    this.candidates.set(list);
+    if (!this.selected() && !this.sent()) this.select(brightest(list)?.star ?? null);
+  }
+
+  /** ‹ (−1) or › (+1): the next unnamed star left to right, carrying on from where the selected one is. */
+  step(direction: 1 | -1): void {
+    const next = stepStar(this.candidates(), this.selected(), direction, this.selectedPoint()?.x ?? null);
+    if (next) this.select(next.star);
+  }
+
+  /** Selects the candidate nearest a point (CSS pixels) within `reach`; false if there's none. */
+  selectNear(x: number, y: number, reach: number): boolean {
+    const hit = nearestTo(this.candidates(), x, y, reach);
+    if (hit) this.select(hit.star);
+    return !!hit;
   }
 
   setLighting(lighting: Lighting): void {

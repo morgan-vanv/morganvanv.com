@@ -44,7 +44,8 @@ export class KeyboardNavService {
 
     if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
       const container = this.scrollRegions.active();
-      if (container) {
+      // Not while the page is hidden (looking up at the sky makes it inert).
+      if (container && !container.closest('[inert]')) {
         e.preventDefault();
         container.scrollBy({ top: e.key === 'ArrowDown' ? SCROLL_STEP_PX : -SCROLL_STEP_PX, behavior: 'auto' });
       }

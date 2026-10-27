@@ -4,8 +4,10 @@
   <app-sky />
 </div>
 
-<main>
+<!-- Looking up (from the ☾ menu) fades the page away and makes it inert, so the whole window is sky. -->
+<main [class.looking-up]="sky.lookingUp()" [attr.inert]="sky.lookingUp() ? '' : null">
   <router-outlet />
 </main>
 
+<app-sky-look-up />
 <app-sky-menu />

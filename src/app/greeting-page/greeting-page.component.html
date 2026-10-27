@@ -2,7 +2,12 @@
 
   <div class="greeting-page-message-container">
     <h1 class="title">Morgan Van Valkenburgh</h1>
-    <p class="subtitle" [class.hidden]="!subtitleVisible()">{{ subtitle() }}</p>
+    <p class="subtitle" [class.hidden]="!subtitleVisible()">
+      {{ subtitle().text }}
+      @if (subtitle().credit; as credit) {
+        <span class="credit">{{ credit }}</span>
+      }
+    </p>
   </div>
 
   <div class="enter-prompt">

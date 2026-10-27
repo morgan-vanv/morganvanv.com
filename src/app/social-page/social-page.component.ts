@@ -27,6 +27,7 @@ interface PhotoSpot {
 })
 export class SocialPageComponent {
   readonly siteEmail = SITE_CONFIG.email;
+  readonly irc = SITE_CONFIG.irc;
   readonly shoutboxUnderConstruction = isUnderConstruction('shoutbox');
   readonly selectedPhoto = signal<PhotoSpot | null>(null);
   private lastFocusedElement: HTMLElement | null = null;

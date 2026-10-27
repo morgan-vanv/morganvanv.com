@@ -53,7 +53,7 @@
 
   </div>
 
-  <!-- 88×31 buttons, in two rows, in Morgan's order. Each hides itself while it has no data; the
+  <!-- 88×31 buttons, in two rows, in Morgan's order, then the webring. Each hides itself while it has no data; the
        row keeps its height meanwhile, so nothing below moves when they arrive. -->
   <section class="panel buttons-panel" aria-labelledby="now-buttons">
     <h2 id="now-buttons">Buttons <span class="range-label">88×31s, most of them live</span></h2>
@@ -75,6 +75,20 @@
         <app-lighthouse-badge />
         <app-build-badge />
       </div>
+    </div>
+    <!-- Hotline Webring. No rel="noreferrer": the ring learns where the click came from. -->
+    <div class="cluster">
+      <h3 class="cluster-label">webring</h3>
+      <nav class="ring" [attr.aria-label]="webring.name">
+        <a class="hop" [href]="webring.previous">
+          <span class="bracket" aria-hidden="true">[</span>‹ prev<span class="visually-hidden"> site in the {{ webring.name }}</span><span class="bracket" aria-hidden="true">]</span>
+        </a>
+        <a class="hop" [href]="webring.next">
+          <span class="bracket" aria-hidden="true">[</span>next<span class="visually-hidden"> site in the {{ webring.name }}</span> ›<span class="bracket" aria-hidden="true">]</span>
+        </a>
+        <a class="ring-home" [href]="webring.home" target="_blank" rel="noopener">{{ webring.name }} ↗</a>
+        <span class="ring-note">a loop of personal sites. hop to a neighbor.</span>
+      </nav>
     </div>
   </section>
 </app-base-page>

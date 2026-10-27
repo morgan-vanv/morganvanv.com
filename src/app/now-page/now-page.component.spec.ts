@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
@@ -70,10 +71,10 @@ describe('NowPageComponent', () => {
     expect(headings[0].textContent?.trim()).toBe('Now');
   });
 
-  it('puts the 88×31 buttons in their own panel, one labelled row per cluster', () => {
+  it('puts the 88×31 buttons in their own panel, one labelled row per cluster, then the webring', () => {
     const panel = (fixture.nativeElement as HTMLElement).querySelector('.buttons-panel');
     expect(panel?.querySelector('h2')?.textContent).toContain('Buttons');
-    expect([...panel!.querySelectorAll('.cluster-label')].map(h => h.textContent?.trim())).toEqual(['tonight', 'this site']);
+    expect([...panel!.querySelectorAll('.cluster-label')].map(h => h.textContent?.trim())).toEqual(['tonight', 'this site', 'webring']);
     // Morgan's order, left to right.
     const rows = [...panel!.querySelectorAll('.strip')].map(strip => [...strip.children].map(badge => badge.tagName.toLowerCase()));
     expect(rows).toEqual([
@@ -83,6 +84,28 @@ describe('NowPageComponent', () => {
     // The ones whose data ships with the site are there from the start; the Lighthouse badge waits for its report.
     expect(panel?.querySelector('app-own-button-badge .badge')).not.toBeNull();
     expect(panel?.querySelector('app-lighthouse-badge .badge')).toBeNull();
+  });
+
+  it('links to the Hotline Webring neighbours without hiding where the click came from', () => {
+    const ring = (fixture.nativeElement as HTMLElement).querySelector<HTMLElement>('.buttons-panel nav.ring');
+    expect(ring?.getAttribute('aria-label')).toBe('Hotline Webring');
+    const links = [...ring!.querySelectorAll('a')];
+    expect(links.map(a => a.getAttribute('href'))).toEqual([
+      'https://hotlinewebring.club/morganvanv/previous',
+      'https://hotlinewebring.club/morganvanv/next',
+      'https://hotlinewebring.club/',
+    ]);
+    // Accessible names start with the visible words, so voice control can say "prev" and "next".
+    const name = (a: Element) => a.textContent?.replace(/[[\]]/g, '').replace(/\s+/g, ' ').trim();
+    expect(name(links[0])).toBe('‹ prev site in the Hotline Webring');
+    expect(name(links[1])).toBe('next site in the Hotline Webring ›');
+    // The ring registers members from the Referer of the first click through.
+    for (const link of links) {
+      expect(link.getAttribute('rel') ?? '').not.toContain('noreferrer');
+    }
+    expect(readFileSync('src/index.html', 'utf8')).toMatch(
+      /<meta name="referrer" content="strict-origin-when-cross-origin">/,
+    );
   });
 
   it('lists the projects under Building, with a count', () => {

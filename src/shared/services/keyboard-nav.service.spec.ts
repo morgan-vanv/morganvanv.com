@@ -87,4 +87,21 @@ describe('KeyboardNavService', () => {
     expect(scrollBy).toHaveBeenLastCalledWith(expect.objectContaining({ top: -120 }));
     expect(navigate).not.toHaveBeenCalled();
   });
+
+  it('leaves a hidden page alone: no scrolling inside an inert <main> (looking up at the sky)', () => {
+    url = MAIN_NAV_ROUTES[1];
+    const main = document.createElement('main');
+    main.setAttribute('inert', '');
+    const region = document.createElement('div');
+    main.append(region);
+    document.body.append(main);
+    const scrollBy = vi.fn();
+    region.scrollBy = scrollBy;
+    TestBed.inject(ScrollRegionService).register(region);
+    const down = key('ArrowDown');
+    service.onKeyDown(down);
+    expect(scrollBy).not.toHaveBeenCalled();
+    expect(down.defaultPrevented).toBe(false);
+    main.remove();
+  });
 });
