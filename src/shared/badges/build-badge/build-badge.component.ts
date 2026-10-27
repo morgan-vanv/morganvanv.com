@@ -18,6 +18,8 @@ export const SITE_STATUS_URL = '/site-status.json';
 const STATUS_TTL_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+const PR_URL_PREFIX = 'https://github.com/morgan-vanv/morganvanv.com/pull/';
+
 const isCount = (value: unknown): value is number => typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
 /** The commit is the one thing it can't do without; the rest are dropped if they don't look right. */
@@ -33,7 +35,8 @@ export function toStatus(value: unknown): SiteStatus | null {
   return {
     commit,
     measuredAt: status.measuredAt,
-    ...(pr && isCount(pr.number) && typeof pr.url === 'string' && Array.isArray(pr.checks) ? {
+    // pr.url becomes the badge's link, so only a link to one of this repo's PRs will do.
+    ...(pr && isCount(pr.number) && typeof pr.url === 'string' && pr.url.startsWith(PR_URL_PREFIX) && Array.isArray(pr.checks) ? {
       pr: { ...pr, checks: pr.checks.filter(c => typeof c?.name === 'string' && typeof c?.ok === 'boolean') },
     } : {}),
     ...(tests && isCount(tests.passed) && isCount(tests.total) ? { tests } : {}),

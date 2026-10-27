@@ -103,7 +103,9 @@ describe('NowPageComponent', () => {
     for (const link of links) {
       expect(link.getAttribute('rel') ?? '').not.toContain('noreferrer');
     }
-    expect(readFileSync('src/index.html', 'utf8')).not.toMatch(/name="referrer"/);
+    expect(readFileSync('src/index.html', 'utf8')).toMatch(
+      /<meta name="referrer" content="strict-origin-when-cross-origin">/,
+    );
   });
 
   it('lists the projects under Building, with a count', () => {

@@ -39,6 +39,8 @@ jobs:
         with:
           # Full history, so the Build badge can number this commit (git rev-list --count).
           fetch-depth: 0
+          # Nothing here pushes, so the token isn't left in .git/config for npm ci, the build and the tests.
+          persist-credentials: false
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -76,7 +78,7 @@ jobs:
           LH_FORM_FACTOR: mobile
           LH_PAGES: /
         run: |
-          npx --yes @lhci/cli@0.15.x collect --config=./lighthouserc.cjs
+          npx --yes @lhci/cli@0.15.1 collect --config=./lighthouserc.cjs
           node scripts/write-lighthouse-badge.mjs
 
       # The Build badge on /now: this commit's number, the merged PR's checks, a test run with coverage
@@ -94,10 +96,26 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         run: node scripts/write-site-status.mjs
 
+      # RFC 9116 contact details for security reports. Written here rather than committed because the
+      # file must carry an expiry date: the daily deploy keeps it a year out, so it never needs tending.
+      - name: Write security.txt
+        run: |
+          mkdir -p dist/browser/.well-known
+          cat > dist/browser/.well-known/security.txt <<EOF
+          Contact: https://github.com/morgan-vanv/morganvanv.com/security/advisories/new
+          Contact: mailto:website@morganvanv.com
+          Expires: $(date -u -d '+1 year' +%Y-%m-%dT00:00:00Z)
+          Policy: https://github.com/morgan-vanv/morganvanv.com/blob/master/SECURITY.md
+          Canonical: https://morganvanv.com/.well-known/security.txt
+          Preferred-Languages: en
+          EOF
+
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v5
         with:
           path: dist/browser
+          # .well-known/security.txt is a dot-folder, which the upload leaves out by default.
+          include-hidden-files: true
 
   deploy:
     needs: build
