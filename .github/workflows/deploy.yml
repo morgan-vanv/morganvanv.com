@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - master
+  # Daily, so the Letterboxd diary stays about a day fresh (the badges re-measure as a side effect).
+  # 10:17 UTC is early morning in Cincinnati, off the hour when GitHub's schedules bunch up.
+  # GitHub turns schedules off after 60 days without repo activity (it emails first); the diary then just
+  # goes stale until the workflow is enabled again in the Actions tab.
+  schedule:
+    - cron: '17 10 * * *'
+  # "Run workflow" in the Actions tab: redeploy master now, e.g. right after logging a film.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -45,6 +53,14 @@ jobs:
       # router can redirect to the greeting without a hydration mismatch.
       - name: Copy the CSR shell to 404.html for SPA routing
         run: cp dist/browser/index.csr.html dist/browser/404.html
+
+      # The Letterboxd diary (Favorite Media on /interests, Watching on /now): the public RSS feed, read
+      # here because it's CORS-blocked in the browser, written to dist/browser/letterboxd.json. Falls back
+      # to the live site's copy, then to the placeholder (and the diary hides). Never blocks a deploy.
+      - name: Read the Letterboxd diary
+        continue-on-error: true
+        timeout-minutes: 2
+        run: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/write-letterboxd.mjs
 
       # The Lighthouse and Page weight badges on /now: three runs of the homepage as a phone, median
       # scores and weights written to dist/browser/lighthouse.json. Never blocks a deploy: if this fails,

@@ -181,7 +181,8 @@
 
 .detail {
   font-size: $font-size-meta;
-  opacity: 0.65;
+  // Dimmed by colour, not opacity, so the gold stars of a rating stay at full strength.
+  color: rgba($main-color, 0.65);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

@@ -3,11 +3,14 @@ import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { signal } from '@angular/core';
-import { NowPageComponent, formatDay } from './now-page.component';
+import { NowPageComponent, clip, formatDay } from './now-page.component';
 import { LastListened, RecentStreamService } from '../../shared/services/recent-stream.service';
 import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 import { NOW_CONTENT_TOKEN } from './now.content';
 import { PROJECTS } from '../../shared/constants/projects.const';
+import { LETTERBOXD_DIARY_URL } from '../../shared/letterboxd/letterboxd.service';
+import { parseLetterboxdRss } from '../../shared/letterboxd/letterboxd';
+import { LETTERBOXD_FEED_FIXTURE } from '../../shared/letterboxd/letterboxd-feed.fixture';
 
 /** Matches RuneProfile activity requests by parsed host and path, not by substring. */
 function isRuneProfileActivities(req: { url: string }): boolean {
@@ -27,6 +30,14 @@ describe('formatDay', () => {
   it('returns an empty string for junk', () => {
     expect(formatDay('')).toBe('');
     expect(formatDay('not a date')).toBe('');
+  });
+});
+
+describe('clip', () => {
+  it('leaves short text alone and cuts long text at a word, with an ellipsis', () => {
+    expect(clip('short', 10)).toBe('short');
+    expect(clip('a thinker of a movie, truly', 20)).toBe('a thinker of a movie…');
+    expect(clip('supercalifragilistic', 5)).toBe('super…');
   });
 });
 
@@ -149,6 +160,40 @@ describe('NowPageComponent', () => {
     await fixture.whenStable();
     const glyphs = [...(fixture.nativeElement as HTMLElement).querySelectorAll('.thumb--glyph')].map(g => g.textContent?.trim());
     expect(glyphs).toEqual(['♪', '</>']);
+  });
+
+  const diary = parseLetterboxdRss(LETTERBOXD_FEED_FIXTURE, 'https://letterboxd.com/morganvanv/', '2026-10-27T10:17:00Z');
+  const flushDiary = (body: object) => {
+    for (const req of http.match(r => r.url === LETTERBOXD_DIARY_URL)) req.flush(body);
+  };
+
+  it('adds Watching from the newest Letterboxd entry, after Playing and before Community', async () => {
+    flushDiary(diary);
+    await fixture.whenStable();
+    expect(rowKeys()).toEqual(['watching', 'community', 'site']);
+    const watching = fixture.componentInstance.rows()[0];
+    expect(watching).toMatchObject({
+      title: 'Days of Heaven', rating: 5, href: 'https://letterboxd.com/morganvanv/film/days-of-heaven/',
+      detail: '1978 · liked · “visually stunning movie that reminds me of reading Steinbeck in all the best ways”',
+    });
+    const row = (fixture.nativeElement as HTMLElement).querySelector('.now-row');
+    expect(row?.querySelector('.stars')?.textContent).toBe('★★★★★');
+    expect(row?.querySelector('.detail .visually-hidden')?.textContent).toBe('rated 5 out of 5 stars');
+    expect(row?.querySelector('.thumb--glyph')?.textContent?.trim()).toBe('▶');
+  });
+
+  it('keeps a spoiler review off /now, and says rewatch', async () => {
+    flushDiary({ ...diary, entries: [{ ...diary.entries[0], spoilers: true, rewatch: true, liked: false, rating: null }] });
+    await fixture.whenStable();
+    const watching = fixture.componentInstance.rows()[0];
+    expect(watching.detail).toBe('1978 · rewatch');
+    expect(watching.rating).toBeUndefined();
+  });
+
+  it('skips Watching for the placeholder or an empty diary', async () => {
+    flushDiary({ note: 'Placeholder' });
+    await fixture.whenStable();
+    expect(rowKeys()).not.toContain('watching');
   });
 
   it('skips Playing when RuneProfile fails', async () => {

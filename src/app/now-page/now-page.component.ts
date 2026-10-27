@@ -25,6 +25,9 @@ import { PageWeightBadgeComponent } from '../../shared/badges/page-weight-badge/
 import { BuildBadgeComponent } from '../../shared/badges/build-badge/build-badge.component';
 import { NoCookiesBadgeComponent } from '../../shared/badges/no-cookies-badge/no-cookies-badge.component';
 import { OwnButtonBadgeComponent } from '../../shared/badges/own-button-badge/own-button-badge.component';
+import { LetterboxdService } from '../../shared/letterboxd/letterboxd.service';
+import { watchedWhen } from '../../shared/letterboxd/letterboxd';
+import { StarsComponent } from '../../shared/stars/stars.component';
 
 export interface NowRow {
   key: string;
@@ -36,6 +39,8 @@ export interface NowRow {
   glyph: string;
   title: string;
   detail?: string;
+  /** Gold stars ahead of the detail (Letterboxd's 0.5–5). */
+  rating?: number;
   when?: string;
   /** External link, or an in-site path when `internal`. */
   href?: string;
@@ -57,6 +62,19 @@ export function formatDay(value: string): string {
   return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
+/** How much of a review the Watching row quotes; the rest is a click away on Letterboxd. */
+const REVIEW_CLIP = 90;
+
+/** Cuts text to about `max` characters at a word boundary, with an ellipsis. */
+export function clip(text: string, max: number): string {
+  if (text.length <= max) return text;
+  // Back up to the end of a word: a space or punctuation right after it.
+  let end = max;
+  while (end > max * 0.6 && !/[\s.,;:!?]/.test(text[end])) end--;
+  if (end <= max * 0.6) end = max;
+  return `${text.slice(0, end).replace(/[\s.,;:!?-]+$/, '')}…`;
+}
+
 /**
  * The IndieWeb "now page": Morgan's note at the top, then rows that fill in
  * on their own. The note, community and site rows are prerendered; listening
@@ -64,7 +82,7 @@ export function formatDay(value: string): string {
  */
 @Component({
   selector: 'app-now-page',
-  imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent,
+  imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent, StarsComponent,
     WeatherBadgeComponent, MoonBadgeComponent, PlanetsBadgeComponent,
     OwnButtonBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent, PageWeightBadgeComponent, LighthouseBadgeComponent, BuildBadgeComponent],
   templateUrl: './now-page.component.html',
@@ -74,6 +92,7 @@ export function formatDay(value: string): string {
 export class NowPageComponent {
   private readonly recentStream = inject(RecentStreamService);
   private readonly runeProfile = inject(RuneProfileService);
+  private readonly letterboxd = inject(LetterboxdService);
 
   /** Morgan's note; hidden, along with its date, while it has no paragraphs. */
   private readonly content = inject(NOW_CONTENT_TOKEN);
@@ -110,6 +129,20 @@ export class NowPageComponent {
     };
   });
 
+  private readonly watching = computed<NowRow | null>(() => {
+    const entry = this.letterboxd.latest();
+    if (!entry) return null;
+    const review = entry.review && !entry.spoilers ? `“${clip(entry.review.replace(/\s+/g, ' '), REVIEW_CLIP)}”` : null;
+    const detail = [entry.year, entry.rewatch ? 'rewatch' : null, entry.liked ? 'liked' : null, review]
+      .filter(part => part !== null).join(' · ');
+    return {
+      key: 'watching', label: 'Watching', iconUrl: null, iconStyle: 'cover', glyph: '▶',
+      title: entry.title, detail: detail || undefined, rating: entry.rating ?? undefined,
+      when: entry.watched ? watchedWhen(entry.watched) || undefined : undefined,
+      href: entry.url,
+    };
+  });
+
   private readonly community: NowRow | null = (() => {
     const newest = COMMUNITY_PHOTOS.at(-1);
     if (!newest) return null;
@@ -128,9 +161,8 @@ export class NowPageComponent {
     href: `${SITE_CONFIG.repoUrl}/commit/${BUILD_INFO.sha}`,
   } : null;
 
-  // Watching (Letterboxd) slots in between Playing and Community once that feed exists.
   readonly rows = computed(() =>
-    [this.listening(), this.playing(), this.community, this.site].filter((row): row is NowRow => row !== null)
+    [this.listening(), this.playing(), this.watching(), this.community, this.site].filter((row): row is NowRow => row !== null)
   );
 
   private latestActivity(types: readonly RpActivity['type'][]) {
