@@ -95,6 +95,43 @@
   }
 }
 
+// Toggle buttons that show one list at a time on small screens (Music's top lists, Favorite Media's
+// shelves): `aria-pressed` buttons, not ARIA tabs, so ← → stay the site's page navigation. One column each.
+@mixin toggle-group {
+  @include surface;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding: 0.25rem;
+  border-radius: 12px;
+}
+
+@mixin toggle-button {
+  min-height: 2.75rem;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: $main-color;
+  font: inherit;
+  font-size: $font-size-small;
+  opacity: 0.75;
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+
+  &[aria-pressed='true'] {
+    background: rgba($accent-color, 0.18);
+    box-shadow: inset 0 0 0 1px rgba($accent-color, 0.5);
+    color: $accent-color;
+    font-weight: bold;
+    opacity: 1;
+  }
+}
+
 // Panels side by side that fall to one column on tablets and phones.
 // $columns is any grid-template-columns value.
 @mixin panel-grid($columns) {

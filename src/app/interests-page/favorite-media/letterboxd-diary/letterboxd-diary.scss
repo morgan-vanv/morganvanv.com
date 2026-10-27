@@ -1,0 +1,127 @@
+@use '../../../../styles' as *;
+@use '../../../../shared/shared-styles.scss' as shared;
+
+:host {
+  display: block;
+}
+
+.diary {
+  @include shared.panel;
+  padding-bottom: 0.8rem;
+
+  h3 {
+    @include shared.panel-heading;
+  }
+}
+
+// A few columns of entries on wide screens (a review across 1500px is no fun to read), one on phones.
+.diary-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 21rem), 1fr));
+  gap: 0.5rem 1rem;
+}
+
+// date rail · title, marks, review
+.diary-entry {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  gap: 0.75rem;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0.55rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  color: inherit;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($main-color, 0.05);
+    border-color: rgba($main-color, 0.2);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $main-color;
+    outline-offset: 2px;
+  }
+}
+
+// Letterboxd's diary look: the month small and gold, the day big.
+.diary-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 0.1rem;
+  line-height: 1.05;
+
+  .month {
+    @include shared.label;
+  }
+
+  .day {
+    font-size: 1.5rem;
+    font-weight: bold;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.diary-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+.diary-title {
+  font-size: 0.97rem;
+  font-weight: bold;
+}
+
+.diary-year {
+  font-weight: normal;
+  color: rgba($main-color, 0.6);
+}
+
+.diary-marks {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: $font-size-small;
+}
+
+.mark {
+  color: rgba($main-color, 0.7);
+}
+
+.mark--liked {
+  color: $accent-color;
+}
+
+// His words, line breaks kept, four lines at most here; the whole review is on Letterboxd.
+.diary-review {
+  font-size: $font-size-small;
+  line-height: 1.5;
+  color: rgba($main-color, 0.82);
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+
+.diary-review--spoilers {
+  font-style: italic;
+  color: rgba($main-color, 0.55);
+}
+
+.diary-more {
+  margin: 0.75rem 0.3rem 0;
+  font-size: $font-size-meta;
+  color: rgba($main-color, 0.7);
+}

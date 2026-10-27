@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 
 import { InterestsPageComponent } from './interests-page.component';
+import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 
 const HOUR = 3_600_000;
 
@@ -79,5 +80,19 @@ describe('InterestsPageComponent', () => {
     await fixture.whenStable();
     expect(active()).toEqual(['music-list-albums']);
     expect(albums.getAttribute('aria-pressed')).toBe('true');
+  });
+
+  it('shows Favorite Media for real once it is off the under-construction list, and the sign until then', async () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const tile = () => [...el.querySelectorAll('app-vertical-nav-item')].find(t => t.textContent?.includes('Favorite Media'))!;
+    const underConstruction = isUnderConstruction('favorite-media');
+    expect(!!tile().querySelector('.tile-construction')).toBe(underConstruction);
+    expect(!!tile().querySelector('app-media-preview')).toBe(!underConstruction);
+
+    // Its content only renders once the tile is open.
+    tile().querySelector<HTMLElement>('.item-card-wrapper')!.click();
+    await fixture.whenStable();
+    expect(!!tile().querySelector('.construction-notice')).toBe(underConstruction);
+    expect(!!tile().querySelector('app-favorite-media')).toBe(!underConstruction);
   });
 });
