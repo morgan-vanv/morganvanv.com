@@ -2,6 +2,7 @@ import { InjectionToken, Injectable, PLATFORM_ID, inject, signal } from '@angula
 import { isPlatformBrowser } from '@angular/common';
 import { LIGHTINGS, Lighting } from './sky-render';
 import { UpNow } from './sky-up-now';
+import { Tonight } from './sky-tonight';
 import { StarAround, StarOnScreen, UnnamedStar, VisitorName, brightest, nearestTo, stepAround } from './sky-naming';
 import { FACE_SOUTH, LookView, clampView, spokenView } from './sky-view';
 import { VisitorStar } from '../visitor-content/visitor-content';
@@ -24,6 +25,9 @@ export interface SkyLocation {
 }
 
 export const CINCINNATI: SkyLocation = { lat: 39.1, lon: -84.51, mine: false };
+
+/** Cincinnati's clock, for times in its sky; a visitor's own sky uses their browser's. */
+export const CINCINNATI_TIME_ZONE = 'America/New_York';
 
 /** localStorage key for the visitor's own sky, rounded to 0.1° (about 10 km): the sky doesn't need more. */
 export const SKY_LOCATION_KEY = 'sky-location';
@@ -68,6 +72,8 @@ export class SkyService {
   readonly ready = signal(false);
   /** What's above the horizon at the last redraw, as text. */
   readonly upNow = signal<UpNow | null>(null);
+  /** The coming night (or the rest of this one) and the planets in it; null without astronomy-engine. */
+  readonly tonight = signal<Tonight | null>(null);
   /** Whether the ☾ menu is open. Here rather than in the menu so the sky badges on /now can open it. */
   readonly menuOpen = signal(false);
   /** Bumped when something other than the ☾ button opens the menu, so the menu takes focus. */

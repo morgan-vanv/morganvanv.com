@@ -18,6 +18,7 @@ import { ProperNameFile, starsAround, starsOnScreen, unnamedStars, visitorHoverN
 import type { FreeLook } from './sky-free-look';
 import { LookView, sameReading } from './sky-view';
 import { upNow } from './sky-up-now';
+import { Tonight, tonight } from './sky-tonight';
 import { AstronomyModule, Bodies, computeBodies, loadAstronomy } from './sky-bodies';
 import { NO_HOVER, SkyHover, hoverAt, hoverLabel, isOpenSky, sameHover } from './sky-hover';
 import {
@@ -197,6 +198,8 @@ export class SkyComponent {
   private catalog: SkyCatalog | null = null;
   private astronomy: AstronomyModule | null = null;
   private pinnedTime: Date | null = null;
+  /** The last night worked out, where and when for: it's redone every ten minutes or on a move. */
+  private tonightFor: { lat: number; lon: number; at: number; value: Tonight | null } | null = null;
   /** What the last draw put where, for hover. */
   private scene: { targets: readonly SkyTarget[]; segments: readonly SkySegment[] } | null = null;
   private hover: SkyHover = NO_HOVER;
@@ -853,6 +856,7 @@ export class SkyComponent {
     this.drawOverlay();
     const toHorizontal = j2000ToHorizontalMatrix(date, lat, lon);
     this.sky.upNow.set(upNow(bodies, catalog, toHorizontal));
+    this.refreshTonight(date, lat, lon);
     this.toHorizontal = toHorizontal;
     this.starsVisible = result.starVisibility;
     this.updateNaming();
@@ -907,6 +911,32 @@ export class SkyComponent {
     this.transition = transition;
     setFade(0);
     transition.frame = requestAnimationFrame(step);
+  }
+
+  /**
+   * The coming night for the Up tonight badge. The sky redraws every minute, but the night samples
+   * the whole night (tens of milliseconds), so it's redone every ten minutes, on a move, or when dusk
+   * or dawn passes, and after the draw rather than in it.
+   */
+  private refreshTonight(date: Date, lat: number, lon: number): void {
+    const last = this.tonightFor;
+    const crossed = (edge: Date | null | undefined) => !!edge && date.getTime() >= edge.getTime();
+    const passed = !last?.value || (last.value.dark ? crossed(last.value.end) : crossed(last.value.start));
+    if (last && !passed && last.lat === lat && last.lon === lon && Math.abs(date.getTime() - last.at) < 10 * 60_000) return;
+    const astronomy = this.astronomy;
+    this.tonightFor = { lat, lon, at: date.getTime(), value: last?.value ?? null };
+    setTimeout(() => {
+      let value: Tonight | null;
+      try {
+        value = astronomy ? tonight(astronomy, date, lat, lon) : null;
+      } catch {
+        value = null;
+      }
+      // A newer request (a move) may have come in meanwhile; only the latest is kept.
+      if (this.tonightFor?.at !== date.getTime() || this.tonightFor.lat !== lat || this.tonightFor.lon !== lon) return;
+      this.tonightFor = { lat, lon, at: date.getTime(), value };
+      this.sky.tonight.set(value);
+    });
   }
 
   /**
