@@ -248,7 +248,7 @@
   min-height: 2.875rem;
 }
 
-// Hotline Webring: ‹ prev, the ring, next ›, marked with the navigation brackets.
+// Hotline Webring: ‹ prev and next ›, marked with the navigation brackets, then the ring itself.
 .ring {
   display: flex;
   flex-wrap: wrap;
@@ -305,11 +305,6 @@
   white-space: nowrap;
   transition: border-color 0.2s ease, color 0.2s ease;
 
-  // Phones: ‹ prev and next › share the first line; the ring's own link goes under them.
-  @media (max-width: $breakpoint-phone) {
-    order: 1;
-  }
-
   &:hover,
   &:focus-visible {
     border-color: rgba($accent-color, 0.6);
@@ -328,8 +323,8 @@
   opacity: 0.6;
 
   @media (max-width: $breakpoint-phone) {
-    order: 2;
     flex-basis: 100%;
+    margin-left: 0;
   }
 }
 

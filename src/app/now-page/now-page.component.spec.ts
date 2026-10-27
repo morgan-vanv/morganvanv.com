@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
@@ -91,15 +92,18 @@ describe('NowPageComponent', () => {
     const links = [...ring!.querySelectorAll('a')];
     expect(links.map(a => a.getAttribute('href'))).toEqual([
       'https://hotlinewebring.club/morganvanv/previous',
-      'https://hotlinewebring.club/',
       'https://hotlinewebring.club/morganvanv/next',
+      'https://hotlinewebring.club/',
     ]);
-    expect(links[0].getAttribute('aria-label')).toBe('Previous site in the Hotline Webring');
-    expect(links[2].getAttribute('aria-label')).toBe('Next site in the Hotline Webring');
+    // Accessible names start with the visible words, so voice control can say "prev" and "next".
+    const name = (a: Element) => a.textContent?.replace(/[[\]]/g, '').replace(/\s+/g, ' ').trim();
+    expect(name(links[0])).toBe('‹ prev site in the Hotline Webring');
+    expect(name(links[1])).toBe('next site in the Hotline Webring ›');
     // The ring registers members from the Referer of the first click through.
     for (const link of links) {
       expect(link.getAttribute('rel') ?? '').not.toContain('noreferrer');
     }
+    expect(readFileSync('src/index.html', 'utf8')).not.toMatch(/name="referrer"/);
   });
 
   it('lists the projects under Building, with a count', () => {

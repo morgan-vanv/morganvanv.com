@@ -80,14 +80,14 @@
     <div class="cluster">
       <h3 class="cluster-label">webring</h3>
       <nav class="ring" [attr.aria-label]="webring.name">
-        <a class="hop" [href]="webring.previous" [attr.aria-label]="'Previous site in the ' + webring.name">
-          <span class="bracket" aria-hidden="true">[</span>‹ prev<span class="bracket" aria-hidden="true">]</span>
+        <a class="hop" [href]="webring.previous">
+          <span class="bracket" aria-hidden="true">[</span>‹ prev<span class="visually-hidden"> site in the {{ webring.name }}</span><span class="bracket" aria-hidden="true">]</span>
+        </a>
+        <a class="hop" [href]="webring.next">
+          <span class="bracket" aria-hidden="true">[</span>next<span class="visually-hidden"> site in the {{ webring.name }}</span> ›<span class="bracket" aria-hidden="true">]</span>
         </a>
         <a class="ring-home" [href]="webring.home" target="_blank" rel="noopener">{{ webring.name }} ↗</a>
-        <a class="hop" [href]="webring.next" [attr.aria-label]="'Next site in the ' + webring.name">
-          <span class="bracket" aria-hidden="true">[</span>next ›<span class="bracket" aria-hidden="true">]</span>
-        </a>
-        <span class="ring-note">a loop of personal sites. hop to a neighbour.</span>
+        <span class="ring-note">a loop of personal sites. hop to a neighbor.</span>
       </nav>
     </div>
   </section>
