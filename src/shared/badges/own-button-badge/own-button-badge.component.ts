@@ -22,6 +22,7 @@ const COPIED_MS = 2000;
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '(keydown.escape)': 'onEscape($event)',
+    '(focusout)': 'onFocusOut($event)',
   },
 })
 export class OwnButtonBadgeComponent {
@@ -36,7 +37,7 @@ export class OwnButtonBadgeComponent {
   private readonly code = viewChild<ElementRef<HTMLTextAreaElement>>('code');
   private copiedTimer: ReturnType<typeof setTimeout> | undefined;
 
-  readonly label = `${SITE_CONFIG.domain}'s own 88×31 button. Shows the HTML to link to this site with it.`;
+  readonly label = `${SITE_CONFIG.domain}: this site's own 88×31 button. Shows the HTML to link to this site with it.`;
 
   constructor() {
     const onPointerDown = (event: PointerEvent) => {
@@ -75,6 +76,12 @@ export class OwnButtonBadgeComponent {
     this.copied.set(true);
     clearTimeout(this.copiedTimer);
     this.copiedTimer = setTimeout(() => this.copied.set(false), COPIED_MS);
+  }
+
+  /** Tabbing out of it closes it too, so it never lingers behind the visitor. */
+  protected onFocusOut(event: FocusEvent): void {
+    const next = event.relatedTarget as Node | null;
+    if (this.open() && next && !this.host.contains(next)) this.open.set(false);
   }
 
   protected onEscape(event: Event): void {

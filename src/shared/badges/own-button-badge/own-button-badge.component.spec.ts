@@ -70,4 +70,16 @@ describe('OwnButtonBadgeComponent', () => {
     await fixture.whenStable();
     expect(el.querySelector('#link-to-me')).toBeNull();
   });
+
+  it('closes when focus moves somewhere else on the page', async () => {
+    const { fixture, el, button } = await render();
+    button.click();
+    await fixture.whenStable();
+    const elsewhere = document.createElement('button');
+    document.body.appendChild(elsewhere);
+    el.querySelector('.copy')!.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: elsewhere }));
+    await fixture.whenStable();
+    expect(el.querySelector('#link-to-me')).toBeNull();
+    elsewhere.remove();
+  });
 });

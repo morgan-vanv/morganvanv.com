@@ -92,4 +92,29 @@ describe('BadgeComponent', () => {
     const { el } = await render();
     expect(el.querySelector('.popover')).toBeNull();
   });
+
+  it('Escape hides a showing popover without leaving the page, until focus moves on', async () => {
+    const { fixture, el } = await render(host => {
+      host.href.set('https://example.com/');
+      host.popover.set({ title: 'The Moon, tonight' });
+    });
+    const link = el.querySelector<HTMLAnchorElement>('a.badge')!;
+    link.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    link.dispatchEvent(escape);
+    await fixture.whenStable();
+    expect(escape.defaultPrevented).toBe(true);
+    expect(el.querySelector('.popover')?.classList).toContain('dismissed');
+
+    link.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    await fixture.whenStable();
+    expect(el.querySelector('.popover')?.classList).not.toContain('dismissed');
+  });
+
+  it('leaves Escape alone when nothing is showing', async () => {
+    const { el } = await render(host => host.href.set('https://example.com/'));
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    el.querySelector('a.badge')!.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(false);
+  });
 });

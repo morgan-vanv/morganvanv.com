@@ -32,8 +32,11 @@ const LONG_NAME = 14;
   styleUrl: './badge.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(mouseenter)': 'place()',
-    '(focusin)': 'place()',
+    '(mouseenter)': 'hovered = true; place()',
+    '(focusin)': 'focused = true; place()',
+    '(mouseleave)': 'hovered = false; dismissed.set(false)',
+    '(focusout)': 'focused = false; dismissed.set(false)',
+    '(keydown.escape)': 'dismiss($event)',
   },
 })
 export class BadgeComponent {
@@ -62,6 +65,18 @@ export class BadgeComponent {
   protected readonly placement = signal<PopoverPlacement>({ end: false, below: false });
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly popoverEl = viewChild<ElementRef<HTMLElement>>('pop');
+
+  /** Escape hides a showing popover (WCAG 1.4.13) until the pointer or focus leaves the badge. */
+  protected readonly dismissed = signal(false);
+  protected hovered = false;
+  protected focused = false;
+
+  protected dismiss(event: Event): void {
+    if (!this.popoverEl() || this.dismissed() || !(this.hovered || this.focused)) return;
+    // Handled here, so the site-wide Escape (back to the greeting) doesn't also fire.
+    event.preventDefault();
+    this.dismissed.set(true);
+  }
 
   protected place(): void {
     const popover = this.popoverEl()?.nativeElement;

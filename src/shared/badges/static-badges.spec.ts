@@ -24,6 +24,7 @@ describe('the static badges', () => {
     expect(value).toBe(`${COMMUNITY_PHOTOS.length} photos`);
     expect(el.querySelector('.name')?.textContent?.trim()).toBe('Photo Wall');
     expect(badge?.getAttribute('href')).toBe('/social');
+    expect(badge?.getAttribute('aria-label')).toMatch(/^Photo Wall: /);
     expect(badge?.getAttribute('aria-label')).toContain(`newest: ${COMMUNITY_PHOTOS.at(-1)?.caption}`);
   });
 

@@ -29,7 +29,7 @@
 
 <!-- Shown on hover/focus; the badge's aria-label already says all of it. -->
 @if (popover(); as popover) {
-  <span #pop class="popover" [class.end]="placement().end" [class.below]="placement().below" aria-hidden="true">
+  <span #pop class="popover" [class.end]="placement().end" [class.below]="placement().below" [class.dismissed]="dismissed()" aria-hidden="true">
     <span class="popover-title">{{ popover.title }}</span>
     @for (row of popover.rows ?? []; track row.label) {
       <span class="popover-row"><span>{{ row.label }}</span><b>{{ row.value }}</b></span>

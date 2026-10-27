@@ -94,10 +94,19 @@
   border: 1px solid rgba($main-color, 0.18);
   border-radius: 10px;
   font-size: $font-size-meta;
-  pointer-events: none;
   // Out of the layout until it's wanted, so a hidden popover can't widen the page.
   display: none;
   transition: opacity 150ms ease;
+
+  // A bridge over the gap to the badge, so the pointer can move onto the popover without losing it.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 0.5rem;
+  }
 
   &.end {
     left: auto;
@@ -107,10 +116,16 @@
   &.below {
     bottom: auto;
     top: calc(100% + 0.5rem);
+
+    &::after {
+      top: auto;
+      bottom: 100%;
+    }
   }
 
-  .badge:hover + &,
-  .badge:focus-visible + & {
+  // Shown while the badge (or the popover itself) is hovered, or the badge has focus.
+  :host(:hover) &,
+  :host(:focus-within) & {
     display: flex;
 
     @starting-style {
@@ -118,8 +133,10 @@
     }
   }
 
-  // An open button badge shows its own panel instead.
-  .badge[aria-expanded='true'] + & {
+  // Escape hides it; and an open button badge shows its own panel instead.
+  // (Under :host, so these outrank the :host(:hover) rule above.)
+  :host &.dismissed,
+  :host .badge[aria-expanded='true'] + & {
     display: none;
   }
 }

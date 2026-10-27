@@ -24,6 +24,7 @@ export class PhotoWallBadgeComponent {
     cta: 'go look →',
   };
 
-  readonly label = `The community photo wall: ${this.value}` +
+  // Starts with the name on its face, so "click Photo Wall" works for voice control.
+  readonly label = `Photo Wall: ${this.value} on the community wall` +
     (this.newest ? `, newest: ${this.newest}` : '') + '. Goes to the Social page.';
 }

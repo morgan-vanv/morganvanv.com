@@ -53,7 +53,8 @@
 
   </div>
 
-  <!-- 88×31 buttons, in two rows. Each hides itself while it has no data. -->
+  <!-- 88×31 buttons, in two rows. Each hides itself while it has no data. The ones whose data ships
+       with the site come first in each row, so the live ones arriving later don't push them around. -->
   <section class="panel buttons-panel" aria-labelledby="now-buttons">
     <h2 id="now-buttons">Buttons <span class="range-label">88×31s, most of them live</span></h2>
     <div class="cluster">
@@ -65,11 +66,11 @@
     <div class="cluster">
       <h3 class="cluster-label">this site</h3>
       <div class="strip">
-        <app-lighthouse-badge />
         <app-angular-badge />
         <app-no-cookies-badge />
         <app-under-construction-badge />
         <app-own-button-badge />
+        <app-lighthouse-badge />
       </div>
     </div>
   </section>
