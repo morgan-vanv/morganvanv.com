@@ -72,40 +72,23 @@
   }
 }
 
-// Which of the three jobs the form is doing: toggle buttons, so ← → still change page.
+// Which of the three jobs the form is doing: the site's toggle buttons (as Music's top lists and
+// Favorite Media's shelves), so ← → still change page.
 .modes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  @include shared.toggle-group;
   margin-bottom: 0.875rem;
 }
 
 .mode {
-  min-height: 44px;
-  padding: 0 0.875rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: transparent;
-  color: $main-color;
-  font-family: inherit;
-  font-size: $font-size-small;
-  cursor: pointer;
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-
-  &:hover {
-    border-color: rgba(255, 255, 255, 0.45);
-  }
-
-  &.on {
-    border-color: $accent-color;
-    color: $accent-color;
-    background: rgba($accent-color, 0.08);
-    font-weight: bold;
-  }
+  @include shared.toggle-button;
 
   &:focus-visible {
     outline: 2px solid $accent-color;
     outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
   }
 }
 

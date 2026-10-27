@@ -3,7 +3,7 @@
 
     <div class="modes" role="group" aria-label="What are you sending?">
       @for (option of modes; track option.id) {
-        <button type="button" class="mode" [class.on]="kind() === option.id"
+        <button type="button" class="mode"
           [attr.aria-pressed]="kind() === option.id" [disabled]="isSubmitting()" (click)="choose(option.id)">
           {{ option.label }}
         </button>
