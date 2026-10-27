@@ -103,7 +103,9 @@ describe('NowPageComponent', () => {
     for (const link of links) {
       expect(link.getAttribute('rel') ?? '').not.toContain('noreferrer');
     }
-    expect(readFileSync('src/index.html', 'utf8')).not.toMatch(/name="referrer"/);
+    // A site-wide policy may tighten the Referer, but must still send our origin to other sites.
+    const policy = /<meta name="referrer" content="([^"]*)"/.exec(readFileSync('src/index.html', 'utf8'))?.[1];
+    expect(['no-referrer', 'same-origin']).not.toContain(policy);
   });
 
   it('lists the projects under Building, with a count', () => {
