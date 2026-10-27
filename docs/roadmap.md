@@ -12,7 +12,7 @@ PR #80. `RecentStreamService` (`src/shared/services/recent-stream.service.ts`) i
 
 ## 2. `/now` page — shipped
 
-`src/app/now-page/`. The note lives in `now.content.ts`; it and its "updated" date stay hidden until Morgan adds paragraphs. The Watching row slots in once the Letterboxd feed exists (`ideas-later.md` §3).
+`src/app/now-page/`. The note lives in `now.content.ts`; it and its "updated" date stay hidden until Morgan adds paragraphs. Its Watching row reads the Letterboxd diary (2026-10-27).
 
 ## 3. Tonight's sky — shipped
 

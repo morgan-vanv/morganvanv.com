@@ -2,7 +2,7 @@
 
 The parking lot for morganvanv.com. Nothing here is a commitment. When something gets picked up, move it into a PR and delete it from here; when a decision gets made about it, add a line to `decisions.md`.
 
-**Legend** — effort: `S` an evening · `M` a weekend · `L` several sessions. `backend` = needs a serverless function (the site itself stays static). `data` = needs a scheduled data-fetching GitHub Action (see "Patterns" at the bottom).
+**Legend** — effort: `S` an evening · `M` a weekend · `L` several sessions. `backend` = needs a serverless function (the site itself stays static). `data` = needs data fetched at deploy, or committed history (see "Patterns" at the bottom).
 
 Last big refresh: 2026-10-25 (audit of the repo at `4890dba`; sections 1–2 executed in PR #74 the same day).
 
@@ -35,12 +35,11 @@ Shipped in PR #74: meta/OG/Twitter tags, prerendering of every route, `robots.tx
 
 ## 3. Features: Morgan's seeds, worked out
 
-### Letterboxd diary → Favorite Media
-`M`, `data`
-- **Data path.** Letterboxd has a per-user RSS feed (`letterboxd.com/<user>/rss/`) with `letterboxd:filmTitle`, `filmYear`, `memberRating`, `watchedDate`, `rewatch`, and the poster + review text in `description`. It is CORS-blocked and only holds recent entries, so: a scheduled GitHub Action fetches it, parses to `public/data/letterboxd.json`, commits. No runtime backend. For history, import the one-time Letterboxd CSV export (`diary.csv`, `reviews.csv`) as the seed file.
-- **UI.** A vertical diary: date rail on the left, poster (lazy, from Letterboxd's CDN), title/year, star rating rendered as gold stars, review text collapsed to two lines with "more". Rewatches get a tiny ↻ badge. Lives under Interests → Favorite Media, which is already stubbed.
-- **Extras.** A "this year in film" strip at the top (count, average rating, most-watched decade). Filter by rating. Link each entry to the Letterboxd page.
-- **Later.** The same JSON feeds the `/now` page and a greeting subtitle ("recently watched: X, gave it 2 stars").
+### Letterboxd, what's left
+The data path shipped (2026-10-27: deploy-time `letterboxd.json`, daily deploy, Watching on `/now`), and the diary sits under Favorite Media as its own feed. Not done, on purpose:
+- **Posters.** `S` — the feed's `tmdb:movieId` makes them a TMDB lookup at deploy (free for non-commercial use with attribution, but it needs a TMDB API key as a repo secret and a credit line on the site). Not Letterboxd's own CDN: its terms rule out in-line linking.
+- **History and stats.** `M` — "this year in film" (count, average rating, decades) needs more than the feed's 50 entries: seed from the account export (`diary.csv`) and merge each deploy's feed into it. Merging into the live copy alone would lose the history on one bad deploy, so the history would have to be committed.
+- **A greeting subtitle** ("recently watched: X, gave it 2 stars") from the same JSON. `S`
 
 ### Bad UI showcase
 `M`
@@ -84,7 +83,7 @@ Grouped by the design pillars.
 ### Alive (changes on its own)
 *Now-playing, the `/now` page and Tonight's sky were promoted to `docs/roadmap.md` on 2026-10-25.*
 
-- **History charts from scheduled snapshots.** `M`, `data` — A nightly GitHub Action appends WOM total XP / EHP and stats.fm top artist to a JSON file. After a month there's enough for sparklines: "XP over time", "music taste drift". Same Action pattern as Letterboxd.
+- **History charts from scheduled snapshots.** `M`, `data` — A nightly GitHub Action appends WOM total XP / EHP and stats.fm top artist to a JSON file. After a month there's enough for sparklines: "XP over time", "music taste drift". Needs committed history; see Patterns.
 - **Site changelog.** `S` — `/changelog` or a "What's new" box on Home, generated from `git log` at build or a hand-kept `CHANGELOG.md`. Makes "check back in sometime" concrete.
 - **Colophon.** `S` — How the site is built, what powers each live panel, fonts, hosting. IndieWeb staple; also where the tech stack can live without being the headline.
 - **Vinyl shelf.** `M` — Discogs has a public API for public collections. A shelf of cover art under Interests; hover/expand for pressing details. Discogs is already linked from the Music card.
@@ -134,7 +133,7 @@ Grouped by the design pillars.
 
 ## 5. Patterns worth establishing
 
-- **GitHub Action as the cron backend.** A scheduled workflow fetches an external source (Letterboxd RSS, WOM snapshot, Discogs), writes JSON into `public/data/`, and commits if changed. Deploy happens automatically. No runtime backend, no CORS, no API keys in the browser, and the site stays "alive" on a schedule. First use: Letterboxd. Candidates after: XP history, music history, cached RuneLite icons.
+- **Fetch at deploy, deploy on a schedule.** The deploy reads a CORS-blocked or keyed source into same-origin JSON (`lighthouse.json`, `site-status.json`, `letterboxd.json`), each step `continue-on-error` over a committed placeholder, and the deploy runs daily. No runtime backend, no CORS, no keys in the browser. It can't keep history: anything that accumulates (XP or music history) needs its data committed, and the `master` ruleset requires a PR for that, so think about where history lives before reaching for it.
 - **Guestbook-as-PR.** For anything visitors write that Morgan should moderate: function → PR → merge = publish.
 - **DO function.** For anything that needs a secret or must not be in the browser (already used by Ask Morgan).
 
