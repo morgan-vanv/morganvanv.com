@@ -35,7 +35,7 @@ const proper: ProperNameFile = JSON.parse(readFileSync('public/data/sky/proper-n
 /** The bright named stars the sky labels on hover: what "near X" points at. */
 const landmarks: ProperNameFile = { names: names.names.map(([ra, dec, name]) => [ra, dec, name] as const) };
 const constellations = JSON.parse(readFileSync('public/data/sky/constellations.json', 'utf8'));
-import { VisitorStar } from '../visitor-content/visitor-content';
+import { VisitorStar, oneLine } from '../visitor-content/visitor-content';
 
 /** A visitor star as content/stars/ holds it. */
 const named = (ra: number, dec: number, name: string, by: string | null, added: string, near: string | null = null): VisitorStar =>
@@ -246,7 +246,7 @@ describe('sky naming', () => {
 
     it('matches the backend\'s check (#4\'s matchesMessage), so it gets a Publish as PR link', () => {
       // ask/submit/embed.js, for a star: the name as JSON, "unnamed star near X", the magnitude to one place.
-      for (const s of [makeSuggestion('The "Big" One', 'o\'neil', star)!, makeSuggestion('Pat', '', { ...star, near: null })!]) {
+      for (const s of [makeSuggestion('The "Big" One', 'o\'neil', star)!, makeSuggestion('Pat', '', { ...star, near: null })!, makeSuggestion(' Ger\u202Eald  ', ' \u200Bsam ', star)!]) {
         const body = suggestionBody(s);
         const lines = body.question.trim().split('\n');
         const where = body.star.near ? `unnamed star near ${body.star.near}` : 'unnamed star';
@@ -256,6 +256,31 @@ describe('sky naming', () => {
           `named by: ${body.credit ?? 'anonymous'}`,
         ]);
       }
+    });
+
+    it('cleans the name and credit as the backend does, so the message is exactly what would publish', () => {
+      const s = makeSuggestion(' Ger‮ald​ \t the\u0007  great ', ' sam\u0000 \n x ', star)!;
+      expect(s.name).toBe('Gerald the great');
+      expect(s.credit).toBe('sam x');
+      // backend #4's cleanFields: oneLine(name), at most 24; a link is only offered if that's unchanged.
+      for (const value of [s.name, s.credit!]) {
+        expect(oneLine(value)).toBe(value);
+        expect(value.length).toBeLessThanOrEqual(24);
+      }
+      expect(makeSuggestion('​‮ \u0007', 'sam', star)).toBeNull();
+      expect(makeSuggestion('Pat', ' ​ ', star)!.credit).toBeNull();
+    });
+
+    it('caps at 24 without splitting an emoji or an accented letter', () => {
+      // 23 letters, then a 2-unit emoji: the emoji doesn't fit whole, so it goes.
+      expect(makeSuggestion(`${'x'.repeat(23)}🌟`, '', star)!.name).toBe('x'.repeat(23));
+      // A thumbs-up with a skin tone is one grapheme of 4 units: kept whole or dropped, never halved.
+      expect(makeSuggestion(`${'y'.repeat(21)}👍🏽`, '', star)!.name).toBe('y'.repeat(21));
+      expect(makeSuggestion(`${'y'.repeat(20)}👍🏽`, '', star)!.name).toBe(`${'y'.repeat(20)}👍🏽`);
+      // (Zero-width joiners are invisible formatting, so the backend's cleaning drops them first, as here.)
+      expect(makeSuggestion(`${'z'.repeat(23)}é`, '', star)!.name).toBe('z'.repeat(23));
+      // A cut that lands after a space drops the space, so the name stays clean.
+      expect(makeSuggestion(`${'w'.repeat(23)} more`, '', star)!.name).toBe('w'.repeat(23));
     });
 
     it('needs a name, and caps both fields at 24 characters', () => {

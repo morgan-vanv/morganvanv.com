@@ -1,4 +1,4 @@
-import { STAR_NAME_MAX_LENGTH, VisitorStar } from '../visitor-content/visitor-content';
+import { CREDIT_MAX_LENGTH, STAR_NAME_MAX_LENGTH, VisitorStar, capText, oneLine } from '../visitor-content/visitor-content';
 import { Mat3, Vec3, altAz, multiply, raDecToVector, wrap360 } from './sky-math';
 import { ExtraName, SkyLayout, StarFile, screenPoint } from './sky-render';
 
@@ -283,9 +283,13 @@ export function suggestionBody(s: StarSuggestion, honey = '') {
   };
 }
 
-/** Trims the form's inputs into a suggestion (a blank credit is anonymous); null without a name. */
+/**
+ * The form's inputs as a suggestion: cleaned as the backend cleans them (oneLine) and capped at 24
+ * without splitting a character, so what Discord shows is exactly what a Publish link would publish.
+ * A blank credit is anonymous; null without a name.
+ */
 export function makeSuggestion(name: string, credit: string, star: UnnamedStar): StarSuggestion | null {
-  const trimmed = name.trim().slice(0, MAX_NAME);
-  if (!trimmed) return null;
-  return { name: trimmed, credit: credit.trim().slice(0, MAX_NAME) || null, star };
+  const cleanName = capText(oneLine(name), STAR_NAME_MAX_LENGTH);
+  if (!cleanName) return null;
+  return { name: cleanName, credit: capText(oneLine(credit), CREDIT_MAX_LENGTH) || null, star };
 }
