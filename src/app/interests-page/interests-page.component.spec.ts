@@ -82,15 +82,17 @@ describe('InterestsPageComponent', () => {
     expect(albums.getAttribute('aria-pressed')).toBe('true');
   });
 
-  it('shows Favorite Media for real once it is off the under-construction list, and the sign until then', () => {
+  it('shows Favorite Media for real once it is off the under-construction list, and the sign until then', async () => {
     const el = fixture.nativeElement as HTMLElement;
-    const tile = [...el.querySelectorAll('app-vertical-nav-item')].find(t => t.textContent?.includes('Favorite Media'))!;
-    if (isUnderConstruction('favorite-media')) {
-      expect(tile.querySelector('.tile-construction')).not.toBeNull();
-      expect(el.querySelector('app-favorite-media')).toBeNull();
-    } else {
-      expect(tile.querySelector('app-media-preview')).not.toBeNull();
-      expect(el.querySelector('app-favorite-media')).not.toBeNull();
-    }
+    const tile = () => [...el.querySelectorAll('app-vertical-nav-item')].find(t => t.textContent?.includes('Favorite Media'))!;
+    const underConstruction = isUnderConstruction('favorite-media');
+    expect(!!tile().querySelector('.tile-construction')).toBe(underConstruction);
+    expect(!!tile().querySelector('app-media-preview')).toBe(!underConstruction);
+
+    // Its content only renders once the tile is open.
+    tile().querySelector<HTMLElement>('.item-card-wrapper')!.click();
+    await fixture.whenStable();
+    expect(!!tile().querySelector('.construction-notice')).toBe(underConstruction);
+    expect(!!tile().querySelector('app-favorite-media')).toBe(!underConstruction);
   });
 });

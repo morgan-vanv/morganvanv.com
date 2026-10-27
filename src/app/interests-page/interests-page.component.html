@@ -123,6 +123,7 @@
         } @else {
           <div preview><app-media-preview /></div>
         }
+        <!-- Separate from the @if above: a [preview] node has to be the only root of its block to project. -->
         @if (!mediaUnderConstruction) {
           <app-favorite-media />
         }

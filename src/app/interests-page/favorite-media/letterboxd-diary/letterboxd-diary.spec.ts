@@ -58,6 +58,17 @@ describe('LetterboxdDiaryComponent', () => {
     expect(el().querySelector('.diary-more a')?.getAttribute('href')).toBe('https://letterboxd.com/morganvanv/');
   });
 
+  it('names each link by its title, date and marks, and lets the review describe it', async () => {
+    await flush(DIARY);
+    const [first] = el().querySelectorAll('a.diary-entry');
+    const ids = first.getAttribute('aria-labelledby')!.split(' ');
+    expect(ids.map(id => el().querySelector(`#${id}`)?.className)).toEqual(['diary-title', 'diary-date', 'diary-marks']);
+    const review = el().querySelector(`#${first.getAttribute('aria-describedby')}`);
+    expect(review?.textContent).toContain('reminds me of reading Steinbeck');
+    const plainWatch = [...el().querySelectorAll('a.diary-entry')].find(e => e.textContent?.includes('Test Watch'))!;
+    expect(plainWatch.getAttribute('aria-describedby')).toBeNull();
+  });
+
   it('says the marks in words for screen readers, and keeps the review', async () => {
     await flush(DIARY);
     const [first] = el().querySelectorAll('a.diary-entry');
