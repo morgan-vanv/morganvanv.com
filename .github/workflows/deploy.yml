@@ -54,7 +54,7 @@ jobs:
       - name: Copy the CSR shell to 404.html for SPA routing
         run: cp dist/browser/index.csr.html dist/browser/404.html
 
-      # The Letterboxd diary (Favorite Media on /interests, Watching on /now): the public RSS feed, read
+      # The Letterboxd diary (Favorite Media on /interests, Watched on /now): the public RSS feed, read
       # here because it's CORS-blocked in the browser, written to dist/browser/letterboxd.json. Falls back
       # to the live site's copy, then to the placeholder (and the diary hides). Never blocks a deploy.
       - name: Read the Letterboxd diary

@@ -62,7 +62,7 @@ export function formatDay(value: string): string {
   return date.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
-/** How much of a review the Watching row quotes; the rest is a click away on Letterboxd. */
+/** How much of a review the Watched row quotes; the rest is a click away on Letterboxd. */
 const REVIEW_CLIP = 90;
 
 /** Cuts text to about `max` characters at a word boundary, with an ellipsis. */
@@ -129,14 +129,14 @@ export class NowPageComponent {
     };
   });
 
-  private readonly watching = computed<NowRow | null>(() => {
+  private readonly watched = computed<NowRow | null>(() => {
     const entry = this.letterboxd.latest();
     if (!entry) return null;
     const review = entry.review && !entry.spoilers ? `“${clip(entry.review.replace(/\s+/g, ' '), REVIEW_CLIP)}”` : null;
     const detail = [entry.year, entry.rewatch ? 'rewatch' : null, entry.liked ? 'liked' : null, review]
       .filter(part => part !== null).join(' · ');
     return {
-      key: 'watching', label: 'Watching', iconUrl: null, iconStyle: 'cover', glyph: '▶',
+      key: 'watched', label: 'Watched', iconUrl: null, iconStyle: 'cover', glyph: '▶',
       title: entry.title, detail: detail || undefined, rating: entry.rating ?? undefined,
       when: entry.watched ? watchedWhen(entry.watched) || undefined : undefined,
       href: entry.url,
@@ -162,7 +162,7 @@ export class NowPageComponent {
   } : null;
 
   readonly rows = computed(() =>
-    [this.listening(), this.playing(), this.watching(), this.community, this.site].filter((row): row is NowRow => row !== null)
+    [this.listening(), this.playing(), this.watched(), this.community, this.site].filter((row): row is NowRow => row !== null)
   );
 
   private latestActivity(types: readonly RpActivity['type'][]) {

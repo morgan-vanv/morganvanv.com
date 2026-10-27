@@ -167,12 +167,12 @@ describe('NowPageComponent', () => {
     for (const req of http.match(r => r.url === LETTERBOXD_DIARY_URL)) req.flush(body);
   };
 
-  it('adds Watching from the newest Letterboxd entry, after Playing and before Community', async () => {
+  it('adds Watched from the newest Letterboxd entry, after Playing and before Community', async () => {
     flushDiary(diary);
     await fixture.whenStable();
-    expect(rowKeys()).toEqual(['watching', 'community', 'site']);
-    const watching = fixture.componentInstance.rows()[0];
-    expect(watching).toMatchObject({
+    expect(rowKeys()).toEqual(['watched', 'community', 'site']);
+    const watched = fixture.componentInstance.rows()[0];
+    expect(watched).toMatchObject({
       title: 'Days of Heaven', rating: 5, href: 'https://letterboxd.com/morganvanv/film/days-of-heaven/',
       detail: '1978 · liked · “visually stunning movie that reminds me of reading Steinbeck in all the best ways”',
     });
@@ -185,15 +185,15 @@ describe('NowPageComponent', () => {
   it('keeps a spoiler review off /now, and says rewatch', async () => {
     flushDiary({ ...diary, entries: [{ ...diary.entries[0], spoilers: true, rewatch: true, liked: false, rating: null }] });
     await fixture.whenStable();
-    const watching = fixture.componentInstance.rows()[0];
-    expect(watching.detail).toBe('1978 · rewatch');
-    expect(watching.rating).toBeUndefined();
+    const watched = fixture.componentInstance.rows()[0];
+    expect(watched.detail).toBe('1978 · rewatch');
+    expect(watched.rating).toBeUndefined();
   });
 
-  it('skips Watching for the placeholder or an empty diary', async () => {
+  it('skips Watched for the placeholder or an empty diary', async () => {
     flushDiary({ note: 'Placeholder' });
     await fixture.whenStable();
-    expect(rowKeys()).not.toContain('watching');
+    expect(rowKeys()).not.toContain('watched');
   });
 
   it('skips Playing when RuneProfile fails', async () => {

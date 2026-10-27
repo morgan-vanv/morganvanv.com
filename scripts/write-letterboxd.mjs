@@ -1,5 +1,5 @@
 // Writes dist/browser/letterboxd.json: Morgan's Letterboxd diary (his 50 most recent entries) for the
-// Favorite Media section on /interests and the Watching row on /now.
+// Favorite Media section on /interests and the Watched row on /now.
 //
 // Letterboxd's feed is CORS-blocked and its API isn't open to personal sites, so the deploy reads the
 // public RSS feed (never the HTML) and the site reads same-origin JSON. The deploy also runs daily on a

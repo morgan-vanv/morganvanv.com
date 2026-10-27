@@ -36,7 +36,7 @@ Shipped in PR #74: meta/OG/Twitter tags, prerendering of every route, `robots.tx
 ## 3. Features: Morgan's seeds, worked out
 
 ### Letterboxd, what's left
-The data path shipped (2026-10-27: deploy-time `letterboxd.json`, daily deploy, Watching on `/now`), and the diary sits under Favorite Media as its own feed. Not done, on purpose:
+The data path shipped (2026-10-27: deploy-time `letterboxd.json`, daily deploy, Watched on `/now`), and the diary sits under Favorite Media as its own feed. Not done, on purpose:
 - **Posters.** `S` — the feed's `tmdb:movieId` makes them a TMDB lookup at deploy (free for non-commercial use with attribution, but it needs a TMDB API key as a repo secret and a credit line on the site). Not Letterboxd's own CDN: its terms rule out in-line linking.
 - **History and stats.** `M` — "this year in film" (count, average rating, decades) needs more than the feed's 50 entries: seed from the account export (`diary.csv`) and merge each deploy's feed into it. Merging into the live copy alone would lose the history on one bad deploy, so the history would have to be committed.
 - **A greeting subtitle** ("recently watched: X, gave it 2 stars") from the same JSON. `S`
