@@ -10,7 +10,7 @@ describe('AngularBadgeComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     const badge = el.querySelector('a.badge');
     expect(el.querySelector('.value')?.textContent?.trim()).toBe(`Angular ${VERSION.major}`);
-    expect(badge?.getAttribute('aria-label')).toMatch(new RegExp(`^Made with Angular ${VERSION.full.replace(/\./g, '\\.')}`));
+    expect(badge?.getAttribute('aria-label')?.startsWith(`Made with Angular ${VERSION.full},`)).toBe(true);
     expect(badge?.getAttribute('href')).toBe(SITE_CONFIG.repoUrl);
   });
 });
