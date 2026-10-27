@@ -24,16 +24,23 @@ export interface UpNow {
   readonly moon: string | null;
   /** Up to `limit` constellations, highest first. */
   readonly constellations: readonly string[];
+  /** The numbers behind the text, for the Moon and Up tonight badges; null without astronomy-engine. */
+  readonly detail: {
+    readonly moon: { readonly illuminated: number; readonly phase: number; readonly alt: number };
+    /** The Sun's height in degrees: below about −6 it's dark enough to call it night. */
+    readonly sunAlt: number;
+    readonly planets: readonly { readonly name: string; readonly alt: number }[];
+  } | null;
 }
 
 /** Constellations count as "up" when the middle of their figure is this high. */
 const CONSTELLATION_MIN_ALT = 10;
 
 export function upNow(bodies: Bodies | null, catalog: SkyCatalog, toHorizontal: Mat3, limit = 4): UpNow {
-  const planets = (bodies?.planets ?? [])
+  const planetsUp = (bodies?.planets ?? [])
     .filter(p => p.alt > 0)
-    .sort((a, b) => a.mag - b.mag)
-    .map(p => p.name);
+    .sort((a, b) => a.mag - b.mag);
+  const planets = planetsUp.map(p => p.name);
   let moon: string | null = null;
   if (bodies) {
     const lit = `${Math.round(bodies.moon.illuminated * 100)}% lit`;
@@ -45,5 +52,10 @@ export function upNow(bodies: Bodies | null, catalog: SkyCatalog, toHorizontal: 
     .sort((a, b) => b.alt - a.alt)
     .slice(0, limit)
     .map(c => CONSTELLATION_NAMES[c.id]);
-  return { planets, moon, constellations };
+  const detail = bodies && {
+    moon: { illuminated: bodies.moon.illuminated, phase: bodies.moon.phase, alt: bodies.moon.alt },
+    sunAlt: bodies.sun.alt,
+    planets: planetsUp.map(p => ({ name: p.name, alt: p.alt })),
+  };
+  return { planets, moon, constellations, detail };
 }

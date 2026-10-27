@@ -60,10 +60,32 @@ describe('SkyMenuComponent', () => {
 
   it('lists what is up right now', async () => {
     const { fixture, el, sky, button } = await mount();
-    sky.upNow.set({ planets: ['Venus', 'Jupiter'], constellations: ['Orion'], moon: 'Moon, 40% lit' });
+    sky.upNow.set({ planets: ['Venus', 'Jupiter'], constellations: ['Orion'], moon: 'Moon, 40% lit', detail: null });
     button()!.click();
     await fixture.whenStable();
     const items = Array.from(el.querySelectorAll('.up-now li')).map(li => li.textContent!.trim());
     expect(items).toEqual(['Venus, Jupiter', 'Orion', 'Moon, 40% lit']);
+  });
+
+  it('opens from elsewhere (the sky badges) and takes focus', async () => {
+    const { fixture, el, sky, button } = await mount();
+    sky.openMenu();
+    await fixture.whenStable();
+    expect(button()!.getAttribute('aria-expanded')).toBe('true');
+    expect(document.activeElement).toBe(el.querySelector('input[name="sky-lighting"]:checked'));
+  });
+
+  it('hands focus back to the badge that opened it on Escape', async () => {
+    const { fixture, el, sky } = await mount();
+    const badge = document.createElement('button');
+    document.body.appendChild(badge);
+    badge.focus();
+    sky.openMenu();
+    await fixture.whenStable();
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    el.querySelector('#sky-menu')!.dispatchEvent(event);
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(badge);
+    badge.remove();
   });
 });

@@ -24,6 +24,8 @@ export interface MoonBody extends SkyBody {
   readonly phaseAngle: number;
   /** Illuminated fraction of the disc, 0…1. */
   readonly illuminated: number;
+  /** Where it is in its cycle, in degrees: 0 new, 90 first quarter, 180 full, 270 last quarter. */
+  readonly phase: number;
 }
 
 export interface Bodies {
@@ -48,6 +50,7 @@ export function computeBodies(astro: AstronomyModule, date: Date, latDeg: number
       mag: moonIllumination.mag,
       phaseAngle: moonIllumination.phase_angle,
       illuminated: moonIllumination.phase_fraction,
+      phase: astro.MoonPhase(date),
     },
     planets: PLANETS.map(name => ({
       name,
