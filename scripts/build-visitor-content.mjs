@@ -22,6 +22,12 @@ function readContent(dir) {
   } catch {
     return [];
   }
+  for (const entry of entries) {
+    // A symlink or other special file is never read through; say so, rather than skip it quietly.
+    if (!entry.isFile() && !entry.isDirectory()) {
+      odd.push(relative(dir, join(entry.parentPath, entry.name)).split(sep).join('/'));
+    }
+  }
   return entries
     .filter(entry => entry.isFile())
     .map(entry => {
@@ -30,11 +36,17 @@ function readContent(dir) {
     });
 }
 
+const odd = [];
 const { content, problems } = gatherContent(readContent(contentDir));
+problems.push(...odd.map(path => ({ path, message: 'not a plain file (a symlink?)' })));
+
+/** GitHub's workflow-command escaping, so text from a file can't start a command of its own. */
+const escapeData = text => String(text).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
+const escapeProperty = text => escapeData(text).replaceAll(':', '%3A').replaceAll(',', '%2C');
 
 for (const { path, message } of problems) {
   // In GitHub Actions, also as an annotation on the file.
-  if (process.env.GITHUB_ACTIONS) console.log(`::warning file=content/${path}::${message}`);
+  if (process.env.GITHUB_ACTIONS) console.log(`::warning file=${escapeProperty(`content/${path}`)}::${escapeData(message)}`);
   console.warn(`content/${path}: ${message} (left out)`);
 }
 

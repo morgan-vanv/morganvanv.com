@@ -59,11 +59,11 @@ describe('MailbagComponent', () => {
     expect(quote.querySelector('img, b')).toBeNull();
   });
 
-  it('keeps an external link\'s new tab and rel="noopener" through Angular\'s sanitizer', async () => {
+  it('keeps an external link\'s new tab and rel="noopener noreferrer" through Angular\'s sanitizer', async () => {
     const { el } = await mount([letter(1, 'q?', renderAnswer('[repo](https://github.com/morgan-vanv) <script>x</script>'))]);
     const link = el.querySelector<HTMLAnchorElement>('.answer a')!;
     expect(link.getAttribute('target')).toBe('_blank');
-    expect(link.getAttribute('rel')).toBe('noopener');
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer');
     expect(el.querySelector('.answer script')).toBeNull();
     expect(el.querySelector('.answer')?.textContent).toContain('<script>x</script>');
   });

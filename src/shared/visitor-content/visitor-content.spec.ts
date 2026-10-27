@@ -177,14 +177,14 @@ describe('visitor content: the answer\'s Markdown', () => {
     expect(renderAnswer('1. first\n2. second')).toBe('<ol><li>first</li><li>second</li></ol>');
     expect(renderAnswer('```ts\nconst a = 1 < 2;\n```')).toBe('<pre><code>const a = 1 &lt; 2;</code></pre>');
     expect(renderAnswer('See [the sky](/home) or [my repo](https://github.com/morgan-vanv) or [mail](mailto:a@b.c).')).toBe(
-      '<p>See <a href="/home">the sky</a> or <a href="https://github.com/morgan-vanv" target="_blank" rel="noopener">my repo</a>'
+      '<p>See <a href="/home">the sky</a> or <a href="https://github.com/morgan-vanv" target="_blank" rel="noopener noreferrer">my repo</a>'
       + ' or <a href="mailto:a@b.c">mail</a>.</p>',
     );
   });
 
   it('links bare URLs, leaving trailing punctuation outside', () => {
     expect(renderAnswer('Try https://example.com/a?b=1&c=2.')).toBe(
-      '<p>Try <a href="https://example.com/a?b=1&amp;c=2" target="_blank" rel="noopener">https://example.com/a?b=1&amp;c=2</a>.</p>',
+      '<p>Try <a href="https://example.com/a?b=1&amp;c=2" target="_blank" rel="noopener noreferrer">https://example.com/a?b=1&amp;c=2</a>.</p>',
     );
   });
 
@@ -230,7 +230,7 @@ describe('visitor content: the answer\'s Markdown', () => {
       ].join('\n'));
       const tags = out.match(/<[^>]+>/g)!;
       for (const tag of tags) {
-        expect(tag).toMatch(/^<\/?(p|em|strong|code|pre|ul|ol|li)>$|^<a href="[^"]*"( target="_blank" rel="noopener")?>$|^<\/a>$/);
+        expect(tag).toMatch(/^<\/?(p|em|strong|code|pre|ul|ol|li)>$|^<a href="[^"]*"( target="_blank" rel="noopener noreferrer")?>$|^<\/a>$/);
       }
     });
 

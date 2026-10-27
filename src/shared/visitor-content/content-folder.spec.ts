@@ -25,11 +25,22 @@ function readContent(dir: string): ContentFile[] {
 const report = (problems: readonly ContentProblem[]) => problems.map(p => `content/${p.path}: ${p.message}`);
 
 const files = readContent('content');
+
+/** Anything under content/ that isn't a plain file or folder (a symlink, say): readContent never reads it. */
+const notPlain = existsSync('content')
+  ? readdirSync('content', { recursive: true, withFileTypes: true })
+    .filter(entry => !entry.isFile() && !entry.isDirectory())
+    .map(entry => relative('content', join(entry.parentPath, entry.name)).split(sep).join('/'))
+  : [];
 const { content, problems } = gatherContent(files);
 
 describe('content/ (what visitors sent, approved by merging)', () => {
   it('every file passes its checks (a mailbag letter needs an answer under the marker)', () => {
     expect(report(problems)).toEqual([]);
+  });
+
+  it('holds only plain files (no symlinks)', () => {
+    expect(notPlain).toEqual([]);
   });
 
   it('has its README and keeps each folder in git', () => {

@@ -220,6 +220,10 @@ export function parseLetter(id: string, text: string, path = `mailbag/${id}.md`)
     if (line !== '>' && !line.startsWith('> ')) return `line ${i + 1}: a question line is "> text" or a lone ">"`;
     question.push(line.slice(2));
   }
+  // The backend writes each line already clean (see ask/publish's block()); anything else was edited by
+  // hand or slipped through, so it's refused rather than shown.
+  const unclean = question.findIndex(line => line !== cleanQuestionLine(line));
+  if (unclean !== -1) return `line ${unclean + 4}: a question line can't have invisible or control characters, tabs or runs of spaces`;
   const asText = question.join('\n').trim();
   if (!asText) return 'has no question: quote it under the front matter, every line starting with "> "';
   if (asText.length > QUESTION_MAX_LENGTH) return `the question is ${asText.length} characters; the limit is ${QUESTION_MAX_LENGTH}`;
@@ -231,8 +235,16 @@ export function parseLetter(id: string, text: string, path = `mailbag/${id}.md`)
       : `the answer marker is missing: put this line back between the question and the answer: ${ANSWER_MARKER}`;
   }
   const answerMarkdown = stripComments(lines.slice(i + 1).join('\n')).trim();
-  if (!answerMarkdown) return emptyAnswerMessage(path);
+  // Invisible characters alone (a zero-width space) don't count as an answer.
+  if (!answerMarkdown.replace(/\p{Cf}/gu, '').trim()) return emptyAnswerMessage(path);
   return { id, asked, question: asText, answer: renderAnswer(answerMarkdown) };
+}
+
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+
+/** A question line as the backend writes it: well-formed, no invisible or control characters, single spaces, trimmed. */
+function cleanQuestionLine(line: string): string {
+  return line.replace(LONE_SURROGATE, '\uFFFD').replace(/[\p{Cf}]/gu, '').replace(/[^\P{Cc}\s]/gu, '').replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -328,7 +340,7 @@ export function sameStar(ra1: number, dec1: number, ra2: number, dec2: number): 
  * Everything else (headings, raw HTML, images, quotes) shows as the text it is. All text is escaped
  * before any tag is made, and the only tags made are p, em, strong, code, pre, ul, ol, li and a. A
  * link must be http(s), mailto: or a path on this site; anything else (javascript:, data:, …) is
- * left as plain text. External links open in a new tab with rel="noopener".
+ * left as plain text. External links open in a new tab with rel="noopener noreferrer", like the rest of the site.
  */
 export function renderAnswer(markdown: string): string {
   const lines = stripComments(markdown).replace(/\r\n?/g, '\n').replace(/[^\P{Cc}\n\t]/gu, '').split('\n');
@@ -382,7 +394,7 @@ export function safeHref(url: string): string | null {
 }
 
 function linkHtml(href: string, inner: string): string {
-  const external = /^https?:/i.test(href) ? ' target="_blank" rel="noopener"' : '';
+  const external = /^https?:/i.test(href) ? ' target="_blank" rel="noopener noreferrer"' : '';
   return `<a href="${escapeHtml(href)}"${external}>${inner}</a>`;
 }
 

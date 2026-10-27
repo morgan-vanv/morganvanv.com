@@ -14,7 +14,12 @@ describe('GreetingPageComponent', () => {
     summary.set(null);
     await TestBed.configureTestingModule({
       imports: [GreetingPageComponent],
-      providers: [provideRouter([]), { provide: RecentStreamService, useValue: { summary } }],
+      providers: [
+        provideRouter([]),
+        { provide: RecentStreamService, useValue: { summary } },
+        // Only Morgan's lines here, whatever content/subtitles/ holds; guest lines have their own tests below.
+        { provide: GUEST_SUBTITLES_TOKEN, useValue: [] },
+      ],
     }).compileComponents();
     fixture = TestBed.createComponent(GreetingPageComponent);
     await fixture.whenStable();
