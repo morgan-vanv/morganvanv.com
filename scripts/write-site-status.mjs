@@ -30,6 +30,8 @@ async function github(path) {
   if (!token) throw new Error('no GITHUB_TOKEN');
   const response = await fetch(`https://api.github.com/repos/${repo}${path}`, {
     headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
+    // A hung API call shouldn't hold the deploy until the step's timeout.
+    signal: AbortSignal.timeout(20_000),
   });
   if (!response.ok) throw new Error(`${path}: HTTP ${response.status}`);
   return response.json();

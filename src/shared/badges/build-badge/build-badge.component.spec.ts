@@ -95,7 +95,7 @@ describe('toStatus', () => {
   it('drops parts that do not look right, and checks that are not checks', () => {
     const status = toStatus({
       commit,
-      pr: { number: 90, url: 'https://example.com/90', checks: [{ name: 'Lint', ok: true }, { name: 'Odd' }] },
+      pr: { number: 90, url: 'https://github.com/morgan-vanv/morganvanv.com/pull/90', checks: [{ name: 'Lint', ok: true }, { name: 'Odd' }] },
       tests: { passed: 'lots', total: 3 },
       deploys: { lastFailureAt: 5 },
     });
@@ -103,6 +103,8 @@ describe('toStatus', () => {
     expect(status?.tests).toBeUndefined();
     expect(status?.deploys).toBeUndefined();
     expect(toStatus({ commit, pr: { number: 'x' } })?.pr).toBeUndefined();
+    expect(toStatus({ commit, pr: { number: 90, url: 'javascript:alert(1)', checks: [] } })?.pr).toBeUndefined();
+    expect(toStatus({ commit, pr: { number: 90, url: 'https://example.com/90', checks: [] } })?.pr).toBeUndefined();
   });
 });
 
