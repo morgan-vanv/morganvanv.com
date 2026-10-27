@@ -259,7 +259,7 @@ describe('sky naming', () => {
     });
 
     it('cleans the name and credit as the backend does, so the message is exactly what would publish', () => {
-      const s = makeSuggestion(' Ger‮ald​ \t the\u0007  great ', ' sam\u0000 \n x ', star)!;
+      const s = makeSuggestion(' Ger\u202Eald\u200B \t the\u0007  great ', ' sam\u0000 \n x ', star)!;
       expect(s.name).toBe('Gerald the great');
       expect(s.credit).toBe('sam x');
       // backend #4's cleanFields: oneLine(name), at most 24; a link is only offered if that's unchanged.
@@ -267,8 +267,8 @@ describe('sky naming', () => {
         expect(oneLine(value)).toBe(value);
         expect(value.length).toBeLessThanOrEqual(24);
       }
-      expect(makeSuggestion('​‮ \u0007', 'sam', star)).toBeNull();
-      expect(makeSuggestion('Pat', ' ​ ', star)!.credit).toBeNull();
+      expect(makeSuggestion('\u200B\u202E \u0007', 'sam', star)).toBeNull();
+      expect(makeSuggestion('Pat', ' \u200B ', star)!.credit).toBeNull();
     });
 
     it('caps at 24 without splitting an emoji or an accented letter', () => {

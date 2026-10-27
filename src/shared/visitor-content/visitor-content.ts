@@ -253,13 +253,17 @@ export function parseLetter(id: string, text: string, path = `mailbag/${id}.md`)
   }
   const answer = renderAnswer(lines.slice(i + 1).join('\n'));
   // Judged on what would show: comments, control and invisible characters alone aren't an answer.
-  if (!visibleText(answer)) return emptyAnswerMessage(path);
+  if (!hasVisibleText(answer)) return emptyAnswerMessage(path);
   return { id, asked, question: asText, answer };
 }
 
-/** The text a reader would see in rendered HTML: tags, invisible formatting characters and outer whitespace gone. */
-export function visibleText(html: string): string {
-  return html.replace(/<[^>]*>/g, '').replace(/\p{Cf}/gu, '').trim();
+/**
+ * Whether rendered HTML would show anything: some text between its tags that isn't only whitespace or
+ * invisible formatting characters. Only ever a yes or no (it never makes text to show), and it reads
+ * renderAnswer's own output, whose tags hold no ">" inside them.
+ */
+export function hasVisibleText(html: string): boolean {
+  return html.split(/<[^>]*>/).some(text => text.replace(/\p{Cf}/gu, '').trim() !== '');
 }
 
 const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;

@@ -5,7 +5,7 @@ import {
   capText,
   catalogueProblem,
   cleanBlock,
-  visibleText,
+  hasVisibleText,
   warningAnnotation,
   GENERATED_MODULES,
   dayLabel,
@@ -68,7 +68,7 @@ describe('visitor content: subtitles', () => {
       [{ ...ok, text: '' }, /"text" is empty/],
       [{ ...ok, text: 'two\nlines' }, /line breaks/],
       [{ ...ok, text: ' padded ' }, /stray spaces/],
-      [{ ...ok, text: 'hidden‮text' }, /control characters/],
+      [{ ...ok, text: 'hidden\u202Etext' }, /control characters/],
       [{ ...ok, text: 7 }, /"text" must be a string/],
       [{ ...ok, by: 'y'.repeat(25) }, /"by" is 25 characters; the limit is 24/],
       [{ ...ok, by: '' }, /"by" is empty \(use null for anonymous\)/],
@@ -384,14 +384,14 @@ describe('visitor content: a letter\'s text (review L2, L3, L4)', () => {
   });
 
   it('cleans a question exactly as the backend\'s block() does', () => {
-    expect(cleanBlock('  a‮b \t c\u0007 \r\n\n\n\nd  ')).toBe('ab c\n\nd');
+    expect(cleanBlock('  a\u202Eb \t c\u0007 \r\n\n\n\nd  ')).toBe('ab c\n\nd');
     expect(cleanBlock('fine\n\nas is')).toBe('fine\n\nas is');
   });
 
   it('refuses a hand-made question that isn\'t clean', () => {
     const file = (quoted: string) => `---\nasked: 2026-10-27\n---\n${quoted}\n\n${ANSWER_MARKER}\nA.`;
     for (const [quoted, message] of [
-      ['> right‮to left', /line 4: a question line can't have invisible or control characters/],
+      ['> right\u202Eto left', /line 4: a question line can't have invisible or control characters/],
       ['> bell\u0007', /line 4: a question line can't/],
       ['> two  spaces', /line 4: a question line can't/],
       ['> ok\n> tab\there', /line 5: a question line can't/],
@@ -407,16 +407,16 @@ describe('visitor content: a letter\'s text (review L2, L3, L4)', () => {
   });
 
   it('judges "answered" by what would show: control, invisible or bidi characters alone don\'t count', () => {
-    for (const answer of ['\u0007\u0001', '​⁠', '‮⁦', '\u0000 ​\n\n\u0007', '<!-- --> ​']) {
+    for (const answer of ['\u0007\u0001', '\u200B\u2060', '\u202E\u2066', '\u0000 \u200B\n\n\u0007', '<!-- --> \u200B']) {
       expect(parseLetter(ID, letterFile('why?', answer)), JSON.stringify(answer)).toBe(emptyAnswerMessage(`mailbag/${ID}.md`));
     }
-    expect(visibleText('<p>​</p>\n<ul><li> </li></ul>')).toBe('');
-    expect(visibleText('<p><em>yes</em></p>')).toBe('yes');
-    expect(typeof parseLetter(ID, letterFile('why?', '​*yes*'))).toBe('object');
+    expect(hasVisibleText('<p>\u200B</p>\n<ul><li> </li></ul>')).toBe(false);
+    expect(hasVisibleText('<p><em>yes</em></p>')).toBe(true);
+    expect(typeof parseLetter(ID, letterFile('why?', '\u200B*yes*'))).toBe('object');
   });
 
   it('strips bidirectional controls from a rendered answer', () => {
-    expect(renderAnswer('a‮b⁦c‏d؜e')).toBe('<p>abcde</p>');
+    expect(renderAnswer('a\u202Eb\u2066c\u200Fd\u061Ce')).toBe('<p>abcde</p>');
   });
 });
 
