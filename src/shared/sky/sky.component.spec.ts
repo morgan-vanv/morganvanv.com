@@ -546,6 +546,8 @@ describe('SkyComponent: free look', () => {
     const { putImageData } = stubBrowser({ reducedMotion: true, landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    // A fixed night: which stars are where (and so which is clicked) mustn't depend on the hour the tests run.
+    (fixture.componentInstance as unknown as Internals).pinnedTime = new Date('2026-10-28T03:00:00Z');
     await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(2));
     const selected = sky.selected();
@@ -577,6 +579,7 @@ describe('SkyComponent: free look', () => {
     stubBrowser({ reducedMotion: true, landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    (fixture.componentInstance as unknown as Internals).pinnedTime = new Date('2026-10-28T03:00:00Z');
     await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(2));
     const another = sky.candidates().find(c => c.star !== sky.selected())!;
