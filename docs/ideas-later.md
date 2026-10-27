@@ -141,7 +141,6 @@ Grouped by the design pillars.
 - **Unify under-construction.** `S` — Pages use the gif; Interests items use a text banner. Make `UnderConstructionComponent` take a `variant` and use it everywhere.
 - **Loading states.** `S` — The live panels show "Loading…" text; skeleton rows in the site's dark/translucent style would feel less static.
 - **OSRS item icons from RuneLite's CDN.** note — Works, but it's a third-party hotlink; if it ever breaks, the Action pattern can cache them.
-- **Subtitle list as data.** `S` — Move `SUBTITLES` out of the component into a data file so adding one doesn't touch TS (and time-aware ones have somewhere to live).
 
 ### Projects page (currently 🚧)
 - `M` — **Started as a stub (2026-10-25):** projects are data in `shared/constants/projects.const.ts`, rendered by `app-project-card` (screenshot, blurb, play/source links, live "updated N ago" from the GitHub API). `/now` shows them under "Building". The Projects page itself can list the same cards, then add non-code projects (the astro rig, the site itself with its changelog) and maybe a per-project changelog from the repo's commits.
