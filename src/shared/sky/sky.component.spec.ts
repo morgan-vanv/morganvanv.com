@@ -348,11 +348,15 @@ describe('SkyComponent: visitor names and naming', () => {
     stubBrowser({ landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    // A fixed night, so the stars (and which one is on its own) are the same every run.
+    const component = fixture.componentInstance as unknown as { pinnedTime: Date | null; draw: () => void };
+    component.pinnedTime = new Date('2026-10-28T01:00:00Z');
+    component.draw();
     await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(1));
-    // A candidate with nothing else within 40px, so the only question is reach.
+    // A candidate with nothing else within 70px (the tap's 30px off plus a finger's 36px), so the only question is reach.
     const lonely = sky.candidates().find(c => c.star !== sky.selected()
-      && sky.candidates().every(o => o === c || Math.hypot(o.x - c.x, o.y - c.y) > 40))!;
+      && sky.candidates().every(o => o === c || Math.hypot(o.x - c.x, o.y - c.y) > 70))!;
     expect(lonely).toBeTruthy();
     const open = document.createElement('div');
     document.body.append(open);
