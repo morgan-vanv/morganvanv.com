@@ -1,13 +1,15 @@
 import { Mat3, Vec3, multiply, raDecToVector } from './sky-math';
-import { ExtraName, NameFile, SkyLayout, StarFile, screenPoint } from './sky-render';
+import { ExtraName, SkyLayout, StarFile, screenPoint } from './sky-render';
 
 /**
  * Name a star: which stars can be named, where they are on screen, which one a
  * click or the ‹ › buttons pick, and the suggestion sent to Morgan. Pure (no
  * DOM), so it's tested like sky-math.ts and sky-render.ts.
  *
- * A star is nameable when it's in stars.json, has no proper name in names.json
- * and hasn't been named by a visitor already. Visitor names live in
+ * A star is nameable when it's in stars.json, has no proper name in
+ * proper-names.json (every proper name d3-celestial knows, to magnitude 4.5;
+ * names.json only has the bright ones the hover labels use) and hasn't been
+ * named by a visitor already. Visitor names live in
  * public/data/sky/visitor-names.json, one row per approved name; Morgan adds a
  * row (the `approve:` line of a suggestion) in a PR.
  */
@@ -17,6 +19,12 @@ export const SAME_STAR_DEG = 0.01;
 
 /** One row of visitor-names.json: [raDeg, decDeg, name, namedBy or null, added "YYYY-MM"]. */
 export type VisitorNameRow = readonly [number, number, string, string | null, string];
+
+/** proper-names.json: every drawn star with a proper name. */
+export interface ProperNameFile {
+  /** [raDeg, decDeg, name], J2000 */
+  readonly names: readonly (readonly [number, number, string])[];
+}
 
 export interface VisitorNameFile {
   readonly format?: string;
@@ -29,7 +37,7 @@ export interface UnnamedStar {
   readonly dec: number;
   readonly mag: number;
   readonly v: Vec3;
-  /** The nearest star with a proper name, for "an unnamed star near Vega"; null if no names were loaded. */
+  /** The nearest bright named star (one the sky labels on hover), for "an unnamed star near Vega"; null if none loaded. */
   readonly near: string | null;
 }
 
@@ -78,35 +86,53 @@ export function nearestNamed(v: Vec3, names: readonly { readonly v: Vec3; readon
 }
 
 const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
-const MAX_NAME = 24;
+/** The longest name or credit, as the form allows. */
+export const MAX_NAME = 24;
 
-/** The valid rows of visitor-names.json; anything malformed is skipped (a bad row never stops the sky). */
+/**
+ * The valid rows of visitor-names.json, trimmed and capped at MAX_NAME like the
+ * form; anything malformed is skipped (a bad row never stops the sky).
+ */
 export function parseVisitorNames(file: unknown): VisitorNameRow[] {
   const names = (file as VisitorNameFile | null)?.names;
   if (!Array.isArray(names)) return [];
-  return names.filter((row): row is VisitorNameRow =>
-    Array.isArray(row) && row.length === 5
-    && typeof row[0] === 'number' && Number.isFinite(row[0])
-    && typeof row[1] === 'number' && Math.abs(row[1]) <= 90
-    && typeof row[2] === 'string' && row[2].trim().length > 0 && row[2].length <= MAX_NAME * 2
-    && (row[3] === null || (typeof row[3] === 'string' && row[3].length <= MAX_NAME * 2))
-    && typeof row[4] === 'string' && MONTH.test(row[4]));
+  return names
+    .filter((row): row is VisitorNameRow =>
+      Array.isArray(row) && row.length === 5
+      && typeof row[0] === 'number' && row[0] >= 0 && row[0] < 360
+      && typeof row[1] === 'number' && row[1] >= -90 && row[1] <= 90
+      && typeof row[2] === 'string' && row[2].trim().length > 0
+      && (row[3] === null || typeof row[3] === 'string')
+      && typeof row[4] === 'string' && MONTH.test(row[4]))
+    .map(([ra, dec, name, credit, added]) =>
+      [ra, dec, name.trim().slice(0, MAX_NAME), credit?.trim().slice(0, MAX_NAME) || null, added] as const);
 }
 
 type NamedVectors = readonly { readonly v: Vec3; readonly name: string }[];
 
-function namedVectors(names?: NameFile): NamedVectors {
+function namedVectors(names?: ProperNameFile): NamedVectors {
   return (names?.names ?? []).map(([ra, dec, name]) => ({ v: raDecToVector(ra, dec), name }));
+}
+
+/** Whether a star ever gets above the horizon at a latitude (its highest altitude is 90° − |lat − dec|). */
+export function everRises(dec: number, lat: number): boolean {
+  return Math.abs(lat - dec) < 90;
 }
 
 /**
  * The stars that can still be named, brightest first (stars.json is sorted by
- * magnitude). Needs the names file: without it every star would look unnamed,
- * so none is offered.
+ * magnitude). Needs proper-names.json: without it a named star could be
+ * offered, so none is. "Near" is measured to `landmarks` (the bright named
+ * stars the sky labels on hover, so a visitor can find them).
  */
-export function unnamedStars(stars: StarFile, names: NameFile | undefined, visitor: readonly VisitorNameRow[]): UnnamedStar[] {
+export function unnamedStars(
+  stars: StarFile,
+  names: ProperNameFile | undefined,
+  visitor: readonly VisitorNameRow[],
+  landmarks: ProperNameFile | undefined = names,
+): UnnamedStar[] {
   if (!names) return [];
-  const named = namedVectors(names);
+  const named = namedVectors(landmarks);
   const taken = (ra: number, dec: number) =>
     names.names.some(n => sameStar(ra, dec, n[0], n[1])) || visitor.some(n => sameStar(ra, dec, n[0], n[1]));
   return stars.stars
@@ -117,11 +143,11 @@ export function unnamedStars(stars: StarFile, names: NameFile | undefined, visit
     });
 }
 
-/** Visitor names with the nearest named star worked out, in file order. */
-export function visitorNames(rows: readonly VisitorNameRow[], names?: NameFile): VisitorName[] {
-  const named = namedVectors(names);
+/** Visitor names with the nearest landmark (bright named star) worked out, in file order. */
+export function visitorNames(rows: readonly VisitorNameRow[], landmarks?: ProperNameFile): VisitorName[] {
+  const named = namedVectors(landmarks);
   return rows.map(([ra, dec, name, credit, added]) => ({
-    ra, dec, name: name.trim(), credit: credit?.trim() || null, added, near: nearestNamed(raDecToVector(ra, dec), named),
+    ra, dec, name, credit, added, near: nearestNamed(raDecToVector(ra, dec), named),
   }));
 }
 
@@ -198,13 +224,29 @@ export function nearestTo(list: readonly StarOnScreen[], x: number, y: number, r
 
 /**
  * The next (+1) or previous (−1) star in left-to-right order, wrapping round.
- * From nothing (or a star no longer on screen), › starts at the left and ‹ at the right.
+ * From a star that isn't in the list (under the panel, say) it carries on from
+ * `fromX`, where that star is; from nothing, › starts at the left and ‹ at the right.
  */
-export function stepStar(list: readonly StarOnScreen[], current: UnnamedStar | null, direction: 1 | -1): StarOnScreen | null {
+export function stepStar(list: readonly StarOnScreen[], current: UnnamedStar | null, direction: 1 | -1, fromX: number | null = null): StarOnScreen | null {
   if (!list.length) return null;
   const i = current ? list.findIndex(s => s.star === current) : -1;
-  if (i === -1) return direction === 1 ? list[0] : list[list.length - 1];
-  return list[(i + direction + list.length) % list.length];
+  if (i !== -1) return list[(i + direction + list.length) % list.length];
+  if (fromX !== null) {
+    const next = direction === 1 ? list.find(s => s.x > fromX) : [...list].reverse().find(s => s.x < fromX);
+    if (next) return next;
+  }
+  return direction === 1 ? list[0] : list[list.length - 1];
+}
+
+/** How many of them ever rise at a latitude: the ones that are really "in this sky". */
+export function unnamedInSky(stars: readonly Pick<UnnamedStar, 'dec'>[], lat: number): number {
+  return stars.filter(s => everRises(s.dec, lat)).length;
+}
+
+/** "428 stars over Cincinnati have no name yet" (draft copy). */
+export function unnamedCountText(count: number, mine: boolean): string {
+  const where = mine ? 'in your sky' : 'over Cincinnati';
+  return `${count} star${count === 1 ? '' : 's'} ${where} ${count === 1 ? 'has' : 'have'} no name yet`;
 }
 
 /** "an unnamed star near Vega" (or, with no names loaded, "an unnamed star"). */

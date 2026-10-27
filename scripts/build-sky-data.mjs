@@ -3,12 +3,15 @@
 //   git clone --depth 1 https://github.com/ofrohn/d3-celestial /tmp/d3-celestial
 //   node scripts/build-sky-data.mjs /tmp/d3-celestial
 //
+// (or `npm pack d3-celestial` and pass the unpacked `package` folder: same data files)
+//
 // Source: d3-celestial by Olaf Frohn (BSD-3-Clause), data derived from the Yale
 // Bright Star Catalog / Hipparcos. Positions are J2000; the app precesses them
 // to the current date. Output is committed; this only needs re-running to
 // change the magnitude cut or the constellation list.
 //
-// It writes stars.json, constellations.json and names.json, nothing else:
+// It writes stars.json, constellations.json, names.json (hover labels, mag ≤ 3) and
+// proper-names.json (every proper name to mag 4.5, so name-a-star skips them), nothing else:
 // visitor-names.json in the same folder is hand-edited (approved visitor star
 // names) and must never be regenerated, so the writes below are checked
 // against that list.
@@ -61,13 +64,26 @@ const names = JSON.parse(readFileSync(join(src, 'data/stars.6.json'), 'utf8')).f
   // A few names are shared by two stars (Alnair); keep the brighter.
   .filter((entry, i, all) => all.findIndex(other => other[2] === entry[2]) === i);
 
+/**
+ * Every star drawn that has a proper name, however faint (to MAG_LIMIT), with no
+ * de-duplication: name-a-star must never offer a star that already has a name.
+ * The hover labels stay with names.json (mag ≤ NAME_MAG_LIMIT).
+ */
+const properNames = JSON.parse(readFileSync(join(src, 'data/stars.6.json'), 'utf8')).features
+  .filter(f => f.properties.mag <= MAG_LIMIT && starNames[f.id]?.name)
+  .sort((a, b) => a.properties.mag - b.properties.mag)
+  .map(f => {
+    const [lon, lat] = f.geometry.coordinates;
+    return [ra(lon), dec(lat), starNames[f.id].name];
+  });
+
 const missing = CONSTELLATIONS.filter(id => !lines.some(l => l.id === id));
 if (missing.length) throw new Error(`constellations not found: ${missing.join(', ')}`);
 
 const out = fileURLToPath(new URL('../public/data/sky/', import.meta.url));
 mkdirSync(out, { recursive: true });
 const header = { source: 'd3-celestial (BSD-3-Clause, Olaf Frohn); Yale Bright Star Catalog / Hipparcos', epoch: 'J2000' };
-const GENERATED = ['stars.json', 'constellations.json', 'names.json'];
+const GENERATED = ['stars.json', 'constellations.json', 'names.json', 'proper-names.json'];
 const write = (file, data) => {
   if (!GENERATED.includes(file)) throw new Error(`build-sky-data only writes ${GENERATED.join(', ')}, not ${file}`);
   writeFileSync(join(out, file), data);
@@ -75,4 +91,5 @@ const write = (file, data) => {
 write('stars.json', JSON.stringify({ ...header, format: '[raDeg, decDeg, mag, bv]', magLimit: MAG_LIMIT, stars }));
 write('constellations.json', JSON.stringify({ ...header, format: '[[raDeg, decDeg], ...] polylines', constellations: lines }));
 write('names.json', JSON.stringify({ ...header, format: '[raDeg, decDeg, name, constellation]', magLimit: NAME_MAG_LIMIT, names }));
-console.log(`build-sky-data: ${stars.length} stars (mag ≤ ${MAG_LIMIT}), ${lines.length} constellations, ${names.length} named stars (mag ≤ ${NAME_MAG_LIMIT})`);
+write('proper-names.json', JSON.stringify({ ...header, format: '[raDeg, decDeg, name]', magLimit: MAG_LIMIT, names: properNames }));
+console.log(`build-sky-data: ${stars.length} stars (mag ≤ ${MAG_LIMIT}), ${lines.length} constellations, ${names.length} named stars (mag ≤ ${NAME_MAG_LIMIT}), ${properNames.length} proper names (mag ≤ ${MAG_LIMIT})`);
