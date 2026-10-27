@@ -3,8 +3,6 @@ import { SITE_CONFIG } from '../../config/site.config';
 import { BadgeComponent, BadgePopover } from '../badge/badge.component';
 import { LighthouseReportService, measuredDay } from './lighthouse-report.service';
 
-export { LIGHTHOUSE_REPORT_URL } from './lighthouse-report.service';
-
 /** A live PageSpeed Insights run of the homepage; the Page weight badge links there too. */
 export const PSI_URL = `https://pagespeed.web.dev/analysis?url=${encodeURIComponent(`${SITE_CONFIG.url}/`)}`;
 

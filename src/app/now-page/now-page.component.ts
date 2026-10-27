@@ -17,16 +17,13 @@ import { NOW_CONTENT_TOKEN } from './now.content';
 import { PROJECTS } from '../../shared/constants/projects.const';
 import { ProjectCardComponent } from '../../shared/project-card/project-card.component';
 import { LighthouseBadgeComponent } from '../../shared/badges/lighthouse-badge/lighthouse-badge.component';
-import { PhotoWallBadgeComponent } from '../../shared/badges/photo-wall-badge/photo-wall-badge.component';
 import { MoonBadgeComponent } from '../../shared/badges/moon-badge/moon-badge.component';
 import { PlanetsBadgeComponent } from '../../shared/badges/planets-badge/planets-badge.component';
 import { WeatherBadgeComponent } from '../../shared/badges/weather-badge/weather-badge.component';
-import { VinylBadgeComponent } from '../../shared/badges/vinyl-badge/vinyl-badge.component';
 import { AngularBadgeComponent } from '../../shared/badges/angular-badge/angular-badge.component';
 import { PageWeightBadgeComponent } from '../../shared/badges/page-weight-badge/page-weight-badge.component';
 import { BuildBadgeComponent } from '../../shared/badges/build-badge/build-badge.component';
 import { NoCookiesBadgeComponent } from '../../shared/badges/no-cookies-badge/no-cookies-badge.component';
-import { UnderConstructionBadgeComponent } from '../../shared/badges/under-construction-badge/under-construction-badge.component';
 import { OwnButtonBadgeComponent } from '../../shared/badges/own-button-badge/own-button-badge.component';
 
 export interface NowRow {
@@ -68,9 +65,8 @@ export function formatDay(value: string): string {
 @Component({
   selector: 'app-now-page',
   imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent,
-    LighthouseBadgeComponent, MoonBadgeComponent, PlanetsBadgeComponent, WeatherBadgeComponent, VinylBadgeComponent,
-    PhotoWallBadgeComponent, PageWeightBadgeComponent, BuildBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent,
-    UnderConstructionBadgeComponent, OwnButtonBadgeComponent],
+    WeatherBadgeComponent, MoonBadgeComponent, PlanetsBadgeComponent,
+    OwnButtonBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent, PageWeightBadgeComponent, LighthouseBadgeComponent, BuildBadgeComponent],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

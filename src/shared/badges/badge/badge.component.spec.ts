@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { BadgeComponent, BadgePopover } from './badge.component';
+import { BadgeComponent, BadgePopover, placeFor } from './badge.component';
 
 @Component({
   imports: [BadgeComponent],
@@ -111,6 +111,37 @@ describe('BadgeComponent', () => {
     expect(el.querySelector('.popover')?.classList).not.toContain('dismissed');
   });
 
+  it('while the pointer rests on it, Escape anywhere hides the popover instead of leaving the page', async () => {
+    const { fixture, el } = await render(host => {
+      host.href.set('https://example.com/');
+      host.popover.set({ title: 'The Moon, tonight' });
+    });
+    const host = el.querySelector('app-badge')!;
+    host.dispatchEvent(new MouseEvent('mouseenter'));
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    document.body.dispatchEvent(escape);
+    await fixture.whenStable();
+    expect(escape.defaultPrevented).toBe(true);
+    expect(el.querySelector('.popover')?.classList).toContain('dismissed');
+
+    // Once the pointer leaves, Escape is the page's again, and the popover can show next time.
+    host.dispatchEvent(new MouseEvent('mouseleave'));
+    await fixture.whenStable();
+    expect(el.querySelector('.popover')?.classList).not.toContain('dismissed');
+    const later = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    document.body.dispatchEvent(later);
+    expect(later.defaultPrevented).toBe(false);
+  });
+
+  it('stops listening for Escape when it goes away', async () => {
+    const { fixture, el } = await render(host => host.popover.set({ title: 'Gone soon' }));
+    el.querySelector('app-badge')!.dispatchEvent(new MouseEvent('mouseenter'));
+    fixture.destroy();
+    const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    document.body.dispatchEvent(escape);
+    expect(escape.defaultPrevented).toBe(false);
+  });
+
   it('leaves Escape alone when nothing is showing', async () => {
     const { el } = await render(host => host.href.set('https://example.com/'));
     const escape = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
@@ -118,3 +149,31 @@ describe('BadgeComponent', () => {
     expect(escape.defaultPrevented).toBe(false);
   });
 });
+
+describe('placeFor', () => {
+  const rect = (left: number, top: number, right: number) => ({ left, top, right, bottom: top + 46, width: right - left, height: 46 }) as DOMRect;
+
+  function badgeIn(container: DOMRect, badge: DOMRect) {
+    const page = document.createElement('div');
+    page.className = 'page-content';
+    const el = document.createElement('span');
+    page.appendChild(el);
+    document.body.appendChild(page);
+    vi.spyOn(page, 'getBoundingClientRect').mockReturnValue(container);
+    vi.spyOn(el, 'getBoundingClientRect').mockReturnValue(badge);
+    return { el, done: () => page.remove() };
+  }
+
+  it('opens up and to the right when there is room', () => {
+    const { el, done } = badgeIn(rect(0, 0, 1000), rect(100, 500, 232));
+    expect(placeFor(el, 280, 200)).toEqual({ end: false, below: false });
+    done();
+  });
+
+  it('opens to the left near the right edge of the page, and below near its top', () => {
+    const { el, done } = badgeIn(rect(0, 100, 600), rect(450, 150, 582));
+    expect(placeFor(el, 280, 200)).toEqual({ end: true, below: true });
+    done();
+  });
+});
+

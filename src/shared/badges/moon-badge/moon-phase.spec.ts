@@ -18,6 +18,8 @@ describe('moon phases', () => {
     expect(phaseShort(191.7)).toBe('waning');
     expect(phaseShort(45)).toBe('waxing');
     expect(phaseShort(180)).toBe('full');
+    expect(phaseShort(90)).toBe('1st qtr');
+    expect(phaseShort(2)).toBe('new');
     expect(phaseShort(270)).toBe('3rd qtr');
   });
 
