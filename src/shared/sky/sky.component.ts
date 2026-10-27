@@ -12,18 +12,9 @@ import {
   viewChild,
   viewChildren,
 } from '@angular/core';
-import { SkyService } from './sky.service';
+import { SkyService, VISITOR_STARS_TOKEN } from './sky.service';
 import { Mat3, altAz, j2000ToHorizontalMatrix, multiply, sunHorizontal } from './sky-math';
-import {
-  ProperNameFile,
-  VisitorNameFile,
-  parseVisitorNames,
-  starsAround,
-  starsOnScreen,
-  unnamedStars,
-  visitorHoverNames,
-  visitorNames,
-} from './sky-naming';
+import { ProperNameFile, starsAround, starsOnScreen, unnamedStars, visitorHoverNames, visitorNames } from './sky-naming';
 import type { FreeLook } from './sky-free-look';
 import { LookView, sameReading } from './sky-view';
 import { upNow } from './sky-up-now';
@@ -175,6 +166,7 @@ export function parseSkyAt(search: string): Date | null {
 })
 export class SkyComponent {
   protected readonly sky = inject(SkyService);
+  private readonly visitorStars = inject(VISITOR_STARS_TOKEN);
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly injector = inject(Injector);
   /** The selected star's ring while naming (CSS pixels), and whether its name has just been sent. */
@@ -381,26 +373,24 @@ export class SkyComponent {
   /** Loads everything the live sky needs; false if any required piece is missing. */
   private async load(): Promise<boolean> {
     try {
-      const [stars, constellations, names, properNames, visitorFile, astronomy] = await Promise.all([
+      const [stars, constellations, names, properNames, astronomy] = await Promise.all([
         fetchJson<StarFile>('/data/sky/stars.json'),
         fetchJson<ConstellationFile>('/data/sky/constellations.json'),
         // Names only feed the hover labels; the sky is fine without them.
         fetchJson<NameFile>('/data/sky/names.json').catch(() => undefined),
         // Every proper name, so name-a-star never offers a named star; without it, nothing is offered.
         fetchJson<ProperNameFile>('/data/sky/proper-names.json').catch(() => undefined),
-        // Stars visitors have named: nice to have, never needed.
-        fetchJson<VisitorNameFile>('/data/sky/visitor-names.json').catch(() => undefined),
         // Without astronomy-engine the sky still works, just without the Moon and planets.
         loadAstronomy().catch(() => null),
         // Without the night landscape the trees would vanish behind the sky, so it's required.
         this.loadLook('darkness'),
       ]);
-      const rows = parseVisitorNames(visitorFile);
       // "Near" points at a bright star the sky labels on hover, so a visitor can find it.
       const landmarks = names && { names: names.names.map(([ra, dec, name]) => [ra, dec, name] as const) };
-      const named = visitorNames(rows, landmarks);
+      // Stars visitors have named come with the build (content/stars/), so there's nothing to fetch.
+      const named = visitorNames(this.visitorStars, landmarks);
       this.sky.visitorNames.set(named);
-      this.sky.unnamed.set(unnamedStars(stars, properNames, rows, landmarks));
+      this.sky.unnamed.set(unnamedStars(stars, properNames, this.visitorStars, landmarks));
       this.catalog = prepareCatalog(stars, constellations, names, visitorHoverNames(named));
       this.astronomy = astronomy;
       return !!this.skies()[0]?.nativeElement.getContext('2d');

@@ -5,8 +5,10 @@ import { TRANSITION_MS } from './sky-transition';
 import { TURN_MS } from './sky-free-look';
 import { SkyTarget } from './sky-render';
 import { SkyToggleComponent } from './sky-toggle.component';
-import { CINCINNATI, SkyService } from './sky.service';
+import { CINCINNATI, SkyService, VISITOR_STARS_TOKEN } from './sky.service';
+import { VISITOR_STARS } from '../../generated/visitor-stars';
 import { altAz, j2000ToHorizontalMatrix, multiply } from './sky-math';
+import { computeLayout, screenPoint } from './sky-render';
 import { computePanorama, panoramaOffset, viewPoint } from './sky-panorama';
 import { FACE_SOUTH, spokenView } from './sky-view';
 
@@ -304,8 +306,9 @@ describe('SkyComponent: visitor names and naming', () => {
     TestBed.inject(SkyService).leaveLookUp();
   });
 
-  it('draws without visitor names when their file is missing (and offers all 543 unnamed stars)', async () => {
-    stubBrowser(); // visitor-names.json 404s here
+  it('draws with no visitor names (and offers all 543 unnamed stars)', async () => {
+    TestBed.overrideProvider(VISITOR_STARS_TOKEN, { useValue: [] });
+    stubBrowser();
     const { sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(sky.visitorNames()).toEqual([]);
@@ -319,17 +322,21 @@ describe('SkyComponent: visitor names and naming', () => {
     expect(sky.unnamed()).toEqual([]);
   });
 
-  it('draws without visitor names when their file is broken', async () => {
-    stubBrowser({ extra: { '/data/sky/visitor-names.json': '{ not json' } });
+  it('reads visitor names from the build (content/stars/), not from a fetch', async () => {
+    expect(TestBed.inject(VISITOR_STARS_TOKEN)).toBe(VISITOR_STARS);
+    stubBrowser();
     const { sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
-    expect(sky.visitorNames()).toEqual([]);
+    const urls = vi.mocked(fetch).mock.calls.map(([url]) => String(url));
+    expect(urls.some(url => url.includes('visitor'))).toBe(false);
+    expect(sky.visitorNames().length).toBe(VISITOR_STARS.length);
   });
 
   it('loads visitor names: hover targets with their label, and the star is no longer offered', async () => {
-    stubBrowser({ landBelow: 0.6, extra: {
-      '/data/sky/visitor-names.json': JSON.stringify({ names: [[283.626, 36.899, 'Gerald', 'sam', '2026-10']] }),
-    } });
+    TestBed.overrideProvider(VISITOR_STARS_TOKEN, {
+      useValue: [{ ra: 283.626, dec: 36.899, name: 'Gerald', by: 'sam', added: '2026-10', near: null }],
+    });
+    stubBrowser({ landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(sky.visitorNames().map(v => [v.name, v.near])).toEqual([['Gerald', 'Vega']]);

@@ -11,10 +11,9 @@
 // change the magnitude cut or the constellation list.
 //
 // It writes stars.json, constellations.json, names.json (hover labels, mag ≤ 3) and
-// proper-names.json (every proper name to mag 4.5, so name-a-star skips them), nothing else:
-// visitor-names.json in the same folder is hand-edited (approved visitor star
-// names) and must never be regenerated, so the writes below are checked
-// against that list.
+// proper-names.json (every proper name to mag 4.5, so name-a-star skips them), nothing else
+// (the writes below are checked against that list). Stars visitors named aren't here: they're
+// one file each in content/stars/, gathered at build time by build-visitor-content.mjs.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';

@@ -3,6 +3,7 @@ import { provideRouter } from '@angular/router';
 import { signal } from '@angular/core';
 import { GreetingPageComponent } from './greeting-page.component';
 import { GUEST_SUBTITLES_TOKEN, SUBTITLES } from '../../shared/constants/subtitles.const';
+import { GUEST_SUBTITLES } from '../../generated/guest-subtitles';
 import { RecentStreamService } from '../../shared/services/recent-stream.service';
 
 describe('GreetingPageComponent', () => {
@@ -92,5 +93,15 @@ describe('GreetingPageComponent with visitors\' subtitles', () => {
 
   it('still prerenders Morgan\'s first line', () => {
     expect(fixture.componentInstance['subtitles']()[0]).toEqual({ text: SUBTITLES[0], credit: null });
+  });
+});
+
+describe('GreetingPageComponent guest lines, by default', () => {
+  it('come from content/subtitles/, gathered at build time', () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([]), { provide: RecentStreamService, useValue: { summary: signal(null) } }] });
+    expect(TestBed.inject(GUEST_SUBTITLES_TOKEN)).toBe(GUEST_SUBTITLES);
+    const fixture = TestBed.createComponent(GreetingPageComponent);
+    const lines = fixture.componentInstance['subtitles']();
+    expect(lines.slice(SUBTITLES.length).map(line => line.text)).toEqual(GUEST_SUBTITLES.map(guest => guest.text));
   });
 });

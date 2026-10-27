@@ -16,7 +16,7 @@ export const NAMING_ERROR = 'Something went wrong sending that. Please try again
  * Name a star: the panel shown while looking up. The selected star (picked on
  * the sky, or with ‹ ›) gets a ring; the visitor suggests a name and it goes to
  * Morgan through the Ask Morgan function. Nothing is published from here: a
- * name only appears once Morgan adds it to visitor-names.json.
+ * name only appears once Morgan merges its file into content/stars/.
  *
  * No FormsModule (it would land in the initial bundle, as the panel is part of
  * App): plain inputs bound to signals. One live region, always there, carries
@@ -100,7 +100,7 @@ export class StarNamingComponent {
 
   async submit(): Promise<void> {
     const star = this.sky.selected();
-    const suggestion = star && makeSuggestion(this.name(), this.credit(), star, new Date());
+    const suggestion = star && makeSuggestion(this.name(), this.credit(), star);
     if (!suggestion || this.submitting()) return;
     // Honeypot filled: a bot. Pretend it worked, send nothing (as the Ask Morgan form does).
     if (this.honey().trim()) {

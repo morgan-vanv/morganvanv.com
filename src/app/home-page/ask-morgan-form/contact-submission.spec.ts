@@ -1,8 +1,20 @@
-import { dropboxSubmission, oneLine, questionSubmission, subtitleSubmission, tsString } from './contact-submission';
+import { ContactSubmission, dropboxSubmission, oneLine, questionSubmission, subtitleSubmission } from './contact-submission';
+
+/**
+ * morganvanv.com-backend #4's `matchesMessage` (ask/submit/embed.js), which only offers a "Publish as PR"
+ * link when the message says what the fields say. Copied here so a change to the message can't quietly
+ * cost Morgan his links.
+ */
+function backendMatches(args: ContactSubmission): boolean {
+  const message = args.question.trim();
+  const lines = message.split('\n');
+  const rest = lines.slice(3).every(line => line.startsWith('approve: '));
+  const credit = args['credit'] === null || args['credit'] === undefined ? 'anonymous' : args['credit'];
+  if (args.kind === 'question') return message === `❓ Question\n${args['text']}`.trim();
+  return rest && lines[0] === '✨ Subtitle suggestion' && lines[1] === `"${args['subtitle']}"` && lines[2] === `credit: ${credit}`;
+}
 
 describe('contact submissions', () => {
-  const october = new Date(2026, 9, 27, 3, 0);
-
   it('labels a question and keeps its text whole', () => {
     expect(questionSubmission('  why the cat?\nreally?  ')).toEqual({
       question: '❓ Question\nwhy the cat?\nreally?',
@@ -18,14 +30,13 @@ describe('contact submissions', () => {
     expect(sent['text']).toBe('the arrows confused me');
   });
 
-  it('folds a subtitle onto one line and ends with the entry to paste in', () => {
-    const sent = subtitleSubmission('  definitely   not\na robot ', ' sam ', october);
+  it('folds a subtitle onto one line: the title, the line in quotes, the credit', () => {
+    const sent = subtitleSubmission('  definitely   not\na robot ', ' sam ');
     expect(sent).toEqual({
       question: [
         '✨ Subtitle suggestion',
         '"definitely not a robot"',
         'credit: sam',
-        'approve: { text: \'definitely not a robot\', by: \'sam\', added: \'2026-10\' },',
       ].join('\n'),
       kind: 'subtitle',
       subtitle: 'definitely not a robot',
@@ -33,16 +44,24 @@ describe('contact submissions', () => {
     });
   });
 
-  it('credits a blank name as anonymous, and null in the entry', () => {
-    const sent = subtitleSubmission('a line', '   ', october);
+  it('credits a blank name as anonymous, and sends null', () => {
+    const sent = subtitleSubmission('a line', '   ');
     expect(sent['credit']).toBeNull();
-    expect(sent.question).toContain('credit: anonymous');
-    expect(sent.question).toContain('by: null, added: \'2026-10\'');
+    expect(sent.question).toBe('✨ Subtitle suggestion\n"a line"\ncredit: anonymous');
   });
 
-  it('escapes quotes and backslashes so the entry is valid TypeScript', () => {
-    expect(tsString('it\'s a \\ slash')).toBe('\'it\\\'s a \\\\ slash\'');
-    expect(new Function(`return ${tsString('it\'s a \\ slash')}`)()).toBe('it\'s a \\ slash');
+  it('no longer carries an approve: line (content/ files replaced pasting)', () => {
+    expect(subtitleSubmission('a line', 'sam').question).not.toContain('approve:');
+  });
+
+  it('matches the backend\'s check, so a question or subtitle gets its Publish as PR link', () => {
+    for (const sent of [
+      questionSubmission('  why the cat?\nreally?  '),
+      subtitleSubmission('a "quoted" line', ''),
+      subtitleSubmission(' it\'s me ', 'sam'),
+    ]) {
+      expect(backendMatches(sent)).toBe(true);
+    }
   });
 
   it('collapses whitespace', () => {

@@ -38,6 +38,13 @@ describe('AskMorganFormComponent', () => {
     await submit;
     expect(component.isSuccess()).toBe(true);
     expect(component.isSubmitting()).toBe(false);
+    expect(component.successMessage()).toContain('Social');
+  });
+
+  it('says good questions get answered in public, in the mailbag on Social', () => {
+    const note = (fixture.nativeElement as HTMLElement).querySelector('#contact-note')?.textContent;
+    expect(note).toContain('mailbag on Social');
+    expect(note).not.toContain('Email me');
   });
 
   it('silently "succeeds" without a request when the honeypot is filled', async () => {
@@ -115,7 +122,7 @@ describe('AskMorganFormComponent', () => {
     expect(req.request.body.kind).toBe('subtitle');
     expect(req.request.body.subtitle).toBe('a certified night owl');
     expect(req.request.body.credit).toBeNull();
-    expect(req.request.body.question).toMatch(/^✨ Subtitle suggestion\n"a certified night owl"\ncredit: anonymous\napprove: \{ text: 'a certified night owl', by: null, added: '\d{4}-\d{2}' \},$/);
+    expect(req.request.body.question).toBe('✨ Subtitle suggestion\n"a certified night owl"\ncredit: anonymous');
     req.flush({});
     await submit;
     expect(component.successMessage()).toContain('front page');

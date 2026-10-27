@@ -7,15 +7,12 @@ import {
   StarOnScreen,
   UnnamedStar,
   angularSeparation,
-  approveRow,
   everRises,
   brightest,
   makeSuggestion,
   monthLabel,
-  monthStamp,
   nearestNamed,
   nearestTo,
-  parseVisitorNames,
   sameStar,
   starTitle,
   starsAround,
@@ -38,7 +35,11 @@ const proper: ProperNameFile = JSON.parse(readFileSync('public/data/sky/proper-n
 /** The bright named stars the sky labels on hover: what "near X" points at. */
 const landmarks: ProperNameFile = { names: names.names.map(([ra, dec, name]) => [ra, dec, name] as const) };
 const constellations = JSON.parse(readFileSync('public/data/sky/constellations.json', 'utf8'));
-const visitorFile = JSON.parse(readFileSync('public/data/sky/visitor-names.json', 'utf8'));
+import { VisitorStar } from '../visitor-content/visitor-content';
+
+/** A visitor star as content/stars/ holds it. */
+const named = (ra: number, dec: number, name: string, by: string | null, added: string, near: string | null = null): VisitorStar =>
+  ({ ra, dec, name, by, added, near });
 
 /** A genuinely unnamed star near Vega (δ² Lyrae, magnitude 4.2), used throughout. */
 const NEAR_VEGA = { ra: 283.626, dec: 36.899 };
@@ -49,13 +50,6 @@ const fake = (ra: number, dec: number, mag: number): UnnamedStar => ({ ra, dec, 
 const at = (star: UnnamedStar, x: number, y: number): StarOnScreen => ({ star, x, y });
 
 describe('sky naming', () => {
-  it('visitor-names.json is in the documented format, and every row in it is valid', () => {
-    expect(visitorFile.format).toBe('[raDeg, decDeg, name, namedBy|null, added YYYY-MM]');
-    expect(Array.isArray(visitorFile.names)).toBe(true);
-    // An approval that would be skipped fails here, not silently on the site.
-    expect(parseVisitorNames(visitorFile).length).toBe(visitorFile.names.length);
-  });
-
   it('proper-names.json has every proper name to magnitude 4.5, each matching a drawn star', () => {
     expect(proper.names.length).toBe(378);
     for (const [ra, dec] of proper.names) expect(stars.stars.some(s => sameStar(ra, dec, s[0], s[1]))).toBe(true);
@@ -85,8 +79,7 @@ describe('sky naming', () => {
   });
 
   it('a star a visitor has named is no longer offered', () => {
-    const rows = parseVisitorNames({ names: [[NEAR_VEGA.ra, NEAR_VEGA.dec, 'Gerald', 'sam', '2026-10']] });
-    const unnamed = unnamedStars(stars, proper, rows, landmarks);
+    const unnamed = unnamedStars(stars, proper, [named(NEAR_VEGA.ra, NEAR_VEGA.dec, 'Gerald', 'sam', '2026-10')], landmarks);
     expect(unnamed.length).toBe(542);
     expect(unnamed.some(s => sameStar(s.ra, s.dec, NEAR_VEGA.ra, NEAR_VEGA.dec))).toBe(false);
   });
@@ -114,34 +107,11 @@ describe('sky naming', () => {
     expect(starTitle({ near: null })).toBe('an unnamed star');
   });
 
-  it('skips malformed visitor rows rather than failing', () => {
-    const rows = parseVisitorNames({
-      names: [
-        [283.626, 36.899, 'Gerald', 'sam', '2026-10'],
-        [10, 20, 'Pat', null, '2026-11'],
-        [10, 20, '', null, '2026-11'],
-        [10, 95, 'Too far north', null, '2026-11'],
-        [360, 20, 'RA out of range', null, '2026-11'],
-        [-1, 20, 'Negative RA', null, '2026-11'],
-        [10, 20, 'No month', null, 'October'],
-        ['10', 20, 'String RA', null, '2026-11'],
-        'nonsense',
-      ],
-    });
-    expect(rows.map(r => r[2])).toEqual(['Gerald', 'Pat']);
-    // Trimmed and capped at 24, like the form.
-    const [long] = parseVisitorNames({ names: [[10, 20, `  ${'x'.repeat(40)} `, ` ${'y'.repeat(40)}`, '2026-11']] });
-    expect(long[2]).toBe('x'.repeat(24));
-    expect(long[3]).toBe('y'.repeat(24));
-    expect(parseVisitorNames({ names: [[10, 20, 'Pat', '   ', '2026-11']] })[0][3]).toBeNull();
-    expect(parseVisitorNames(null)).toEqual([]);
-    expect(parseVisitorNames({ names: 'x' })).toEqual([]);
-  });
-
   it('labels visitor names for hover and for the ☾ menu', () => {
-    const [gerald, pat] = visitorNames(parseVisitorNames({
-      names: [[283.626, 36.899, 'Gerald', 'sam', '2026-10'], [283.626, 36.899, 'Pat', null, '2027-01']],
-    }), landmarks);
+    const [gerald, pat] = visitorNames([
+      named(283.626, 36.899, 'Gerald', 'sam', '2026-10'),
+      named(283.626, 36.899, 'Pat', null, '2027-01'),
+    ], landmarks);
     expect(gerald).toEqual({ ra: 283.626, dec: 36.899, name: 'Gerald', credit: 'sam', added: '2026-10', near: 'Vega' });
     expect(visitorDetail(gerald)).toBe('named by sam, Oct 2026');
     expect(visitorDetail(pat)).toBe('named by a visitor, Jan 2027');
@@ -150,12 +120,22 @@ describe('sky naming', () => {
     expect(visitorHoverNames([gerald])).toEqual([{ ra: 283.626, dec: 36.899, name: 'Gerald', detail: 'named by sam, Oct 2026' }]);
   });
 
+  it('keeps the file\'s "near" when it has one, and works it out when it doesn\'t', () => {
+    const [withNear, without] = visitorNames([
+      named(283.626, 36.899, 'Gerald', 'sam', '2026-10', 'Sheliak'),
+      named(283.626, 36.899, 'Pat', null, '2026-10'),
+    ], landmarks);
+    expect(withNear.near).toBe('Sheliak');
+    expect(without.near).toBe('Vega');
+    expect(visitorNames([named(283.626, 36.899, 'Pat', null, '2026-10')]).map(v => v.near)).toEqual([null]);
+  });
+
   it('a visitor-named star becomes a hover target with its label', () => {
     const layout = computeLayout(1280, 800);
     const toHorizontal = j2000ToHorizontalMatrix(NIGHT, CINCINNATI.lat, CINCINNATI.lon);
     // Whichever unnamed star is on screen that night (Vega's neighbour is overhead, off the top).
     const { star } = starsOnScreen(unnamedStars(stars, proper, [], landmarks), layout, toHorizontal)[0];
-    const [entry] = visitorNames(parseVisitorNames({ names: [[star.ra, star.dec, 'Gerald', 'sam', '2026-10']] }), landmarks);
+    const [entry] = visitorNames([named(star.ra, star.dec, 'Gerald', 'sam', '2026-10')], landmarks);
     const catalog = prepareCatalog(stars, constellations, names, visitorHoverNames([entry]));
     const result = renderSky(new Uint8ClampedArray(layout.width * layout.height * 4), layout, {
       date: NIGHT, lat: CINCINNATI.lat, lon: CINCINNATI.lon, catalog, bodies: null, lighting: 'darkness',
@@ -167,8 +147,6 @@ describe('sky naming', () => {
   });
 
   it('months: stamps and labels', () => {
-    expect(monthStamp(new Date(2026, 9, 27))).toBe('2026-10');
-    expect(monthStamp(new Date(2027, 0, 3))).toBe('2027-01');
     expect(monthLabel('2026-10')).toBe('Oct 2026');
   });
 
@@ -249,42 +227,46 @@ describe('sky naming', () => {
   describe('the suggestion', () => {
     const star = { ra: 283.626, dec: 36.899, mag: 4.22, near: 'Vega', v: raDecToVector(283.626, 36.899) };
 
-    it('is the exact message Morgan gets, ending in the row to approve it', () => {
-      const s = makeSuggestion('  Gerald ', ' sam ', star, new Date(2026, 9, 27))!;
+    it('is the exact message Morgan gets: the title, the name and star, the credit, nothing else', () => {
+      const s = makeSuggestion('  Gerald ', ' sam ', star)!;
       expect(suggestionText(s)).toBe([
         '⭐ Star name suggestion',
         '"Gerald" for the unnamed star near Vega (magnitude 4.2)',
         'named by: sam',
-        'approve: [283.626, 36.899, "Gerald", "sam", "2026-10"]',
       ].join('\n'));
-      // The approve line is exactly a valid visitor-names.json row.
-      const row = JSON.parse(suggestionText(s).split('approve: ')[1]);
-      expect(row).toEqual(approveRow(s));
-      expect(parseVisitorNames({ names: [row] })).toEqual([row]);
+      expect(suggestionText(s)).not.toContain('approve:');
     });
 
-    it('says anonymous for a blank credit, and approves it with null', () => {
-      const s = makeSuggestion('Gerald', '   ', star, new Date(2026, 9, 27))!;
+    it('says anonymous for a blank credit, and sends null', () => {
+      const s = makeSuggestion('Gerald', '   ', star)!;
       expect(s.credit).toBeNull();
       expect(suggestionText(s)).toContain('named by: anonymous');
-      expect(suggestionText(s)).toContain('approve: [283.626, 36.899, "Gerald", null, "2026-10"]');
+      expect(suggestionBody(s).credit).toBeNull();
     });
 
-    it('escapes quotes so the approve row stays valid JSON', () => {
-      const s = makeSuggestion('The "Big" One', 'o\'neil', star, new Date(2026, 9, 27))!;
-      const row = JSON.parse(suggestionText(s).split('approve: ')[1]);
-      expect(row[2]).toBe('The "Big" One');
+    it('matches the backend\'s check (#4\'s matchesMessage), so it gets a Publish as PR link', () => {
+      // ask/submit/embed.js, for a star: the name as JSON, "unnamed star near X", the magnitude to one place.
+      for (const s of [makeSuggestion('The "Big" One', 'o\'neil', star)!, makeSuggestion('Pat', '', { ...star, near: null })!]) {
+        const body = suggestionBody(s);
+        const lines = body.question.trim().split('\n');
+        const where = body.star.near ? `unnamed star near ${body.star.near}` : 'unnamed star';
+        expect(lines).toEqual([
+          '⭐ Star name suggestion',
+          `${JSON.stringify(body.name)} for the ${where} (magnitude ${body.star.mag.toFixed(1)})`,
+          `named by: ${body.credit ?? 'anonymous'}`,
+        ]);
+      }
     });
 
     it('needs a name, and caps both fields at 24 characters', () => {
-      expect(makeSuggestion('   ', 'sam', star, new Date())).toBeNull();
-      const s = makeSuggestion('x'.repeat(40), 'y'.repeat(40), star, new Date())!;
+      expect(makeSuggestion('   ', 'sam', star)).toBeNull();
+      const s = makeSuggestion('x'.repeat(40), 'y'.repeat(40), star)!;
       expect(s.name.length).toBe(24);
       expect(s.credit!.length).toBe(24);
     });
 
     it('posts a body today\'s function understands, with the details for a later one', () => {
-      const s = makeSuggestion('Gerald', 'sam', star, new Date(2026, 9, 27))!;
+      const s = makeSuggestion('Gerald', 'sam', star)!;
       expect(suggestionBody(s)).toEqual({
         question: suggestionText(s),
         username_honey: '',

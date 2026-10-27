@@ -1,3 +1,4 @@
+import { STAR_NAME_MAX_LENGTH, VisitorStar } from '../visitor-content/visitor-content';
 import { Mat3, Vec3, altAz, multiply, raDecToVector, wrap360 } from './sky-math';
 import { ExtraName, SkyLayout, StarFile, screenPoint } from './sky-render';
 
@@ -9,26 +10,17 @@ import { ExtraName, SkyLayout, StarFile, screenPoint } from './sky-render';
  * A star is nameable when it's in stars.json, has no proper name in
  * proper-names.json (every proper name d3-celestial knows, to magnitude 4.5;
  * names.json only has the bright ones the hover labels use) and hasn't been
- * named by a visitor already. Visitor names live in
- * public/data/sky/visitor-names.json, one row per approved name; Morgan adds a
- * row (the `approve:` line of a suggestion) in a PR.
+ * named by a visitor already. Visitor names are one file each in content/stars/
+ * (a merged "Publish as PR"), gathered at build time into VISITOR_STARS.
  */
 
 /** Two catalogue entries closer than this in RA and Dec (degrees) are the same star. */
 export const SAME_STAR_DEG = 0.01;
 
-/** One row of visitor-names.json: [raDeg, decDeg, name, namedBy or null, added "YYYY-MM"]. */
-export type VisitorNameRow = readonly [number, number, string, string | null, string];
-
 /** proper-names.json: every drawn star with a proper name. */
 export interface ProperNameFile {
   /** [raDeg, decDeg, name], J2000 */
   readonly names: readonly (readonly [number, number, string])[];
-}
-
-export interface VisitorNameFile {
-  readonly format?: string;
-  readonly names: readonly unknown[];
 }
 
 /** A star without a name, ready to be named. */
@@ -85,28 +77,8 @@ export function nearestNamed(v: Vec3, names: readonly { readonly v: Vec3; readon
   return best;
 }
 
-const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/;
 /** The longest name or credit, as the form allows. */
-export const MAX_NAME = 24;
-
-/**
- * The valid rows of visitor-names.json, trimmed and capped at MAX_NAME like the
- * form; anything malformed is skipped (a bad row never stops the sky).
- */
-export function parseVisitorNames(file: unknown): VisitorNameRow[] {
-  const names = (file as VisitorNameFile | null)?.names;
-  if (!Array.isArray(names)) return [];
-  return names
-    .filter((row): row is VisitorNameRow =>
-      Array.isArray(row) && row.length === 5
-      && typeof row[0] === 'number' && row[0] >= 0 && row[0] < 360
-      && typeof row[1] === 'number' && row[1] >= -90 && row[1] <= 90
-      && typeof row[2] === 'string' && row[2].trim().length > 0
-      && (row[3] === null || typeof row[3] === 'string')
-      && typeof row[4] === 'string' && MONTH.test(row[4]))
-    .map(([ra, dec, name, credit, added]) =>
-      [ra, dec, name.trim().slice(0, MAX_NAME), credit?.trim().slice(0, MAX_NAME) || null, added] as const);
-}
+export const MAX_NAME = STAR_NAME_MAX_LENGTH;
 
 type NamedVectors = readonly { readonly v: Vec3; readonly name: string }[];
 
@@ -128,13 +100,13 @@ export function everRises(dec: number, lat: number): boolean {
 export function unnamedStars(
   stars: StarFile,
   names: ProperNameFile | undefined,
-  visitor: readonly VisitorNameRow[],
+  visitor: readonly Pick<VisitorStar, 'ra' | 'dec'>[],
   landmarks: ProperNameFile | undefined = names,
 ): UnnamedStar[] {
   if (!names) return [];
   const named = namedVectors(landmarks);
   const taken = (ra: number, dec: number) =>
-    names.names.some(n => sameStar(ra, dec, n[0], n[1])) || visitor.some(n => sameStar(ra, dec, n[0], n[1]));
+    names.names.some(n => sameStar(ra, dec, n[0], n[1])) || visitor.some(n => sameStar(ra, dec, n.ra, n.dec));
   return stars.stars
     .filter(([ra, dec]) => !taken(ra, dec))
     .map(([ra, dec, mag]) => {
@@ -143,11 +115,14 @@ export function unnamedStars(
     });
 }
 
-/** Visitor names with the nearest landmark (bright named star) worked out, in file order. */
-export function visitorNames(rows: readonly VisitorNameRow[], landmarks?: ProperNameFile): VisitorName[] {
+/**
+ * Visitor names, in content order, each with the landmark (bright named star) it's near: the file's own
+ * "near" (what the naming panel said when it was suggested), or the nearest one worked out here.
+ */
+export function visitorNames(stars: readonly VisitorStar[], landmarks?: ProperNameFile): VisitorName[] {
   const named = namedVectors(landmarks);
-  return rows.map(([ra, dec, name, credit, added]) => ({
-    ra, dec, name, credit, added, near: nearestNamed(raDecToVector(ra, dec), named),
+  return stars.map(({ ra, dec, name, by, added, near }) => ({
+    ra, dec, name, credit: by, added, near: near ?? nearestNamed(raDecToVector(ra, dec), named),
   }));
 }
 
@@ -157,11 +132,6 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 export function monthLabel(added: string): string {
   const [year, month] = added.split('-').map(Number);
   return `${MONTHS[month - 1] ?? ''} ${year}`.trim();
-}
-
-/** "2026-10" for a date (local time: the month the visitor sees). */
-export function monthStamp(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
 }
 
 /** The hover label's second half: "named by sam, Oct 2026" or "named by a visitor, Oct 2026". */
@@ -286,26 +256,18 @@ export interface StarSuggestion {
   readonly name: string;
   readonly credit: string | null;
   readonly star: Pick<UnnamedStar, 'ra' | 'dec' | 'mag' | 'near'>;
-  /** "YYYY-MM". */
-  readonly added: string;
-}
-
-/** The visitor-names.json row that would put this name in the sky. */
-export function approveRow(s: StarSuggestion): VisitorNameRow {
-  return [s.star.ra, s.star.dec, s.name, s.credit, s.added];
 }
 
 /**
- * The message Morgan gets (the Ask Morgan function forwards `question` to his
- * Discord). The last line is the row to paste into visitor-names.json.
+ * The message Morgan gets (the Ask Morgan function forwards `question` to his Discord). It's exactly what
+ * morganvanv.com-backend's `ask/submit` checks the structured fields against before it offers a
+ * "Publish as PR" link (its `matchesMessage`), so keep the two in step.
  */
 export function suggestionText(s: StarSuggestion): string {
-  const row = approveRow(s).map(value => JSON.stringify(value)).join(', ');
   return [
     '⭐ Star name suggestion',
     `${JSON.stringify(s.name)} for the ${starTitle(s.star).replace(/^an /, '')} (magnitude ${s.star.mag.toFixed(1)})`,
     `named by: ${s.credit ?? 'anonymous'}`,
-    `approve: [${row}]`,
   ].join('\n');
 }
 
@@ -322,8 +284,8 @@ export function suggestionBody(s: StarSuggestion, honey = '') {
 }
 
 /** Trims the form's inputs into a suggestion (a blank credit is anonymous); null without a name. */
-export function makeSuggestion(name: string, credit: string, star: UnnamedStar, date: Date): StarSuggestion | null {
+export function makeSuggestion(name: string, credit: string, star: UnnamedStar): StarSuggestion | null {
   const trimmed = name.trim().slice(0, MAX_NAME);
   if (!trimmed) return null;
-  return { name: trimmed, credit: credit.trim().slice(0, MAX_NAME) || null, star, added: monthStamp(date) };
+  return { name: trimmed, credit: credit.trim().slice(0, MAX_NAME) || null, star };
 }
