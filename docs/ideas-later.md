@@ -41,6 +41,13 @@ The data path shipped (2026-10-27: deploy-time `letterboxd.json`, daily deploy, 
 - **History and stats.** `M` — "this year in film" (count, average rating, decades) needs more than the feed's 50 entries: seed from the account export (`diary.csv`) and merge each deploy's feed into it. Merging into the live copy alone would lose the history on one bad deploy, so the history would have to be committed.
 - **A greeting subtitle** ("recently watched: X, gave it 2 stars") from the same JSON. `S`
 
+### Favorite Media, polish later
+Live since #104, covers in #105 (2026-10-27). Morgan parked these for a later pass; none block anything:
+- **Two more books.** `S` — the Books shelf shows two outlined slots. Add the picks to `FAVORITE_MEDIA` (title, author) and their covers with `scripts/build-media-covers.py`.
+- **A sharper *East of Eden*.** `S` — the current cover came from a 292px image, slightly soft on high-DPI screens. Drop in a bigger one and rerun the script.
+- **Blurbs and links.** `S` — each pick can take a short `blurb` (Morgan's words only) and an `href` (its Letterboxd, Goodreads or similar page); both render already.
+- **Confirm the Letterboxd feed from GitHub.** `S` — run the deploy once from "Run workflow" and check the "Read the Letterboxd diary" step read entries; if GitHub's runners are blocked, the diary stays hidden and needs another route.
+
 ### Bad UI showcase
 `M`
 - A page (or Projects section) titled something like **"Hall of Shame"**: hand-built, interactive recreations of UI crimes. Each is a self-contained component with a title card and one sentence of deadpan commentary. Ideas: a volume slider that's a slot machine; a date picker that's a rotary dial; a "Cancel / OK" dialog whose buttons swap on hover; a checkbox that runs from the cursor; a cookie banner that follows you; a CAPTCHA that asks you to select all squares containing Ada; a password field with increasingly unreasonable rules; a form where the submit button is a scrollbar; a dropdown of all 195 countries in random order; a progress bar that goes to 110%.
