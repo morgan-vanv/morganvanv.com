@@ -1,0 +1,58 @@
+<section class="naming look-up-surface" role="dialog" aria-modal="false" aria-labelledby="naming-label" tabindex="-1">
+  <div class="head">
+    <h2 id="naming-label" class="label">name a star</h2>
+    <button type="button" class="close" aria-label="Close" (click)="closed.emit()">
+      <span aria-hidden="true">×</span>
+    </button>
+  </div>
+
+  <div class="star">
+    <button type="button" class="step" aria-label="Previous unnamed star" [disabled]="!canStep()" (click)="sky.step(-1)">
+      <app-icon name="chevron-left" />
+    </button>
+    <div class="which" aria-live="polite">
+      <p class="title">{{ title() }}</p>
+      <p class="detail">{{ detail() }}</p>
+    </div>
+    <button type="button" class="step" aria-label="Next unnamed star" [disabled]="!canStep()" (click)="sky.step(1)">
+      <app-icon name="chevron-right" />
+    </button>
+  </div>
+
+  @if (sky.sent()) {
+    <div class="sent" role="status">
+      <p>{{ sentMessage }}</p>
+      <div class="actions">
+        <button type="button" class="primary" (click)="nameAnother()">name another</button>
+        <button type="button" class="secondary" (click)="back.emit()">back to the page</button>
+      </div>
+    </div>
+  } @else {
+    <form (ngSubmit)="submit()">
+      @if (error(); as message) {
+        <p class="error" aria-live="assertive">{{ message }}</p>
+      }
+      <div class="honey-pot" aria-hidden="true">
+        <label for="star_username_honey">Leave this field blank if you are human:</label>
+        <input type="text" id="star_username_honey" name="username_honey" [ngModel]="honey()" (ngModelChange)="honey.set($event)" tabindex="-1" autocomplete="off" />
+      </div>
+      <div class="fields">
+        <div class="field">
+          <label for="star-name">Its name</label>
+          <input id="star-name" name="name" type="text" required autocomplete="off" [maxlength]="maxLength"
+            [ngModel]="name()" (ngModelChange)="name.set($event)" [disabled]="submitting()" />
+        </div>
+        <div class="field">
+          <label for="star-credit">Named by (optional)</label>
+          <input id="star-credit" name="credit" type="text" autocomplete="off" placeholder="a visitor" [maxlength]="maxLength"
+            [ngModel]="credit()" (ngModelChange)="credit.set($event)" [disabled]="submitting()" />
+        </div>
+      </div>
+      <div class="actions">
+        <button type="submit" class="primary" [disabled]="!canSubmit()">{{ submitting() ? 'Sending…' : 'Send it up' }}</button>
+        <button type="button" class="secondary" (click)="back.emit()">back to the page</button>
+      </div>
+      <p class="fine-print">{{ finePrint }}</p>
+    </form>
+  }
+</section>

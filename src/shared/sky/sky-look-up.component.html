@@ -1,0 +1,9 @@
+@if (sky.lookingUp()) {
+  <button type="button" class="back look-up-surface" [class.beside-panel]="sky.naming()" (click)="backToPage()">
+    <app-icon name="chevron-left" />
+    <span>back to the page</span>
+  </button>
+}
+@if (sky.naming()) {
+  <app-star-naming (closed)="closePanel()" (back)="backToPage()" />
+}

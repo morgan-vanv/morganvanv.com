@@ -88,4 +88,49 @@ describe('SkyMenuComponent', () => {
     expect(document.activeElement).toBe(badge);
     badge.remove();
   });
+
+  it('has a look up group: hide the page (a toggle button) and name a star', async () => {
+    const { fixture, el, sky, button } = await mount();
+    button()!.click();
+    await fixture.whenStable();
+    const labels = Array.from(el.querySelectorAll('.group .label')).map(h => h.textContent!.trim());
+    expect(labels).toContain('look up');
+    const [hide, name] = Array.from(el.querySelectorAll<HTMLButtonElement>('.action'));
+    expect(hide.textContent!.trim()).toBe('hide the page');
+    expect(hide.getAttribute('aria-pressed')).toBe('false');
+    hide.click();
+    await fixture.whenStable();
+    expect(sky.lookingUp()).toBe(true);
+    expect(hide.getAttribute('aria-pressed')).toBe('true');
+    hide.click();
+    await fixture.whenStable();
+    expect(sky.lookingUp()).toBe(false);
+
+    expect(name.textContent!.trim()).toBe('name a star');
+    name.click();
+    await fixture.whenStable();
+    expect(sky.lookingUp()).toBe(true);
+    expect(sky.naming()).toBe(true);
+    expect(sky.menuOpen()).toBe(false);
+    // Closing the panel later hands focus back to the ☾ button.
+    expect(sky.namingOpener).toBe(button());
+    sky.leaveLookUp();
+  });
+
+  it('lists the stars visitors have named, and hides the group when there are none', async () => {
+    const { fixture, el, sky, button } = await mount();
+    button()!.click();
+    await fixture.whenStable();
+    const labels = () => Array.from(el.querySelectorAll('.group .label')).map(h => h.textContent!.trim());
+    expect(labels()).not.toContain('named by visitors');
+    sky.visitorNames.set([
+      { ra: 281.193, dec: 37.605, name: 'Gerald', credit: 'sam', added: '2026-10', near: 'Vega' },
+      { ra: 10, dec: 20, name: 'Pat', credit: null, added: '2026-11', near: 'Mirach' },
+    ]);
+    await fixture.whenStable();
+    expect(labels()).toContain('named by visitors');
+    const items = Array.from(el.querySelectorAll('.visitor-names li')).map(li => li.textContent!.trim());
+    expect(items).toEqual(['Gerald · near Vega · by sam', 'Pat · near Mirach · by a visitor']);
+  });
 });
+

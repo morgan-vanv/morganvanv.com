@@ -1,0 +1,259 @@
+@use '../../styles' as *;
+@use '../shared-styles.scss' as shared;
+
+:host {
+  display: contents;
+}
+
+// Bottom-centre on wide screens; a full-width sheet on phones and tablets. A solid
+// surface, like the ☾ menu's, so it reads over any light.
+.naming {
+  position: fixed;
+  left: 50%;
+  bottom: 1.25rem;
+  z-index: 9;
+  transform: translateX(-50%);
+  width: min(35rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 6rem);
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 0.9rem 1rem 0.8rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba($main-color, 0.14);
+  background: rgba($background-sky-color, 0.94);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+  font-size: $font-size-small;
+  @include shared.scrollbar-styled;
+
+  &:focus {
+    outline: none;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    left: $card-inset-mobile;
+    right: $card-inset-mobile;
+    bottom: $card-inset-mobile;
+    width: auto;
+    transform: none;
+  }
+
+  @media (max-height: $breakpoint-short) {
+    max-height: calc(100dvh - 1rem);
+    padding: 0.6rem 0.8rem;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: -0.4rem -0.4rem 0 0;
+}
+
+.label {
+  @include shared.label;
+  margin: 0;
+  font-weight: normal;
+}
+
+.close {
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  background: none;
+  color: $main-color;
+  font: inherit;
+  font-size: 1.4rem;
+  line-height: 1;
+  opacity: 0.7;
+  cursor: pointer;
+  border-radius: 0.6rem;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    color: $accent-color;
+  }
+}
+
+.star {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.which {
+  min-width: 0;
+  text-align: center;
+
+  p {
+    margin: 0;
+  }
+}
+
+.title {
+  font-size: $font-size-panel-title;
+}
+
+.detail {
+  font-size: $font-size-meta;
+  opacity: 0.7;
+}
+
+.step {
+  width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid rgba($main-color, 0.2);
+  background: rgba($main-color, 0.05);
+  color: $main-color;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: $accent-color;
+    color: $accent-color;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+
+  @media (max-width: $breakpoint-phone) {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  label {
+    margin-bottom: 0.25rem;
+    font-size: $font-size-meta;
+    opacity: 0.8;
+  }
+
+  input {
+    min-height: 2.75rem;
+    box-sizing: border-box;
+    padding: 0 0.7rem;
+    border-radius: 8px;
+    border: 1px solid rgba($main-color, 0.25);
+    background: rgba(0, 0, 0, 0.25);
+    color: $main-color;
+    font: inherit;
+    font-size: 1rem;
+
+    &::placeholder {
+      color: rgba($main-color, 0.45);
+    }
+
+    &:focus {
+      outline: none;
+      border-color: $accent-color;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+
+  button {
+    flex: 1 1 auto;
+    min-height: 2.75rem;
+    padding: 0 1.2rem;
+    border-radius: 999px;
+    font: inherit;
+    cursor: pointer;
+
+    &:focus-visible {
+      outline: 2px solid $accent-color;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.primary {
+  border: 1px solid rgba($accent-color, 0.7);
+  background: rgba($accent-color, 0.18);
+  color: $main-color;
+
+  &:hover:not(:disabled) {
+    background: rgba($accent-color, 0.3);
+  }
+
+  &:disabled {
+    border-color: rgba($main-color, 0.15);
+    background: rgba($main-color, 0.04);
+    color: rgba($main-color, 0.45);
+    cursor: not-allowed;
+  }
+}
+
+.secondary {
+  border: 1px solid rgba($main-color, 0.2);
+  background: rgba($main-color, 0.05);
+  color: $main-color;
+
+  &:hover {
+    border-color: rgba($main-color, 0.4);
+  }
+}
+
+.fine-print {
+  margin: 0.6rem 0 0;
+  font-size: $font-size-meta;
+  opacity: 0.6;
+}
+
+.sent p {
+  margin: 0;
+  color: $accent-color;
+}
+
+.error {
+  margin: 0 0 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 0.6rem;
+  border: 1px solid rgba($danger-color, 0.3);
+  background: rgba($danger-color, 0.1);
+  color: $danger-color;
+}
+
+// Off-screen and out of the way, exactly as the Ask Morgan form hides its own.
+.honey-pot {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+  z-index: -1;
+  pointer-events: none;
+}

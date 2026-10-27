@@ -50,6 +50,21 @@
   }
 }
 
+// Looking up, there's no pager to sit in: the ☾ keeps its own glass on small screens too.
+:host(.looking-up) .sky-button {
+  @media (max-width: $breakpoint-mobile) {
+    border-radius: 50%;
+    border-color: rgba($main-color, 0.25);
+    background: rgba($background-color, 0.55);
+    backdrop-filter: blur(6px);
+
+    &:hover,
+    &[aria-expanded='true'] {
+      border-color: $accent-color;
+    }
+  }
+}
+
 .sky-panel {
   width: min(19rem, calc(100vw - 2rem));
   box-sizing: border-box;
@@ -132,6 +147,43 @@ legend,
 
   &:last-child {
     margin-bottom: 0;
+  }
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+// Pills like the light options; pressed (looking up) shows gold the same way.
+.action {
+  min-height: 2rem;
+  padding: 0.2rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba($main-color, 0.14);
+  background: rgba($main-color, 0.05);
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba($main-color, 0.35);
+  }
+
+  &[aria-pressed='true'] {
+    border-color: $accent-color;
+    color: $accent-color;
+    background: rgba($accent-color, 0.08);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    min-height: 2.75rem;
   }
 }
 
