@@ -49,6 +49,28 @@ describe('SkyLookUpComponent', () => {
     expect(el.querySelector('.back')).toBeNull();
   });
 
+  it('shows free look\'s compass, top-left, only while looking up, and coming back faces south again', async () => {
+    const { fixture, el, sky } = await mount();
+    expect(el.querySelector('app-sky-compass')).toBeNull();
+    sky.enterLookUp();
+    await fixture.whenStable();
+    // Not until free look is really on (loaded, with a sky to turn).
+    expect(el.querySelector('app-sky-compass')).toBeNull();
+    sky.freeLooking.set(true);
+    await fixture.whenStable();
+    expect(el.querySelector('app-sky-compass .compass')).not.toBeNull();
+    // Before the back pill, so focus goes in the order they sit on screen (top-left first).
+    const compass = el.querySelector('app-sky-compass')!;
+    expect(compass.compareDocumentPosition(el.querySelector('.back')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    sky.view.set({ facing: 20, tilt: 30 });
+    el.querySelector<HTMLButtonElement>('.back')!.click();
+    await fixture.whenStable();
+    sky.freeLooking.set(false); // (the sky turns it off as it leaves)
+    await fixture.whenStable();
+    expect(el.querySelector('app-sky-compass')).toBeNull();
+    expect(sky.view()).toEqual({ facing: 180, tilt: 0 });
+  });
+
   it('Escape leaves look-up, and stops the site-wide Escape (back to the greeting)', async () => {
     const { sky, router, escape } = await mount();
     const nav = TestBed.inject(KeyboardNavService);

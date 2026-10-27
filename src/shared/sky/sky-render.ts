@@ -97,6 +97,49 @@ export interface SkyLayout {
   readonly imageScale: number;
 }
 
+/**
+ * How the renderer puts directions onto its buffer. The normal view is one
+ * stereographic picture facing south (`layoutProjection`); the free-look
+ * panorama (sky-panorama.ts) is a cylinder that wraps round at 360° and runs on
+ * past the zenith, so a direction can land in more than one place on it.
+ */
+export interface SkyProjection {
+  /** Buffer size, in buffer pixels. */
+  readonly width: number;
+  readonly height: number;
+  /** CSS pixels per buffer pixel. */
+  readonly artPixel: number;
+  /** Radius of the Moon's disc, in buffer pixels. */
+  readonly discRadius: number;
+  /** How many images of the sky the buffer holds (each direction is looked up in each). */
+  readonly images: number;
+  /** Where a horizontal direction lands in one image (buffer pixels), or null if that image hasn't got it. */
+  point(h: Vec3, image: number): { x: number; y: number } | null;
+  /** The buffer repeats every `period` pixels across (0: it doesn't), so things near an edge are drawn again a period over. */
+  readonly period: number;
+  /** Constellation segments longer than this (buffer pixels) are projection artefacts, and skipped. */
+  readonly maxSegment: number;
+  /** Draw constellation segments in pieces of at most this many degrees, so they follow the sky's curve (0: one straight line). */
+  readonly segmentStepDeg: number;
+}
+
+/** The normal view as a projection: stereographic, facing south, lined up with the painting. */
+export function layoutProjection(layout: SkyLayout): SkyProjection {
+  return {
+    width: layout.width,
+    height: layout.height,
+    artPixel: layout.artPixel,
+    discRadius: sunDiscRadius(layout),
+    images: 1,
+    point: h => screenPoint(layout, h),
+    period: 0,
+    // A segment near the north point can project absurdly long. (Measured against the projection
+    // scale, so it means the same on every screen shape.)
+    maxSegment: 3 * layout.scale,
+    segmentStepDeg: 0,
+  };
+}
+
 /** Where a horizontal direction lands on screen, in buffer pixels (null if it can't be projected). */
 export function screenPoint(layout: SkyLayout, h: Vec3): { x: number; y: number } | null {
   const p = projectSouth(h);
@@ -180,6 +223,9 @@ const PLANET_COLORS: Record<PlanetName, Rgb> = {
   Jupiter: [255, 240, 214],
   Saturn: [242, 222, 168],
 };
+
+/** The narrowest a star's dot gets (buffer pixels): what the faintest is on a 1× screen. */
+const MIN_SIGMA = 0.45;
 
 /** 4×4 ordered-dither thresholds, 0…15. */
 const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
@@ -296,6 +342,12 @@ export interface SkyInput {
    * can move it between lights).
    */
   readonly drawSun?: boolean;
+  /**
+   * Draw onto this projection's buffer instead of the layout's (the free-look
+   * panorama). The layout still decides the light; no background and no Sun are
+   * drawn, and the Sun isn't a target.
+   */
+  readonly projection?: SkyProjection;
 }
 
 /** The sky's colours, for painting the gradient: zenith → horizon (eased by t²), plus a horizon glow. */
@@ -365,7 +417,11 @@ export interface SkyGlow {
 }
 
 export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: SkyInput): SkyRenderResult {
-  const { width, height, horizonY, scale } = layout;
+  const { horizonY } = layout;
+  const projection = input.projection ?? layoutProjection(layout);
+  /** Drawing the normal view (not the panorama): the background and the Sun are its business. */
+  const ownView = !input.projection;
+  const { width, height } = projection;
   // The real Sun always lights the Moon, so its phase is right whatever the lighting.
   const sunH = input.bodies?.sun.h ?? sunHorizontal(input.date, input.lat, input.lon);
   const toScreen = (h: Vec3) => screenPoint(layout, h);
@@ -377,36 +433,38 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   const { top, horizon, glow } = look;
   // Fast path: one colour per row (four dithered variants), written a whole pixel at a time.
   // Only rows low enough to carry the glow are worked out pixel by pixel.
-  const paintBackground = input.paintBackground ?? true;
-  const pixels = new Uint32Array(buffer.buffer, buffer.byteOffset, width * height);
-  const littleEndian = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1;
-  const pack = (r: number, g: number, b: number) =>
-    littleEndian ? (255 << 24) | (b << 16) | (g << 8) | r : (r << 24) | (g << 16) | (b << 8) | 255;
-  const glowColumn = glow ? Float32Array.from({ length: width }, (_, x) => Math.exp(-(((x - glow.x) / (width * 0.3)) ** 2))) : null;
-  for (let y = 0; paintBackground && y < height; y++) {
-    const t = clamp01(y / Math.max(1, horizonY));
-    const eased = t * t;
-    const base = [mix(top[0], horizon[0], eased), mix(top[1], horizon[1], eased), mix(top[2], horizon[2], eased)];
-    const rowGlow = glow ? glow.strength * t * t * t * 0.55 : 0;
-    const row = y * width;
-    const variants = [0, 1, 2, 3].map(k => {
-      const threshold = (BAYER[(y & 3) * 4 + k] + 0.5) / 16;
-      const [r, g, b] = base.map(v => Math.floor(v / GRADIENT_STEP + threshold) * GRADIENT_STEP);
-      return pack(r, g, b);
-    });
-    for (let x = 0; x < width; x++) pixels[row + x] = variants[x & 3];
-    if (rowGlow < 0.002 || !glow || !glowColumn) continue;
-    // The glow only reaches so far either side of the Sun; work out just that stretch.
-    const reach = width * 0.3 * Math.sqrt(Math.log(rowGlow / 0.002));
-    const x0 = Math.max(0, Math.floor(glow.x - reach));
-    const x1 = Math.min(width, Math.ceil(glow.x + reach));
-    for (let x = x0; x < x1; x++) {
-      const threshold = (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
-      const amount = rowGlow * glowColumn[x];
-      const r = Math.floor(mix(base[0], glow.color[0], amount) / GRADIENT_STEP + threshold) * GRADIENT_STEP;
-      const g = Math.floor(mix(base[1], glow.color[1], amount) / GRADIENT_STEP + threshold) * GRADIENT_STEP;
-      const b = Math.floor(mix(base[2], glow.color[2], amount) / GRADIENT_STEP + threshold) * GRADIENT_STEP;
-      pixels[row + x] = pack(r, g, b);
+  const paintBackground = (input.paintBackground ?? true) && ownView;
+  if (paintBackground) {
+    const pixels = new Uint32Array(buffer.buffer, buffer.byteOffset, width * height);
+    const littleEndian = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1;
+    const pack = (r: number, g: number, b: number) =>
+      littleEndian ? (255 << 24) | (b << 16) | (g << 8) | r : (r << 24) | (g << 16) | (b << 8) | 255;
+    const glowColumn = glow ? Float32Array.from({ length: width }, (_, x) => Math.exp(-(((x - glow.x) / (width * 0.3)) ** 2))) : null;
+    for (let y = 0; y < height; y++) {
+      const t = clamp01(y / Math.max(1, horizonY));
+      const eased = t * t;
+      const base = [mix(top[0], horizon[0], eased), mix(top[1], horizon[1], eased), mix(top[2], horizon[2], eased)];
+      const rowGlow = glow ? glow.strength * t * t * t * 0.55 : 0;
+      const row = y * width;
+      const variants = [0, 1, 2, 3].map(k => {
+        const threshold = (BAYER[(y & 3) * 4 + k] + 0.5) / 16;
+        const [r, g, b] = base.map(v => Math.floor(v / GRADIENT_STEP + threshold) * GRADIENT_STEP);
+        return pack(r, g, b);
+      });
+      for (let x = 0; x < width; x++) pixels[row + x] = variants[x & 3];
+      if (rowGlow < 0.002 || !glow || !glowColumn) continue;
+      // The glow only reaches so far either side of the Sun; work out just that stretch.
+      const reach = width * 0.3 * Math.sqrt(Math.log(rowGlow / 0.002));
+      const x0 = Math.max(0, Math.floor(glow.x - reach));
+      const x1 = Math.min(width, Math.ceil(glow.x + reach));
+      for (let x = x0; x < x1; x++) {
+        const threshold = (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16;
+        const amount = rowGlow * glowColumn[x];
+        const r = Math.floor(mix(base[0], glow.color[0], amount) / GRADIENT_STEP + threshold) * GRADIENT_STEP;
+        const g = Math.floor(mix(base[1], glow.color[1], amount) / GRADIENT_STEP + threshold) * GRADIENT_STEP;
+        const b = Math.floor(mix(base[2], glow.color[2], amount) / GRADIENT_STEP + threshold) * GRADIENT_STEP;
+        pixels[row + x] = pack(r, g, b);
+      }
     }
   }
 
@@ -424,18 +482,36 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   };
   const onScreen = (p: { x: number; y: number }, margin = 2) =>
     p.x >= -margin && p.y >= -margin && p.x < width + margin && p.y < height + margin;
+  /** Copies a period either side, for a buffer that wraps round (just the one place otherwise). */
+  const offsets = projection.period ? [-projection.period, 0, projection.period] : [0];
+  /** Everywhere a direction is drawn: each image, each copy, on screen (within `margin`). */
+  const places = (h: Vec3, margin: number) => {
+    const out: { x: number; y: number; image: number }[] = [];
+    for (let image = 0; image < projection.images; image++) {
+      const p = projection.point(h, image);
+      if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) continue;
+      for (const offset of offsets) {
+        const q = { x: p.x + offset, y: p.y, image };
+        if (onScreen(q, margin)) out.push(q);
+      }
+    }
+    return out;
+  };
 
   const stars = look.stars;
   const matrix = j2000ToHorizontalMatrix(input.date, input.lat, input.lon);
   /** CSS pixels → buffer pixels (the buffer may be at device resolution). */
-  const px = (css: number) => css / layout.artPixel;
+  const px = (css: number) => css / projection.artPixel;
   let starsDrawn = 0;
   const targets: SkyTarget[] = [];
   const segments: SkySegment[] = [];
   const glows: SkyGlow[] = [];
 
-  // A soft round dot centred anywhere (not just on pixel centres).
+  // A soft round dot centred anywhere (not just on pixel centres). Never narrower than
+  // MIN_SIGMA buffer pixels: on a buffer coarser than the screen (the panorama on a big
+  // screen) a narrower dot would mostly fall between pixel centres and fade away.
   const splat = (x: number, y: number, color: Rgb, alpha: number, sigma: number) => {
+    sigma = Math.max(MIN_SIGMA, sigma);
     const reach = Math.ceil(sigma * 2.5);
     const [x0, y0] = [Math.round(x), Math.round(y)];
     for (let dy = -reach; dy <= reach; dy++) {
@@ -457,26 +533,36 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
         const ha = multiply(matrix, line[k - 1]);
         const hb = multiply(matrix, line[k]);
         if (ha[2] < -0.05 && hb[2] < -0.05) continue;
-        const a = toScreen(ha);
-        const b = toScreen(hb);
-        if (!a || !b || (!onScreen(a, width) && !onScreen(b, width))) continue;
-        // A segment near the north point can project absurdly long; skip it.
-        // (Measured against the projection scale, so it means the same on every screen shape.)
-        if (Math.hypot(b.x - a.x, b.y - a.y) > 3 * scale) continue;
-        drawLine(a.x, a.y, b.x, b.y, (x, y, coverage) => blend(x, y, lineColor, lineAlpha * coverage));
-        segments.push({ figure, ax: a.x, ay: a.y, bx: b.x, by: b.y });
+        for (const [u, v] of pieces(ha, hb, projection.segmentStepDeg)) {
+          for (let image = 0; image < projection.images; image++) {
+            const a = projection.point(u, image);
+            if (!a) continue;
+            // The far end in whichever image carries on from this one (past the zenith, the line
+            // runs on into the other image), a period over if it's across the seam.
+            const b = continuation(a, v, projection);
+            if (!b || Math.hypot(b.x - a.x, b.y - a.y) > projection.maxSegment) continue;
+            for (const offset of offsets) {
+              const [ax, bx] = [a.x + offset, b.x + offset];
+              if (!onScreen({ x: ax, y: a.y }, width) && !onScreen({ x: bx, y: b.y }, width)) continue;
+              drawLine(ax, a.y, bx, b.y, (x, y, coverage) => blend(x, y, lineColor, lineAlpha * coverage));
+              segments.push({ figure, ax, ay: a.y, bx, by: b.y });
+            }
+          }
+        }
       }
     }
 
     for (const star of input.catalog.stars) {
       const h = multiply(matrix, star.v);
       if (h[2] < 0) continue;
-      const p = toScreen(h);
-      if (!p || !onScreen(p, 2)) continue;
+      const at = places(h, 2);
+      if (!at.length) continue;
       const strength = clamp01((4.5 - star.mag) / 5.5);
       const brightness = (0.35 + 0.65 * strength) * stars;
-      splat(p.x, p.y, star.color, brightness, px(0.45 + 0.5 * strength));
-      if (star.mag < 1.5) glows.push({ x: p.x, y: p.y, radius: px(4 + 4 * strength), color: star.color, strength: 0.35 * brightness });
+      for (const p of at) {
+        splat(p.x, p.y, star.color, brightness, px(0.45 + 0.5 * strength));
+        if (star.mag < 1.5) glows.push({ x: p.x, y: p.y, radius: px(4 + 4 * strength), color: star.color, strength: 0.35 * brightness });
+      }
       starsDrawn++;
     }
 
@@ -485,16 +571,16 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
       for (const named of input.catalog.names) {
         const h = multiply(matrix, named.v);
         if (h[2] < 0) continue;
-        const p = toScreen(h);
-        if (!p || !onScreen(p, 0)) continue;
-        targets.push({ kind: 'star', name: named.name, constellation: named.constellation, x: p.x, y: p.y, radius: px(9) });
+        for (const p of places(h, 0)) {
+          targets.push({ kind: 'star', name: named.name, constellation: named.constellation, x: p.x, y: p.y, radius: px(9) });
+        }
       }
       for (const named of input.catalog.visitorNames) {
         const h = multiply(matrix, named.v);
         if (h[2] < 0) continue;
-        const p = toScreen(h);
-        if (!p || !onScreen(p, 0)) continue;
-        targets.push({ kind: 'star', name: named.name, detail: named.detail, x: p.x, y: p.y, radius: px(9) });
+        for (const p of places(h, 0)) {
+          targets.push({ kind: 'star', name: named.name, detail: named.detail, x: p.x, y: p.y, radius: px(9) });
+        }
       }
     }
   }
@@ -504,19 +590,19 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
       // The brightest planets (usually Venus and Jupiter) show up a little before the stars do.
       const visibility = planet.mag < -1.5 ? look.brightPlanets : stars;
       if (planet.alt < 0 || visibility <= 0) continue;
-      const p = toScreen(planet.h);
-      if (!p || !onScreen(p, 2)) continue;
       const strength = clamp01((1.5 - planet.mag) / 5);
       const brightness = (0.6 + 0.4 * strength) * visibility;
-      splat(p.x, p.y, PLANET_COLORS[planet.name], brightness, px(0.8 + 0.5 * strength));
-      glows.push({ x: p.x, y: p.y, radius: px(6 + 6 * strength), color: PLANET_COLORS[planet.name], strength: 0.4 * brightness });
-      if (visibility > 0.3) targets.push({ kind: 'planet', name: planet.name, x: p.x, y: p.y, radius: px(11) });
+      for (const p of places(planet.h, 2)) {
+        splat(p.x, p.y, PLANET_COLORS[planet.name], brightness, px(0.8 + 0.5 * strength));
+        glows.push({ x: p.x, y: p.y, radius: px(6 + 6 * strength), color: PLANET_COLORS[planet.name], strength: 0.4 * brightness });
+        if (visibility > 0.3) targets.push({ kind: 'planet', name: planet.name, x: p.x, y: p.y, radius: px(11) });
+      }
     }
   }
 
-  const discRadius = sunDiscRadius(layout);
+  const discRadius = projection.discRadius;
 
-  if (look.sun) {
+  if (look.sun && ownView) {
     const p = look.sun;
     if (onScreen(p, discRadius * 4)) {
       if (input.drawSun ?? true) {
@@ -530,9 +616,8 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   let moonResult: SkyRenderResult['moon'] = null;
   const moon = input.bodies?.moon;
   if (moon && moon.alt > -1) {
-    const p = toScreen(moon.h);
-    if (p && onScreen(p, discRadius + 1)) {
-      const toSun = screenDirection(moon.h, sunH, toScreen);
+    for (const p of places(moon.h, discRadius + 1)) {
+      const toSun = screenDirection(moon.h, sunH, h => projection.point(h, p.image), projection.period);
       const i = (moon.phaseAngle * Math.PI) / 180;
       const sun = [toSun.x * Math.sin(i), toSun.y * Math.sin(i), Math.cos(i)];
       const lit: Rgb = [238, 234, 214];
@@ -568,7 +653,7 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
       }
       glows.push({ x: p.x, y: p.y, radius: r * 5, color: [210, 220, 230], strength: 0.25 * moon.illuminated * (1 - daylight) });
       targets.push({ kind: 'moon', name: 'the Moon', detail: `${Math.round(moon.illuminated * 100)}% lit`, x: p.x, y: p.y, radius: r + px(6) });
-      moonResult = {
+      moonResult ??= {
         x: p.x, y: p.y, litCount: Math.round(litWeight),
         litDx: litWeight ? litX / litWeight : 0, litDy: litWeight ? litY / litWeight : 0,
       };
@@ -576,7 +661,54 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
   }
 
   return { sunAlt, starVisibility: stars, sunAz: look.sunAz, starsDrawn, moon: moonResult, targets, segments, glows, background: { top, horizon, glow },
-    sun: look.sun ? { x: look.sun.x, y: look.sun.y, radius: discRadius } : null };
+    sun: look.sun ? { x: look.sun.x, y: look.sun.y, radius: sunDiscRadius(layout) } : null };
+}
+
+/** A segment split into pieces of at most `stepDeg` along the great circle between its ends (one piece if 0). */
+export function pieces(a: Vec3, b: Vec3, stepDeg: number): (readonly [Vec3, Vec3])[] {
+  if (!stepDeg) return [[a, b]];
+  const angle = (Math.acos(Math.max(-1, Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2]))) * 180) / Math.PI;
+  const n = Math.max(1, Math.ceil(angle / stepDeg));
+  const at = (t: number): Vec3 => {
+    const v = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    const length = Math.hypot(v[0], v[1], v[2]) || 1;
+    return [v[0] / length, v[1] / length, v[2] / length];
+  };
+  const points = Array.from({ length: n + 1 }, (_, k) => (k === 0 ? a : k === n ? b : at(k / n)));
+  return points.slice(1).map((p, k) => [points[k], p] as const);
+}
+
+/** Where `h` lands nearest `from` (buffer pixels): in whichever image is closest, a period over if that's nearer. */
+function continuation(from: { x: number; y: number }, h: Vec3, projection: SkyProjection): { x: number; y: number } | null {
+  let best: { x: number; y: number } | null = null;
+  let bestDistance = Infinity;
+  for (let image = 0; image < projection.images; image++) {
+    const p = projection.point(h, image);
+    if (!p) continue;
+    const x = projection.period ? p.x + projection.period * Math.round((from.x - p.x) / projection.period) : p.x;
+    const d = Math.hypot(x - from.x, p.y - from.y);
+    if (d < bestDistance) {
+      best = { x, y: p.y };
+      bestDistance = d;
+    }
+  }
+  return best;
+}
+
+const rgba = ([r, g, b]: readonly number[], a: number) => `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${a})`;
+
+/** Soft halos round things that shine, added onto a canvas (the sky, or free look's panorama). */
+export function drawGlows(context: CanvasRenderingContext2D, glows: readonly SkyGlow[]): void {
+  context.globalCompositeOperation = 'lighter';
+  for (const glow of glows) {
+    const gradient = context.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, glow.radius);
+    gradient.addColorStop(0, rgba(glow.color, glow.strength));
+    gradient.addColorStop(0.35, rgba(glow.color, glow.strength * 0.35));
+    gradient.addColorStop(1, rgba(glow.color, 0));
+    context.fillStyle = gradient;
+    context.fillRect(glow.x - glow.radius, glow.y - glow.radius, glow.radius * 2, glow.radius * 2);
+  }
+  context.globalCompositeOperation = 'source-over';
 }
 
 /** Finds what's under a point (buffer pixels): the nearest target in reach, else the nearest figure line within `lineReach`. */
@@ -617,8 +749,8 @@ function distanceToSegment(px: number, py: number, ax: number, ay: number, bx: n
   return Math.hypot(px - (ax + t * dx), py - (ay + t * dy));
 }
 
-/** Unit screen direction (x right, y up) from body `from` toward body `to` along the sky. */
-function screenDirection(from: Vec3, to: Vec3, toScreen: (h: Vec3) => { x: number; y: number } | null): { x: number; y: number } {
+/** Unit screen direction (x right, y up) from body `from` toward body `to` along the sky (on a buffer that repeats every `period` across). */
+function screenDirection(from: Vec3, to: Vec3, toScreen: (h: Vec3) => { x: number; y: number } | null, period = 0): { x: number; y: number } {
   const dot = from[0] * to[0] + from[1] * to[1] + from[2] * to[2];
   const tangent = [to[0] - dot * from[0], to[1] - dot * from[1], to[2] - dot * from[2]];
   const len = Math.hypot(tangent[0], tangent[1], tangent[2]) || 1;
@@ -627,7 +759,7 @@ function screenDirection(from: Vec3, to: Vec3, toScreen: (h: Vec3) => { x: numbe
   const a = toScreen(from);
   const b = toScreen(nudged);
   if (!a || !b) return { x: 0, y: 1 };
-  const dx = b.x - a.x;
+  const dx = period ? b.x - a.x - period * Math.round((b.x - a.x) / period) : b.x - a.x;
   const dy = -(b.y - a.y);
   const d = Math.hypot(dx, dy) || 1;
   return { x: dx / d, y: dy / d };

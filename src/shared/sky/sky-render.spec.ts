@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 import * as Astronomy from 'astronomy-engine';
 import { computeBodies } from './sky-bodies';
 import { CINCINNATI } from './sky.service';
-import { Lighting, computeLayout, drawLine, prepareCatalog, renderSky, skyColors, starVisibility } from './sky-render';
+import { Lighting, computeLayout, drawLine, layoutProjection, pieces, prepareCatalog, renderSky, skyColors, starVisibility } from './sky-render';
+import { altAz, altAzToVector, j2000ToHorizontalMatrix, multiply } from './sky-math';
+import { computePanorama, panoramaProjection } from './sky-panorama';
 
 const catalog = prepareCatalog(
   JSON.parse(readFileSync('public/data/sky/stars.json', 'utf8')),
@@ -210,4 +212,74 @@ describe('sky render', () => {
     expect(cover.get('0,0')).toBeCloseTo(1, 6);
   });
 
+
+  describe('onto free look\'s panorama', () => {
+    const date = new Date('2026-10-28T03:00:00Z');
+    const pan = computePanorama(1024, 768);
+    const projection = panoramaProjection(pan);
+    const layout = computeLayout(1024, 768);
+    const draw = (lighting: Lighting = 'darkness') => {
+      const buffer = new Uint8ClampedArray(pan.width * pan.height * 4);
+      const result = renderSky(buffer, layout, { date, lat, lon, catalog, bodies: computeBodies(Astronomy, date, lat, lon), lighting, projection });
+      return { buffer, result };
+    };
+    const { buffer, result } = draw();
+    const alpha = (x: number, y: number) => buffer[(Math.round(y) * pan.width + Math.round(x)) * 4 + 3];
+
+    it('the normal view\'s projection is the stereographic one it always was', () => {
+      const normal = layoutProjection(layout);
+      const h = altAzToVector(30, 150);
+      const p = normal.point(h, 0)!;
+      expect(normal.images).toBe(1);
+      expect(normal.period).toBe(0);
+      expect(p.y).toBeLessThan(layout.horizonY);
+      expect(p.x).toBeLessThan(layout.centerX); // east of south is to the left
+    });
+
+    it('draws the whole sky, the north included, onto a transparent buffer, with no Sun or background', () => {
+      expect(result.starsDrawn).toBeGreaterThan(300);
+      expect(buffer[3]).toBe(0); // the corner's transparent: no gradient painted
+      expect(result.targets.some(t => t.kind === 'sun')).toBe(false);
+      // Polaris (and so the north) is on it, about 39° up over Cincinnati.
+      const polaris = result.targets.find(t => t.name === 'Polaris');
+      expect(polaris).toBeTruthy();
+      const asSeen = result.targets.filter(t => t.name === 'Polaris').map(t => pan.altTop - t.y / pan.degPx);
+      expect(asSeen.some(a => Math.abs(a - lat) < 1)).toBe(true);
+    });
+
+    it('draws each star in both images (as seen, and over the top) and again a period over near the seam', () => {
+      const vega = result.targets.filter(t => t.name === 'Vega');
+      const toHorizontal = j2000ToHorizontalMatrix(date, lat, lon);
+      const vegaH = multiply(toHorizontal, catalog.names.find(n => n.name === 'Vega')!.v);
+      const { alt } = altAz(vegaH);
+      const rows = vega.map(t => pan.altTop - t.y / pan.degPx);
+      expect(rows.some(a => Math.abs(a - alt) < 0.01)).toBe(true);
+      if (180 - alt <= pan.altTop) expect(rows.some(a => Math.abs(a - (180 - alt)) < 0.01)).toBe(true);
+      // Anything drawn in the first stretch past 360° is a copy of what's at its start.
+      const copies = result.targets.filter(t => t.x > pan.period);
+      expect(copies.length).toBeGreaterThan(0);
+      for (const copy of copies) {
+        expect(result.targets.some(t => t.name === copy.name && Math.abs(t.x - (copy.x - pan.period)) < 1e-6 && Math.abs(t.y - copy.y) < 1e-6)).toBe(true);
+      }
+      // And the pixels match too (give or take a neighbour's glow cut off at the very edge).
+      const star = copies.find(t => t.kind === 'star')!;
+      expect(alpha(star.x, star.y)).toBeGreaterThan(0);
+      expect(Math.abs(alpha(star.x - pan.period, star.y) - alpha(star.x, star.y))).toBeLessThan(8);
+    });
+
+    it('draws constellation lines in short pieces, none jumping across the seam or the zenith', () => {
+      expect(result.segments.length).toBeGreaterThan(1000);
+      for (const s of result.segments) expect(Math.hypot(s.bx - s.ax, s.by - s.ay)).toBeLessThan(90 * pan.degPx);
+      expect(pieces(altAzToVector(10, 0), altAzToVector(10, 30), 2).length).toBe(15);
+      expect(pieces(altAzToVector(10, 0), altAzToVector(10, 30), 0).length).toBe(1);
+      // The pieces join up end to end, and stay on the sky.
+      const parts = pieces(altAzToVector(80, 0), altAzToVector(80, 180), 2);
+      for (let i = 1; i < parts.length; i++) expect(parts[i][0]).toBe(parts[i - 1][1]);
+      expect(Math.max(...parts.map(([a]) => altAz(a).alt))).toBeGreaterThan(89); // over the zenith, not round
+    });
+
+    it('in daylight there are no stars to draw', () => {
+      expect(draw('day').result.starsDrawn).toBe(0);
+    });
+  });
 });

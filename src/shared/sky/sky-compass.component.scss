@@ -1,0 +1,98 @@
+@use '../../styles' as *;
+@use '../shared-styles.scss' as shared;
+
+:host {
+  display: contents;
+}
+
+// Top-left, across from the ☾ (top-right), clear of the back pill (bottom-left) and the
+// naming panel (bottom). A glass panel like the ☾'s button, solid enough to read over any light.
+.compass {
+  position: fixed;
+  top: 0.9rem;
+  left: 1rem;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  box-sizing: border-box;
+  padding: 0.5rem 0.6rem 0.6rem;
+  border-radius: 0.9rem;
+  border: 1px solid rgba($main-color, 0.18);
+  background: rgba($background-color, 0.6);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: $main-color;
+  font-size: $font-size-small;
+
+  // Tablets and phones: tucked into the corner, as the ☾ is.
+  @media (max-width: $breakpoint-mobile) {
+    top: $card-inset-mobile;
+    left: $card-inset-mobile;
+    // Leaves room for the ☾ in the other corner.
+    max-width: calc(100vw - 2 * #{$card-inset-mobile} - 3.75rem);
+  }
+
+  // Landscape phones: one row, so the naming sheet below has the height.
+  @media (max-height: $breakpoint-short) {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.35rem 0.4rem 0.35rem 0.75rem;
+  }
+}
+
+.reading {
+  margin: 0;
+  padding: 0 0.15rem;
+  font-size: $font-size-meta;
+  white-space: nowrap;
+  // The reading changes as the sky turns; room for the longest ("facing WNW · 293° · looking up 45°"),
+  // so the panel doesn't twitch.
+  min-width: 34ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.buttons {
+  display: flex;
+  gap: 0.3rem;
+}
+
+button {
+  min-width: 2.75rem;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: 0.6rem;
+  border: 1px solid rgba($main-color, 0.2);
+  background: rgba($main-color, 0.05);
+  color: $main-color;
+  font: inherit;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $accent-color;
+    color: $accent-color;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+}
+
+.south {
+  padding: 0 0.7rem;
+  font-size: $font-size-meta;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}

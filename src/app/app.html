@@ -1,6 +1,6 @@
 <!--This is the "canvas" for the website, the background upon which the action happens.
     The painted background shows first; the live sky fades in over it once it's ready.-->
-<div class="canvas">
+<div class="canvas" [class.looking-up]="sky.lookingUp()">
   <app-sky />
 </div>
 

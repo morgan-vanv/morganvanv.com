@@ -10,6 +10,17 @@
 
   position: absolute;
   z-index: -1;
+
+  // Looking up, the sky comes in front of the (hidden) page, so it gets the pointer to be
+  // dragged round (free look). The ☾ and the look-up controls are fixed above it. On the way
+  // in it waits for the page to finish fading (400 ms, as below), or the opaque painting would
+  // cover the page mid-fade; on the way back it goes behind at once.
+  transition: z-index 0s linear 0s;
+
+  &.looking-up {
+    z-index: 1;
+    transition: z-index 0s linear 400ms;
+  }
 }
 
 main {
@@ -36,7 +47,9 @@ main {
 // The global reduced-motion rule shortens durations but not the visibility delay; drop both.
 @media (prefers-reduced-motion: reduce) {
   main,
-  main.looking-up {
+  main.looking-up,
+  .canvas,
+  .canvas.looking-up {
     transition: none;
   }
 }

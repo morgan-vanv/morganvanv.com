@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { fromEvent } from 'rxjs';
 import { GREETING_ROUTE, MAIN_NAV_ROUTES } from '../main-routes';
 import { ScrollRegionService } from '../scroll-region/scroll-region.service';
+import { SkyService } from '../sky/sky.service';
 
 const SCROLL_STEP_PX = 120;
 const DEFAULT_MAIN_ROUTE = MAIN_NAV_ROUTES[0];
@@ -16,6 +17,7 @@ const DEFAULT_MAIN_ROUTE = MAIN_NAV_ROUTES[0];
 export class KeyboardNavService {
   private readonly router = inject(Router);
   private readonly scrollRegions = inject(ScrollRegionService);
+  private readonly sky = inject(SkyService);
 
   constructor() {
     if (typeof window === 'undefined') return;
@@ -31,7 +33,9 @@ export class KeyboardNavService {
     const currentPath = this.getCurrentPath();
 
     if (currentPath === GREETING_ROUTE) {
-      if (e.key.startsWith('Arrow') && DEFAULT_MAIN_ROUTE) {
+      // While looking up the greeting is hidden: ↑/↓ belong to the page, so they do nothing; ← → still go on.
+      const vertical = e.key === 'ArrowUp' || e.key === 'ArrowDown';
+      if (e.key.startsWith('Arrow') && DEFAULT_MAIN_ROUTE && !(vertical && this.sky.lookingUp())) {
         this.router.navigate([DEFAULT_MAIN_ROUTE]);
       }
       return;

@@ -26,6 +26,7 @@ describe('StarNamingComponent', () => {
     sky.unnamed.set([...Array.from({ length: 427 }, () => gerald), other, southern]);
     sky.startNaming();
     sky.setCandidates([{ star: other, x: 100, y: 100 }, { star: gerald, x: 400, y: 120 }]);
+    sky.around.set([{ star: other, alt: 40, az: 100 }, { star: gerald, alt: 50, az: 200 }]);
     sky.select(gerald);
     fixture = TestBed.createComponent(StarNamingComponent);
     component = fixture.componentInstance;

@@ -2,7 +2,8 @@ import { Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LIGHTINGS, Lighting } from './sky-render';
 import { UpNow } from './sky-up-now';
-import { StarOnScreen, UnnamedStar, VisitorName, brightest, nearestTo, stepStar } from './sky-naming';
+import { StarAround, StarOnScreen, UnnamedStar, VisitorName, brightest, nearestTo, stepAround } from './sky-naming';
+import { FACE_SOUTH, LookView, clampView, spokenView } from './sky-view';
 
 export interface SkyLocation {
   readonly lat: number;
@@ -81,8 +82,29 @@ export class SkyService {
   readonly sent = signal(false);
   /** What started naming, so closing the panel can hand focus back. */
   namingOpener: HTMLElement | null = null;
+  /** Unnamed stars above the horizon all the way round, in azimuth order (set by the sky while naming), for ‹ ›. */
+  readonly around = signal<readonly StarAround[]>([]);
+  /** Bumped when ‹ › pick a star, so the sky turns to bring it into view. */
+  readonly showSelected = signal(0);
+  /** Bumped when the naming panel has rendered (it loads on first use), so the sky can see what it covers. */
+  readonly namingPanelShown = signal(0);
+
+  /** Free look: which way the visitor is facing and how far up (the sky keeps it current as it turns). Always south to start. */
+  readonly view = signal<LookView>(FACE_SOUTH);
+  /** A view the compass buttons have asked for; the sky turns to it, then clears it. The count makes asking twice turn twice. */
+  readonly viewRequest = signal<{ readonly view: LookView; readonly count: number } | null>(null);
+  /** Said politely after a turn: "facing west, 270°, looking up 15°". */
+  readonly viewAnnouncement = signal('');
+  /** Free look is on: looking up, loaded, and with a sky to turn. Until then there's no compass and nothing to drag. */
+  readonly freeLooking = signal(false);
+  /**
+   * Whether the sky can turn to show a star (set by the sky while free look is on). ‹ › pass over
+   * stars it can't: low ones behind the hills, or that only fit under a phone's bottom sheet.
+   */
+  showable: ((star: StarAround) => boolean) | null = null;
 
   private attempt = 0;
+  private requests = 0;
 
   constructor() {
     if (!this.isBrowser) return;
@@ -100,14 +122,52 @@ export class SkyService {
     this.menuFocusRequests.update(count => count + 1);
   }
 
+  /** Hides the page (and closes the ☾ menu, so the first touch lands on the sky). */
   enterLookUp(): void {
+    if (!this.lookingUp()) this.faceSouthNow();
+    this.menuOpen.set(false);
     this.lookingUp.set(true);
   }
 
-  /** Back to the page; closes the naming panel too. */
+  /** Back to the page (and to facing south); closes the naming panel too. */
   leaveLookUp(): void {
     this.lookingUp.set(false);
+    this.faceSouthNow();
     this.stopNaming();
+  }
+
+  /** Turns left (negative) or right by some degrees, from wherever the last turn was heading. */
+  turn(degrees: number): void {
+    const from = this.viewRequest()?.view ?? this.view();
+    this.requestView({ facing: from.facing + degrees, tilt: from.tilt });
+  }
+
+  /** Tilts up (positive) or down by some degrees, between the horizon and the zenith. */
+  tilt(degrees: number): void {
+    const from = this.viewRequest()?.view ?? this.view();
+    this.requestView({ facing: from.facing, tilt: from.tilt + degrees });
+  }
+
+  faceSouth(): void {
+    this.requestView(FACE_SOUTH);
+  }
+
+  /** Says where the visitor is now looking (the same words twice still get said: a no-break space tells them apart). */
+  announceView(view: LookView): void {
+    const text = spokenView(view);
+    this.viewAnnouncement.set(this.viewAnnouncement() === text ? `${text}\u00a0` : text);
+  }
+
+  private requestView(view: LookView): void {
+    const target = clampView(view);
+    this.viewRequest.set({ view: target, count: ++this.requests });
+    this.announceView(target);
+  }
+
+  /** Free look starts (and ends) facing south, with no turn pending. */
+  private faceSouthNow(): void {
+    this.view.set(FACE_SOUTH);
+    this.viewRequest.set(null);
   }
 
   toggleLookUp(): void {
@@ -120,7 +180,7 @@ export class SkyService {
     this.namingOpener = opener;
     this.menuOpen.set(false);
     this.sent.set(false);
-    this.lookingUp.set(true);
+    this.enterLookUp();
     this.naming.set(true);
   }
 
@@ -130,6 +190,7 @@ export class SkyService {
     this.selected.set(null);
     this.selectedPoint.set(null);
     this.candidates.set([]);
+    this.around.set([]);
     this.sent.set(false);
   }
 
@@ -148,10 +209,25 @@ export class SkyService {
     if (!this.selected() && !this.sent()) this.select(brightest(list)?.star ?? null);
   }
 
-  /** ‹ (−1) or › (+1): the next unnamed star left to right, carrying on from where the selected one is. */
+  /**
+   * ‹ (−1) or › (+1): the next unnamed star above the horizon round the sky by
+   * azimuth (on screen or not), from the selected one or from where the visitor
+   * is facing. The sky turns to bring it into view; stars no view can show are
+   * passed over, and after a whole lap without one it gives up.
+   */
   step(direction: 1 | -1): void {
-    const next = stepStar(this.candidates(), this.selected(), direction, this.selectedPoint()?.x ?? null);
-    if (next) this.select(next.star);
+    const list = this.around();
+    let from = this.selected();
+    for (let tries = list.length; tries > 0; tries--) {
+      const next = stepAround(list, from, direction, this.view().facing);
+      if (!next) return;
+      if (!this.showable || this.showable(next)) {
+        this.select(next.star);
+        this.showSelected.update(count => count + 1);
+        return;
+      }
+      from = next.star;
+    }
   }
 
   /** Selects the candidate nearest a point (CSS pixels) within `reach`; false if there's none. */

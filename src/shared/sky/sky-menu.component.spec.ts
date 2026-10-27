@@ -101,13 +101,21 @@ describe('SkyMenuComponent', () => {
     hide.click();
     await fixture.whenStable();
     expect(sky.lookingUp()).toBe(true);
-    expect(hide.getAttribute('aria-pressed')).toBe('true');
-    hide.click();
+    // The menu closes (so the first touch lands on the sky), and focus goes back to the ☾.
+    expect(sky.menuOpen()).toBe(false);
+    await vi.waitFor(() => expect(document.activeElement).toBe(button()));
+    // Opened again while looking up, the toggle shows it's on, and brings the page back.
+    button()!.click();
+    await fixture.whenStable();
+    const again = el.querySelector<HTMLButtonElement>('.action')!;
+    expect(again.getAttribute('aria-pressed')).toBe('true');
+    again.click();
     await fixture.whenStable();
     expect(sky.lookingUp()).toBe(false);
 
+    const named = el.querySelectorAll<HTMLButtonElement>('.action')[1];
     expect(name.textContent!.trim()).toBe('name a star');
-    name.click();
+    named.click();
     await fixture.whenStable();
     expect(sky.lookingUp()).toBe(true);
     expect(sky.naming()).toBe(true);

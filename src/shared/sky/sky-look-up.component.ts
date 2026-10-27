@@ -4,16 +4,17 @@ import { filter } from 'rxjs';
 import { IconComponent } from '../icon/icon.component';
 import { SkyService } from './sky.service';
 import { StarNamingComponent } from './star-naming.component';
+import { SkyCompassComponent } from './sky-compass.component';
 
 /**
  * Look up: while the page is hidden (App fades out <main> and makes it inert),
- * a "back to the page" button in the bottom-left corner, and the name-a-star
- * panel when it's open. Escape closes the ☾ menu or the panel first, then leaves look-up;
+ * a "back to the page" button in the bottom-left corner, free look's compass
+ * (top-left), and the name-a-star panel when it's open. Escape closes the ☾ menu or the panel first, then leaves look-up;
  * so does any route change (← →, a link). Copy is a draft for Morgan.
  */
 @Component({
   selector: 'app-sky-look-up',
-  imports: [IconComponent, StarNamingComponent],
+  imports: [IconComponent, StarNamingComponent, SkyCompassComponent],
   templateUrl: './sky-look-up.component.html',
   styleUrl: './sky-look-up.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -18,8 +18,9 @@ import {
   parseVisitorNames,
   sameStar,
   starTitle,
+  starsAround,
   starsOnScreen,
-  stepStar,
+  stepAround,
   suggestionBody,
   suggestionText,
   unnamedCountText,
@@ -182,10 +183,10 @@ describe('sky naming', () => {
       expect(list.length).toBeLessThan(unnamed.length);
       for (let i = 1; i < list.length; i++) expect(list[i].x).toBeGreaterThanOrEqual(list[i - 1].x);
       for (const { x, y } of list) {
-        expect(x).toBeGreaterThanOrEqual(8);
-        expect(y).toBeGreaterThanOrEqual(8);
-        expect(x).toBeLessThanOrEqual(layout.width - 8);
-        expect(y).toBeLessThanOrEqual(layout.height - 8);
+        expect(x).toBeGreaterThanOrEqual(14);
+        expect(y).toBeGreaterThanOrEqual(14);
+        expect(x).toBeLessThanOrEqual(layout.width - 14);
+        expect(y).toBeLessThanOrEqual(layout.height - 14);
       }
       // Vega's neighbour is nearly overhead tonight: above the top of a landscape screen.
       expect(list.some(s => sameStar(s.star.ra, s.star.dec, NEAR_VEGA.ra, NEAR_VEGA.dec))).toBe(false);
@@ -205,7 +206,7 @@ describe('sky naming', () => {
     });
   });
 
-  it('picks the brightest, the nearest within reach, and steps left to right with wrap', () => {
+  it('picks the brightest, and the nearest within reach', () => {
     const [a, b, c] = [fake(1, 0, 4.1), fake(2, 0, 3.2), fake(3, 0, 4.4)];
     const list = [at(a, 100, 100), at(b, 200, 120), at(c, 300, 90)];
     expect(brightest(list)?.star).toBe(b);
@@ -213,16 +214,36 @@ describe('sky naming', () => {
     expect(nearestTo(list, 205, 130, 24)?.star).toBe(b);
     expect(nearestTo(list, 250, 300, 24)).toBeNull();
     expect(nearestTo(list, 140, 105, 70)?.star).toBe(a); // the nearer of two in reach
-    expect(stepStar(list, b, 1)?.star).toBe(c);
-    expect(stepStar(list, c, 1)?.star).toBe(a);
-    expect(stepStar(list, a, -1)?.star).toBe(c);
-    expect(stepStar(list, null, 1)?.star).toBe(a);
-    expect(stepStar(list, fake(9, 9, 1), -1)?.star).toBe(c);
-    expect(stepStar([], a, 1)).toBeNull();
-    // From a selected star that isn't pickable just now (under the panel), carry on from where it is.
-    expect(stepStar(list, fake(9, 9, 1), 1, 150)?.star).toBe(b);
-    expect(stepStar(list, fake(9, 9, 1), -1, 250)?.star).toBe(b);
-    expect(stepStar(list, fake(9, 9, 1), 1, 350)?.star).toBe(a); // past the right end: wrap
+  });
+
+  describe('all the way round (‹ ›)', () => {
+    const toHorizontal = j2000ToHorizontalMatrix(NIGHT, CINCINNATI.lat, CINCINNATI.lon);
+    const unnamed = unnamedStars(stars, proper, [], landmarks);
+
+    it('lists every unnamed star above the horizon, on screen or not, in azimuth order', () => {
+      const around = starsAround(unnamed, toHorizontal);
+      const onScreen = starsOnScreen(unnamed, computeLayout(1440, 900), toHorizontal);
+      expect(around.length).toBeGreaterThan(onScreen.length);
+      expect(around.every(s => s.alt > 0)).toBe(true);
+      for (let i = 1; i < around.length; i++) expect(around[i].az).toBeGreaterThanOrEqual(around[i - 1].az);
+      // The north is in it, which the normal (south-facing) view never shows.
+      expect(around.some(s => s.az > 315 || s.az < 45)).toBe(true);
+      expect(onScreen.length).toBeLessThan(unnamed.length);
+    });
+
+    it('steps by azimuth from the selected star, wrapping past north, or from the facing with nothing selected', () => {
+      const [a, b, c] = [fake(1, 0, 4.1), fake(2, 0, 3.2), fake(3, 0, 4.4)];
+      const list = [{ star: a, alt: 30, az: 20 }, { star: b, alt: 10, az: 170 }, { star: c, alt: 60, az: 300 }];
+      expect(stepAround(list, a, 1, 180)?.star).toBe(b);
+      expect(stepAround(list, c, 1, 180)?.star).toBe(a); // past north
+      expect(stepAround(list, a, -1, 180)?.star).toBe(c);
+      // Nothing selected (or it has set): the first to the right of where you're facing, or to the left going back.
+      expect(stepAround(list, null, 1, 180)?.star).toBe(c);
+      expect(stepAround(list, null, -1, 180)?.star).toBe(b);
+      expect(stepAround(list, fake(9, 9, 1), 1, 350)?.star).toBe(a);
+      expect(stepAround(list, null, -1, 10)?.star).toBe(c);
+      expect(stepAround([], a, 1, 180)).toBeNull();
+    });
   });
 
   describe('the suggestion', () => {

@@ -73,6 +73,12 @@ export class SkyMenuComponent {
     this.sky.startNaming(this.button()?.nativeElement ?? null);
   }
 
+  /** Hides the page (the menu closes, so the first touch lands on the sky; focus goes back to the ☾), or brings it back. */
+  protected hidePage(): void {
+    this.sky.toggleLookUp();
+    if (!this.open()) afterNextRender(() => this.button()?.nativeElement.focus(), { injector: this.injector });
+  }
+
   protected choose(lighting: Lighting): void {
     this.sky.setLighting(lighting);
   }
