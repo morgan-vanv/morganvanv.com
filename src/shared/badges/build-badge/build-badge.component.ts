@@ -1,8 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, map, of } from 'rxjs';
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { BadgeComponent, BadgePopover } from '../badge/badge.component';
-import { ApiCacheService } from '../../services/api-cache.service';
+import { cachedJson } from '../../services/cached-json';
 import { SITE_CONFIG } from '../../config/site.config';
 import { BUILD_INFO } from '../../../build-info';
 
@@ -64,12 +62,7 @@ export function daysAgo(iso: string, now = Date.now()): string {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class BuildBadgeComponent {
-  private readonly api = inject(ApiCacheService);
-
-  private readonly status = toSignal(
-    this.api.get<unknown>(SITE_STATUS_URL, STATUS_TTL_MS).pipe(map(toStatus), catchError(() => of(null))),
-    { initialValue: null },
-  );
+  private readonly status = cachedJson(SITE_STATUS_URL, STATUS_TTL_MS, toStatus);
 
   readonly build = computed(() => {
     const status = this.status();

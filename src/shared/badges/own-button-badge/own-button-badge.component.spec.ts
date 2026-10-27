@@ -82,4 +82,18 @@ describe('OwnButtonBadgeComponent', () => {
     expect(el.querySelector('#link-to-me')).toBeNull();
     elsewhere.remove();
   });
+
+  it('selects the HTML for a manual copy when the clipboard is unavailable', async () => {
+    vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText: () => Promise.reject(new Error('insecure')) } });
+    const { fixture, el, button } = await render();
+    button.click();
+    await fixture.whenStable();
+    const code = el.querySelector<HTMLTextAreaElement>('#link-to-me textarea')!;
+    const select = vi.spyOn(code, 'select');
+    el.querySelector<HTMLButtonElement>('.copy')!.click();
+    await fixture.whenStable();
+    expect(select).toHaveBeenCalled();
+    expect(el.querySelector('.copy')?.textContent).toContain('copy');
+    vi.unstubAllGlobals();
+  });
 });

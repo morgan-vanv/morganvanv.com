@@ -1,7 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, map, of } from 'rxjs';
-import { ApiCacheService } from '../../services/api-cache.service';
+import { Injectable } from '@angular/core';
+import { cachedJson } from '../../services/cached-json';
 
 /** What the deploy job writes (`scripts/write-lighthouse-badge.mjs`): the homepage, as a phone. */
 export interface LighthouseReport {
@@ -35,15 +33,7 @@ export function hasWeight(report: LighthouseReport | null): report is Lighthouse
  */
 @Injectable({ providedIn: 'root' })
 export class LighthouseReportService {
-  private readonly api = inject(ApiCacheService);
-
-  readonly report = toSignal(
-    this.api.get<unknown>(LIGHTHOUSE_REPORT_URL, REPORT_TTL_MS).pipe(
-      map(value => (isReport(value) ? value : null)),
-      catchError(() => of(null)),
-    ),
-    { initialValue: null },
-  );
+  readonly report = cachedJson(LIGHTHOUSE_REPORT_URL, REPORT_TTL_MS, value => (isReport(value) ? value : null));
 }
 
 /** "Oct 26", for the popovers. */

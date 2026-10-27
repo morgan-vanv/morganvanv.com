@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { Observable, of, throwError } from 'rxjs';
-import { LighthouseBadgeComponent, LIGHTHOUSE_REPORT_URL } from './lighthouse-badge.component';
+import { LighthouseBadgeComponent } from './lighthouse-badge.component';
+import { LIGHTHOUSE_REPORT_URL } from './lighthouse-report.service';
 import { ApiCacheService } from '../../services/api-cache.service';
 
 describe('LighthouseBadgeComponent', () => {

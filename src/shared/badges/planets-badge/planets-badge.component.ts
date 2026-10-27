@@ -2,13 +2,19 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { BadgeComponent, BadgePopover } from '../badge/badge.component';
 import { SkyService } from '../../sky/sky.service';
 
-/**
- * Up tonight: the naked-eye planets above the horizon right now, brightest first, from the sky's own
- * numbers. Opens the ☾ menu. Only after dusk (the Sun below −6°), and hides when none are up.
- */
 /** Civil dusk: below this the Sun's down far enough for "tonight" to be true. */
 export const NIGHT_SUN_ALT = -6;
 
+/** A height above the horizon in whole degrees, short and spelled out; anything up at all is at least 1. */
+function degreesUp(alt: number): { short: string; long: string } {
+  const n = Math.max(1, Math.round(alt));
+  return { short: `${n}° up`, long: `${n} degree${n === 1 ? '' : 's'} up` };
+}
+
+/**
+ * Up tonight: the naked-eye planets above the horizon right now, brightest first, from the sky's own
+ * numbers. Opens the ☾ menu. Only after dusk, and hides when none are up.
+ */
 @Component({
   selector: 'app-planets-badge',
   imports: [BadgeComponent],
@@ -29,12 +35,12 @@ export class PlanetsBadgeComponent {
       value: rest.length ? `${first.name} +${rest.length}` : first.name,
       popover: {
         title: 'Planets up right now',
-        rows: planets.map(p => ({ label: p.name, value: `${Math.max(1, Math.round(p.alt))}° up` })),
+        rows: planets.map(p => ({ label: p.name, value: degreesUp(p.alt).short })),
         note: `naked-eye planets ${where}, brightest first`,
         cta: 'open the sky ☾',
       } satisfies BadgePopover,
       label: `Up tonight ${where}: ` +
-        planets.map(p => `${p.name}, ${Math.max(1, Math.round(p.alt))} degrees up`).join('; ') + '. Opens the sky menu.',
+        planets.map(p => `${p.name}, ${degreesUp(p.alt).long}`).join('; ') + '. Opens the sky menu.',
     };
   });
 }

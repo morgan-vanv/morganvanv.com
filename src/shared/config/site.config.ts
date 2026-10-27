@@ -24,6 +24,4 @@ export const SITE_CONFIG = {
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',
   forecastPageUrl: 'https://forecast.weather.gov/MapClick.php?lat=39.1&lon=-84.51',
-  /** The Vinyl Collection badge reads the public collection; no key needed. */
-  discogsApiUrl: 'https://api.discogs.com',
 } as const;

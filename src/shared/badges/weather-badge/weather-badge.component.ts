@@ -1,11 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { catchError, map, of } from 'rxjs';
+import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { BadgeComponent, BadgePopover } from '../badge/badge.component';
-import { ApiCacheService } from '../../services/api-cache.service';
+import { cachedJson } from '../../services/cached-json';
 import { SITE_CONFIG } from '../../config/site.config';
 import { CINCINNATI } from '../../sky/sky.service';
-import { CurrentWeather, describeWeather, isClear, isCurrentWeather, verdict } from './weather';
+import { describeWeather, isClear, parseWeather, verdict } from './weather';
 
 export const WEATHER_URL = `${SITE_CONFIG.weatherApiUrl}?latitude=${CINCINNATI.lat}&longitude=${CINCINNATI.lon}` +
   '&current=temperature_2m,cloud_cover,weather_code,is_day&temperature_unit=fahrenheit&timezone=America%2FNew_York';
@@ -23,16 +21,9 @@ const WEATHER_TTL_MS = 30 * 60 * 1000;
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WeatherBadgeComponent {
-  private readonly api = inject(ApiCacheService);
   readonly href = SITE_CONFIG.forecastPageUrl;
 
-  private readonly current = toSignal(
-    this.api.get<{ current?: unknown }>(WEATHER_URL, WEATHER_TTL_MS).pipe(
-      map(response => (isCurrentWeather(response?.current) ? response.current : null)),
-      catchError(() => of(null)),
-    ),
-    { initialValue: null as CurrentWeather | null },
-  );
+  private readonly current = cachedJson(WEATHER_URL, WEATHER_TTL_MS, parseWeather);
 
   readonly weather = computed(() => {
     const now = this.current();

@@ -6,10 +6,11 @@ export interface CurrentWeather {
   is_day: number;
 }
 
-export function isCurrentWeather(value: unknown): value is CurrentWeather {
-  const c = value as CurrentWeather | null;
-  return !!c && [c.temperature_2m, c.cloud_cover, c.weather_code, c.is_day].every(n => typeof n === 'number' && Number.isFinite(n))
-    && c.cloud_cover >= 0 && c.cloud_cover <= 100;
+/** Open-Meteo's answer down to its `current` block, or null if it isn't one. */
+export function parseWeather(response: unknown): CurrentWeather | null {
+  const c = (response as { current?: CurrentWeather } | null)?.current;
+  const numbers = !!c && [c.temperature_2m, c.cloud_cover, c.weather_code, c.is_day].every(n => typeof n === 'number' && Number.isFinite(n));
+  return numbers && c.cloud_cover >= 0 && c.cloud_cover <= 100 ? c : null;
 }
 
 /** A WMO weather code (what Open-Meteo reports) as words: the long form, and a short one for the face. */

@@ -53,29 +53,26 @@
 
   </div>
 
-  <!-- 88×31 buttons, in two rows. Each hides itself while it has no data. The ones whose data ships
-       with the site come first in each row, so the live ones arriving later don't push them around. -->
+  <!-- 88×31 buttons, in two rows, in Morgan's order. Each hides itself while it has no data; the
+       row keeps its height meanwhile, so nothing below moves when they arrive. -->
   <section class="panel buttons-panel" aria-labelledby="now-buttons">
     <h2 id="now-buttons">Buttons <span class="range-label">88×31s, most of them live</span></h2>
     <div class="cluster">
       <h3 class="cluster-label">tonight</h3>
       <div class="strip">
-        <app-photo-wall-badge />
+        <app-weather-badge />
         <app-moon-badge />
         <app-planets-badge />
-        <app-weather-badge />
-        <app-vinyl-badge />
       </div>
     </div>
     <div class="cluster">
       <h3 class="cluster-label">this site</h3>
       <div class="strip">
+        <app-own-button-badge />
         <app-angular-badge />
         <app-no-cookies-badge />
-        <app-under-construction-badge />
-        <app-own-button-badge />
-        <app-lighthouse-badge />
         <app-page-weight-badge />
+        <app-lighthouse-badge />
         <app-build-badge />
       </div>
     </div>
