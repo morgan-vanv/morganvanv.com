@@ -49,6 +49,19 @@ describe('SkyLookUpComponent', () => {
     expect(el.querySelector('.back')).toBeNull();
   });
 
+  it('shows free look\'s compass, top-left, only while looking up, and coming back faces south again', async () => {
+    const { fixture, el, sky } = await mount();
+    expect(el.querySelector('app-sky-compass')).toBeNull();
+    sky.enterLookUp();
+    await fixture.whenStable();
+    expect(el.querySelector('app-sky-compass .compass')).not.toBeNull();
+    sky.view.set({ facing: 20, tilt: 30 });
+    el.querySelector<HTMLButtonElement>('.back')!.click();
+    await fixture.whenStable();
+    expect(el.querySelector('app-sky-compass')).toBeNull();
+    expect(sky.view()).toEqual({ facing: 180, tilt: 0 });
+  });
+
   it('Escape leaves look-up, and stops the site-wide Escape (back to the greeting)', async () => {
     const { sky, router, escape } = await mount();
     const nav = TestBed.inject(KeyboardNavService);

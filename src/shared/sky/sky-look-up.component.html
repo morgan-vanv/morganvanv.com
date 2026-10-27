@@ -4,6 +4,10 @@
     <span>back to the page</span>
   </button>
 }
+<!-- Free look's compass. Not deferred: on its own chunk it made the bundler split main in two, which cost more than it saved. -->
+@if (sky.lookingUp()) {
+  <app-sky-compass />
+}
 <!-- Loaded the first time someone names a star, so it isn't in every page's first download. -->
 @defer (when sky.naming()) {
   @if (sky.naming()) {

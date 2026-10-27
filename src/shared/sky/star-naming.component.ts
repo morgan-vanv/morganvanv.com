@@ -60,7 +60,8 @@ export class StarNamingComponent {
   });
   /** What the live region says: the sent message, an error, or nothing. */
   protected readonly status = computed(() => (this.sky.sent() ? NAMING_SENT : this.error()));
-  protected readonly canStep = computed(() => this.sky.candidates().length > 1);
+  /** ‹ › go round every unnamed star that's up, turning the sky to each. */
+  protected readonly canStep = computed(() => this.sky.around().length > 1);
   readonly canSubmit = computed(() => !this.submitting() && !!this.sky.selected() && this.name().trim().length > 0);
 
   constructor() {
@@ -72,7 +73,11 @@ export class StarNamingComponent {
       wasSent = sent;
     });
     // Opened: focus comes into the panel (and on to the name field, below, once a star is selected).
-    afterNextRender(() => this.panel().nativeElement.focus());
+    afterNextRender(() => {
+      this.panel().nativeElement.focus();
+      // Now the sky can see what the panel covers (the first time, it arrives after naming started).
+      this.sky.namingPanelShown.update(count => count + 1);
+    });
     // A star is selected while the panel itself has focus (it just opened): on to the name field.
     // Not on touch screens, where the keyboard would cover the sky before anything's been picked.
     effect(() => {

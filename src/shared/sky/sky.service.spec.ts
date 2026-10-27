@@ -137,6 +137,9 @@ describe('SkyService lighting', () => {
     const star = (mag: number, ra = mag) => ({ ra, dec: 0, mag, v: [1, 0, 0] as const, near: 'Vega' });
     const [a, b, c] = [star(4.1, 1), star(3.2, 2), star(4.4, 3)];
     const onScreen = [{ star: a, x: 100, y: 100 }, { star: b, x: 200, y: 120 }, { star: c, x: 300, y: 90 }];
+    /** All the way round: the three on screen (facing south) and one in the north, behind you. */
+    const d = star(3.9, 4);
+    const around = [{ star: d, alt: 30, az: 10 }, { star: a, alt: 40, az: 150 }, { star: b, alt: 20, az: 180 }, { star: c, alt: 50, az: 210 }];
 
     it('looks up and comes back; leaving closes the naming panel too', () => {
       const service = TestBed.inject(SkyService);
@@ -162,18 +165,13 @@ describe('SkyService lighting', () => {
       expect(service.namingOpener).toBe(opener);
     });
 
-    it('selects the brightest candidate, keeps a selection that\'s still on screen, and steps left to right', () => {
+    it('selects the brightest candidate, and keeps a selection that\'s still on screen', () => {
       const service = TestBed.inject(SkyService);
       service.startNaming();
       service.setCandidates(onScreen);
       expect(service.selected()).toBe(b);
-      service.step(1);
-      expect(service.selected()).toBe(c);
+      service.select(c);
       service.setCandidates(onScreen.slice()); // redrawn: still there
-      expect(service.selected()).toBe(c);
-      service.step(1);
-      expect(service.selected()).toBe(a); // wraps
-      service.step(-1);
       expect(service.selected()).toBe(c);
       // No longer pickable (under the panel, say): the selection stays put; the sky clears it once the star has gone.
       service.setCandidates(onScreen.slice(0, 2));
@@ -183,18 +181,66 @@ describe('SkyService lighting', () => {
       expect(service.selected()).toBe(b);
     });
 
-    it('steps on from where the selected star is when it isn\'t pickable just now', () => {
+    it('‹ › step all the way round by azimuth, past north, and ask the sky to bring each star into view', () => {
       const service = TestBed.inject(SkyService);
       service.startNaming();
-      service.setCandidates(onScreen);
-      const hidden = star(2.0, 9);
-      service.select(hidden);
-      service.selectedPoint.set({ x: 250, y: 100 });
+      service.around.set(around);
+      service.select(b);
+      const shown = service.showSelected();
       service.step(1);
       expect(service.selected()).toBe(c);
-      service.select(hidden);
+      expect(service.showSelected()).toBe(shown + 1);
+      service.step(1);
+      expect(service.selected()).toBe(d); // round past north, off screen
       service.step(-1);
-      expect(service.selected()).toBe(b);
+      expect(service.selected()).toBe(c);
+      // Nothing selected: from where the visitor is facing.
+      service.select(null);
+      service.view.set({ facing: 100, tilt: 0 });
+      service.step(1);
+      expect(service.selected()).toBe(a);
+      service.select(null);
+      service.step(-1);
+      expect(service.selected()).toBe(d);
+    });
+
+    it('the compass turns from where the last turn was heading, clamps the tilt, and says where it leaves you', () => {
+      const service = TestBed.inject(SkyService);
+      service.enterLookUp();
+      expect(service.view()).toEqual({ facing: 180, tilt: 0 });
+      service.turn(-45);
+      expect(service.viewRequest()?.view).toEqual({ facing: 135, tilt: 0 });
+      service.turn(-45); // before the sky got there: from where it was heading
+      expect(service.viewRequest()?.view).toEqual({ facing: 90, tilt: 0 });
+      expect(service.viewAnnouncement()).toBe('facing east, 90°, at the horizon');
+      service.turn(-135);
+      expect(service.viewRequest()?.view.facing).toBe(315); // wraps past north
+      service.tilt(-15);
+      expect(service.viewRequest()?.view.tilt).toBe(0); // not below the horizon
+      for (let i = 0; i < 8; i++) service.tilt(15);
+      expect(service.viewRequest()?.view.tilt).toBe(90); // nor past the zenith
+      expect(service.viewAnnouncement()).toBe('facing northwest, 315°, straight up');
+      const count = service.viewRequest()!.count;
+      service.faceSouth();
+      expect(service.viewRequest()).toEqual({ view: { facing: 180, tilt: 0 }, count: count + 1 });
+      // The same words twice still get said.
+      const said = service.viewAnnouncement();
+      service.faceSouth();
+      expect(service.viewAnnouncement()).not.toBe(said);
+      expect(service.viewAnnouncement().trim()).toBe(said.trim());
+    });
+
+    it('leaving look-up faces south again, and so does coming back', () => {
+      const service = TestBed.inject(SkyService);
+      service.enterLookUp();
+      service.view.set({ facing: 338, tilt: 40 });
+      service.turn(45);
+      service.leaveLookUp();
+      expect(service.view()).toEqual({ facing: 180, tilt: 0 });
+      expect(service.viewRequest()).toBeNull();
+      service.view.set({ facing: 20, tilt: 10 }); // (as if left over)
+      service.startNaming();
+      expect(service.view()).toEqual({ facing: 180, tilt: 0 });
     });
 
     it('picks the candidate nearest a click, within reach', () => {
@@ -211,6 +257,7 @@ describe('SkyService lighting', () => {
       const service = TestBed.inject(SkyService);
       service.startNaming();
       service.setCandidates(onScreen);
+      service.around.set(around);
       service.sent.set(true);
       service.setCandidates(onScreen.slice());
       expect(service.sent()).toBe(true);
@@ -220,6 +267,7 @@ describe('SkyService lighting', () => {
       expect(service.lookingUp()).toBe(true);
       expect(service.selected()).toBeNull();
       expect(service.candidates()).toEqual([]);
+      expect(service.around()).toEqual([]);
     });
   });
 });

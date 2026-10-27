@@ -4,9 +4,10 @@ import { REDRAW_INTERVAL_MS, SkyComponent, labelPosition } from './sky.component
 import { TRANSITION_MS } from './sky-transition';
 import { SkyTarget } from './sky-render';
 import { SkyToggleComponent } from './sky-toggle.component';
-import { SkyService } from './sky.service';
-import { j2000ToHorizontalMatrix, multiply } from './sky-math';
-import { computeLayout, screenPoint } from './sky-render';
+import { CINCINNATI, SkyService } from './sky.service';
+import { altAz, j2000ToHorizontalMatrix, multiply } from './sky-math';
+import { computePanorama, panoramaOffset, viewPoint } from './sky-panorama';
+import { FACE_SOUTH, spokenView } from './sky-view';
 
 const files: Record<string, string> = {
   '/data/sky/stars.json': readFileSync('public/data/sky/stars.json', 'utf8'),
@@ -50,6 +51,27 @@ function stubBrowser({ fetchFails = false, reducedMotion = false, landBelow = 1,
   const geolocation = vi.fn();
   vi.spyOn(navigator, 'geolocation', 'get').mockReturnValue({ getCurrentPosition: geolocation } as unknown as Geolocation);
   return { putImageData, setIntervalSpy, geolocation, drawImage, decode };
+}
+
+/** Looks up and waits for free look (loaded on first use) to take over the sky. */
+async function lookUp(fixture: { componentInstance: unknown; whenStable: () => Promise<unknown> }, sky: SkyService) {
+  sky.enterLookUp();
+  await vi.waitFor(() => expect((fixture.componentInstance as { freeOn: boolean }).freeOn).toBe(true), { timeout: 5000 });
+  await fixture.whenStable();
+}
+
+/** Starts naming a star, once free look has the sky. */
+async function startNaming(fixture: { componentInstance: unknown; whenStable: () => Promise<unknown> }, sky: SkyService) {
+  await lookUp(fixture, sky);
+  sky.startNaming();
+  await fixture.whenStable();
+}
+
+/** Where the ring is (CSS px), from its transform. */
+function ringAt(root: HTMLElement): { x: number; y: number } {
+  const ring = root.querySelector('.star-ring') as HTMLElement;
+  const [, x, y] = /translate\(([-\d.e]+)px, ([-\d.e]+)px\)/.exec(ring.style.transform) ?? [];
+  return { x: parseFloat(x), y: parseFloat(y) };
 }
 
 async function mount() {
@@ -300,8 +322,7 @@ describe('SkyComponent: visitor names and naming', () => {
     stubBrowser({ landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
-    sky.startNaming();
-    await fixture.whenStable();
+    await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(1));
     const candidates = sky.candidates();
     // Only above the landscape (here, the top 60% of the window).
@@ -309,10 +330,10 @@ describe('SkyComponent: visitor names and naming', () => {
     const brightest = candidates.reduce((a, b) => (b.star.mag < a.star.mag ? b : a));
     expect(sky.selected()).toBe(brightest.star);
     await fixture.whenStable();
-    const ring = fixture.nativeElement.querySelector('.star-ring') as HTMLElement;
-    expect(ring).not.toBeNull();
-    expect(parseFloat(ring.style.left)).toBeCloseTo(brightest.x, 3);
-    expect(parseFloat(ring.style.top)).toBeCloseTo(brightest.y, 3);
+    expect(fixture.nativeElement.querySelector('.star-ring')).not.toBeNull();
+    const ring = ringAt(fixture.nativeElement);
+    expect(ring.x).toBeCloseTo(brightest.x, 3);
+    expect(ring.y).toBeCloseTo(brightest.y, 3);
 
     const another = candidates.find(c => c.star !== brightest.star)!;
     const open = document.createElement('div');
@@ -327,8 +348,7 @@ describe('SkyComponent: visitor names and naming', () => {
     stubBrowser({ landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
-    sky.startNaming();
-    await fixture.whenStable();
+    await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(1));
     // A candidate with nothing else within 40px, so the only question is reach.
     const lonely = sky.candidates().find(c => c.star !== sky.selected()
@@ -352,29 +372,26 @@ describe('SkyComponent: visitor names and naming', () => {
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     const component = fixture.componentInstance as unknown as { pinnedTime: Date | null; draw: () => void };
-    const ringAt = () => {
-      const ring = fixture.nativeElement.querySelector('.star-ring') as HTMLElement;
-      return { x: parseFloat(ring.style.left), y: parseFloat(ring.style.top) };
-    };
     const expected = (date: Date) => {
       const star = sky.selected()!;
       const { lat, lon } = sky.location();
-      return screenPoint(computeLayout(window.innerWidth, window.innerHeight), multiply(j2000ToHorizontalMatrix(date, lat, lon), star.v))!;
+      // Looking up, the sky is free look's panorama, facing south to start.
+      const { alt, az } = altAz(multiply(j2000ToHorizontalMatrix(date, lat, lon), star.v));
+      return viewPoint(computePanorama(window.innerWidth, window.innerHeight), FACE_SOUTH, alt, az)!;
     };
     component.pinnedTime = new Date('2026-10-28T01:00:00Z');
     component.draw();
-    sky.startNaming();
-    await fixture.whenStable();
+    await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.selected()).not.toBeNull());
     await fixture.whenStable();
-    const before = ringAt();
+    const before = ringAt(fixture.nativeElement);
     expect(before.x).toBeCloseTo(expected(component.pinnedTime).x, 3);
 
     // Ten minutes on: the sky has turned, and the ring has gone with its star.
     component.pinnedTime = new Date('2026-10-28T01:10:00Z');
     component.draw();
     await fixture.whenStable();
-    const after = ringAt();
+    const after = ringAt(fixture.nativeElement);
     const there = expected(component.pinnedTime);
     expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(5);
     expect(after.x).toBeCloseTo(there.x, 3);
@@ -388,8 +405,7 @@ describe('SkyComponent: visitor names and naming', () => {
     const component = fixture.componentInstance as unknown as { pinnedTime: Date | null; draw: () => void };
     component.pinnedTime = new Date('2026-10-28T01:00:00Z');
     component.draw();
-    sky.startNaming();
-    await fixture.whenStable();
+    await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(2));
     const pick = sky.candidates().find(c => c.star !== sky.selected())!;
     const chosen = pick.star;
@@ -417,12 +433,169 @@ describe('SkyComponent: visitor names and naming', () => {
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     sky.setLighting('day');
     await fixture.whenStable();
-    sky.startNaming();
-    await fixture.whenStable();
+    await startNaming(fixture, sky);
     await new Promise(resolve => setTimeout(resolve, 20));
     expect(sky.candidates()).toEqual([]);
     expect(sky.selected()).toBeNull();
     localStorage.clear();
+  });
+});
+
+describe('SkyComponent: free look', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    TestBed.inject(SkyService).leaveLookUp();
+  });
+
+  interface Internals { freeOn: boolean; pinnedTime: Date | null; draw: () => void }
+  const panorama = (root: HTMLElement) => root.querySelector<HTMLCanvasElement>('.free canvas')!;
+  /** A press, a move, a release and the click that follows, on the sky. */
+  async function press(fixture: { nativeElement: HTMLElement; whenStable: () => Promise<unknown> }, from: { x: number; y: number }, to: { x: number; y: number }) {
+    const target = fixture.nativeElement.querySelector('.overlay')!;
+    const fire = (type: string, x: number, y: number) =>
+      target.dispatchEvent(new PointerEvent(type, { pointerId: 7, isPrimary: true, pointerType: 'mouse', button: 0, clientX: x, clientY: y, bubbles: true }));
+    fire('pointerdown', from.x, from.y);
+    fire('pointermove', (from.x + to.x) / 2, (from.y + to.y) / 2);
+    fire('pointermove', to.x, to.y);
+    fire('pointerup', to.x, to.y);
+    target.dispatchEvent(new MouseEvent('click', { clientX: to.x, clientY: to.y, bubbles: true }));
+    await fixture.whenStable();
+  }
+
+  it('looking up draws the whole sky once onto the panorama, facing south, and the sky canvas keeps only the gradient', async () => {
+    const { putImageData } = stubBrowser({ reducedMotion: true });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    expect(fixture.nativeElement.classList).not.toContain('free-look');
+    const before = putImageData.mock.calls.length;
+    await lookUp(fixture, sky);
+    const canvas = panorama(fixture.nativeElement);
+    const pan = computePanorama(window.innerWidth, window.innerHeight);
+    expect([canvas.width, canvas.height]).toEqual([pan.width, pan.height]);
+    expect(canvas.style.opacity).toBe('1');
+    expect(fixture.nativeElement.classList).toContain('free-look');
+    // One redraw: the panorama's stars (the sky canvas, now just the gradient, puts none).
+    expect(putImageData.mock.calls.length - before).toBe(1);
+    const offset = panoramaOffset(pan, FACE_SOUTH);
+    expect(canvas.style.transform).toBe(`translate3d(${offset.x.toFixed(2)}px, ${offset.y.toFixed(2)}px, 0)`);
+  });
+
+  it('a drag only moves the panorama: nothing is redrawn, the sky follows the pointer, and the click it ends with picks nothing', async () => {
+    const { putImageData } = stubBrowser({ reducedMotion: true, landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    await startNaming(fixture, sky);
+    await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(2));
+    const selected = sky.selected();
+    const another = sky.candidates().find(c => c.star !== selected)!;
+    const draws = putImageData.mock.calls.length;
+    const transform = panorama(fixture.nativeElement).style.transform;
+    const pan = computePanorama(window.innerWidth, window.innerHeight);
+
+    // Drag right by 100px and down by 30: the sky goes with it (turned left, tilted up), ending on another star.
+    await press(fixture, { x: another.x - 100, y: another.y - 30 }, another);
+    expect(putImageData.mock.calls.length).toBe(draws);
+    expect(panorama(fixture.nativeElement).style.transform).not.toBe(transform);
+    expect(sky.view().facing).toBeCloseTo(180 - 100 / pan.cssPerDeg, 6);
+    expect(sky.view().tilt).toBeCloseTo(30 / pan.cssPerDeg, 6);
+    expect(sky.selected()).not.toBe(another.star);
+    // It says where it left you.
+    expect(sky.viewAnnouncement()).toBe(spokenView(sky.view()));
+  });
+
+  it('a tap (barely moving) still picks the nearest unnamed star', async () => {
+    stubBrowser({ reducedMotion: true, landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    await startNaming(fixture, sky);
+    await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(2));
+    const another = sky.candidates().find(c => c.star !== sky.selected())!;
+    await press(fixture, { x: another.x + 2, y: another.y - 2 }, { x: another.x + 3, y: another.y - 1 });
+    expect(sky.view()).toEqual(FACE_SOUTH);
+    expect(sky.selected()).toBe(another.star);
+  });
+
+  it('the compass turns the sky, and the ring follows its star round', async () => {
+    stubBrowser({ reducedMotion: true, landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const component = fixture.componentInstance as unknown as Internals;
+    component.pinnedTime = new Date('2026-10-28T03:00:00Z');
+    await startNaming(fixture, sky);
+    await vi.waitFor(() => expect(sky.selected()).not.toBeNull());
+    sky.turn(-15);
+    await fixture.whenStable();
+    expect(sky.view()).toEqual({ facing: 165, tilt: 0 });
+    expect(sky.viewRequest()).toBeNull();
+    expect(sky.viewAnnouncement()).toBe('facing south-southeast, 165°, at the horizon');
+    // The ring is where the selected star now is (or gone, if the turn took it off screen).
+    const star = sky.selected()!;
+    const { alt, az } = altAz(multiply(j2000ToHorizontalMatrix(component.pinnedTime, CINCINNATI.lat, CINCINNATI.lon), star.v));
+    const there = viewPoint(computePanorama(window.innerWidth, window.innerHeight), sky.view(), alt, az);
+    if (there) {
+      const ring = ringAt(fixture.nativeElement);
+      expect(ring.x).toBeCloseTo(there.x, 3);
+      expect(ring.y).toBeCloseTo(there.y, 3);
+    }
+  });
+
+  it('‹ › go round to a star behind you, and the sky turns to bring it into view', async () => {
+    stubBrowser({ reducedMotion: true, landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const component = fixture.componentInstance as unknown as Internals;
+    component.pinnedTime = new Date('2026-10-28T03:00:00Z');
+    await startNaming(fixture, sky);
+    await vi.waitFor(() => expect(sky.around().length).toBeGreaterThan(100));
+    // A star in the north, well up (behind you, facing south), and the one before it round the sky.
+    const around = sky.around();
+    const i = around.findIndex(s => s.az > 5 && s.alt > 20 && s.alt < 50);
+    sky.select(around[i - 1].star);
+    sky.step(1);
+    await fixture.whenStable();
+    expect(sky.selected()).toBe(around[i].star);
+    expect(Math.abs(sky.view().facing - around[i].az)).toBeLessThan(60);
+    const ring = ringAt(fixture.nativeElement);
+    const there = viewPoint(computePanorama(window.innerWidth, window.innerHeight), sky.view(), around[i].alt, around[i].az)!;
+    expect(ring.x).toBeCloseTo(there.x, 3);
+    expect(ring.y).toBeCloseTo(there.y, 3);
+    expect(there.y).toBeLessThan(window.innerHeight * 0.6); // above the landscape
+  });
+
+  it('leaving looks south again with the usual crossfade, and lets the panorama go; coming back starts south', async () => {
+    stubBrowser({ reducedMotion: true });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    await lookUp(fixture, sky);
+    sky.turn(90);
+    sky.tilt(30);
+    await fixture.whenStable();
+    expect(sky.view()).toEqual({ facing: 270, tilt: 30 });
+    sky.leaveLookUp();
+    await fixture.whenStable();
+    expect(sky.view()).toEqual(FACE_SOUTH);
+    expect((fixture.componentInstance as unknown as Internals).freeOn).toBe(false);
+    expect(fixture.nativeElement.classList).not.toContain('free-look');
+    expect(panorama(fixture.nativeElement).width).toBe(0);
+    expect(panorama(fixture.nativeElement).style.opacity).toBe('0');
+
+    await lookUp(fixture, sky);
+    const offset = panoramaOffset(computePanorama(window.innerWidth, window.innerHeight), FACE_SOUTH);
+    expect(panorama(fixture.nativeElement).style.transform).toBe(`translate3d(${offset.x.toFixed(2)}px, ${offset.y.toFixed(2)}px, 0)`);
+  });
+
+  it('with motion allowed, entering crossfades: the panorama fades in as the stars of the normal view fade out', async () => {
+    stubBrowser();
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    await lookUp(fixture, sky);
+    const canvas = panorama(fixture.nativeElement);
+    await vi.waitFor(() => expect(Number(canvas.style.opacity)).toBeGreaterThan(0), { timeout: 3000 });
+    await vi.waitFor(() => expect(canvas.style.opacity).toBe('1'), { timeout: TRANSITION_MS + 2000 });
+    sky.leaveLookUp();
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(canvas.width).toBe(0), { timeout: TRANSITION_MS + 2000 });
   });
 });
 

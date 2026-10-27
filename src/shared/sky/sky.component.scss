@@ -15,6 +15,29 @@
   opacity: 1;
 }
 
+// Free look (while looking up): the sky takes the pointer, to be dragged round. Only then,
+// so the page above works as ever; and no browser panning or zooming on it meanwhile.
+:host(.free-look) {
+  pointer-events: auto;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+:host(.free-look.dragging) {
+  cursor: grabbing;
+}
+
+// Free look's panorama: the whole sky on one canvas (free look creates it and styles it
+// itself), moved by a transform as it's dragged, never redrawn per frame. Over the sky's
+// gradient, under the Sun and the landscape.
+.free {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
 .sky {
   position: absolute;
   top: 0;
@@ -85,10 +108,12 @@
 }
 
 // The star being named: a gold ring with a soft glow, centred on the star (the
-// component places it; it follows the star when the sky redraws). An element,
-// so selecting a star never redraws the sky.
+// component places it with a transform; it follows the star when the sky redraws
+// or turns). An element, so selecting a star never redraws the sky.
 .star-ring {
   position: absolute;
+  top: 0;
+  left: 0;
   width: 0;
   height: 0;
 

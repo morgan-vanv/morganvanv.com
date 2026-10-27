@@ -1,4 +1,4 @@
-import { Mat3, Vec3, multiply, raDecToVector } from './sky-math';
+import { Mat3, Vec3, altAz, multiply, raDecToVector, wrap360 } from './sky-math';
 import { ExtraName, SkyLayout, StarFile, screenPoint } from './sky-render';
 
 /**
@@ -179,24 +179,32 @@ export function visitorHoverNames(entries: readonly VisitorName[]): ExtraName[] 
   return entries.map(entry => ({ ra: entry.ra, dec: entry.dec, name: entry.name, detail: visitorDetail(entry) }));
 }
 
+/** A screen of some size and how directions land on it: free look's turned view (sky-panorama.ts). */
+export interface ScreenMap {
+  readonly width: number;
+  readonly height: number;
+  point(h: Vec3): { x: number; y: number } | null;
+}
+
 /**
- * Unnamed stars above the horizon and on screen (within `margin` of the edges),
- * left to right, in layout units. `hidden` drops points the visitor can't see
- * (behind the landscape, under the naming panel).
+ * Unnamed stars above the horizon and on screen (at least `margin` in from the edges, so the ring fits),
+ * left to right, in layout units (or the screen map's). `hidden` drops points the
+ * visitor can't see (behind the landscape, under the naming panel).
  */
 export function starsOnScreen(
   stars: readonly UnnamedStar[],
-  layout: SkyLayout,
+  screen: SkyLayout | ScreenMap,
   toHorizontal: Mat3,
   hidden: (x: number, y: number) => boolean = () => false,
-  margin = 8,
+  margin = 14,
 ): StarOnScreen[] {
+  const project = 'point' in screen ? (h: Vec3) => screen.point(h) : (h: Vec3) => screenPoint(screen, h);
   const out: StarOnScreen[] = [];
   for (const star of stars) {
     const h = multiply(toHorizontal, star.v);
     if (h[2] <= 0) continue;
-    const p = screenPoint(layout, h);
-    if (!p || p.x < margin || p.y < margin || p.x > layout.width - margin || p.y > layout.height - margin) continue;
+    const p = project(h);
+    if (!p || p.x < margin || p.y < margin || p.x > screen.width - margin || p.y > screen.height - margin) continue;
     if (hidden(p.x, p.y)) continue;
     out.push({ star, x: p.x, y: p.y });
   }
@@ -222,20 +230,40 @@ export function nearestTo(list: readonly StarOnScreen[], x: number, y: number, r
   return best;
 }
 
+/** An unnamed star above the horizon, and where it is in the sky (degrees; azimuth from north through east). */
+export interface StarAround {
+  readonly star: UnnamedStar;
+  readonly alt: number;
+  readonly az: number;
+}
+
+/** The unnamed stars above the horizon, all the way round, in azimuth order (then by altitude). */
+export function starsAround(stars: readonly UnnamedStar[], toHorizontal: Mat3): StarAround[] {
+  const out: StarAround[] = [];
+  for (const star of stars) {
+    const h = multiply(toHorizontal, star.v);
+    if (h[2] <= 0) continue;
+    const { alt, az } = altAz(h);
+    out.push({ star, alt, az });
+  }
+  return out.sort((a, b) => a.az - b.az || a.alt - b.alt);
+}
+
 /**
- * The next (+1) or previous (−1) star in left-to-right order, wrapping round.
- * From a star that isn't in the list (under the panel, say) it carries on from
- * `fromX`, where that star is; from nothing, › starts at the left and ‹ at the right.
+ * ‹ (−1) or › (+1): the next star round the sky by azimuth (to the right is
+ * west of south, as on screen), wrapping past north. From a star that isn't in
+ * the list (nothing selected, or it has set) it starts from `facing`: › takes
+ * the first star to its right, ‹ the first to its left.
  */
-export function stepStar(list: readonly StarOnScreen[], current: UnnamedStar | null, direction: 1 | -1, fromX: number | null = null): StarOnScreen | null {
+export function stepAround(list: readonly StarAround[], current: UnnamedStar | null, direction: 1 | -1, facing: number): StarAround | null {
   if (!list.length) return null;
   const i = current ? list.findIndex(s => s.star === current) : -1;
   if (i !== -1) return list[(i + direction + list.length) % list.length];
-  if (fromX !== null) {
-    const next = direction === 1 ? list.find(s => s.x > fromX) : [...list].reverse().find(s => s.x < fromX);
-    if (next) return next;
-  }
-  return direction === 1 ? list[0] : list[list.length - 1];
+  const turn = (s: StarAround) => wrap360(s.az - facing);
+  return list.reduce((best, s) => {
+    const [t, b] = [turn(s), turn(best)];
+    return direction === 1 ? (t < b ? s : best) : (t > b ? s : best);
+  });
 }
 
 /** How many of them ever rise at a latitude: the ones that are really "in this sky". */

@@ -10,6 +10,12 @@
 
   position: absolute;
   z-index: -1;
+
+  // Looking up, the sky comes in front of the (hidden) page, so it gets the pointer to be
+  // dragged round (free look). The ☾ and the look-up controls are fixed above it.
+  &.looking-up {
+    z-index: 1;
+  }
 }
 
 main {

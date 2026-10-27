@@ -1,0 +1,20 @@
+<div class="compass look-up-surface" role="group" aria-labelledby="compass-reading">
+  <p id="compass-reading" class="reading">{{ reading() }}</p>
+  <div class="buttons">
+    <button type="button" class="turn" [attr.aria-label]="'turn left ' + turnStep + '°'" (click)="sky.turn(-turnStep)">
+      <app-icon name="chevron-left" />
+    </button>
+    <button type="button" class="turn" [attr.aria-label]="'tilt up ' + tiltStep + '°'" (click)="sky.tilt(tiltStep)">
+      <app-icon name="chevron-up" />
+    </button>
+    <button type="button" class="turn" [attr.aria-label]="'tilt down ' + tiltStep + '°'" (click)="sky.tilt(-tiltStep)">
+      <app-icon name="chevron-down" />
+    </button>
+    <button type="button" class="turn" [attr.aria-label]="'turn right ' + turnStep + '°'" (click)="sky.turn(turnStep)">
+      <app-icon name="chevron-right" />
+    </button>
+    <button type="button" class="south" aria-label="face south" (click)="sky.faceSouth()">south</button>
+  </div>
+  <!-- Always here, so its text changing is announced. -->
+  <p class="visually-hidden" aria-live="polite">{{ sky.viewAnnouncement() }}</p>
+</div>

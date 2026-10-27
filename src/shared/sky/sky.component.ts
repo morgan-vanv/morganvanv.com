@@ -14,7 +14,18 @@ import {
 } from '@angular/core';
 import { SkyService } from './sky.service';
 import { Mat3, altAz, j2000ToHorizontalMatrix, multiply, sunHorizontal } from './sky-math';
-import { ProperNameFile, VisitorNameFile, parseVisitorNames, starsOnScreen, unnamedStars, visitorHoverNames, visitorNames } from './sky-naming';
+import {
+  ProperNameFile,
+  VisitorNameFile,
+  parseVisitorNames,
+  starsAround,
+  starsOnScreen,
+  unnamedStars,
+  visitorHoverNames,
+  visitorNames,
+} from './sky-naming';
+import type { FreeLook } from './sky-free-look';
+import { LookView, sameReading } from './sky-view';
 import { upNow } from './sky-up-now';
 import { AstronomyModule, Bodies, computeBodies, loadAstronomy } from './sky-bodies';
 import { NO_HOVER, SkyHover, hoverAt, hoverLabel, isOpenSky, sameHover } from './sky-hover';
@@ -38,13 +49,13 @@ import {
   NameFile,
   SkyBackground,
   SkyCatalog,
-  SkyGlow,
   SkyLayout,
   SkyRenderResult,
   SkySegment,
   SkyTarget,
   StarFile,
   computeLayout,
+  drawGlows,
   prepareCatalog,
   renderSky,
   screenPoint,
@@ -119,6 +130,8 @@ export function parseSkyAt(search: string): Date | null {
   template: `
     <canvas #sky class="sky"></canvas>
     <canvas #sky class="sky"></canvas>
+    <!-- Free look's panorama goes in here (loaded with the first look up). -->
+    <div #free class="free"></div>
     <div #sun class="sun"></div>
     <div class="land">
       <canvas #land class="sky"></canvas>
@@ -144,7 +157,7 @@ export function parseSkyAt(search: string): Date | null {
       }
     </div>
     @if (ring(); as ring) {
-      <span class="star-ring" [class.sent]="sent()" [style.left.px]="ring.x" [style.top.px]="ring.y">
+      <span class="star-ring" [class.sent]="sent()" [style.transform]="'translate(' + ring.x + 'px, ' + ring.y + 'px)'">
         <span class="sparkle"></span>
       </span>
     }
@@ -157,6 +170,7 @@ export function parseSkyAt(search: string): Date | null {
   host: {
     'aria-hidden': 'true',
     '[class.ready]': 'sky.ready()',
+    '[class.free-look]': 'freeLooking()',
   },
 })
 export class SkyComponent {
@@ -171,6 +185,7 @@ export class SkyComponent {
   private readonly lands = viewChildren<ElementRef<HTMLCanvasElement>>('land');
   private readonly sunElement = viewChild.required<ElementRef<HTMLElement>>('sun');
   private readonly overlay = viewChild.required<ElementRef<HTMLCanvasElement>>('overlay');
+  private readonly freeLayer = viewChild.required<ElementRef<HTMLElement>>('free');
 
   /** Fireflies on the meadow at dusk (CSS-animated; nothing at all otherwise). */
   protected readonly fireflies = signal<readonly Firefly[]>([]);
@@ -231,6 +246,16 @@ export class SkyComponent {
   /** The change of light waiting for its look (it draws when that arrives), if any. */
   private lookWait: number | null = null;
 
+  /** Free look (sky-free-look.ts), once loaded: the panorama the visitor can turn while looking up. */
+  private free: FreeLook | null = null;
+  private freeLoad: Promise<FreeLook | null> | null = null;
+  /** Free look is on (looking up, and loaded): the stars are on the panorama, the sky canvas is only the gradient. */
+  private freeOn = false;
+  /** How much of the panorama is showing (it crossfades with the normal view). */
+  private freeOpacity = 0;
+  /** While free look is on, the sky takes the pointer (to be dragged). */
+  protected readonly freeLooking = signal(false);
+
   constructor() {
     const destroyRef = inject(DestroyRef);
 
@@ -248,10 +273,38 @@ export class SkyComponent {
       if (!this.sky.naming()) return;
       untracked(() => afterNextRender(() => this.updateNaming(), { injector: this.injector }));
     });
+    // The panel has just appeared (on first use it loads after naming started, so the first pick
+    // couldn't see it): a star it now covers is picked again. Nobody has typed a name for it yet.
+    effect(() => {
+      if (!this.sky.namingPanelShown()) return;
+      untracked(() => {
+        this.updateNaming();
+        const selected = this.sky.selected();
+        if (selected && !this.sky.sent() && !this.sky.candidates().some(c => c.star === selected)) {
+          this.sky.select(null);
+          this.sky.setCandidates(this.sky.candidates());
+        }
+      });
+    });
     // The ring follows the selected star.
     effect(() => {
       this.sky.selected();
       untracked(() => this.updateSelectedPoint());
+    });
+
+    // Looking up turns free look on (the sky can be dragged round); coming back turns it off.
+    effect(() => {
+      const up = this.sky.lookingUp();
+      untracked(() => this.setFreeLook(up));
+    });
+    // The compass asked for a turn.
+    effect(() => {
+      const request = this.sky.viewRequest();
+      if (request) untracked(() => this.free?.turnTo(request.view));
+    });
+    // ‹ › picked a star: turn to bring it into view.
+    effect(() => {
+      if (this.sky.showSelected()) untracked(() => this.showSelectedStar());
     });
 
     afterNextRender(() => {
@@ -304,6 +357,7 @@ export class SkyComponent {
           if (this.transition) cancelAnimationFrame(this.transition.frame);
           this.transition = null;
           stopHover();
+          this.free?.destroy();
           density?.removeEventListener?.('change', onDensity);
           document.documentElement.style.removeProperty('--daylight');
           clearInterval(interval);
@@ -456,14 +510,23 @@ export class SkyComponent {
     const check = (event: PointerEvent) => {
       const scene = this.scene;
       const layout = this.layout;
-      const open = !!scene && !!layout && isOpenSky(event.target) && !this.isLand(event.clientX, event.clientY);
-      const hover = open
-        ? hoverAt(event.clientX / layout!.artPixel, event.clientY / layout!.artPixel, scene!.targets, scene!.segments, LINE_REACH_CSS / layout!.artPixel)
-        : NO_HOVER;
+      const free = this.freeOn ? this.free : null;
+      const open = !!scene && !!layout && isOpenSky(event.target) && !this.isLand(event.clientX, event.clientY) && !free?.moving;
+      let hover = NO_HOVER;
+      if (open && free) {
+        hover = free.hoverAt(event.clientX, event.clientY, LINE_REACH_CSS);
+        // The Sun stays with the painting, so it's found where the normal view has it.
+        const sun = hover.target ? null : scene!.targets.find(t => t.kind === 'sun');
+        if (sun && Math.hypot(event.clientX / layout!.artPixel - sun.x, event.clientY / layout!.artPixel - sun.y) <= sun.radius) {
+          hover = { target: sun, figure: null };
+        }
+      } else if (open) {
+        hover = hoverAt(event.clientX / layout!.artPixel, event.clientY / layout!.artPixel, scene!.targets, scene!.segments, LINE_REACH_CSS / layout!.artPixel);
+      }
       this.setHover(hover, event.clientX, event.clientY);
     };
     const onMove = (event: PointerEvent) => {
-      if (event.pointerType === 'touch') return;
+      if (event.pointerType === 'touch' || this.free?.dragging) return;
       pending = event;
       if (!frame) {
         frame = requestAnimationFrame(() => {
@@ -473,7 +536,8 @@ export class SkyComponent {
       }
     };
     const onTap = (event: PointerEvent) => {
-      if (event.pointerType !== 'touch') return;
+      // (A drag that just ended isn't a tap.)
+      if (event.pointerType !== 'touch' || (this.freeOn && this.free?.endedDrag)) return;
       check(event);
       clearTimeout(touchTimer);
       touchTimer = setTimeout(() => this.setHover(NO_HOVER, 0, 0), TOUCH_LABEL_MS);
@@ -484,6 +548,8 @@ export class SkyComponent {
     let lastPointer = 'mouse';
     const onDown = (event: PointerEvent) => (lastPointer = event.pointerType || 'mouse');
     const onClick = (event: MouseEvent) => {
+      // A drag turned the sky; it doesn't pick a star as it lets go.
+      if (this.free?.takeDragClick()) return;
       if (!this.sky.naming() || !isOpenSky(event.target)) return;
       const reach = lastPointer === 'touch' ? PICK_REACH_TOUCH_CSS : PICK_REACH_CSS;
       this.sky.selectNear(event.clientX, event.clientY, reach);
@@ -547,11 +613,20 @@ export class SkyComponent {
     const canvas = this.overlay().nativeElement;
     const context = canvas.getContext('2d');
     const layout = this.layout;
-    const scene = this.scene;
+    const free = this.freeOn ? this.free : null;
+    const scene = free ? free.scene : this.scene;
     if (!context || !layout) return;
     context.clearRect(0, 0, canvas.width, canvas.height);
     if (!scene || (!this.hover.figure && !this.hover.target)) return;
     const css = 1 / layout.artPixel;
+    // What was drawn, in overlay pixels: the normal view's are already; the panorama's are where the view has them.
+    const at = free
+      ? (x: number, y: number) => {
+        const p = free.toScreen(x, y);
+        return { x: p.x * css, y: p.y * css };
+      }
+      : (x: number, y: number) => ({ x, y });
+    const unit = free ? free.cssPerPixel * css : 1;
     context.lineCap = 'round';
     if (this.hover.figure) {
       context.strokeStyle = 'rgba(170, 206, 226, 0.7)';
@@ -559,18 +634,23 @@ export class SkyComponent {
       context.beginPath();
       for (const s of scene.segments) {
         if (s.figure !== this.hover.figure) continue;
-        context.moveTo(s.ax, s.ay);
-        context.lineTo(s.bx, s.by);
+        const [a, b] = [at(s.ax, s.ay), at(s.bx, s.by)];
+        context.moveTo(a.x, a.y);
+        context.lineTo(b.x, b.y);
       }
       context.stroke();
     }
+    // The same object in this drawing (the panorama may have it twice: take the one nearest the hover).
     const wanted = this.hover.target;
-    const target = wanted && scene.targets.find(t => t.kind === wanted.kind && t.name === wanted.name);
+    const target = wanted && scene.targets
+      .filter(t => t.kind === wanted.kind && t.name === wanted.name)
+      .sort((a, b) => Math.hypot(a.x - wanted.x, a.y - wanted.y) - Math.hypot(b.x - wanted.x, b.y - wanted.y))[0];
     if (target) {
+      const p = at(target.x, target.y);
       context.strokeStyle = 'rgba(201, 146, 42, 0.9)';
       context.lineWidth = 1.5 * css;
       context.beginPath();
-      context.arc(target.x, target.y, Math.max(7 * css, target.radius * 0.8), 0, Math.PI * 2);
+      context.arc(p.x, p.y, Math.max(7 * css, target.radius * unit * 0.8), 0, Math.PI * 2);
       context.stroke();
     }
     // Lines that run behind the trees stay behind them.
@@ -729,13 +809,16 @@ export class SkyComponent {
       date, lat, lon, catalog, bodies, lighting, paintBackground: false, drawSun: false,
     });
     paintSky(skyContext, layout, result.background, this.scratchCanvas('glow'));
-    const points = this.scratchCanvas('points');
+    // In free look the stars are on the panorama, turned over this; the sky canvas is only the gradient.
+    const free = this.freeOn ? this.free : null;
+    const points = free ? null : this.scratchCanvas('points');
     if (points) {
       if (points.width !== layout.width || points.height !== layout.height) [points.width, points.height] = [layout.width, layout.height];
       points.getContext('2d')?.putImageData(image, 0, 0);
       skyContext.drawImage(points, 0, 0);
+      drawGlows(skyContext, result.glows);
     }
-    drawGlows(skyContext, result.glows);
+    free?.render(this.viewWidth(), this.viewHeight(), dpr, layout, { date, lat, lon, catalog, bodies, lighting });
 
     // The landscape: the weighted looks. A look that hasn't loaded (or failed) lends its
     // weight to the night look until it arrives.
@@ -762,7 +845,7 @@ export class SkyComponent {
     const stillThere = hovered
       ? result.targets.some(t => t.kind === hovered.kind && t.name === hovered.name)
       : !figure || result.segments.some(s => s.figure === figure);
-    if (!stillThere || from) {
+    if (!stillThere || from || free) {
       this.hover = NO_HOVER;
       this.label.set(null);
     }
@@ -773,9 +856,12 @@ export class SkyComponent {
     this.starsVisible = result.starVisibility;
     this.updateNaming();
 
+    // The panorama fades in as free look starts, and out as it ends, with the stars of the normal view.
+    const [freeFrom, freeTo] = [this.freeOpacity, this.freeOn ? 1 : 0];
     if (!from) {
       this.showPair(this.shown);
       this.apply(state);
+      this.setFreeOpacity(freeTo);
       return;
     }
 
@@ -788,6 +874,7 @@ export class SkyComponent {
       skyUnder.style.opacity = '';
       skyOver.style.opacity = String(incoming === 1 ? progress : 1 - progress);
       this.lands().forEach((ref, i) => (ref.nativeElement.style.opacity = String(i === incoming ? progress : 1 - progress)));
+      this.setFreeOpacity(freeFrom + (freeTo - freeFrom) * progress);
     };
     const transition = { start: performance.now(), frame: 0, incoming, progress: 0 };
     const step = (now: number) => {
@@ -799,6 +886,7 @@ export class SkyComponent {
         this.shown = incoming;
         this.showPair(incoming);
         this.apply(state);
+        this.setFreeOpacity(freeTo);
         this.setFireflies(layout, state.fireflies > FIREFLY_MIN);
         if (this.redrawAfterTransition) {
           this.redrawAfterTransition = false;
@@ -828,16 +916,27 @@ export class SkyComponent {
     const toHorizontal = this.toHorizontal;
     if (!this.sky.naming() || !layout || !toHorizontal) return;
     const css = layout.artPixel;
-    const covers = Array.from(document.querySelectorAll(NAMING_COVERS)).map(el => el.getBoundingClientRect());
-    const hidden = (x: number, y: number) => {
-      const [cx, cy] = [x * css, y * css];
-      return this.isLand(cx, cy) || covers.some(r => r.width > 0 && cx > r.left - COVER_CLEARANCE && cx < r.right + COVER_CLEARANCE
-        && cy > r.top - COVER_CLEARANCE && cy < r.bottom + COVER_CLEARANCE);
-    };
-    const list = this.starsVisible > PICKABLE_STARS ? starsOnScreen(this.sky.unnamed(), layout, toHorizontal, hidden) : [];
-    if (this.sky.selected() && !this.selectedOnScreen()) this.sky.select(null);
-    this.sky.setCandidates(list.map(c => ({ star: c.star, x: c.x * css, y: c.y * css })));
+    const hidden = this.hiddenTest();
+    const pickable = this.starsVisible > PICKABLE_STARS;
+    const screen = this.freeOn ? this.free?.screenMap() : null;
+    // Free look's screen map is in CSS pixels already; the normal view's is in buffer pixels.
+    const list = !pickable ? [] : screen
+      ? starsOnScreen(this.sky.unnamed(), screen, toHorizontal, hidden)
+      : starsOnScreen(this.sky.unnamed(), layout, toHorizontal, (x, y) => hidden(x * css, y * css))
+        .map(c => ({ star: c.star, x: c.x * css, y: c.y * css }));
+    // ‹ › go all the way round, so they need every unnamed star that's up.
+    this.sky.around.set(pickable ? starsAround(this.sky.unnamed(), toHorizontal) : []);
+    // (Not while the sky is turning: ‹ › may have picked a star it's turning towards.)
+    if (this.sky.selected() && !this.selectedOnScreen() && !(this.freeOn && this.free?.moving)) this.sky.select(null);
+    this.sky.setCandidates(list);
     this.updateSelectedPoint();
+  }
+
+  /** Whether a CSS point is hidden from the visitor: behind the landscape, or under the panel, the compass or the ☾ menu. */
+  private hiddenTest(): (x: number, y: number) => boolean {
+    const covers = Array.from(document.querySelectorAll(NAMING_COVERS)).map(el => el.getBoundingClientRect());
+    return (x, y) => this.isLand(x, y) || covers.some(r => r.width > 0 && x > r.left - COVER_CLEARANCE && x < r.right + COVER_CLEARANCE
+      && y > r.top - COVER_CLEARANCE && y < r.bottom + COVER_CLEARANCE);
   }
 
   /** The selected star's place (CSS pixels) if it's above the horizon and on screen, else null. */
@@ -847,9 +946,90 @@ export class SkyComponent {
     const toHorizontal = this.toHorizontal;
     if (!star || !layout || !toHorizontal) return null;
     const h = multiply(toHorizontal, star.v);
-    const p = h[2] > 0 ? screenPoint(layout, h) : null;
+    if (h[2] <= 0) return null;
+    if (this.freeOn && this.free?.pan) return this.free.screenPoint(h);
+    const p = screenPoint(layout, h);
     if (!p || p.x < 0 || p.y < 0 || p.x > layout.width || p.y > layout.height) return null;
     return { x: p.x * layout.artPixel, y: p.y * layout.artPixel };
+  }
+
+  /** ‹ › picked a star: free look turns (as little as it can) to bring it into view. */
+  private showSelectedStar(): void {
+    const star = this.sky.selected();
+    const toHorizontal = this.toHorizontal;
+    const free = this.freeOn ? this.free : null;
+    if (!star || !toHorizontal || !free) return;
+    const { alt, az } = altAz(multiply(toHorizontal, star.v));
+    if (alt <= 0) return;
+    const hidden = this.hiddenTest();
+    const [width, height] = [this.viewWidth(), this.viewHeight()];
+    const margin = 24;
+    free.show(alt, az, (x, y) => x > margin && y > margin && x < width - margin && y < height - margin && !hidden(x, y));
+  }
+
+  /**
+   * Free look on (looking up) or off. On: load it the first time, start facing
+   * south, and crossfade from the normal view to the panorama. Off: crossfade
+   * back, and let the panorama go once it has faded.
+   */
+  private setFreeLook(on: boolean): void {
+    if (!on) {
+      if (!this.freeOn) return;
+      this.freeOn = false;
+      this.freeLooking.set(false);
+      this.free?.stop();
+      this.draw(this.mayEase());
+      return;
+    }
+    void this.loadFreeLook().then(free => {
+      if (!free || this.destroyed || !this.sky.lookingUp() || this.freeOn) return;
+      free.reset();
+      free.start();
+      this.freeOn = true;
+      this.freeLooking.set(true);
+      this.draw(this.mayEase());
+    });
+  }
+
+  private loadFreeLook(): Promise<FreeLook | null> {
+    this.freeLoad ??= import('./sky-free-look').then(
+      ({ FreeLook }) => {
+        if (this.destroyed) return null;
+        this.free = new FreeLook(this.freeLayer().nativeElement, this.host, {
+          moved: view => this.freeMoved(view),
+          settled: (view, dragged) => this.freeSettled(view, dragged),
+        }, () => matchMedia('(prefers-reduced-motion: reduce)').matches);
+        return this.free;
+      },
+      () => null,
+    );
+    return this.freeLoad;
+  }
+
+  /** The panorama moved (a frame of a drag or a turn): the ring goes with its star, hover labels go, the compass reads on. */
+  private freeMoved(view: LookView): void {
+    this.updateSelectedPoint();
+    if (this.hover !== NO_HOVER || this.label()) {
+      this.hover = NO_HOVER;
+      this.label.set(null);
+      this.drawOverlay();
+    }
+    if (!sameReading(view, this.sky.view())) this.sky.view.set(view);
+  }
+
+  /** The panorama came to rest: what can be picked is worked out again, and a drag says where it left the visitor. */
+  private freeSettled(view: LookView, dragged: boolean): void {
+    this.sky.view.set(view);
+    this.sky.viewRequest.set(null);
+    this.updateNaming();
+    if (dragged) this.sky.announceView(view);
+  }
+
+  private setFreeOpacity(opacity: number): void {
+    this.freeOpacity = opacity;
+    this.free?.setOpacity(opacity);
+    // Faded right out: give its memory back.
+    if (opacity === 0 && !this.freeOn) this.free?.release();
   }
 
   /** Where the selected star is now (CSS pixels), for its ring; drawn as an element, never on the sky. */
@@ -960,20 +1140,6 @@ function paintSky(context: CanvasRenderingContext2D, layout: SkyLayout, backgrou
   glowContext.fillRect(0, 0, w, h);
   glowContext.globalCompositeOperation = 'source-over';
   context.drawImage(scratch, 0, 0, layout.width, layout.height);
-}
-
-/** Soft halos round things that shine. */
-function drawGlows(context: CanvasRenderingContext2D, glows: readonly SkyGlow[]): void {
-  context.globalCompositeOperation = 'lighter';
-  for (const glow of glows) {
-    const gradient = context.createRadialGradient(glow.x, glow.y, 0, glow.x, glow.y, glow.radius);
-    gradient.addColorStop(0, rgba(glow.color, glow.strength));
-    gradient.addColorStop(0.35, rgba(glow.color, glow.strength * 0.35));
-    gradient.addColorStop(1, rgba(glow.color, 0));
-    context.fillStyle = gradient;
-    context.fillRect(glow.x - glow.radius, glow.y - glow.radius, glow.radius * 2, glow.radius * 2);
-  }
-  context.globalCompositeOperation = 'source-over';
 }
 
 /** Rough size of a label, in CSS pixels (0.75rem monospace plus padding). */
