@@ -9,7 +9,7 @@ export const SUBTITLES: readonly string[] = [
   'probably clicking on virtual trees and rocks',
 ];
 
-/** Longest subtitle a visitor can suggest: it has to fit under the name on a phone. */
+/** Longest subtitle a visitor can suggest: about as long as Morgan's own longest (it wraps on a phone, as his do). */
 export const SUBTITLE_MAX_LENGTH = 60;
 /** Longest name a visitor can be credited as. */
 export const CREDIT_MAX_LENGTH = 24;
@@ -23,7 +23,7 @@ export interface GuestSubtitle {
   readonly text: string;
   /** How they asked to be credited; null for anonymous ("a stranger"). */
   readonly by: string | null;
-  /** When it was approved, YYYY-MM. */
+  /** When it was suggested, YYYY-MM (the `approve:` line fills it in). */
   readonly added: string;
 }
 

@@ -48,4 +48,8 @@ describe('contact submissions', () => {
   it('collapses whitespace', () => {
     expect(oneLine(' a \n\t b ')).toBe('a b');
   });
+
+  it('drops invisible formatting and control characters', () => {
+    expect(oneLine('night\u202Eowl\u200B\u0007 ok')).toBe('nightowl ok');
+  });
 });

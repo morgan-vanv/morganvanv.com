@@ -54,9 +54,9 @@ export const CONTACT_MODES: readonly ContactMode[] = [
     label: 'anonymous dropbox',
     fieldLabel: 'Your message (anonymous)',
     placeholder: 'Feedback, a bug, a confession…',
-    note: 'Nothing about you is attached. It just lands in my inbox.',
+    note: 'No name attached. I won\'t know who sent it.',
     submit: 'Drop it in',
-    success: 'Dropped in. Nobody, including me, knows it was you.',
+    success: 'Dropped in. I won\'t know it was you.',
     again: 'Leave another',
   },
 ];

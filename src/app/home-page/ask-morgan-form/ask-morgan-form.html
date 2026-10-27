@@ -4,7 +4,7 @@
     <div class="modes" role="group" aria-label="What are you sending?">
       @for (option of modes; track option.id) {
         <button type="button" class="mode" [class.on]="kind() === option.id"
-          [attr.aria-pressed]="kind() === option.id" (click)="choose(option.id)">
+          [attr.aria-pressed]="kind() === option.id" [disabled]="isSubmitting()" (click)="choose(option.id)">
           {{ option.label }}
         </button>
       }
@@ -29,6 +29,7 @@
             <input
               type="text"
               id="contact-subtitle"
+              aria-describedby="contact-note"
               name="subtitle"
               [ngModel]="subtitle()"
               (ngModelChange)="subtitle.set($event)"
@@ -69,6 +70,7 @@
             <label for="contact-message">{{ mode().fieldLabel }}</label>
             <textarea
               id="contact-message"
+              aria-describedby="contact-note"
               name="message"
               [ngModel]="message()"
               (ngModelChange)="message.set($event)"
@@ -88,6 +90,7 @@
             <label for="question">{{ mode().fieldLabel }}</label>
             <textarea
               id="question"
+              aria-describedby="contact-note"
               name="question"
               [ngModel]="question()"
               (ngModelChange)="question.set($event)"
@@ -104,7 +107,7 @@
         }
       }
 
-      <p class="note">{{ mode().note }}</p>
+      <p class="note" id="contact-note">{{ mode().note }}</p>
 
       <button type="submit" class="submit-btn" [disabled]="!canSubmit()">
         {{ isSubmitting() ? 'Sending...' : mode().submit }}

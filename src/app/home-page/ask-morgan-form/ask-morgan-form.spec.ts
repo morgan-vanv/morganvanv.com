@@ -64,6 +64,16 @@ describe('AskMorganFormComponent', () => {
     expect(buttons.every(b => b.type === 'button')).toBe(true);
   });
 
+  it('locks the mode while a message is on its way', async () => {
+    component.question.set('why?');
+    const submit = component.submitForm();
+    await fixture.whenStable();
+    const buttons = [...(fixture.nativeElement as HTMLElement).querySelectorAll<HTMLButtonElement>('.modes button')];
+    expect(buttons.every(b => b.disabled)).toBe(true);
+    http.expectOne(SITE_CONFIG.askMorganSubmitUrl).flush({});
+    await submit;
+  });
+
   it('switches mode without losing the other drafts', async () => {
     component.question.set('half a question');
     const el = fixture.nativeElement as HTMLElement;
@@ -84,7 +94,7 @@ describe('AskMorganFormComponent', () => {
     expect(req.request.body).toEqual({ question: '📥 Anonymous dropbox\nlove the campfire', kind: 'message', text: 'love the campfire', username_honey: '' });
     req.flush({});
     await submit;
-    expect(component.successMessage()).toContain('Nobody, including me');
+    expect(component.successMessage()).toContain('I won\'t know it was you');
   });
 
   it('suggests a subtitle with a preview, a 60-character limit and an optional credit', async () => {

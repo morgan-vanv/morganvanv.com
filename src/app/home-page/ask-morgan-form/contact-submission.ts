@@ -13,9 +13,12 @@ export interface ContactSubmission {
   readonly [field: string]: unknown;
 }
 
-/** Trims and folds runs of whitespace (newlines included) into single spaces. */
+/**
+ * One clean line: invisible formatting and control characters dropped (they could make a line read
+ * differently in Discord than in the source it's pasted into), runs of whitespace folded to one space.
+ */
 export function oneLine(text: string): string {
-  return text.trim().replace(/\s+/g, ' ');
+  return text.replace(/[\p{Cf}]/gu, '').replace(/\s+/g, ' ').replace(/\p{Cc}/gu, '').trim();
 }
 
 export function questionSubmission(text: string): ContactSubmission {
