@@ -13,10 +13,11 @@ const files: Record<string, string> = {
 };
 
 /** Stubs the browser pieces happy-dom doesn't have (canvas, image decoding, media queries) and the data fetches. */
-function stubBrowser({ fetchFails = false, reducedMotion = false, landBelow = 1, failLooks = [] as string[] } = {}) {
+function stubBrowser({ fetchFails = false, reducedMotion = false, landBelow = 1, failLooks = [] as string[], extra = {} as Record<string, string> } = {}) {
   vi.stubGlobal('fetch', vi.fn(async (url: string) => {
     if (fetchFails) throw new Error('offline');
-    return new Response(files[url], { status: files[url] ? 200 : 404 });
+    const body = extra[url] ?? files[url];
+    return new Response(body, { status: body ? 200 : 404 });
   }));
   const decode = vi.spyOn(HTMLImageElement.prototype, 'decode').mockImplementation(function (this: HTMLImageElement) {
     return failLooks.some(look => this.src.includes(`/landscape/${look}.webp`)) ? Promise.reject(new Error('404')) : Promise.resolve();
@@ -248,6 +249,86 @@ describe('SkyComponent', () => {
     expect(sky.ready()).toBe(false);
     expect(putImageData).not.toHaveBeenCalled();
     expect(fixture.nativeElement.classList).not.toContain('ready');
+  });
+});
+
+describe('SkyComponent: visitor names and naming', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    TestBed.inject(SkyService).leaveLookUp();
+  });
+
+  it('draws without visitor names when their file is missing (and offers all 766 unnamed stars)', async () => {
+    stubBrowser(); // visitor-names.json 404s here
+    const { sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    expect(sky.visitorNames()).toEqual([]);
+    expect(sky.unnamed().length).toBe(766);
+  });
+
+  it('draws without visitor names when their file is broken', async () => {
+    stubBrowser({ extra: { '/data/sky/visitor-names.json': '{ not json' } });
+    const { sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    expect(sky.visitorNames()).toEqual([]);
+  });
+
+  it('loads visitor names: hover targets with their label, and the star is no longer offered', async () => {
+    stubBrowser({ landBelow: 0.6, extra: {
+      '/data/sky/visitor-names.json': JSON.stringify({ names: [[281.193, 37.605, 'Gerald', 'sam', '2026-10']] }),
+    } });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    expect(sky.visitorNames().map(v => [v.name, v.near])).toEqual([['Gerald', 'Vega']]);
+    expect(sky.unnamed().length).toBe(765);
+    const catalog = (fixture.componentInstance as unknown as { catalog: { visitorNames: { name: string; detail: string }[] } }).catalog;
+    expect(catalog.visitorNames).toEqual([expect.objectContaining({ name: 'Gerald', detail: 'named by sam, Oct 2026' })]);
+  });
+
+  it('while naming: lists what can be picked, selects the brightest, rings it, and a click picks another', async () => {
+    stubBrowser({ landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    sky.startNaming();
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(1));
+    const candidates = sky.candidates();
+    // Only above the landscape (here, the top 60% of the window).
+    expect(candidates.every(c => c.y < window.innerHeight * 0.6)).toBe(true);
+    const brightest = candidates.reduce((a, b) => (b.star.mag < a.star.mag ? b : a));
+    expect(sky.selected()).toBe(brightest.star);
+    await fixture.whenStable();
+    const ring = fixture.nativeElement.querySelector('.star-ring') as HTMLElement;
+    expect(ring).not.toBeNull();
+    expect(parseFloat(ring.style.left)).toBeCloseTo(brightest.x, 3);
+    expect(parseFloat(ring.style.top)).toBeCloseTo(brightest.y, 3);
+
+    const another = candidates.find(c => c.star !== brightest.star)!;
+    const open = document.createElement('div');
+    document.body.append(open);
+    open.dispatchEvent(new MouseEvent('click', { clientX: another.x + 3, clientY: another.y - 3, bubbles: true }));
+    await fixture.whenStable();
+    expect(sky.selected()).toBe(another.star);
+    // The ring follows the star when the sky redraws (a resize, a change of light).
+    (fixture.componentInstance as unknown as { draw: () => void }).draw();
+    await fixture.whenStable();
+    expect(parseFloat((fixture.nativeElement.querySelector('.star-ring') as HTMLElement).style.left)).toBeCloseTo(another.x, 0); // the sky turned a hair in between
+    open.remove();
+  });
+
+  it('picks nothing in a light too bright for stars', async () => {
+    stubBrowser({ reducedMotion: true });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    sky.setLighting('day');
+    await fixture.whenStable();
+    sky.startNaming();
+    await fixture.whenStable();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(sky.candidates()).toEqual([]);
+    expect(sky.selected()).toBeNull();
+    localStorage.clear();
   });
 });
 

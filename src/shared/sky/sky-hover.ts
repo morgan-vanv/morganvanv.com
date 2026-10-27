@@ -8,7 +8,7 @@ import { CONSTELLATION_NAMES } from './sky-up-now';
  * list carries the same information as text.
  */
 export const HOVER_BLOCKERS =
-  'a, button, input, label, select, textarea, h1, h2, h3, p, li, img, model-viewer, .page-container, app-sky-menu';
+  'a, button, input, label, select, textarea, h1, h2, h3, p, li, img, model-viewer, .page-container, app-sky-menu, app-sky-look-up';
 
 export function isOpenSky(target: EventTarget | null): boolean {
   return target instanceof Element && !target.closest(HOVER_BLOCKERS);
