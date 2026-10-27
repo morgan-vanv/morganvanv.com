@@ -120,6 +120,11 @@
         [isUnderConstruction]="mediaUnderConstruction">
         @if (mediaUnderConstruction) {
           <p preview class="tile-construction">🚧 under construction 🚧</p>
+        } @else {
+          <div preview><app-media-preview /></div>
+        }
+        @if (!mediaUnderConstruction) {
+          <app-favorite-media />
         }
       </app-vertical-nav-item>
 

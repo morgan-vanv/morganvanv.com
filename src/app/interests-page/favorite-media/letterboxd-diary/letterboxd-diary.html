@@ -1,0 +1,51 @@
+@if (diary(); as diary) {
+  @if (entries().length) {
+    <section class="diary" aria-labelledby="media-diary-title">
+      <h3 id="media-diary-title">Lately on Letterboxd <span class="range-label">updates daily</span></h3>
+
+      <ol class="diary-list">
+        @for (entry of entries(); track entry.url) {
+          <li>
+            <a class="diary-entry" [href]="entry.url" target="_blank" rel="noopener noreferrer">
+              @if (entry.date; as date) {
+                <time class="diary-date" [attr.datetime]="entry.watched">
+                  <span class="month">{{ date.month }} </span>
+                  <span class="day">{{ date.day }}</span>
+                </time>
+              } @else {
+                <span class="diary-date" aria-hidden="true"></span>
+              }
+
+              <span class="diary-body">
+                <span class="diary-title">
+                  {{ entry.title }}@if (entry.year) {<span class="diary-year"> {{ entry.year }}</span>}
+                </span>
+
+                @if (entry.rating || entry.liked || entry.rewatch) {
+                  <span class="diary-marks">
+                    @if (entry.rating) {<app-stars [rating]="entry.rating" />}
+                    @if (entry.liked) {<span class="mark mark--liked" aria-hidden="true">♥</span><span class="visually-hidden">, liked</span>}
+                    @if (entry.rewatch) {<span class="mark" aria-hidden="true">↻</span><span class="visually-hidden">, a rewatch</span>}
+                  </span>
+                }
+
+                @if (entry.review) {
+                  @if (entry.spoilers) {
+                    <span class="diary-review diary-review--spoilers">Spoilers. That review stays on Letterboxd.</span>
+                  } @else {
+                    <span class="diary-review">{{ entry.review }}</span>
+                  }
+                }
+              </span>
+            </a>
+          </li>
+        }
+      </ol>
+
+      <p class="diary-more">
+        The whole diary is on
+        <a class="pill" [href]="diary.profileUrl" target="_blank" rel="noopener noreferrer">Letterboxd</a>.
+      </p>
+    </section>
+  }
+}

@@ -12,6 +12,8 @@ import { Observable, map, catchError, of } from 'rxjs';
 import { WOM_USERNAME, POWERED_BY_LINKS } from '../../shared/constants/osrs-stats.const';
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
+import { FavoriteMediaComponent } from './favorite-media/favorite-media';
+import { MediaPreviewComponent } from './favorite-media/media-preview/media-preview';
 
 const STATSFM_USERNAME = SITE_CONFIG.handles.statsFm;
 const STATS_DISPLAY_LIMIT = 8;
@@ -20,7 +22,8 @@ export type MusicList = 'songs' | 'albums' | 'artists';
 
 @Component({
   selector: 'app-interests-page',
-  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent, LastListenedComponent, PageHeaderComponent, OsrsPreviewComponent],
+  imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent, LastListenedComponent, PageHeaderComponent, OsrsPreviewComponent,
+    FavoriteMediaComponent, MediaPreviewComponent],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

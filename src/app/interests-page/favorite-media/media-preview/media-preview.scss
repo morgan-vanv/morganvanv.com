@@ -1,0 +1,43 @@
+@use '../../../../styles' as *;
+@use '../../../../shared/shared-styles.scss' as shared;
+
+:host {
+  display: block;
+}
+
+// Same footprint as the Music tile's last-listened preview.
+.last-watched {
+  @include shared.surface;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  line-height: 1.3;
+  text-align: center;
+}
+
+.label {
+  @include shared.label;
+}
+
+.when {
+  text-transform: none;
+  letter-spacing: normal;
+  color: rgba($main-color, 0.7);
+}
+
+.title {
+  max-width: 100%;
+  font-size: $font-size-body;
+  font-weight: bold;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.year {
+  font-weight: normal;
+  color: rgba($main-color, 0.6);
+}

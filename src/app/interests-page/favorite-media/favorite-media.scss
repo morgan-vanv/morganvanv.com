@@ -1,0 +1,141 @@
+@use '../../../styles' as *;
+@use '../../../shared/shared-styles.scss' as shared;
+
+:host {
+  display: block;
+}
+
+// ── The wall ───────────────────────────────────────────────────────────────
+
+// Wide screens show every shelf, so the toggles only appear on small screens.
+.shelf-tabs {
+  display: none;
+
+  @media (max-width: $breakpoint-mobile) {
+    @include shared.toggle-group;
+  }
+}
+
+.shelf-tab {
+  @include shared.toggle-button;
+}
+
+.shelves {
+  @include shared.panel-grid(repeat(var(--shelf-count, 1), minmax(0, 1fr)));
+  margin-bottom: 1.25rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    margin-bottom: 0.875rem;
+  }
+}
+
+.shelf {
+  @include shared.panel;
+  padding-bottom: 0.8rem;
+
+  h3 {
+    @include shared.panel-heading;
+  }
+
+  // One shelf at a time on small screens (the toggles pick which).
+  @media (max-width: $breakpoint-mobile) {
+    &:not(.is-active) {
+      display: none;
+    }
+  }
+}
+
+.media-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  // Book-sized covers, as many as fit; a lone shelf on a wide screen doesn't blow them up.
+  grid-template-columns: repeat(auto-fill, minmax(6rem, 8.5rem));
+  gap: 0.75rem 0.5rem;
+
+  @media (max-width: $breakpoint-phone) {
+    grid-template-columns: repeat(auto-fill, minmax(5.25rem, 1fr));
+  }
+}
+
+.media-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0.4rem;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  color: inherit;
+  text-decoration: none;
+  line-height: 1.3;
+
+  &.is-link {
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($main-color, 0.05);
+      border-color: rgba($accent-color, 0.45);
+    }
+
+    &:focus-visible {
+      outline: 2px solid $main-color;
+      outline-offset: 2px;
+    }
+  }
+}
+
+.cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 2 / 3;
+  margin-bottom: 0.3rem;
+  border-radius: 4px;
+  object-fit: cover;
+  background: rgba($main-color, 0.06);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+// No cover: the title set in type on a plain cloth-bound board, with a thin gold rule inside.
+.cover--type {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.6rem 0.5rem;
+  background: linear-gradient(160deg, rgba($background-sky-color, 0.95), rgba($background-color, 0.95));
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 0 0 4px rgba(0, 0, 0, 0.25), inset 0 0 0 5px rgba($accent-color, 0.35);
+
+  span {
+    font-size: $font-size-label;
+    font-weight: bold;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba($accent-color, 0.9);
+    overflow-wrap: anywhere;
+  }
+}
+
+.media-title {
+  font-size: $font-size-small;
+  font-weight: bold;
+}
+
+.media-meta {
+  font-size: $font-size-meta;
+  color: rgba($main-color, 0.65);
+}
+
+// "Why it's here", in his hand.
+.media-note {
+  margin-top: 0.15rem;
+  font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
+  font-size: 1.15rem;
+  line-height: 1.15;
+  color: rgba($main-color, 0.85);
+}
