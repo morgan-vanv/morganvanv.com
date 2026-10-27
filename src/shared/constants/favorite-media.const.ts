@@ -37,23 +37,23 @@ export const MEDIA_SHELVES: readonly { kind: MediaKind; label: string }[] = [
   { kind: 'album', label: 'Albums' },
 ];
 
-// Morgan's picks, 2026-10-27. [TODO: Morgan] two more books; blurbs, links and covers if he wants them.
+// Morgan's picks and covers, 2026-10-27. [TODO: Morgan] two more books; blurbs and links if he wants them.
 export const FAVORITE_MEDIA: readonly FavoriteMedia[] = [
-  { id: 'good-will-hunting', kind: 'film', title: 'Good Will Hunting' },
-  { id: 'blade-runner-2049', kind: 'film', title: 'Blade Runner 2049' },
-  { id: 'monty-python-and-the-holy-grail', kind: 'film', title: 'Monty Python and the Holy Grail' },
-  { id: 'o-brother-where-art-thou', kind: 'film', title: 'O Brother, Where Art Thou?' },
+  { id: 'good-will-hunting', kind: 'film', title: 'Good Will Hunting', cover: '/media/good-will-hunting.webp' },
+  { id: 'blade-runner-2049', kind: 'film', title: 'Blade Runner 2049', cover: '/media/blade-runner-2049.webp' },
+  { id: 'monty-python-and-the-holy-grail', kind: 'film', title: 'Monty Python and the Holy Grail', cover: '/media/monty-python-and-the-holy-grail.webp' },
+  { id: 'o-brother-where-art-thou', kind: 'film', title: 'O Brother, Where Art Thou?', cover: '/media/o-brother-where-art-thou.webp' },
 
-  { id: 'avatar-the-last-airbender', kind: 'tv', title: 'Avatar: The Last Airbender' },
-  { id: 'the-sopranos', kind: 'tv', title: 'The Sopranos' },
-  { id: 'the-wire', kind: 'tv', title: 'The Wire' },
-  { id: 'atlanta', kind: 'tv', title: 'Atlanta' },
+  { id: 'avatar-the-last-airbender', kind: 'tv', title: 'Avatar: The Last Airbender', cover: '/media/avatar-the-last-airbender.webp' },
+  { id: 'the-sopranos', kind: 'tv', title: 'The Sopranos', cover: '/media/the-sopranos.webp' },
+  { id: 'the-wire', kind: 'tv', title: 'The Wire', cover: '/media/the-wire.webp' },
+  { id: 'atlanta', kind: 'tv', title: 'Atlanta', cover: '/media/atlanta.webp' },
 
-  { id: 'thinking-fast-and-slow', kind: 'book', title: 'Thinking, Fast and Slow', by: 'Daniel Kahneman' },
-  { id: 'east-of-eden', kind: 'book', title: 'East of Eden', by: 'John Steinbeck' },
+  { id: 'thinking-fast-and-slow', kind: 'book', title: 'Thinking, Fast and Slow', by: 'Daniel Kahneman', cover: '/media/thinking-fast-and-slow.webp' },
+  { id: 'east-of-eden', kind: 'book', title: 'East of Eden', by: 'John Steinbeck', cover: '/media/east-of-eden.webp' },
 
-  { id: 'modal-soul', kind: 'album', title: 'Modal Soul', by: 'Nujabes' },
-  { id: 'blonde', kind: 'album', title: 'Blonde', by: 'Frank Ocean' },
-  { id: 'all-my-heroes-are-cornballs', kind: 'album', title: 'All My Heroes Are Cornballs', by: 'JPEGMAFIA' },
-  { id: 'donuts', kind: 'album', title: 'Donuts', by: 'J Dilla' },
+  { id: 'modal-soul', kind: 'album', title: 'Modal Soul', by: 'Nujabes', cover: '/media/modal-soul.webp' },
+  { id: 'blonde', kind: 'album', title: 'Blonde', by: 'Frank Ocean', cover: '/media/blonde.webp' },
+  { id: 'all-my-heroes-are-cornballs', kind: 'album', title: 'All My Heroes Are Cornballs', by: 'JPEGMAFIA', cover: '/media/all-my-heroes-are-cornballs.webp' },
+  { id: 'donuts', kind: 'album', title: 'Donuts', by: 'J Dilla', cover: '/media/donuts.webp' },
 ];
