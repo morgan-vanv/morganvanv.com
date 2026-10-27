@@ -51,3 +51,6 @@ dist/
 
 # Generated at build time by scripts/write-build-info.mjs
 /src/build-info.prod.ts
+
+# Test results the deploy records for the Build badge
+/test-results.json

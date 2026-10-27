@@ -1,0 +1,1 @@
+{"note": "Placeholder: the deploy overwrites this with what built the page (scripts/write-site-status.mjs). Without it the Build badge on /now hides itself."}

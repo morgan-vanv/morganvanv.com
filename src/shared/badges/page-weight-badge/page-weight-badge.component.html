@@ -1,0 +1,10 @@
+@if (weight(); as weight) {
+  <app-badge name="Page weight" [value]="weight.value" [href]="href" [label]="weight.label" [popover]="weight.popover">
+    <svg glyph width="22" height="22" viewBox="0 0 24 24">
+      <path d="M4 16 A8 8 0 0 1 20 16" class="g-line" stroke-opacity="0.35" stroke-width="2" />
+      <path [attr.d]="'M4 16 A8 8 0 0 1 ' + weight.gauge.arcEnd" class="g-line-gold" stroke-width="2" />
+      <path [attr.d]="'M12 16 L' + weight.gauge.needleEnd" class="g-line" stroke-width="1.5" />
+      <circle cx="12" cy="16" r="1.6" class="g-white" />
+    </svg>
+  </app-badge>
+}
