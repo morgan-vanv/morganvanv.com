@@ -60,17 +60,33 @@ asked: 2026-10-27
 My answer, in Markdown.
 ```
 
-The question is shown exactly as the visitor wrote it, as plain text. The answer is Markdown, but only
-paragraphs, `*emphasis*`, `**strong**`, `` `code` ``, fenced code blocks, `-` / `1.` lists and links
-(`https://`, `mailto:` or a path on the site); anything else, raw HTML included, shows as the text it is.
-HTML comments are left out.
+The question is shown exactly as the visitor wrote it, as plain text. It must be clean the way the backend
+writes it (no invisible or control characters, single spaces, no padding, at most one blank line in a row);
+a line with a stray carriage return is refused too.
+
+The answer is Markdown, but only paragraphs, `*emphasis*`, `**strong**`, `` `code` ``, fenced code blocks,
+`-` / `1.` lists and links (`https://`, `mailto:` or a path on the site); anything else, raw HTML included,
+shows as the text it is. HTML comments and bidirectional control characters are left out, and an answer
+that would show nothing (only comments, spaces or invisible characters) counts as no answer.
+
+Known quirks of that small Markdown, left as they are:
+
+- Emphasis can't be nested across: `**a *b** c*` shows the inner asterisks as text.
+- A bare URL ending in `_` or `*` loses it (they're treated as trailing punctuation); write `[text](url)`.
+- A list is one kind from its first line: `- a` then `1. b` makes one bulleted list.
+- No link titles (`[text](url "title")` stays as text), headings, quotes, images or tables.
+- A single line break inside a paragraph is a space, not a new line.
 
 ## The checks
 
 `src/shared/visitor-content/content-folder.spec.ts` (the Test job) fails a PR when any file here is off:
-an unknown folder or stray file, a file name that isn't an id, a wrong shape, a text over its limit
-(subtitle 60, name 24, credit 24, question 500), RA/Dec out of range, a repeat, or **a mailbag letter with
-no answer under the marker**. The message says which file and what to fix.
+an unknown folder, a stray file or a symlink, a file name that isn't an id, a wrong shape, a text over its
+limit (subtitle 60, name 24, credit 24, near 40, question 500), unclean text, RA/Dec out of range, a star
+that isn't in the sky's catalogue (`public/data/sky/stars.json`, within 0.01°) or already has a proper name,
+a "near" that isn't a star the sky labels (`names.json`), a repeat, or **a mailbag letter with no answer
+under the marker**. The message says which file and what to fix.
 
 The build (`scripts/build-visitor-content.mjs`, run before every build, test and dev server) gathers this
 folder into `src/generated/`, which is gitignored. It never fails: a bad file is left out with a warning.
+It runs when a command starts, so `npm start` and watch mode don't see edits to this folder until they're
+restarted (or `npm run content` is run while they're up).
