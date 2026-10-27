@@ -74,4 +74,18 @@ describe('SkyMenuComponent', () => {
     expect(button()!.getAttribute('aria-expanded')).toBe('true');
     expect(document.activeElement).toBe(el.querySelector('input[name="sky-lighting"]:checked'));
   });
+
+  it('hands focus back to the badge that opened it on Escape', async () => {
+    const { fixture, el, sky } = await mount();
+    const badge = document.createElement('button');
+    document.body.appendChild(badge);
+    badge.focus();
+    sky.openMenu();
+    await fixture.whenStable();
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true });
+    el.querySelector('#sky-menu')!.dispatchEvent(event);
+    await fixture.whenStable();
+    expect(document.activeElement).toBe(badge);
+    badge.remove();
+  });
 });

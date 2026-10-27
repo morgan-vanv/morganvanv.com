@@ -53,7 +53,7 @@ export class WeatherBadgeComponent {
         note: verdict(now),
         cta: 'the full forecast ↗',
       } satisfies BadgePopover,
-      label: `The weather in Cincinnati right now: ${sky.long}, ${temp}, ${clouds} cloud cover. ` +
+      label: `Cincinnati weather right now: ${sky.long}, ${temp}, ${clouds} cloud cover. ` +
         'Opens the National Weather Service forecast in a new tab.',
     };
   });

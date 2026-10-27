@@ -27,6 +27,8 @@ export interface UpNow {
   /** The numbers behind the text, for the Moon and Up tonight badges; null without astronomy-engine. */
   readonly detail: {
     readonly moon: { readonly illuminated: number; readonly phase: number; readonly alt: number };
+    /** The Sun's height in degrees: below about −6 it's dark enough to call it night. */
+    readonly sunAlt: number;
     readonly planets: readonly { readonly name: string; readonly alt: number }[];
   } | null;
 }
@@ -52,6 +54,7 @@ export function upNow(bodies: Bodies | null, catalog: SkyCatalog, toHorizontal: 
     .map(c => CONSTELLATION_NAMES[c.id]);
   const detail = bodies && {
     moon: { illuminated: bodies.moon.illuminated, phase: bodies.moon.phase, alt: bodies.moon.alt },
+    sunAlt: bodies.sun.alt,
     planets: planetsUp.map(p => ({ name: p.name, alt: p.alt })),
   };
   return { planets, moon, constellations, detail };

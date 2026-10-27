@@ -4,7 +4,8 @@
       <circle cx="12" cy="12" r="10.5" class="g-gold" opacity="0.16" />
       <circle cx="12" cy="12" r="8" class="g-deep g-stroke" stroke-opacity="0.35" />
       @if (moon.path) {
-        <path [attr.d]="moon.path" class="g-white" opacity="0.92" />
+        <path [attr.d]="moon.path" class="g-white" opacity="0.92"
+          [attr.transform]="moon.southern ? 'translate(24 0) scale(-1 1)' : null" />
       }
     </svg>
   </app-badge>

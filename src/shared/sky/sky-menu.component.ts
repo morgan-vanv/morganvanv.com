@@ -59,6 +59,7 @@ export class SkyMenuComponent {
   }
 
   protected toggleOpen(): void {
+    this.sky.menuOpener = null;
     this.open.update(open => !open);
   }
 
@@ -71,6 +72,9 @@ export class SkyMenuComponent {
     // Handled here, so the site-wide Escape (back to the greeting) doesn't also fire.
     event.preventDefault();
     this.open.set(false);
-    this.button()?.nativeElement.focus();
+    // Back to whatever opened it: a badge on /now, or the ☾ button itself.
+    const opener = this.sky.menuOpener?.isConnected ? this.sky.menuOpener : this.button()?.nativeElement;
+    this.sky.menuOpener = null;
+    opener?.focus();
   }
 }

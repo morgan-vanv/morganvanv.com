@@ -33,7 +33,7 @@ describe('the weather badge', () => {
     expect([...el.querySelectorAll('.value span')].map(s => s.textContent?.trim())).toEqual(['48°F', 'clear']);
     expect(el.querySelector('.name')?.textContent?.trim()).toBe('Cincinnati');
     expect(badge?.getAttribute('aria-label')).toBe(
-      'The weather in Cincinnati right now: mostly clear, 48°F, 12% cloud cover. Opens the National Weather Service forecast in a new tab.',
+      'Cincinnati weather right now: mostly clear, 48°F, 12% cloud cover. Opens the National Weather Service forecast in a new tab.',
     );
     expect(el.querySelector('.popover-note')?.textContent).toBe('clear enough to go look up');
   });

@@ -59,6 +59,8 @@ export class SkyService {
   readonly menuOpen = signal(false);
   /** Bumped when something other than the ☾ button opens the menu, so the menu takes focus. */
   readonly menuFocusRequests = signal(0);
+  /** What opened the menu from elsewhere, so Escape can hand focus back to it. */
+  menuOpener: HTMLElement | null = null;
 
   private attempt = 0;
 
@@ -72,6 +74,8 @@ export class SkyService {
 
   /** Opens the ☾ menu from elsewhere on the page (the Moon and Up tonight badges) and moves focus into it. */
   openMenu(): void {
+    const active = typeof document !== 'undefined' ? document.activeElement : null;
+    this.menuOpener = active instanceof HTMLElement && active !== document.body ? active : null;
     this.menuOpen.set(true);
     this.menuFocusRequests.update(count => count + 1);
   }

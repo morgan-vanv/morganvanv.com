@@ -69,7 +69,7 @@ export class VinylBadgeComponent {
         note: 'via Discogs',
         cta: 'flip through ↗',
       } satisfies BadgePopover,
-      label: `My vinyl collection: ${records}` + (shelf.newest ? `, newest: ${shelf.newest}` : '') +
+      label: `Vinyl Collection: ${records}` + (shelf.newest ? `, newest: ${shelf.newest}` : '') +
         '. Opens it on Discogs in a new tab.',
     };
   });

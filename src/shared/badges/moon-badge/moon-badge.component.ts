@@ -22,22 +22,25 @@ export class MoonBadgeComponent {
     if (!moon) return null;
     const lit = Math.round(moon.illuminated * 100);
     const name = phaseName(moon.phase);
-    const height = Math.round(moon.alt);
+    const up = moon.alt > 0;
+    const height = Math.max(1, Math.round(moon.alt));
     return {
       value: `${lit}% · ${phaseShort(moon.phase)}`,
       path: litPath(moon.phase),
       popover: {
-        title: 'The Moon, tonight',
+        title: 'The Moon, right now',
         rows: [
           { label: 'Phase', value: name },
           { label: 'Lit', value: `${lit}%` },
-          { label: 'Height', value: height > 0 ? `${height}° up` : 'below the horizon' },
+          { label: 'Height', value: up ? `${height}° up` : 'below the horizon' },
         ],
         note: this.sky.location().mine ? 'from your sky' : 'from the sky over Cincinnati',
         cta: 'open the sky ☾',
       } satisfies BadgePopover,
-      label: `The Moon tonight: ${name}, ${lit}% lit, ` +
-        (height > 0 ? `${height} degrees above the horizon.` : 'below the horizon.') + ' Opens the sky menu.',
+      label: `Moon: ${name}, ${lit}% lit, ` +
+        (up ? `${height} degree${height === 1 ? '' : 's'} above the horizon.` : 'below the horizon.') + ' Opens the sky menu.',
+      // Seen from south of the equator the lit side is the other one.
+      southern: this.sky.location().lat < 0,
     };
   });
 }

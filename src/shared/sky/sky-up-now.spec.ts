@@ -44,6 +44,7 @@ describe('upNow', () => {
     expect(detail?.moon.phase).toBeGreaterThan(180);
     expect(detail?.moon.phase).toBeLessThan(200);
     expect(detail?.planets.map(p => p.name)).toEqual(['Saturn']);
+    expect(detail?.sunAlt).toBeLessThan(-6);
     expect(at('2026-10-27T01:00:00Z', false).detail).toBeNull();
   });
 });
