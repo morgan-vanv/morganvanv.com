@@ -124,7 +124,7 @@ describe('SkyMenuComponent', () => {
     const labels = () => Array.from(el.querySelectorAll('.group .label')).map(h => h.textContent!.trim());
     expect(labels()).not.toContain('named by visitors');
     sky.visitorNames.set([
-      { ra: 281.193, dec: 37.605, name: 'Gerald', credit: 'sam', added: '2026-10', near: 'Vega' },
+      { ra: 283.626, dec: 36.899, name: 'Gerald', credit: 'sam', added: '2026-10', near: 'Vega' },
       { ra: 10, dec: 20, name: 'Pat', credit: null, added: '2026-11', near: 'Mirach' },
     ]);
     await fixture.whenStable();

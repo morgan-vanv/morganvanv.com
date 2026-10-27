@@ -1,7 +1,6 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, Injector, afterNextRender, effect, inject, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, Injector, afterNextRender, inject } from '@angular/core';
 import { NavigationStart, Router } from '@angular/router';
 import { filter } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { IconComponent } from '../icon/icon.component';
 import { SkyService } from './sky.service';
 import { StarNamingComponent } from './star-naming.component';
@@ -24,8 +23,10 @@ export class SkyLookUpComponent {
   private readonly injector = inject(Injector);
 
   constructor() {
-    inject(Router).events.pipe(filter(e => e instanceof NavigationStart), takeUntilDestroyed())
+    const destroyRef = inject(DestroyRef);
+    const navigation = inject(Router).events.pipe(filter(e => e instanceof NavigationStart))
       .subscribe(() => this.sky.leaveLookUp());
+    destroyRef.onDestroy(() => navigation.unsubscribe());
 
     // On the document, so it works wherever focus is (often nowhere: the page is hidden). The ☾ menu
     // handles its own Escape first and marks it handled; the site-wide Escape (KeyboardNavService, on
@@ -40,19 +41,10 @@ export class SkyLookUpComponent {
     };
     if (typeof document !== 'undefined') {
       document.addEventListener('keydown', onKeyDown);
-      inject(DestroyRef).onDestroy(() => document.removeEventListener('keydown', onKeyDown));
+      destroyRef.onDestroy(() => document.removeEventListener('keydown', onKeyDown));
     }
 
-    // The panel opened: focus goes into it.
-    effect(() => {
-      if (!this.sky.naming()) return;
-      untracked(() => afterNextRender(() => {
-        const panel = document.querySelector<HTMLElement>('app-star-naming .naming');
-        // A phone would throw its keyboard over the sky, so there the panel itself takes focus.
-        const touch = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
-        (touch ? panel : panel?.querySelector<HTMLElement>('#star-name') ?? panel)?.focus();
-      }, { injector: this.injector }));
-    });
+    // Focus moves into the naming panel when it opens: the panel does that itself (it's loaded on first use).
   }
 
   /** Closes the panel, still looking up, and hands focus back to what opened it. */

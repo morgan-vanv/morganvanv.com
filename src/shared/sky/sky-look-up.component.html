@@ -4,6 +4,9 @@
     <span>back to the page</span>
   </button>
 }
-@if (sky.naming()) {
-  <app-star-naming (closed)="closePanel()" (back)="backToPage()" />
+<!-- Loaded the first time someone names a star, so it isn't in every page's first download. -->
+@defer (when sky.naming()) {
+  @if (sky.naming()) {
+    <app-star-naming (closed)="closePanel()" (back)="backToPage()" />
+  }
 }

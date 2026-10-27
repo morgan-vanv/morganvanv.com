@@ -114,7 +114,11 @@ describe('SkyLookUpComponent', () => {
     opener.focus();
     sky.startNaming(opener);
     await fixture.whenStable();
-    expect(document.activeElement).toBe(el.querySelector('#star-name'));
+    // The panel first; once the sky has selected a star, on to the name field.
+    expect(document.activeElement).toBe(el.querySelector('app-star-naming .naming'));
+    sky.setCandidates([{ star: { ra: 283.626, dec: 36.899, mag: 4.22, v: [0, 0, 1], near: 'Vega' }, x: 100, y: 100 }]);
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(document.activeElement).toBe(el.querySelector('#star-name')));
     await escape(document.activeElement!);
     expect(document.activeElement).toBe(opener);
     opener.remove();

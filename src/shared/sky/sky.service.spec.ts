@@ -175,7 +175,25 @@ describe('SkyService lighting', () => {
       expect(service.selected()).toBe(a); // wraps
       service.step(-1);
       expect(service.selected()).toBe(c);
-      service.setCandidates(onScreen.slice(0, 2)); // gone off screen: back to the brightest
+      // No longer pickable (under the panel, say): the selection stays put; the sky clears it once the star has gone.
+      service.setCandidates(onScreen.slice(0, 2));
+      expect(service.selected()).toBe(c);
+      service.select(null);
+      service.setCandidates(onScreen.slice(0, 2));
+      expect(service.selected()).toBe(b);
+    });
+
+    it('steps on from where the selected star is when it isn\'t pickable just now', () => {
+      const service = TestBed.inject(SkyService);
+      service.startNaming();
+      service.setCandidates(onScreen);
+      const hidden = star(2.0, 9);
+      service.select(hidden);
+      service.selectedPoint.set({ x: 250, y: 100 });
+      service.step(1);
+      expect(service.selected()).toBe(c);
+      service.select(hidden);
+      service.step(-1);
       expect(service.selected()).toBe(b);
     });
 

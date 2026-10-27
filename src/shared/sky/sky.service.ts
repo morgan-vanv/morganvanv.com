@@ -138,18 +138,19 @@ export class SkyService {
     this.selected.set(star);
   }
 
-  /** The sky has worked out what's on screen: keep the selection if it's still there, else pick the brightest. */
+  /**
+   * The sky has worked out what can be picked. The selection stays put (the sky
+   * drops it only once the star has set or left the screen), so nothing changes
+   * under a visitor who's typing; with nothing selected, the brightest is picked.
+   */
   setCandidates(list: readonly StarOnScreen[]): void {
     this.candidates.set(list);
-    const current = this.selected();
-    if (!current || !list.some(c => c.star === current)) {
-      if (!this.sent()) this.select(brightest(list)?.star ?? null);
-    }
+    if (!this.selected() && !this.sent()) this.select(brightest(list)?.star ?? null);
   }
 
-  /** ‹ (−1) or › (+1): the next unnamed star left to right. */
+  /** ‹ (−1) or › (+1): the next unnamed star left to right, carrying on from where the selected one is. */
   step(direction: 1 | -1): void {
-    const next = stepStar(this.candidates(), this.selected(), direction);
+    const next = stepStar(this.candidates(), this.selected(), direction, this.selectedPoint()?.x ?? null);
     if (next) this.select(next.star);
   }
 

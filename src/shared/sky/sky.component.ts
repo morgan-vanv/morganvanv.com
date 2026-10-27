@@ -14,7 +14,7 @@ import {
 } from '@angular/core';
 import { SkyService } from './sky.service';
 import { Mat3, altAz, j2000ToHorizontalMatrix, multiply, sunHorizontal } from './sky-math';
-import { VisitorNameFile, parseVisitorNames, starsOnScreen, unnamedStars, visitorHoverNames, visitorNames } from './sky-naming';
+import { ProperNameFile, VisitorNameFile, parseVisitorNames, starsOnScreen, unnamedStars, visitorHoverNames, visitorNames } from './sky-naming';
 import { upNow } from './sky-up-now';
 import { AstronomyModule, Bodies, computeBodies, loadAstronomy } from './sky-bodies';
 import { NO_HOVER, SkyHover, hoverAt, hoverLabel, isOpenSky, sameHover } from './sky-hover';
@@ -241,8 +241,10 @@ export class SkyComponent {
       untracked(() => this.changeLight());
     });
 
-    // Naming opened (its panel now on screen) or closed: work out which stars can be picked.
+    // Naming opened (its panel now on screen), or the ☾ menu opened or closed over the sky while
+    // naming: work out again which stars can be picked (what covers the sky has changed).
     effect(() => {
+      this.sky.menuOpen();
       if (!this.sky.naming()) return;
       untracked(() => afterNextRender(() => this.updateNaming(), { injector: this.injector }));
     });
@@ -317,11 +319,13 @@ export class SkyComponent {
   /** Loads everything the live sky needs; false if any required piece is missing. */
   private async load(): Promise<boolean> {
     try {
-      const [stars, constellations, names, visitorFile, astronomy] = await Promise.all([
+      const [stars, constellations, names, properNames, visitorFile, astronomy] = await Promise.all([
         fetchJson<StarFile>('/data/sky/stars.json'),
         fetchJson<ConstellationFile>('/data/sky/constellations.json'),
         // Names only feed the hover labels; the sky is fine without them.
         fetchJson<NameFile>('/data/sky/names.json').catch(() => undefined),
+        // Every proper name, so name-a-star never offers a named star; without it, nothing is offered.
+        fetchJson<ProperNameFile>('/data/sky/proper-names.json').catch(() => undefined),
         // Stars visitors have named: nice to have, never needed.
         fetchJson<VisitorNameFile>('/data/sky/visitor-names.json').catch(() => undefined),
         // Without astronomy-engine the sky still works, just without the Moon and planets.
@@ -330,9 +334,11 @@ export class SkyComponent {
         this.loadLook('darkness'),
       ]);
       const rows = parseVisitorNames(visitorFile);
-      const named = visitorNames(rows, names);
+      // "Near" points at a bright star the sky labels on hover, so a visitor can find it.
+      const landmarks = names && { names: names.names.map(([ra, dec, name]) => [ra, dec, name] as const) };
+      const named = visitorNames(rows, landmarks);
       this.sky.visitorNames.set(named);
-      this.sky.unnamed.set(unnamedStars(stars, names, rows));
+      this.sky.unnamed.set(unnamedStars(stars, properNames, rows, landmarks));
       this.catalog = prepareCatalog(stars, constellations, names, visitorHoverNames(named));
       this.astronomy = astronomy;
       return !!this.skies()[0]?.nativeElement.getContext('2d');
@@ -473,12 +479,16 @@ export class SkyComponent {
       touchTimer = setTimeout(() => this.setHover(NO_HOVER, 0, 0), TOUCH_LABEL_MS);
     };
     const onLeave = () => this.setHover(NO_HOVER, 0, 0);
-    // While naming a star, a click or tap on open sky picks the unnamed star nearest it.
+    // While naming a star, a click or tap on open sky picks the unnamed star nearest it. A click
+    // doesn't always say what made it (Safari's has no pointerType), so the last pointerdown does.
+    let lastPointer = 'mouse';
+    const onDown = (event: PointerEvent) => (lastPointer = event.pointerType || 'mouse');
     const onClick = (event: MouseEvent) => {
       if (!this.sky.naming() || !isOpenSky(event.target)) return;
-      const reach = (event as PointerEvent).pointerType === 'touch' ? PICK_REACH_TOUCH_CSS : PICK_REACH_CSS;
+      const reach = lastPointer === 'touch' ? PICK_REACH_TOUCH_CSS : PICK_REACH_CSS;
       this.sky.selectNear(event.clientX, event.clientY, reach);
     };
+    document.addEventListener('pointerdown', onDown, { passive: true });
     document.addEventListener('pointermove', onMove, { passive: true });
     document.addEventListener('pointerup', onTap, { passive: true });
     document.addEventListener('click', onClick);
@@ -490,6 +500,7 @@ export class SkyComponent {
       document.removeEventListener('pointermove', onMove);
       document.removeEventListener('pointerup', onTap);
       document.removeEventListener('click', onClick);
+      document.removeEventListener('pointerdown', onDown);
       document.documentElement.removeEventListener('pointerleave', onLeave);
       window.removeEventListener('blur', onLeave);
     };
@@ -807,7 +818,10 @@ export class SkyComponent {
   /**
    * While naming: the unnamed stars a visitor can see and pick (above the
    * horizon, on screen, visible in this light, not behind the trees or under
-   * the panel), in CSS pixels. The selection follows along.
+   * the panel or the ☾ menu), in CSS pixels. The selection stays while its star
+   * is above the horizon and on screen, even if it drifts behind something, so
+   * nothing changes under a visitor who's typing; once it's gone, the brightest
+   * candidate takes over.
    */
   private updateNaming(): void {
     const layout = this.layout;
@@ -821,22 +835,27 @@ export class SkyComponent {
         && cy > r.top - COVER_CLEARANCE && cy < r.bottom + COVER_CLEARANCE);
     };
     const list = this.starsVisible > PICKABLE_STARS ? starsOnScreen(this.sky.unnamed(), layout, toHorizontal, hidden) : [];
+    if (this.sky.selected() && !this.selectedOnScreen()) this.sky.select(null);
     this.sky.setCandidates(list.map(c => ({ star: c.star, x: c.x * css, y: c.y * css })));
     this.updateSelectedPoint();
   }
 
-  /** Where the selected star is now (CSS pixels), for its ring; drawn as an element, never on the sky. */
-  private updateSelectedPoint(): void {
+  /** The selected star's place (CSS pixels) if it's above the horizon and on screen, else null. */
+  private selectedOnScreen(): { x: number; y: number } | null {
     const star = this.sky.selected();
     const layout = this.layout;
     const toHorizontal = this.toHorizontal;
-    if (!star || !layout || !toHorizontal) {
-      if (this.sky.selectedPoint()) this.sky.selectedPoint.set(null);
-      return;
-    }
+    if (!star || !layout || !toHorizontal) return null;
     const h = multiply(toHorizontal, star.v);
     const p = h[2] > 0 ? screenPoint(layout, h) : null;
-    this.sky.selectedPoint.set(p ? { x: p.x * layout.artPixel, y: p.y * layout.artPixel } : null);
+    if (!p || p.x < 0 || p.y < 0 || p.x > layout.width || p.y > layout.height) return null;
+    return { x: p.x * layout.artPixel, y: p.y * layout.artPixel };
+  }
+
+  /** Where the selected star is now (CSS pixels), for its ring; drawn as an element, never on the sky. */
+  private updateSelectedPoint(): void {
+    const point = this.selectedOnScreen();
+    if (point || this.sky.selectedPoint()) this.sky.selectedPoint.set(point);
   }
 
   /** Puts the Sun where the state has it, and hands the small lights and the page their levels. */

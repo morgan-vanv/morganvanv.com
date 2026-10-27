@@ -5,11 +5,14 @@ import { TRANSITION_MS } from './sky-transition';
 import { SkyTarget } from './sky-render';
 import { SkyToggleComponent } from './sky-toggle.component';
 import { SkyService } from './sky.service';
+import { j2000ToHorizontalMatrix, multiply } from './sky-math';
+import { computeLayout, screenPoint } from './sky-render';
 
 const files: Record<string, string> = {
   '/data/sky/stars.json': readFileSync('public/data/sky/stars.json', 'utf8'),
   '/data/sky/constellations.json': readFileSync('public/data/sky/constellations.json', 'utf8'),
   '/data/sky/names.json': readFileSync('public/data/sky/names.json', 'utf8'),
+  '/data/sky/proper-names.json': readFileSync('public/data/sky/proper-names.json', 'utf8'),
 };
 
 /** Stubs the browser pieces happy-dom doesn't have (canvas, image decoding, media queries) and the data fetches. */
@@ -259,12 +262,19 @@ describe('SkyComponent: visitor names and naming', () => {
     TestBed.inject(SkyService).leaveLookUp();
   });
 
-  it('draws without visitor names when their file is missing (and offers all 766 unnamed stars)', async () => {
+  it('draws without visitor names when their file is missing (and offers all 543 unnamed stars)', async () => {
     stubBrowser(); // visitor-names.json 404s here
     const { sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(sky.visitorNames()).toEqual([]);
-    expect(sky.unnamed().length).toBe(766);
+    expect(sky.unnamed().length).toBe(543);
+  });
+
+  it('offers no stars to name (but still draws) when proper-names.json is missing', async () => {
+    stubBrowser({ extra: { '/data/sky/proper-names.json': '' } });
+    const { sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    expect(sky.unnamed()).toEqual([]);
   });
 
   it('draws without visitor names when their file is broken', async () => {
@@ -276,12 +286,12 @@ describe('SkyComponent: visitor names and naming', () => {
 
   it('loads visitor names: hover targets with their label, and the star is no longer offered', async () => {
     stubBrowser({ landBelow: 0.6, extra: {
-      '/data/sky/visitor-names.json': JSON.stringify({ names: [[281.193, 37.605, 'Gerald', 'sam', '2026-10']] }),
+      '/data/sky/visitor-names.json': JSON.stringify({ names: [[283.626, 36.899, 'Gerald', 'sam', '2026-10']] }),
     } });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(sky.visitorNames().map(v => [v.name, v.near])).toEqual([['Gerald', 'Vega']]);
-    expect(sky.unnamed().length).toBe(765);
+    expect(sky.unnamed().length).toBe(542);
     const catalog = (fixture.componentInstance as unknown as { catalog: { visitorNames: { name: string; detail: string }[] } }).catalog;
     expect(catalog.visitorNames).toEqual([expect.objectContaining({ name: 'Gerald', detail: 'named by sam, Oct 2026' })]);
   });
@@ -310,11 +320,95 @@ describe('SkyComponent: visitor names and naming', () => {
     open.dispatchEvent(new MouseEvent('click', { clientX: another.x + 3, clientY: another.y - 3, bubbles: true }));
     await fixture.whenStable();
     expect(sky.selected()).toBe(another.star);
-    // The ring follows the star when the sky redraws (a resize, a change of light).
-    (fixture.componentInstance as unknown as { draw: () => void }).draw();
-    await fixture.whenStable();
-    expect(parseFloat((fixture.nativeElement.querySelector('.star-ring') as HTMLElement).style.left)).toBeCloseTo(another.x, 0); // the sky turned a hair in between
     open.remove();
+  });
+
+  it('a tap picks from further away than a click (touch reach), even when the click has no pointerType', async () => {
+    stubBrowser({ landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    sky.startNaming();
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(1));
+    // A candidate with nothing else within 40px, so the only question is reach.
+    const lonely = sky.candidates().find(c => c.star !== sky.selected()
+      && sky.candidates().every(o => o === c || Math.hypot(o.x - c.x, o.y - c.y) > 40))!;
+    expect(lonely).toBeTruthy();
+    const open = document.createElement('div');
+    document.body.append(open);
+    const tapAt = (type: string) => {
+      open.dispatchEvent(new PointerEvent('pointerdown', { pointerType: type, bubbles: true }));
+      open.dispatchEvent(new MouseEvent('click', { clientX: lonely.x + 30, clientY: lonely.y, bubbles: true }));
+    };
+    tapAt('mouse'); // 30px: out of a mouse's reach
+    expect(sky.selected()).not.toBe(lonely.star);
+    tapAt('touch'); // within a finger's
+    expect(sky.selected()).toBe(lonely.star);
+    open.remove();
+  });
+
+  it('the ring follows the selected star to where it now projects when the sky redraws', async () => {
+    stubBrowser({ landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const component = fixture.componentInstance as unknown as { pinnedTime: Date | null; draw: () => void };
+    const ringAt = () => {
+      const ring = fixture.nativeElement.querySelector('.star-ring') as HTMLElement;
+      return { x: parseFloat(ring.style.left), y: parseFloat(ring.style.top) };
+    };
+    const expected = (date: Date) => {
+      const star = sky.selected()!;
+      const { lat, lon } = sky.location();
+      return screenPoint(computeLayout(window.innerWidth, window.innerHeight), multiply(j2000ToHorizontalMatrix(date, lat, lon), star.v))!;
+    };
+    component.pinnedTime = new Date('2026-10-28T01:00:00Z');
+    component.draw();
+    sky.startNaming();
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(sky.selected()).not.toBeNull());
+    await fixture.whenStable();
+    const before = ringAt();
+    expect(before.x).toBeCloseTo(expected(component.pinnedTime).x, 3);
+
+    // Ten minutes on: the sky has turned, and the ring has gone with its star.
+    component.pinnedTime = new Date('2026-10-28T01:10:00Z');
+    component.draw();
+    await fixture.whenStable();
+    const after = ringAt();
+    const there = expected(component.pinnedTime);
+    expect(Math.hypot(after.x - before.x, after.y - before.y)).toBeGreaterThan(5);
+    expect(after.x).toBeCloseTo(there.x, 3);
+    expect(after.y).toBeCloseTo(there.y, 3);
+  });
+
+  it('keeps the selection while its star is still up and on screen, even under the panel; picks again once it has gone', async () => {
+    stubBrowser({ landBelow: 0.6 });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const component = fixture.componentInstance as unknown as { pinnedTime: Date | null; draw: () => void };
+    component.pinnedTime = new Date('2026-10-28T01:00:00Z');
+    component.draw();
+    sky.startNaming();
+    await fixture.whenStable();
+    await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(2));
+    const pick = sky.candidates().find(c => c.star !== sky.selected())!;
+    const chosen = pick.star;
+    sky.select(chosen);
+    // Something now covers it (as the panel or the trees might): it's no longer a candidate, but stays selected.
+    const cover = document.createElement('div');
+    cover.className = 'look-up-surface';
+    const at = { x: pick.x, y: pick.y };
+    cover.getBoundingClientRect = () => ({ left: at.x - 30, right: at.x + 30, top: at.y - 30, bottom: at.y + 30, width: 60, height: 60 }) as DOMRect;
+    document.body.append(cover);
+    component.draw();
+    expect(sky.candidates().some(c => c.star === chosen)).toBe(false);
+    expect(sky.selected()).toBe(chosen);
+    cover.remove();
+
+    // Hours later it has set: then (and only then) the brightest on screen takes over.
+    component.pinnedTime = new Date('2026-10-28T13:00:00Z');
+    component.draw();
+    expect(sky.selected()).not.toBe(chosen);
   });
 
   it('picks nothing in a light too bright for stars', async () => {
