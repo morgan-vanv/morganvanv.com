@@ -22,7 +22,7 @@ export class VerticalNavItemComponent {
   readonly isUnderConstruction = input(false);
   readonly iconUrl = input<string>();
 
-  isEscapeActive = signal(false);
+  readonly isEscapeActive = signal(false);
 
   private container = inject(VerticalNavContainerComponent);
   private destroyRef = inject(DestroyRef);
@@ -33,16 +33,16 @@ export class VerticalNavItemComponent {
     wrapper?.focus();
   }
 
-  isHighlighted = computed(() => {
+  readonly isHighlighted = computed(() => {
     const index = this.container.itemsList().indexOf(this);
     return index !== -1 && index === this.container.highlightedIndex();
   });
 
-  isExpanded = computed(() => {
+  readonly isExpanded = computed(() => {
     return this.isHighlighted() && this.container.isExpanded();
   });
 
-  isHiddenSibling = computed(() => {
+  readonly isHiddenSibling = computed(() => {
     return this.container.isExpanded() && !this.isExpanded();
   });
 

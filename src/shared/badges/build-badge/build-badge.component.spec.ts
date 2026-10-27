@@ -53,6 +53,16 @@ describe('BuildBadgeComponent', () => {
     expect(el.querySelector('.popover')?.textContent).toContain('✓ ✕');
   });
 
+  it('fits an LED for each of six checks', async () => {
+    const six = { ...status, pr: { ...status.pr!, checks: [...status.pr!.checks, { name: 'Layout', ok: true }] } };
+    const { el, values } = await render(of(six));
+    expect(values()).toEqual(['#371', '6/6']);
+    const cys = [...el.querySelectorAll('svg circle.g-gold')].map(c => Number(c.getAttribute('cy')));
+    expect(cys.length).toBe(6);
+    expect(Math.min(...cys) - 1.7).toBeGreaterThanOrEqual(0);
+    expect(Math.max(...cys) + 1.7).toBeLessThanOrEqual(24);
+  });
+
   it('gets by on the commit alone: a commit glyph, a link to the commit, no rows it has no data for', async () => {
     const { el, values, badge } = await render(of({ commit: status.commit, measuredAt: status.measuredAt }));
     expect(values()).toEqual(['#371']);

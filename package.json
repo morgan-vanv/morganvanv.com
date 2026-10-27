@@ -10,20 +10,11 @@
     "test": "ng test",
     "lint": "ng lint",
     "test:ci": "ng test --watch=false",
-    "check": "npm run lint && npm run build -- --configuration=production && npm run test:ci"
-  },
-  "prettier": {
-    "overrides": [
-      {
-        "files": "*.html",
-        "options": {
-          "parser": "angular"
-        }
-      }
-    ]
+    "check": "npm run lint && npm run build -- --configuration=production && npm run test:ci",
+    "layout": "node scripts/check-layout.mjs"
   },
   "engines": {
-    "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+    "node": "^24.15.0 || >=26.0.0"
   },
   "private": true,
   "dependencies": {
@@ -49,12 +40,13 @@
     "@angular/compiler-cli": "^22.2.3",
     "@eslint/js": "^10.0.1",
     "@types/node": "^26.6.5",
-    "@vitest/coverage-v8": "~4.0.8",
+    "@vitest/coverage-v8": "~4.1.12",
     "angular-eslint": "^22.6.0",
     "eslint": "^10.4.1",
     "happy-dom": "^21.0.4",
+    "playwright-core": "~1.63.0",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.61.0",
-    "vitest": "~4.0.8"
+    "vitest": "~4.1.12"
   }
 }
