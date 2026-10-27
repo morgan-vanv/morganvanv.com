@@ -54,3 +54,6 @@ dist/
 
 # Test results the deploy records for the Build badge
 /test-results.json
+
+# Generated from content/ by scripts/build-visitor-content.mjs
+/src/generated/
