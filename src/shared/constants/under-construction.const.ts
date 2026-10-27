@@ -10,14 +10,16 @@ export interface UnderConstructionSpot {
   /** What it is, and where it lives, as the badge's popover lists them. */
   label: string;
   where: string;
+  /** Where it lives, for the badge's link. */
+  path: string;
 }
 
 export const UNDER_CONSTRUCTION: readonly UnderConstructionSpot[] = [
-  { id: 'projects', label: 'Projects', where: 'page' },
-  { id: 'blog', label: 'Blog', where: 'page' },
-  { id: 'shoutbox', label: 'Shoutbox', where: 'Social' },
-  { id: 'favorite-media', label: 'Favorite Media', where: 'Interests' },
-  { id: 'my-photos', label: 'My Photos', where: 'Interests' },
+  { id: 'projects', label: 'Projects', where: 'page', path: '/projects' },
+  { id: 'blog', label: 'Blog', where: 'page', path: '/blog' },
+  { id: 'shoutbox', label: 'Shoutbox', where: 'Social', path: '/social' },
+  { id: 'favorite-media', label: 'Favorite Media', where: 'Interests', path: '/interests' },
+  { id: 'my-photos', label: 'My Photos', where: 'Interests', path: '/interests' },
 ];
 
 export function isUnderConstruction(id: UnderConstructionId): boolean {

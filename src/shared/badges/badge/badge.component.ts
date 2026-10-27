@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, input, output, signal, viewChild } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
@@ -32,9 +32,9 @@ const LONG_NAME = 14;
   styleUrl: './badge.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    '(mouseenter)': 'hovered = true; place()',
+    '(mouseenter)': 'hover(true); place()',
     '(focusin)': 'focused = true; place()',
-    '(mouseleave)': 'hovered = false; dismissed.set(false)',
+    '(mouseleave)': 'hover(false); dismissed.set(false)',
     '(focusout)': 'focused = false; dismissed.set(false)',
     '(keydown.escape)': 'dismiss($event)',
   },
@@ -71,7 +71,26 @@ export class BadgeComponent {
   protected hovered = false;
   protected focused = false;
 
+  // Focus may be anywhere (or nowhere) while the pointer rests on a badge, so its Escape is caught on the
+  // document, which hears it before the site-wide handler on window does.
+  private readonly onDocumentEscape = (event: KeyboardEvent) => {
+    if (event.key === 'Escape') this.dismiss(event);
+  };
+
+  protected hover(on: boolean): void {
+    this.hovered = on;
+    if (on) document.addEventListener('keydown', this.onDocumentEscape);
+    else document.removeEventListener('keydown', this.onDocumentEscape);
+  }
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      if (typeof document !== 'undefined') document.removeEventListener('keydown', this.onDocumentEscape);
+    });
+  }
+
   protected dismiss(event: Event): void {
+    if (event.defaultPrevented) return;
     if (!this.popoverEl() || this.dismissed() || !(this.hovered || this.focused)) return;
     // Handled here, so the site-wide Escape (back to the greeting) doesn't also fire.
     event.preventDefault();

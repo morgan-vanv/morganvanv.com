@@ -123,9 +123,20 @@
     }
   }
 
-  // Shown while the badge (or the popover itself) is hovered, or the badge has focus.
-  :host(:hover) &,
-  :host(:focus-within) & {
+  // Shown while the badge (or the popover itself) is hovered by a real pointer, or the badge has
+  // keyboard focus. Not on a tap: on touch screens the face and the link say enough, and a popover
+  // left behind by a sticky :hover would cover the buttons above it.
+  @media (hover: hover) {
+    :host(:hover) & {
+      display: flex;
+
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+
+  :host(:has(.badge:focus-visible)) & {
     display: flex;
 
     @starting-style {
@@ -133,11 +144,11 @@
     }
   }
 
-  // Escape hides it; and an open button badge shows its own panel instead.
-  // (Under :host, so these outrank the :host(:hover) rule above.)
-  :host &.dismissed,
-  :host .badge[aria-expanded='true'] + & {
-    display: none;
+  // Escape hides it; and an open button badge shows its own panel instead. These always win over the
+  // show rules above, however specific their selectors get.
+  &.dismissed,
+  .badge[aria-expanded='true'] + & {
+    display: none !important;
   }
 }
 

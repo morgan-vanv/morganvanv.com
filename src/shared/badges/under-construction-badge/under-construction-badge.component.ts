@@ -12,6 +12,8 @@ import { UNDER_CONSTRUCTION } from '../../constants/under-construction.const';
 })
 export class UnderConstructionBadgeComponent {
   readonly count = UNDER_CONSTRUCTION.length;
+  /** Goes to the first unfinished spot, whichever that is by then. */
+  readonly route = UNDER_CONSTRUCTION[0]?.path ?? '/';
   readonly value = `${this.count} ${this.count === 1 ? 'spot' : 'spots'}`;
 
   readonly popover: BadgePopover = {
@@ -22,5 +24,5 @@ export class UnderConstructionBadgeComponent {
 
   readonly label = `Under construction: ${this.value}, ` +
     UNDER_CONSTRUCTION.map(spot => spot.where === 'page' ? `the ${spot.label} page` : `${spot.label} on ${spot.where}`).join(', ') +
-    '. Goes to Projects.';
+    `. Goes to ${UNDER_CONSTRUCTION[0]?.label ?? 'the start'}.`;
 }
