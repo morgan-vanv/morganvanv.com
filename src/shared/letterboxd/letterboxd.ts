@@ -36,7 +36,10 @@ export interface Diary {
 
 export const DIARY_LIMIT = 50;
 const LETTERBOXD_ORIGIN = 'https://letterboxd.com/';
-const SPOILER_NOTE = /<p>\s*<em>\s*This review may contain spoilers\.?\s*<\/em>\s*<\/p>/i;
+// Letterboxd's marker, as of 2026-10-27: `<p><em>This review may contain spoilers.</em></p>` after the
+// poster. Matched loosely (any paragraph that says so), so a small markup change can't leak a spoiler.
+const SPOILER_NOTE = /<p\b[^>]*>(?:(?!<\/p>)[\s\S])*?may contain spoilers(?:(?!<\/p>)[\s\S])*?<\/p>/gi;
+const SPOILER_WORDS = /may contain spoilers/i;
 
 const NAMED_ENTITIES: Record<string, string> = {
   amp: '&', lt: '<', gt: '>', quot: '"', apos: '\'', nbsp: ' ',
@@ -64,13 +67,14 @@ function element(item: string, name: string): string | null {
 
 /** A review's HTML (the feed's `description`) as plain text, without the poster or the spoiler note. */
 export function reviewText(html: string): { text: string | null; spoilers: boolean } {
-  const spoilers = SPOILER_NOTE.test(html);
+  const spoilers = SPOILER_WORDS.test(html);
   const text = decodeEntities(
     html
       .replace(SPOILER_NOTE, '')
       .replace(/<img\b[^>]*>/gi, '')
       .replace(/<br\s*\/?>/gi, '\n')
-      .replace(/<\/p>\s*<p\b[^>]*>/gi, '\n\n')
+      // Paragraphs, blockquotes and list items end in a blank line; the collapse below tidies extras.
+      .replace(/<\/(p|blockquote|li|div|h[1-6])>/gi, '\n\n')
       .replace(/<[^>]+>/g, ''),
   )
     .split('\n')
@@ -81,7 +85,14 @@ export function reviewText(html: string): { text: string | null; spoilers: boole
   return { text: text || null, spoilers };
 }
 
-const isDay = (value: unknown): value is string => typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value);
+/** A real calendar date, YYYY-MM-DD (so not 2026-13-45). */
+const isDay = (value: unknown): value is string => {
+  const match = typeof value === 'string' ? /^(\d{4})-(\d{2})-(\d{2})$/.exec(value) : null;
+  if (!match) return false;
+  const date = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+  return date.toISOString().slice(0, 10) === value;
+};
+const isYear = (value: unknown): value is number => typeof value === 'number' && Number.isInteger(value) && value > 1800 && value < 3000;
 const isRating = (value: unknown): value is number =>
   typeof value === 'number' && value >= 0.5 && value <= 5 && Number.isInteger(value * 2);
 const isLetterboxdUrl = (value: unknown): value is string => typeof value === 'string' && value.startsWith(LETTERBOXD_ORIGIN);
@@ -109,7 +120,7 @@ export function parseLetterboxdRss(xml: string, profileUrl: string, fetchedAt: s
     const review = kind === 'review' ? reviewText(element(item, 'description') ?? '') : { text: null, spoilers: false };
     entries.push({
       title,
-      year: Number.isInteger(year) && year > 1800 ? year : null,
+      year: isYear(year) ? year : null,
       watched: isDay(watched) ? watched : null,
       rating: isRating(rating) ? rating : null,
       liked: element(item, 'letterboxd:memberLike') === 'Yes',
@@ -127,7 +138,7 @@ function toEntry(value: unknown): DiaryEntry | null {
   if (!entry || typeof entry.title !== 'string' || !entry.title || !isLetterboxdUrl(entry.url)) return null;
   return {
     title: entry.title,
-    year: typeof entry.year === 'number' && Number.isInteger(entry.year) ? entry.year : null,
+    year: isYear(entry.year) ? entry.year : null,
     watched: isDay(entry.watched) ? entry.watched : null,
     rating: isRating(entry.rating) ? entry.rating : null,
     liked: entry.liked === true,
@@ -145,8 +156,13 @@ function toEntry(value: unknown): DiaryEntry | null {
 export function toDiary(value: unknown): Diary | null {
   const diary = value as Partial<Diary> | null;
   if (!diary || !Array.isArray(diary.entries) || !isLetterboxdUrl(diary.profileUrl)
-    || typeof diary.fetchedAt !== 'string' || Number.isNaN(Date.parse(diary.fetchedAt))) return null;
-  const entries = diary.entries.map(toEntry).filter((entry): entry is DiaryEntry => entry !== null).slice(0, DIARY_LIMIT);
+    || typeof diary.fetchedAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T/.test(diary.fetchedAt)
+    || Number.isNaN(Date.parse(diary.fetchedAt))) return null;
+  const seen = new Set<string>();
+  const entries = diary.entries
+    .map(toEntry)
+    .filter((entry): entry is DiaryEntry => entry !== null && !seen.has(entry.url) && !!seen.add(entry.url))
+    .slice(0, DIARY_LIMIT);
   return { profileUrl: diary.profileUrl, fetchedAt: diary.fetchedAt, entries };
 }
 
@@ -174,5 +190,5 @@ export function ratingStars(rating: number): string {
 
 /** "3.5 out of 5 stars", for screen readers. */
 export function ratingLabel(rating: number): string {
-  return `${rating} out of 5 ${rating === 1 ? 'star' : 'stars'}`;
+  return `${rating} out of 5 stars`;
 }

@@ -196,6 +196,12 @@ describe('NowPageComponent', () => {
     expect(rowKeys()).not.toContain('watched');
   });
 
+  it('skips Watched for an empty diary', async () => {
+    flushDiary({ ...diary, entries: [] });
+    await fixture.whenStable();
+    expect(rowKeys()).not.toContain('watched');
+  });
+
   it('skips Playing when RuneProfile fails', async () => {
     for (const req of http.match(isRuneProfileActivities)) req.flush('down', { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();

@@ -16,12 +16,16 @@ on:
 permissions:
   contents: read
 
+# Per branch, so a "Run workflow" on another branch (skipped below) can't cancel a master deploy.
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   build:
+    # "Run workflow" lets you pick a branch; only master deploys (a branch run would otherwise build
+    # unreviewed code, and its failure would count as a failed deploy on the Build badge).
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     permissions:
       contents: read
