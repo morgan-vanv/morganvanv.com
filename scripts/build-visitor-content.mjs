@@ -9,7 +9,7 @@
 import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { gatherContent, generatedModules } from '../src/shared/visitor-content/visitor-content.ts';
+import { gatherContent, generatedModules, warningAnnotation } from '../src/shared/visitor-content/visitor-content.ts';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const contentDir = join(root, 'content');
@@ -36,17 +36,28 @@ function readContent(dir) {
     });
 }
 
-const odd = [];
-const { content, problems } = gatherContent(readContent(contentDir));
-problems.push(...odd.map(path => ({ path, message: 'not a plain file (a symlink?)' })));
+/** The sky's catalogue (committed JSON), so a star must be one the sky draws; skipped if it can't be read. */
+function readCatalogue() {
+  try {
+    const json = file => JSON.parse(readFileSync(join(root, 'public/data/sky', file), 'utf8'));
+    return {
+      stars: json('stars.json').stars,
+      properNames: json('proper-names.json').names,
+      landmarks: json('names.json').names.map(row => row[2]),
+    };
+  } catch {
+    console.warn('visitor content: public/data/sky/ unreadable, so stars are not checked against the catalogue');
+    return undefined;
+  }
+}
 
-/** GitHub's workflow-command escaping, so text from a file can't start a command of its own. */
-const escapeData = text => String(text).replaceAll('%', '%25').replaceAll('\r', '%0D').replaceAll('\n', '%0A');
-const escapeProperty = text => escapeData(text).replaceAll(':', '%3A').replaceAll(',', '%2C');
+const odd = [];
+const { content, problems } = gatherContent(readContent(contentDir), readCatalogue());
+problems.push(...odd.map(path => ({ path, message: 'not a plain file (a symlink?)' })));
 
 for (const { path, message } of problems) {
   // In GitHub Actions, also as an annotation on the file.
-  if (process.env.GITHUB_ACTIONS) console.log(`::warning file=${escapeProperty(`content/${path}`)}::${escapeData(message)}`);
+  if (process.env.GITHUB_ACTIONS) console.log(warningAnnotation({ path, message }));
   console.warn(`content/${path}: ${message} (left out)`);
 }
 

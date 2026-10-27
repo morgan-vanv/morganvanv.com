@@ -1,8 +1,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
-import { ContentFile, ContentProblem, gatherContent, generatedModules, sameStar } from './visitor-content';
+import { ContentFile, ContentProblem, SkyCatalogue, gatherContent } from './visitor-content';
 import { SUBTITLES } from '../constants/subtitles.const';
-import { ProperNameFile } from '../sky/sky-naming';
 
 /**
  * The guard on content/: a visitor PR (or a hand-made entry) that would publish something wrong fails
@@ -32,10 +31,20 @@ const notPlain = existsSync('content')
     .filter(entry => !entry.isFile() && !entry.isDirectory())
     .map(entry => relative('content', join(entry.parentPath, entry.name)).split(sep).join('/'))
   : [];
-const { content, problems } = gatherContent(files);
+const sky = (file: string) => JSON.parse(readFileSync(`public/data/sky/${file}`, 'utf8'));
+/** The sky's own catalogue: a visitor star must be a star it draws, with no proper name, near one it labels. */
+const catalogue: SkyCatalogue = {
+  stars: sky('stars.json').stars,
+  properNames: sky('proper-names.json').names,
+  landmarks: (sky('names.json').names as [number, number, string][]).map(row => row[2]),
+};
+const { content, problems } = gatherContent(files, catalogue);
 
 describe('content/ (what visitors sent, approved by merging)', () => {
-  it('every file passes its checks (a mailbag letter needs an answer under the marker)', () => {
+  it('every file passes its checks (a mailbag letter needs an answer, a star must be in the sky\'s catalogue)', () => {
+    expect(catalogue.stars.length).toBeGreaterThan(900);
+    expect(catalogue.properNames.length).toBeGreaterThan(300);
+    expect(catalogue.landmarks).toContain('Vega');
     expect(report(problems)).toEqual([]);
   });
 
@@ -52,20 +61,5 @@ describe('content/ (what visitors sent, approved by merging)', () => {
     const mine = SUBTITLES.map(line => line.toLowerCase());
     const repeats = content.subtitles.filter(s => mine.includes(s.text.toLowerCase())).map(s => s.text);
     expect(repeats).toEqual([]);
-  });
-
-  it('no visitor names a star that already has a proper name', () => {
-    const proper: ProperNameFile = JSON.parse(readFileSync('public/data/sky/proper-names.json', 'utf8'));
-    const clashes = content.stars
-      .map(star => [star.name, proper.names.find(([ra, dec]) => sameStar(ra, dec, star.ra, star.dec))?.[2]] as const)
-      .filter(([, properName]) => properName)
-      .map(([name, properName]) => `${name} is ${properName}`);
-    expect(clashes).toEqual([]);
-  });
-
-  it('the generated modules are up to date (npm run content rebuilds them)', () => {
-    for (const [path, source] of Object.entries(generatedModules(content))) {
-      expect(readFileSync(path, 'utf8'), path).toBe(source);
-    }
   });
 });

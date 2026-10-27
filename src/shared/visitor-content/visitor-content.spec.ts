@@ -1,6 +1,12 @@
 import {
   ANSWER_MARKER,
   ContentFile,
+  SkyCatalogue,
+  capText,
+  catalogueProblem,
+  cleanBlock,
+  visibleText,
+  warningAnnotation,
   GENERATED_MODULES,
   dayLabel,
   emptyAnswerMessage,
@@ -315,5 +321,120 @@ describe('visitor content: gathering the folder', () => {
     expect(source).toContain('export const GUEST_SUBTITLES: readonly GuestSubtitle[] = [');
     expect(source).toContain('"text": "it\'s \\"first\\""');
     expect(modules['src/generated/mailbag.ts']).toContain('export const MAILBAG: readonly MailbagLetter[] = [];');
+  });
+});
+
+describe('visitor content: link labels and URLs (review M1, L1)', () => {
+  it('escapes a link\'s label, so markup in it shows as text', () => {
+    expect(renderAnswer('[<img src=x onerror=alert(1)>](https://a.com)')).toBe(
+      '<p><a href="https://a.com" target="_blank" rel="noopener noreferrer">&lt;img src=x onerror=alert(1)&gt;</a></p>',
+    );
+    expect(renderAnswer('[a"b\'c](https://a.com)')).toBe(
+      '<p><a href="https://a.com" target="_blank" rel="noopener noreferrer">a&quot;b&#39;c</a></p>',
+    );
+  });
+
+  it('never splices a code span into an href', () => {
+    const out = renderAnswer('[x](https://a.com/`y`)');
+    expect(out).not.toContain('<a');
+    expect(out).not.toContain('href');
+    expect(safeHref('https://a.com/0')).toBeNull();
+  });
+});
+
+describe('visitor content: stars must be in the sky (review M2)', () => {
+  // Two stars the sky draws: one with a proper name (Vega), one without (δ² Lyrae).
+  const catalogue: SkyCatalogue = {
+    stars: [[279.235, 38.784, 0.03, 0], [283.626, 36.899, 4.22, 1.68]],
+    properNames: [[279.235, 38.784, 'Vega']],
+    landmarks: ['Vega'],
+  };
+  const star = { ra: 283.626, dec: 36.899, name: 'Gerald', by: null, added: '2026-10', near: 'Vega' };
+
+  it('accepts an unnamed catalogue star near a labelled one (within 0.01°)', () => {
+    expect(catalogueProblem(star, catalogue)).toBeNull();
+    expect(catalogueProblem({ ...star, ra: 283.634, dec: 36.891, near: null }, catalogue)).toBeNull();
+  });
+
+  it('refuses a made-up position, a star with a proper name, or a "near" the sky doesn\'t label', () => {
+    expect(catalogueProblem({ ...star, ra: 12.345, dec: 6.789 }, catalogue)).toMatch(/isn't a star the sky draws/);
+    expect(catalogueProblem({ ...star, ra: 283.64 }, catalogue)).toMatch(/isn't a star the sky draws/);
+    expect(catalogueProblem({ ...star, ra: 279.235, dec: 38.784 }, catalogue)).toMatch(/already has a name \(Vega/);
+    expect(catalogueProblem({ ...star, near: 'Gerald\'s mum' }, catalogue)).toMatch(/"near" \("Gerald's mum"\) isn't a star the sky labels/);
+  });
+
+  it('gathering with the catalogue leaves such a star out, with a problem naming its file', () => {
+    const file = (name: string, ra: number, dec: number) => ({
+      path: `stars/2026-10-27-${name.toLowerCase()}-0000000${name.length}.json`,
+      text: JSON.stringify({ ra, dec, name, by: null, added: '2026-10' }),
+    });
+    const { content, problems } = gatherContent([file('Gerald', 283.626, 36.899), file('Nowhere', 1, 2)], catalogue);
+    expect(content.stars.map(s => s.name)).toEqual(['Gerald']);
+    expect(problems).toEqual([{ path: 'stars/2026-10-27-nowhere-00000007.json', message: expect.stringMatching(/isn't a star the sky draws/) }]);
+    // Without a catalogue (as a unit), only the file's own shape is checked.
+    expect(gatherContent([file('Nowhere', 1, 2)]).problems).toEqual([]);
+  });
+});
+
+describe('visitor content: a letter\'s text (review L2, L3, L4)', () => {
+  it('takes Windows line endings, but refuses a lone carriage return', () => {
+    expect(typeof parseLetter(ID, letterFile('why?\nreally?', 'Yes.').replace(/\n/g, '\r\n'))).toBe('object');
+    expect(parseLetter(ID, letterFile('why?\rreally?', 'Yes.'))).toBe('line 4: a stray carriage return (\\r); save the file with ordinary line endings');
+    expect(parseLetter(ID, letterFile('why?', 'Yes.\rNo.'))).toMatch(/line 7: a stray carriage return/);
+  });
+
+  it('cleans a question exactly as the backend\'s block() does', () => {
+    expect(cleanBlock('  a‮b \t c\u0007 \r\n\n\n\nd  ')).toBe('ab c\n\nd');
+    expect(cleanBlock('fine\n\nas is')).toBe('fine\n\nas is');
+  });
+
+  it('refuses a hand-made question that isn\'t clean', () => {
+    const file = (quoted: string) => `---\nasked: 2026-10-27\n---\n${quoted}\n\n${ANSWER_MARKER}\nA.`;
+    for (const [quoted, message] of [
+      ['> right‮to left', /line 4: a question line can't have invisible or control characters/],
+      ['> bell\u0007', /line 4: a question line can't/],
+      ['> two  spaces', /line 4: a question line can't/],
+      ['> ok\n> tab\there', /line 5: a question line can't/],
+      ['> ok\n> trailing ', /line 5: a question line can't/],
+      ['> lone \uD800 surrogate', /line 4: a question line can't/],
+      ['>\n> starts blank', /can't start or end with a blank line, or have two in a row/],
+      ['> ends blank\n>', /can't start or end with a blank line/],
+      ['> a\n>\n>\n> b', /or have two in a row/],
+    ] as const) {
+      expect(parseLetter(ID, file(quoted)), quoted).toMatch(message);
+    }
+    expect(parseLetter(ID, file('> a\n>\n> b'))).toEqual(expect.objectContaining({ question: 'a\n\nb' }));
+  });
+
+  it('judges "answered" by what would show: control, invisible or bidi characters alone don\'t count', () => {
+    for (const answer of ['\u0007\u0001', '​⁠', '‮⁦', '\u0000 ​\n\n\u0007', '<!-- --> ​']) {
+      expect(parseLetter(ID, letterFile('why?', answer)), JSON.stringify(answer)).toBe(emptyAnswerMessage(`mailbag/${ID}.md`));
+    }
+    expect(visibleText('<p>​</p>\n<ul><li> </li></ul>')).toBe('');
+    expect(visibleText('<p><em>yes</em></p>')).toBe('yes');
+    expect(typeof parseLetter(ID, letterFile('why?', '​*yes*'))).toBe('object');
+  });
+
+  it('strips bidirectional controls from a rendered answer', () => {
+    expect(renderAnswer('a‮b⁦c‏d؜e')).toBe('<p>abcde</p>');
+  });
+});
+
+describe('visitor content: build annotations (review L6)', () => {
+  it('escapes a problem as actions/toolkit escapes workflow commands', () => {
+    expect(warningAnnotation({ path: 'mailbag/a,b:c%.md', message: 'bad\r\n::error::50%' })).toBe(
+      '::warning file=content/mailbag/a%2Cb%3Ac%25.md::bad%0D%0A::error::50%25',
+    );
+  });
+});
+
+describe('visitor content: capping text (review L5)', () => {
+  it('cuts at a grapheme boundary within the limit, and drops a trailing space', () => {
+    expect(capText('short', 24)).toBe('short');
+    expect(capText(`${'a'.repeat(23)}🌟`, 24)).toBe('a'.repeat(23));
+    expect(capText(`${'a'.repeat(22)}🌟`, 24)).toBe(`${'a'.repeat(22)}🌟`);
+    expect(capText(`${'a'.repeat(23)}é`, 24)).toBe(`${'a'.repeat(23)}é`);
+    expect(capText(`${'a'.repeat(23)}é`, 24)).toBe('a'.repeat(23));
+    expect(capText(`${'a'.repeat(23)} b`, 24)).toBe('a'.repeat(23));
   });
 });

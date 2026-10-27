@@ -90,6 +90,16 @@ export interface ContentProblem {
   readonly message: string;
 }
 
+/** The sky's own catalogue, which every visitor star must be in (public/data/sky/). */
+export interface SkyCatalogue {
+  /** stars.json rows: [raDeg, decDeg, mag, bv]. */
+  readonly stars: readonly (readonly number[])[];
+  /** proper-names.json rows: [raDeg, decDeg, name]. */
+  readonly properNames: readonly (readonly [number, number, string])[];
+  /** The names the hover labels show (names.json): what "near" may say. */
+  readonly landmarks: readonly string[];
+}
+
 export interface GatheredContent {
   /** Every valid entry; a file with a problem is left out. */
   readonly content: VisitorContent;
@@ -207,7 +217,10 @@ export function emptyAnswerMessage(path: string): string {
  * visitor wrote can pass for it (or for the front matter's end).
  */
 export function parseLetter(id: string, text: string, path = `mailbag/${id}.md`): MailbagLetter | string {
-  const lines = text.replace(/\r\n?/g, '\n').split('\n');
+  // Windows line endings are fine; a carriage return on its own isn't a line break anywhere else, so it's refused.
+  const lines = text.replace(/\r\n/g, '\n').split('\n');
+  const stray = lines.findIndex(line => line.includes('\r'));
+  if (stray !== -1) return `line ${stray + 1}: a stray carriage return (\\r); save the file with ordinary line endings`;
   if (lines[0] !== '---' || lines[2] !== '---') return 'must start with front matter: "---", "asked: YYYY-MM-DD", "---"';
   const asked = /^asked: (\d{4}-\d{2}-\d{2})$/.exec(lines[1])?.[1];
   if (!asked || !isRealDay(asked)) return 'the front matter must be exactly "asked: YYYY-MM-DD"';
@@ -220,11 +233,15 @@ export function parseLetter(id: string, text: string, path = `mailbag/${id}.md`)
     if (line !== '>' && !line.startsWith('> ')) return `line ${i + 1}: a question line is "> text" or a lone ">"`;
     question.push(line.slice(2));
   }
-  // The backend writes each line already clean (see ask/publish's block()); anything else was edited by
-  // hand or slipped through, so it's refused rather than shown.
-  const unclean = question.findIndex(line => line !== cleanQuestionLine(line));
-  if (unclean !== -1) return `line ${unclean + 4}: a question line can't have invisible or control characters, tabs or runs of spaces`;
-  const asText = question.join('\n').trim();
+  // The backend writes the question already cleaned by its block(); anything else was edited by hand or
+  // slipped through, so it's refused rather than shown.
+  const asText = question.join('\n');
+  if (asText !== cleanBlock(asText) || LONE_SURROGATE.test(asText)) {
+    const unclean = question.findIndex(line => line !== cleanBlock(line) || LONE_SURROGATE.test(line));
+    return unclean !== -1
+      ? `line ${unclean + 4}: a question line can't have invisible or control characters, tabs, runs of spaces or padding`
+      : 'the question can\'t start or end with a blank line, or have two in a row';
+  }
   if (!asText) return 'has no question: quote it under the front matter, every line starting with "> "';
   if (asText.length > QUESTION_MAX_LENGTH) return `the question is ${asText.length} characters; the limit is ${QUESTION_MAX_LENGTH}`;
 
@@ -234,17 +251,51 @@ export function parseLetter(id: string, text: string, path = `mailbag/${id}.md`)
       ? `line ${i + 1}: only blank lines may sit between the question and the answer marker`
       : `the answer marker is missing: put this line back between the question and the answer: ${ANSWER_MARKER}`;
   }
-  const answerMarkdown = stripComments(lines.slice(i + 1).join('\n')).trim();
-  // Invisible characters alone (a zero-width space) don't count as an answer.
-  if (!answerMarkdown.replace(/\p{Cf}/gu, '').trim()) return emptyAnswerMessage(path);
-  return { id, asked, question: asText, answer: renderAnswer(answerMarkdown) };
+  const answer = renderAnswer(lines.slice(i + 1).join('\n'));
+  // Judged on what would show: comments, control and invisible characters alone aren't an answer.
+  if (!visibleText(answer)) return emptyAnswerMessage(path);
+  return { id, asked, question: asText, answer };
 }
 
-const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g;
+/** The text a reader would see in rendered HTML: tags, invisible formatting characters and outer whitespace gone. */
+export function visibleText(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/\p{Cf}/gu, '').trim();
+}
 
-/** A question line as the backend writes it: well-formed, no invisible or control characters, single spaces, trimmed. */
-function cleanQuestionLine(line: string): string {
-  return line.replace(LONE_SURROGATE, '\uFFFD').replace(/[\p{Cf}]/gu, '').replace(/[^\P{Cc}\s]/gu, '').replace(/\s+/g, ' ').trim();
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
+
+/**
+ * Several lines of visitor text, cleaned exactly as morganvanv.com-backend's `block()` (ask/publish
+ * publish-link.js) cleans a question: no invisible or control characters, spaces folded, each line
+ * trimmed, at most one blank line in a row, no blank lines at either end.
+ */
+export function cleanBlock(value: string): string {
+  return value
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\p{Cf}]/gu, '')
+    .replace(/[^\P{Cc}\s]/gu, '')
+    .replace(/[^\S\n]+/g, ' ')
+    .split('\n')
+    .map(line => line.trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
+ * At most `max` UTF-16 units of `text` (the backend's measure), cut between graphemes (or at least
+ * between code points), so an emoji or an accent is never split; trailing spaces dropped.
+ */
+export function capText(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const Segmenter = (Intl as { Segmenter?: new () => { segment(s: string): Iterable<{ segment: string }> } }).Segmenter;
+  const parts = Segmenter ? Array.from(new Segmenter().segment(text), part => part.segment) : Array.from(text);
+  let out = '';
+  for (const part of parts) {
+    if (out.length + part.length > max) break;
+    out += part;
+  }
+  return out.trimEnd();
 }
 
 /**
@@ -262,8 +313,11 @@ function stripComments(markdown: string): string {
   return text;
 }
 
-/** The entries in content/ that pass every check, and a problem for each file that doesn't. */
-export function gatherContent(files: readonly ContentFile[]): GatheredContent {
+/**
+ * The entries in content/ that pass every check, and a problem for each file that doesn't. With the
+ * sky's catalogue, a star must also be one the sky draws, with no proper name, and "near" one it labels.
+ */
+export function gatherContent(files: readonly ContentFile[], catalogue?: SkyCatalogue): GatheredContent {
   const problems: ContentProblem[] = [];
   const subtitles: (GuestSubtitle & { id: string })[] = [];
   const stars: (VisitorStar & { id: string })[] = [];
@@ -297,7 +351,8 @@ export function gatherContent(files: readonly ContentFile[]): GatheredContent {
         problem(path, `repeats a subtitle already in subtitles/ ("${entry.text}")`);
       } else subtitles.push({ id, ...entry });
     } else if (folder === 'stars') {
-      const entry = parseStar(id, text);
+      const parsed = parseStar(id, text);
+      const entry = typeof parsed === 'string' || !catalogue ? parsed : catalogueProblem(parsed, catalogue) ?? parsed;
       if (typeof entry === 'string') problem(path, entry);
       else {
         const twin = stars.find(other => sameStar(other.ra, other.dec, entry.ra, entry.dec));
@@ -319,6 +374,20 @@ export function gatherContent(files: readonly ContentFile[]): GatheredContent {
     },
     problems,
   };
+}
+
+/** Why a parsed star can't go in the sky, or null. */
+export function catalogueProblem(star: VisitorStar, catalogue: SkyCatalogue): string | null {
+  const where = `RA ${star.ra}, Dec ${star.dec}`;
+  if (!catalogue.stars.some(([ra, dec]) => sameStar(ra, dec, star.ra, star.dec))) {
+    return `isn't a star the sky draws: nothing in public/data/sky/stars.json within 0.01° of ${where}`;
+  }
+  const proper = catalogue.properNames.find(([ra, dec]) => sameStar(ra, dec, star.ra, star.dec));
+  if (proper) return `names a star that already has a name (${proper[2]}, at ${where})`;
+  if (star.near !== null && !catalogue.landmarks.includes(star.near)) {
+    return `"near" ("${star.near}") isn't a star the sky labels (public/data/sky/names.json)`;
+  }
+  return null;
 }
 
 /** Ids start with their date, so sorting by id is sorting by date (ties: by slug, then hex; stable). */
@@ -343,7 +412,12 @@ export function sameStar(ra1: number, dec1: number, ra2: number, dec2: number): 
  * left as plain text. External links open in a new tab with rel="noopener noreferrer", like the rest of the site.
  */
 export function renderAnswer(markdown: string): string {
-  const lines = stripComments(markdown).replace(/\r\n?/g, '\n').replace(/[^\P{Cc}\n\t]/gu, '').split('\n');
+  const lines = stripComments(markdown)
+    .replace(/\r\n?/g, '\n')
+    .replace(/[^\P{Cc}\n\t]/gu, '')
+    // Bidirectional controls could make the answer read differently from what Morgan wrote.
+    .replace(BIDI_CONTROLS, '')
+    .split('\n');
   const blocks: string[] = [];
   let i = 0;
   while (i < lines.length) {
@@ -367,6 +441,9 @@ export function renderAnswer(markdown: string): string {
   return blocks.join('\n');
 }
 
+/** Bidirectional formatting characters (embeddings, overrides, isolates and marks). */
+const BIDI_CONTROLS = /[\u061C\u200E\u200F\u202A-\u202E\u2066-\u2069]/g;
+
 const BULLET = /^ {0,3}[-*+] +/;
 const NUMBER = /^ {0,3}\d{1,9}[.)] +/;
 
@@ -388,7 +465,8 @@ function escapeHtml(text: string): string {
 
 /** A link target that's safe to put in href, or null. Checked on the raw text, before escaping. */
 export function safeHref(url: string): string | null {
-  if (/[\s<>"'`\\]/.test(url)) return null;
+  // The private-use characters are renderInline's placeholders (a code span inside the URL): never in an href.
+  if (/[\s<>"'`\\\uE000\uE001]/.test(url)) return null;
   if (/^https?:\/\/[^/]/i.test(url) || /^mailto:[^/]/i.test(url) || /^\/(?!\/)/.test(url)) return url;
   return null;
 }
@@ -434,6 +512,26 @@ function emphasis(text: string): string {
     .replace(/(^|[^\w])__(?=\S)([^<]*?\S)__(?!\w)/g, '$1<strong>$2</strong>')
     .replace(/\*(?=[^\s*])([^<*]*?[^\s*])\*/g, '<em>$1</em>')
     .replace(/(^|[^\w])_(?=[^\s_])([^<_]*?[^\s_])_(?!\w)/g, '$1<em>$2</em>');
+}
+
+// --- Build annotations ---------------------------------------------------------------------------
+
+/** actions/toolkit's escaping for a workflow command's message. */
+function escapeCommandData(text: string): string {
+  return text.replace(/%/g, '%25').replace(/\r/g, '%0D').replace(/\n/g, '%0A');
+}
+
+/** …and for a property such as file=. */
+function escapeCommandProperty(text: string): string {
+  return escapeCommandData(text).replace(/:/g, '%3A').replace(/,/g, '%2C');
+}
+
+/**
+ * A problem as a GitHub Actions `::warning` annotation on its file. Escaped, so text quoted from a bad
+ * file (a line break, "::") can't end the command and start one of its own.
+ */
+export function warningAnnotation({ path, message }: ContentProblem): string {
+  return `::warning file=${escapeCommandProperty(`content/${path}`)}::${escapeCommandData(message)}`;
 }
 
 // --- Dates ------------------------------------------------------------------------------------------
