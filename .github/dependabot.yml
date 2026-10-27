@@ -4,6 +4,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Wait a week before proposing a brand-new release, so a hijacked or broken version is usually
+    # caught and pulled before it reaches us. Security updates ignore this and arrive right away.
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     ignore:
       # Angular 22's compiler accepts TypeScript >=6.0 <6.1 only. Lift with the next Angular that accepts more.
@@ -33,6 +37,10 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    # Wait a week before proposing a brand-new release, so a hijacked or broken version is usually
+    # caught and pulled before it reaches us. Security updates ignore this and arrive right away.
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 5
     groups:
       actions:
