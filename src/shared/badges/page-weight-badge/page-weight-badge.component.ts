@@ -45,7 +45,7 @@ export class PageWeightBadgeComponent {
         note: `measured at deploy · ${day}`,
         cta: 'check my homework ↗',
       } satisfies BadgePopover,
-      label: `This site's homepage weighs ${fmt(total)} KB on a phone, ${fmt(script)} KB of it JavaScript, ` +
+      label: `Page weight: this site's homepage weighs ${fmt(total)} KB on a phone, ${fmt(script)} KB of it JavaScript, ` +
         `against a ${fmt(totalCeiling)} KB ceiling; measured ${day}. Opens a live PageSpeed Insights run in a new tab.`,
     };
   });

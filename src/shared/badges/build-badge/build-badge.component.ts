@@ -4,13 +4,15 @@ import { catchError, map, of } from 'rxjs';
 import { BadgeComponent, BadgePopover } from '../badge/badge.component';
 import { ApiCacheService } from '../../services/api-cache.service';
 import { SITE_CONFIG } from '../../config/site.config';
+import { BUILD_INFO } from '../../../build-info';
 
 /** What the deploy job writes (`scripts/write-site-status.mjs`): what built the page you're looking at. */
 export interface SiteStatus {
-  commit: { sha: string; number: number; firstAt: string };
+  /** `number`: how many commits master's history holds up to this one. */
+  commit: { sha: string; number: number };
   pr?: { number: number; url: string; checks: { name: string; ok: boolean }[] };
   tests?: { passed: number; total: number; lines?: number };
-  deploys?: { runs: number; lastFailureAt: string | null };
+  deploys?: { lastFailureAt: string | null };
   measuredAt: string;
 }
 
@@ -37,7 +39,7 @@ export function toStatus(value: unknown): SiteStatus | null {
       pr: { ...pr, checks: pr.checks.filter(c => typeof c?.name === 'string' && typeof c?.ok === 'boolean') },
     } : {}),
     ...(tests && isCount(tests.passed) && isCount(tests.total) ? { tests } : {}),
-    ...(deploys && isCount(deploys.runs) ? { deploys } : {}),
+    ...(deploys && (deploys.lastFailureAt === null || typeof deploys.lastFailureAt === 'string') ? { deploys } : {}),
   };
 }
 
@@ -71,7 +73,9 @@ export class BuildBadgeComponent {
 
   readonly build = computed(() => {
     const status = this.status();
-    if (!status) return null;
+    // site-status.json is cached for an hour; after a deploy it can describe a build this page isn't.
+    // (Development builds carry an all-zero placeholder sha, which matches nothing; skip the check there.)
+    if (!status || (!/^0*$/.test(BUILD_INFO.sha) && status.commit.sha !== BUILD_INFO.sha)) return null;
     const { commit, pr, tests, deploys } = status;
     const checks = pr?.checks ?? [];
     const passed = checks.filter(c => c.ok).length;
@@ -100,7 +104,7 @@ export class BuildBadgeComponent {
         note: `${sha} · checked at deploy`,
         cta: pr ? 'see the PR ↗' : 'see the commit ↗',
       } satisfies BadgePopover,
-      label: `This page is commit ${commit.number}, ${sha}` +
+      label: `Build: this page is commit ${commit.number}, ${sha}` +
         (pr ? `, built by pull request ${pr.number}` : '') +
         (checks.length ? `: ${passed} of ${checks.length} checks passed (${checks.map(c => `${c.name} ${c.ok ? 'passed' : 'failed'}`).join(', ')})` : '') +
         (tests ? `; ${tests.passed} of ${tests.total} tests passed${typeof tests.lines === 'number' ? `, ${tests.lines.toFixed(1)}% of lines covered` : ''}` : '') +

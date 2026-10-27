@@ -1,6 +1,6 @@
 // Writes dist/browser/site-status.json for the Build badge on /now: what built the page you're looking at.
 //
-//   - the commit: its number on master, its hash, and the date of the very first commit
+//   - the commit: how many commits master's history holds up to it (merged branches included), and its hash
 //   - the pull request that merged it, and how its checks went (CI and Lighthouse only run on PRs,
 //     so the merge commit itself has none of its own)
 //   - the test suite: passed/total from test-results.json, line coverage from coverage/
@@ -45,17 +45,14 @@ const CHECKS = [
 ];
 
 const sha = attempt('commit', () => git('rev-parse', 'HEAD'));
-const commit = sha && attempt('commit number', () => ({
-  sha,
-  number: Number(git('rev-list', '--count', 'HEAD')),
-  // The earliest root commit (a full-history checkout is needed for both).
-  firstAt: git('log', '--max-parents=0', '--format=%cI').split('\n').sort()[0],
-}));
+// Needs a full-history checkout; a shallow one would count 1.
+const commit = sha && attempt('commit number', () => ({ sha, number: Number(git('rev-list', '--count', 'HEAD')) }));
 
 const pr = sha && await (async () => {
   try {
+    // Only the PR this commit merged (or squashed) into master: not an open one, not an older one in a stack.
     const pulls = await github(`/commits/${sha}/pulls`);
-    const merged = pulls.find(p => p.merged_at) ?? pulls[0];
+    const merged = pulls.find(p => p.merge_commit_sha === sha && p.base?.ref === 'master');
     if (!merged) return undefined;
     const runs = (await github(`/commits/${merged.head.sha}/check-runs?per_page=100`)).check_runs ?? [];
     const checks = CHECKS
@@ -82,9 +79,8 @@ const tests = attempt('test results', () => {
 
 const deploys = await (async () => {
   try {
-    const all = await github('/actions/workflows/deploy.yml/runs?per_page=1');
     const failed = await github('/actions/workflows/deploy.yml/runs?status=failure&per_page=1');
-    return { runs: all.total_count, lastFailureAt: failed.workflow_runs?.[0]?.created_at ?? null };
+    return { lastFailureAt: failed.workflow_runs?.[0]?.created_at ?? null };
   } catch (error) {
     console.warn(`write-site-status: no deploy history (${error.message})`);
     return undefined;

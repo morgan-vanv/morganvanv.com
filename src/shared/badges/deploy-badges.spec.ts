@@ -28,7 +28,7 @@ describe('the Page weight badge', () => {
     expect(get).toHaveBeenCalledWith(LIGHTHOUSE_REPORT_URL, expect.any(Number));
     expect(el.querySelector('.value')?.textContent?.trim()).toBe('381 KB');
     expect(badge?.getAttribute('aria-label')).toBe(
-      "This site's homepage weighs 381 KB on a phone, 246 KB of it JavaScript, against a 1,400 KB ceiling; measured Oct 26. " +
+      "Page weight: this site's homepage weighs 381 KB on a phone, 246 KB of it JavaScript, against a 1,400 KB ceiling; measured Oct 26. " +
       'Opens a live PageSpeed Insights run in a new tab.',
     );
     expect(el.querySelector('.popover')?.textContent).toContain('246 / 750 KB');
@@ -52,7 +52,7 @@ describe('the Page weight badge', () => {
 
 describe('the Build badge', () => {
   const status = {
-    commit: { sha: '7da0685a1b2c3d4e5f60718293a4b5c6d7e8f901', number: 371, firstAt: '2019-10-15T13:14:30-04:00' },
+    commit: { sha: '7da0685a1b2c3d4e5f60718293a4b5c6d7e8f901', number: 371 },
     pr: {
       number: 90,
       url: 'https://github.com/morgan-vanv/morganvanv.com/pull/90',
@@ -62,7 +62,7 @@ describe('the Build badge', () => {
       ],
     },
     tests: { passed: 206, total: 206, lines: 89.63 },
-    deploys: { runs: 59, lastFailureAt: '2026-02-18T03:47:00Z' },
+    deploys: { lastFailureAt: '2026-02-18T03:47:00Z' },
     measuredAt: '2026-10-26T20:00:00Z',
   };
 
@@ -73,7 +73,7 @@ describe('the Build badge', () => {
     expect(el.querySelectorAll('svg circle.g-gold').length).toBe(5);
     expect(badge?.getAttribute('href')).toBe('https://github.com/morgan-vanv/morganvanv.com/pull/90');
     const label = badge?.getAttribute('aria-label') ?? '';
-    expect(label).toContain('This page is commit 371, 7da0685, built by pull request 90: 5 of 5 checks passed');
+    expect(label).toContain('Build: this page is commit 371, 7da0685, built by pull request 90: 5 of 5 checks passed');
     expect(label).toContain('206 of 206 tests passed, 89.6% of lines covered');
     expect(el.querySelector('.popover')?.textContent).toContain('Lint · Build · Test');
   });

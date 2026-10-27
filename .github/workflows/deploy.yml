@@ -7,12 +7,6 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-  # Read-only, for the Build badge: the merged PR's checks and the deploy history.
-  actions: read
-  checks: read
-  pull-requests: read
 
 concurrency:
   group: pages
@@ -21,6 +15,12 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Read-only, for the Build badge: the merged PR's checks and the deploy history.
+      actions: read
+      checks: read
+      pull-requests: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v7
@@ -51,6 +51,7 @@ jobs:
       # the badges just hide.
       - name: Measure the homepage for the Lighthouse badge
         continue-on-error: true
+        timeout-minutes: 10
         env:
           LH_FORM_FACTOR: mobile
           LH_PAGES: /
@@ -60,13 +61,18 @@ jobs:
 
       # The Build badge on /now: this commit's number, the merged PR's checks, a test run with coverage
       # and the deploy history, written to dist/browser/site-status.json. Never blocks a deploy either.
+      # The tests run without the token; only the small script that reads the GitHub API gets it.
+      - name: Run the tests for the Build badge
+        continue-on-error: true
+        timeout-minutes: 10
+        run: npx ng test --watch=false --coverage --coverage-reporters=json-summary --reporters=default --reporters=json --output-file=test-results.json
+
       - name: Record what built this for the Build badge
         continue-on-error: true
+        timeout-minutes: 5
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: |
-          npx ng test --watch=false --coverage --coverage-reporters=json-summary --reporters=default --reporters=json --output-file=test-results.json || true
-          node scripts/write-site-status.mjs
+        run: node scripts/write-site-status.mjs
 
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v5
@@ -76,6 +82,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

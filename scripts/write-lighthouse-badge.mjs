@@ -38,7 +38,13 @@ const scores = {
 // Weights in KB (what Lighthouse calls KiB): the whole page, and its JavaScript.
 const KB = 1024;
 const kb = bytes => (bytes === null ? null : Math.round(bytes / KB));
-const assertions = createRequire(import.meta.url)('../lighthouserc.cjs').ci.assert.assertions;
+// A problem reading the ceilings only costs the weights, never the scores.
+let assertions = {};
+try {
+  assertions = createRequire(import.meta.url)('../lighthouserc.cjs').ci.assert.assertions;
+} catch (error) {
+  console.warn(`write-lighthouse-badge: no ceilings (${error.message})`);
+}
 const ceiling = id => kb(assertions[id]?.[1]?.maxNumericValue ?? null);
 const weight = {
   total: kb(middle(runs.map(lhr => lhr.audits?.['total-byte-weight']?.numericValue))),
