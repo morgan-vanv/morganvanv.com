@@ -91,7 +91,9 @@
       {{ row.label }}@if (row.when) {<span class="label-when">· {{ row.when }}</span>}
     </span>
     <span class="title" [title]="row.title">{{ row.title }}</span>
-    @if (row.detail) {<span class="detail">{{ row.detail }}</span>}
+    @if (row.rating || row.detail) {
+      <span class="detail">@if (row.rating) {<app-stars [rating]="row.rating" />@if (row.detail) { · }}{{ row.detail }}</span>
+    }
   </span>
   @if (row.when) {<span class="when">{{ row.when }}</span>}
 </ng-template>

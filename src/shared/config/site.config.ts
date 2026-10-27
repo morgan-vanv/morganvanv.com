@@ -18,6 +18,7 @@ export const SITE_CONFIG = {
     instagram: 'morgan.vanv',
     statsFm: 'morgan.vanv',
     discogs: 'morganvanv',
+    letterboxd: 'morganvanv',
     osrs: 'TipodissDong',
   },
   askMorganSubmitUrl: 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit',
