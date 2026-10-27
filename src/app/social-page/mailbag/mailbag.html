@@ -1,0 +1,26 @@
+<section class="panel" aria-labelledby="social-mailbag">
+  <h2 id="social-mailbag">You Asked <span class="range-label">{{ countLabel }}</span></h2>
+
+  @if (letters.length) {
+    <ol class="letters" id="mailbag-letters">
+      @for (letter of letters; track letter.id; let i = $index) {
+        <li class="letter" [hidden]="i >= newestShown && !showOlder()">
+          <blockquote class="question"><p>{{ letter.question }}</p></blockquote>
+          <div class="answer" [innerHTML]="letter.answer"></div>
+          <p class="asked">asked <time [attr.datetime]="letter.asked">{{ letter.askedLabel }}</time></p>
+        </li>
+      }
+    </ol>
+
+    @if (olderCount) {
+      <button #toggle type="button" class="older-toggle" aria-controls="mailbag-letters"
+        [attr.aria-expanded]="showOlder()" (click)="toggleOlder()">
+        {{ showOlder() ? 'fewer letters' : 'older letters (' + olderCount + ')' }}
+      </button>
+    }
+  } @else {
+    <p class="empty">
+      Nothing in here yet. <a routerLink="/home">Ask me something</a> and the good ones get answered here, in public.
+    </p>
+  }
+</section>

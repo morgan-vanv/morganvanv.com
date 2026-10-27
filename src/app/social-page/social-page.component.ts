@@ -6,6 +6,7 @@ import { isUnderConstruction } from '../../shared/constants/under-construction.c
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { COMMUNITY_PHOTOS, photoCountLabel } from '../../shared/constants/community-photos.const';
+import { MailbagComponent } from './mailbag/mailbag';
 
 interface PhotoSpot {
   id: number;
@@ -17,7 +18,7 @@ interface PhotoSpot {
 
 @Component({
   selector: 'app-social-page',
-  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, A11yModule],
+  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, A11yModule, MailbagComponent],
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -43,6 +43,15 @@ describe('SocialPageComponent', () => {
     expect(panel?.querySelector('.irc-client')?.textContent).toContain('irc.libera.chat · 6697 (TLS)');
   });
 
+  it('has the mailbag under the wall and the shoutbox', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    // After the panel grid, not in it: the shoutbox is sticky within the grid.
+    const mailbag = el.querySelector('.social-panels + app-mailbag');
+    expect(mailbag).not.toBeNull();
+    expect(mailbag?.querySelector('h2')?.textContent).toContain('You Asked');
+    expect(el.querySelectorAll('h1').length).toBe(1);
+  });
+
   it('counts photos in words', () => {
     expect(photoCountLabel(1)).toBe('1 photo');
     expect(photoCountLabel(6)).toBe('6 photos');

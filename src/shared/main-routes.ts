@@ -16,7 +16,7 @@ export const MAIN_ROUTES = [
   { path: 'home', title: 'Home', description: 'Morgan Van Valkenburgh\'s personal website. Some guy from Cincinnati, his cat, and the things he\'s into.' },
   { path: 'now', title: 'Now', description: 'What Morgan is up to right now: what he\'s listening to, what he\'s playing, and the latest on the site.' },
   { path: 'background', title: 'Background', description: 'A bit about Morgan: physics and applied math at Ohio University, software engineering, and Ada the cat.' },
-  { path: 'social', title: 'Social', description: 'The community photo wall. Send a photo, get a polaroid.' },
+  { path: 'social', title: 'Social', description: 'The community photo wall, and the mailbag: questions visitors asked, answered.' },
   { path: 'interests', title: 'Interests', description: 'Live stats on what Morgan is listening to and what his Old School RuneScape character is up to.' },
   { path: 'projects', title: 'Projects', description: 'Things Morgan has built or is building. Under construction.' },
   { path: 'blog', title: 'Blog', description: 'Writing from Morgan, eventually. Under construction.' },
