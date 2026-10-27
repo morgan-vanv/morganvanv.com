@@ -15,7 +15,7 @@ import {
   viewPoint,
 } from './sky-panorama';
 import { ease } from './sky-transition';
-import { FACE_SOUTH, LookView, clampView } from './sky-view';
+import { FACE_SOUTH, LookView, MAX_TILT, clampView } from './sky-view';
 
 /** How far (CSS px) a press can wander and still be a tap, by mouse or pen and by finger. */
 export const TAP_SLOP = 6;
@@ -37,8 +37,8 @@ const VELOCITY_WINDOW = 100;
 export interface FreeLookHost {
   /** The view moved (each frame while it does): the ring follows, hover goes. */
   moved(view: LookView): void;
-  /** The view came to rest; `dragged` when a drag (and its glide) did it. */
-  settled(view: LookView, dragged: boolean): void;
+  /** The view came to rest, after a drag (and its glide), a turn, or a press that stopped either. */
+  settled(view: LookView, cause: 'drag' | 'turn' | 'stop'): void;
 }
 
 /** What the panorama needs to draw: the normal draw's input and its layout (which decides the light). */
@@ -62,7 +62,6 @@ export class FreeLook {
   readonly canvas: HTMLCanvasElement;
   /** What the last render drew (buffer px), for hover. */
   scene: { targets: readonly SkyTarget[]; segments: readonly SkySegment[] } | null = null;
-  private image: ImageData | null = null;
   private pointer: { id: number; startX: number; startY: number; lastX: number; lastY: number; slop: number } | null = null;
   private samples: { t: number; x: number; y: number }[] = [];
   /** A drag is under way (past the slop). */
@@ -99,10 +98,9 @@ export class FreeLook {
     if (this.canvas.width !== pan.width || this.canvas.height !== pan.height) [this.canvas.width, this.canvas.height] = [pan.width, pan.height];
     this.canvas.style.width = `${pan.width * pan.artPixel}px`;
     this.canvas.style.height = `${pan.height * pan.artPixel}px`;
-    const reuse = this.image;
-    const image = reuse && reuse.width === pan.width && reuse.height === pan.height ? reuse : context.createImageData(pan.width, pan.height);
-    if (image === reuse) image.data.fill(0);
-    this.image = image;
+    // Made for each render and let go straight after: kept, it would double the panorama's
+    // memory for something needed once a minute.
+    const image = context.createImageData(pan.width, pan.height);
     const result = renderSky(image.data, layout, { ...input, projection: panoramaProjection(pan), paintBackground: false, drawSun: false });
     context.putImageData(image, 0, 0);
     drawGlows(context, result.glows);
@@ -152,7 +150,6 @@ export class FreeLook {
     this.stop();
     if (!this.pan && !this.canvas.width) return;
     this.view = FACE_SOUTH;
-    this.image = null;
     this.scene = null;
     this.pan = null;
     [this.canvas.width, this.canvas.height] = [0, 0];
@@ -182,7 +179,7 @@ export class FreeLook {
     if (this.reducedMotion() || !this.pan) {
       this.view = to;
       this.place();
-      this.host.settled(this.view, false);
+      this.host.settled(this.view, 'turn');
       return;
     }
     const from = this.view;
@@ -195,7 +192,7 @@ export class FreeLook {
       if (t >= 1) {
         this.motion = null;
         this.frame = 0;
-        this.host.settled(this.view, false);
+        this.host.settled(this.view, 'turn');
         return;
       }
       this.frame = requestAnimationFrame(step);
@@ -203,12 +200,18 @@ export class FreeLook {
     this.frame = requestAnimationFrame(step);
   }
 
-  /** Turns (as little as it can) so a direction can be seen; see `bringIntoView`. */
-  show(alt: number, az: number, visible: (x: number, y: number) => boolean): void {
-    if (!this.pan) return;
+  /** Whether some view shows a direction (see `bringIntoView`). */
+  canShow(alt: number, az: number, visible: (x: number, y: number) => boolean): boolean {
+    return !!this.pan && bringIntoView(this.pan, this.view, alt, az, visible) !== null;
+  }
+
+  /** Turns (as little as it can) so a direction can be seen; true if that means turning. */
+  show(alt: number, az: number, visible: (x: number, y: number) => boolean): boolean {
+    if (!this.pan) return false;
     const target = bringIntoView(this.pan, this.view, alt, az, visible);
-    if (target === this.view) return;
+    if (!target || target === this.view) return false;
     this.turnTo(target);
+    return true;
   }
 
   /** Where a horizontal direction is on screen (CSS px), or null if it's off screen. */
@@ -263,7 +266,7 @@ export class FreeLook {
     // A press stops a glide or a turn; let the sky catch up (a tap now picks from where things are).
     if (this.motion) {
       this.halt();
-      this.host.settled(this.view, false);
+      this.host.settled(this.view, 'stop');
     }
     this.dragEnded = false;
     this.pointer = {
@@ -313,7 +316,7 @@ export class FreeLook {
     this.surface.classList.remove('dragging');
     const velocity = mayGlide && !this.reducedMotion() ? flickVelocity(this.samples, event.timeStamp) : null;
     if (velocity) this.glide(velocity);
-    else this.host.settled(this.view, true);
+    else this.host.settled(this.view, 'drag');
   }
 
   /** Carries on after a flick, slowing to a stop. */
@@ -323,17 +326,18 @@ export class FreeLook {
     this.motion = 'glide';
     const step = (now: number) => {
       const pan = this.pan;
-      const dt = Math.min(50, now - last);
+      // (Frames can arrive with a time just before the last one's.)
+      const dt = Math.max(0, Math.min(50, now - last));
       last = now;
       if (!pan || Math.hypot(vx, vy) < GLIDE_MIN_SPEED) {
         this.motion = null;
         this.frame = 0;
-        this.host.settled(this.view, true);
+        this.host.settled(this.view, 'drag');
         return;
       }
       const next = dragView(pan, this.view, vx * dt, vy * dt);
       // Stopped at the horizon or the zenith: no more up or down.
-      if (next.tilt !== this.view.tilt + (vy * dt) / pan.cssPerDeg) vy = 0;
+      if ((next.tilt <= 0 && vy < 0) || (next.tilt >= MAX_TILT && vy > 0)) vy = 0;
       this.view = next;
       const decay = Math.exp(-dt / GLIDE_TIME_CONSTANT);
       vx *= decay;

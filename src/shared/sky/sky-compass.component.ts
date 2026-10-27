@@ -8,7 +8,8 @@ import { TILT_STEP, TURN_STEP, compassText } from './sky-view';
  * ("facing NNW · 338° · looking up 40°") and buttons that turn and tilt it,
  * for anyone who'd rather not (or can't) drag. Buttons, not arrow keys: ← →
  * stay page navigation. A polite live region says where each turn leaves you.
- * Loaded with the first look up. Copy is a draft for Morgan.
+ * Small, so it's in main (unlike the panorama and the dragging, which load with
+ * the first look up); shown only once free look is on. Copy is a draft for Morgan.
  */
 @Component({
   selector: 'app-sky-compass',

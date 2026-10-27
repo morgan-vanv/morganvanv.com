@@ -1,12 +1,14 @@
+<!-- Free look's compass, once free look is really on (loaded, with a sky to turn). First, so the
+     focus order follows the screen: top-left, then the back pill bottom-left. Not deferred: on its
+     own chunk it made the bundler split main in two, which cost more than it saved. -->
+@if (sky.freeLooking()) {
+  <app-sky-compass />
+}
 @if (sky.lookingUp()) {
   <button type="button" class="back look-up-surface" [class.beside-panel]="sky.naming()" (click)="backToPage()">
     <app-icon name="chevron-left" />
     <span>back to the page</span>
   </button>
-}
-<!-- Free look's compass. Not deferred: on its own chunk it made the bundler split main in two, which cost more than it saved. -->
-@if (sky.lookingUp()) {
-  <app-sky-compass />
 }
 <!-- Loaded the first time someone names a star, so it isn't in every page's first download. -->
 @defer (when sky.naming()) {

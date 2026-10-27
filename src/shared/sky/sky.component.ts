@@ -157,7 +157,7 @@ export function parseSkyAt(search: string): Date | null {
       }
     </div>
     @if (ring(); as ring) {
-      <span class="star-ring" [class.sent]="sent()" [style.transform]="'translate(' + ring.x + 'px, ' + ring.y + 'px)'">
+      <span #ring class="star-ring" [class.sent]="sent()" [style.transform]="'translate(' + ring.x + 'px, ' + ring.y + 'px)'">
         <span class="sparkle"></span>
       </span>
     }
@@ -170,7 +170,7 @@ export function parseSkyAt(search: string): Date | null {
   host: {
     'aria-hidden': 'true',
     '[class.ready]': 'sky.ready()',
-    '[class.free-look]': 'freeLooking()',
+    '[class.free-look]': 'sky.freeLooking()',
   },
 })
 export class SkyComponent {
@@ -186,6 +186,7 @@ export class SkyComponent {
   private readonly sunElement = viewChild.required<ElementRef<HTMLElement>>('sun');
   private readonly overlay = viewChild.required<ElementRef<HTMLCanvasElement>>('overlay');
   private readonly freeLayer = viewChild.required<ElementRef<HTMLElement>>('free');
+  private readonly ringElement = viewChild<ElementRef<HTMLElement>>('ring');
 
   /** Fireflies on the meadow at dusk (CSS-animated; nothing at all otherwise). */
   protected readonly fireflies = signal<readonly Firefly[]>([]);
@@ -253,8 +254,10 @@ export class SkyComponent {
   private freeOn = false;
   /** How much of the panorama is showing (it crossfades with the normal view). */
   private freeOpacity = 0;
-  /** While free look is on, the sky takes the pointer (to be dragged). */
-  protected readonly freeLooking = signal(false);
+  /** Something wanted a redraw while the sky was being turned: do it when it comes to rest. */
+  private redrawAfterSettle = false;
+  /** ‹ › turned the sky: say where it left the visitor once it's there. */
+  private announceOnSettle = false;
 
   constructor() {
     const destroyRef = inject(DestroyRef);
@@ -292,9 +295,10 @@ export class SkyComponent {
       untracked(() => this.updateSelectedPoint());
     });
 
-    // Looking up turns free look on (the sky can be dragged round); coming back turns it off.
+    // Looking up turns free look on (the sky can be dragged round) once there's a sky to turn;
+    // coming back turns it off.
     effect(() => {
-      const up = this.sky.lookingUp();
+      const up = this.sky.lookingUp() && this.sky.ready();
       untracked(() => this.setFreeLook(up));
     });
     // The compass asked for a turn.
@@ -319,9 +323,10 @@ export class SkyComponent {
         this.sky.ready.set(true);
 
         const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        // Mid-change, these wait for the change to finish.
+        // Mid-change, these wait for the change to finish; mid-turn (a drag, a glide), for the sky to come to rest.
         const redraw = () => {
           if (this.transition) this.redrawAfterTransition = true;
+          else if (this.freeOn && this.free?.moving) this.redrawAfterSettle = true;
           else this.draw();
         };
         const interval = reducedMotion ? undefined : setInterval(() => {
@@ -333,7 +338,10 @@ export class SkyComponent {
         let resizeTimer: ReturnType<typeof setTimeout> | undefined;
         const onResize = () => {
           clearTimeout(resizeTimer);
-          resizeTimer = setTimeout(() => this.draw(), RESIZE_DEBOUNCE_MS);
+          resizeTimer = setTimeout(() => {
+            if (this.freeOn && this.free?.moving) this.redrawAfterSettle = true;
+            else this.draw();
+          }, RESIZE_DEBOUNCE_MS);
         };
         document.addEventListener('visibilitychange', onVisibility);
         // Follow the element the painting is sized to, not the window (they differ when pinch-zoomed).
@@ -542,7 +550,10 @@ export class SkyComponent {
       clearTimeout(touchTimer);
       touchTimer = setTimeout(() => this.setHover(NO_HOVER, 0, 0), TOUCH_LABEL_MS);
     };
-    const onLeave = () => this.setHover(NO_HOVER, 0, 0);
+    // (Chrome sends a touch's pointerleave to <html> right after its pointerup: that mustn't take the tapped label away.)
+    const onLeave = (event: Event) => {
+      if ((event as PointerEvent).pointerType !== 'touch') this.setHover(NO_HOVER, 0, 0);
+    };
     // While naming a star, a click or tap on open sky picks the unnamed star nearest it. A click
     // doesn't always say what made it (Safari's has no pointerType), so the last pointerdown does.
     let lastPointer = 'mouse';
@@ -869,12 +880,17 @@ export class SkyComponent {
     // The landscapes have soft edges, so they're added instead (see .land in the styles): the
     // incoming one at the progress, the outgoing one at the rest, which keeps their coverage.
     const incoming = target;
+    // Free look starting or ending: the stars on the way out go in the first part of the fade,
+    // so the two projections' stars (which disagree away from due south) are barely seen together.
+    const quick = (progress: number) => Math.min(1, progress / 0.4);
+    const [skyFade, freeFade] = freeTo > freeFrom ? [quick, (p: number) => p] : freeTo < freeFrom ? [(p: number) => p, quick] : [(p: number) => p, (p: number) => p];
     const setFade = (progress: number) => {
       const [skyUnder, skyOver] = this.skies().map(ref => ref.nativeElement);
+      const sky = skyFade(progress);
       skyUnder.style.opacity = '';
-      skyOver.style.opacity = String(incoming === 1 ? progress : 1 - progress);
+      skyOver.style.opacity = String(incoming === 1 ? sky : 1 - sky);
       this.lands().forEach((ref, i) => (ref.nativeElement.style.opacity = String(i === incoming ? progress : 1 - progress)));
-      this.setFreeOpacity(freeFrom + (freeTo - freeFrom) * progress);
+      this.setFreeOpacity(freeFrom + (freeTo - freeFrom) * freeFade(progress));
     };
     const transition = { start: performance.now(), frame: 0, incoming, progress: 0 };
     const step = (now: number) => {
@@ -953,7 +969,7 @@ export class SkyComponent {
     return { x: p.x * layout.artPixel, y: p.y * layout.artPixel };
   }
 
-  /** ‹ › picked a star: free look turns (as little as it can) to bring it into view. */
+  /** ‹ › picked a star: free look turns (as little as it can) to bring it into view, and says where it got to. */
   private showSelectedStar(): void {
     const star = this.sky.selected();
     const toHorizontal = this.toHorizontal;
@@ -961,10 +977,15 @@ export class SkyComponent {
     if (!star || !toHorizontal || !free) return;
     const { alt, az } = altAz(multiply(toHorizontal, star.v));
     if (alt <= 0) return;
+    if (free.show(alt, az, this.clearSpot())) this.announceOnSettle = true;
+  }
+
+  /** Whether a star at a CSS point can be seen: well on screen, and not behind the landscape or under anything. */
+  private clearSpot(): (x: number, y: number) => boolean {
     const hidden = this.hiddenTest();
     const [width, height] = [this.viewWidth(), this.viewHeight()];
     const margin = 24;
-    free.show(alt, az, (x, y) => x > margin && y > margin && x < width - margin && y < height - margin && !hidden(x, y));
+    return (x, y) => x > margin && y > margin && x < width - margin && y < height - margin && !hidden(x, y);
   }
 
   /**
@@ -976,7 +997,10 @@ export class SkyComponent {
     if (!on) {
       if (!this.freeOn) return;
       this.freeOn = false;
-      this.freeLooking.set(false);
+      this.redrawAfterSettle = false;
+      this.announceOnSettle = false;
+      this.sky.freeLooking.set(false);
+      this.sky.showable = null;
       this.free?.stop();
       this.draw(this.mayEase());
       return;
@@ -985,9 +1009,16 @@ export class SkyComponent {
       if (!free || this.destroyed || !this.sky.lookingUp() || this.freeOn) return;
       free.reset();
       free.start();
+      // Nothing asked for before free look was on gets carried out now.
+      this.sky.viewRequest.set(null);
       this.freeOn = true;
-      this.freeLooking.set(true);
       this.draw(this.mayEase());
+      this.sky.freeLooking.set(true);
+      // ‹ › pass over stars no view can show (worked out with what's on screen as they're asked).
+      this.sky.showable = ({ alt, az }) => {
+        const clear = this.clearSpot();
+        return free.canShow(alt, az, clear);
+      };
     });
   }
 
@@ -997,7 +1028,7 @@ export class SkyComponent {
         if (this.destroyed) return null;
         this.free = new FreeLook(this.freeLayer().nativeElement, this.host, {
           moved: view => this.freeMoved(view),
-          settled: (view, dragged) => this.freeSettled(view, dragged),
+          settled: (view, cause) => this.freeSettled(view, cause),
         }, () => matchMedia('(prefers-reduced-motion: reduce)').matches);
         return this.free;
       },
@@ -1006,9 +1037,17 @@ export class SkyComponent {
     return this.freeLoad;
   }
 
-  /** The panorama moved (a frame of a drag or a turn): the ring goes with its star, hover labels go, the compass reads on. */
+  /**
+   * The panorama moved (a frame of a drag or a turn): the ring goes with its star (its transform
+   * set here, like the panorama's, rather than through a signal each frame), hover labels go, and
+   * the compass reads on when its reading changes.
+   */
   private freeMoved(view: LookView): void {
-    this.updateSelectedPoint();
+    const point = this.selectedOnScreen();
+    const ring = this.ringElement()?.nativeElement;
+    if (point && ring && this.sky.selectedPoint()) ring.style.transform = `translate(${point.x}px, ${point.y}px)`;
+    // On or off screen: the ring comes or goes, which the template does.
+    else if (!!point !== !!this.sky.selectedPoint()) this.sky.selectedPoint.set(point);
     if (this.hover !== NO_HOVER || this.label()) {
       this.hover = NO_HOVER;
       this.label.set(null);
@@ -1017,12 +1056,21 @@ export class SkyComponent {
     if (!sameReading(view, this.sky.view())) this.sky.view.set(view);
   }
 
-  /** The panorama came to rest: what can be picked is worked out again, and a drag says where it left the visitor. */
-  private freeSettled(view: LookView, dragged: boolean): void {
+  /**
+   * The panorama came to rest: a redraw that waited is done, what can be picked is worked out
+   * again, and a ‹ › turn says where it left the visitor (the compass's buttons say so as they're
+   * pressed; a drag says nothing).
+   */
+  private freeSettled(view: LookView, cause: 'drag' | 'turn' | 'stop'): void {
     this.sky.view.set(view);
     this.sky.viewRequest.set(null);
+    if (this.redrawAfterSettle) {
+      this.redrawAfterSettle = false;
+      this.draw();
+    }
     this.updateNaming();
-    if (dragged) this.sky.announceView(view);
+    if (this.announceOnSettle && cause === 'turn') this.sky.announceView(view);
+    this.announceOnSettle = false;
   }
 
   private setFreeOpacity(opacity: number): void {

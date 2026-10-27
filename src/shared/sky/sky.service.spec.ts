@@ -204,6 +204,38 @@ describe('SkyService lighting', () => {
       expect(service.selected()).toBe(d);
     });
 
+    it('‹ › pass over stars no view can show (under a phone\'s sheet, behind the hills), and give up after a lap', () => {
+      const service = TestBed.inject(SkyService);
+      service.startNaming();
+      service.around.set(around);
+      service.select(d);
+      // Only b can be shown.
+      service.showable = s => s.star === b;
+      service.step(1);
+      expect(service.selected()).toBe(b); // a passed over
+      service.step(1);
+      expect(service.selected()).toBe(b); // all the way round to itself
+      service.step(-1);
+      expect(service.selected()).toBe(b);
+      // None can: nothing changes, and it stops after one lap.
+      const asked: unknown[] = [];
+      service.showable = s => (asked.push(s), false);
+      const shown = service.showSelected();
+      service.step(1);
+      expect(service.selected()).toBe(b);
+      expect(service.showSelected()).toBe(shown);
+      expect(asked.length).toBe(around.length);
+      service.showable = null;
+    });
+
+    it('looking up closes the ☾ menu, so the first touch lands on the sky', () => {
+      const service = TestBed.inject(SkyService);
+      service.menuOpen.set(true);
+      service.enterLookUp();
+      expect(service.menuOpen()).toBe(false);
+      service.leaveLookUp();
+    });
+
     it('the compass turns from where the last turn was heading, clamps the tilt, and says where it leaves you', () => {
       const service = TestBed.inject(SkyService);
       service.enterLookUp();

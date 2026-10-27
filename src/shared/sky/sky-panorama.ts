@@ -24,9 +24,12 @@ import { LookView, MAX_TILT, clampView, wrapDegrees } from './sky-view';
  * 2 per CSS px, fewer on big screens so the buffer stays a sensible size).
  */
 
-/** The most pixels the panorama may have (about 25 MB of RGBA), and its longest side. */
+/**
+ * The most pixels the panorama may have (about 25 MB of RGBA), and its longest side: 4096,
+ * because some mobile GPUs can't hold a wider texture (Chrome then falls back to software).
+ */
 export const MAX_PANORAMA_PIXELS = 4096 * 1536;
-export const MAX_PANORAMA_SIDE = 8192;
+export const MAX_PANORAMA_SIDE = 4096;
 /** How far below the horizon it reaches (the Moon is drawn until it's 1° below). */
 const BELOW_HORIZON = 3;
 /** Constellation lines are drawn in pieces this long (degrees), so they curve as the sky does. */
@@ -177,10 +180,10 @@ export function viewBetween(from: LookView, to: LookView, t: number): LookView {
  * at the first clear spot from the middle outwards; else tilted so it's half
  * way up the sky above the horizon line, turned the same way. `visible` says
  * whether a screen point (CSS px) can be seen (on screen, not behind the
- * landscape, not under a panel). If nowhere works (a star hidden behind the
- * hills wherever it's put), it's turned to the middle anyway.
+ * landscape, not under a panel). Null if no view shows it: a star low behind
+ * the hills, or under a phone's bottom sheet (tilting only moves a star down).
  */
-export function bringIntoView(pan: Panorama, view: LookView, alt: number, az: number, visible: (x: number, y: number) => boolean): LookView {
+export function bringIntoView(pan: Panorama, view: LookView, alt: number, az: number, visible: (x: number, y: number) => boolean): LookView | null {
   const here = viewPoint(pan, view, alt, az);
   if (here && visible(here.x, here.y)) return view;
   const p = pan.cssPerDeg;
@@ -194,5 +197,5 @@ export function bringIntoView(pan: Panorama, view: LookView, alt: number, az: nu
       if (visible(x, y)) return clampView({ facing: az - (x - pan.centerX) / p, tilt });
     }
   }
-  return clampView({ facing: az, tilt: goalTilt });
+  return null;
 }

@@ -173,30 +173,43 @@ describe('sky panorama (free look)', () => {
     });
 
     it('turns round to one behind you, keeping the tilt, and puts it where it can be seen', () => {
-      const view = bringIntoView(pan, FACE_SOUTH, 30, 10, clear);
+      const view = bringIntoView(pan, FACE_SOUTH, 30, 10, clear)!;
       expect(view.tilt).toBe(0);
       const at = viewPoint(pan, view, 30, 10)!;
       expect(clear(at.x, at.y)).toBe(true);
       expect(at.x).toBeCloseTo(pan.centerX, 6); // the middle first
       // Not in the middle if a panel's there.
-      const beside = bringIntoView(pan, FACE_SOUTH, 30, 10, clearOfPanel);
+      const beside = bringIntoView(pan, FACE_SOUTH, 30, 10, clearOfPanel)!;
       const p = viewPoint(pan, beside, 30, 10)!;
       expect(clearOfPanel(p.x, p.y)).toBe(true);
     });
 
     it('tilts up for one too high to see at this tilt, and down for one that\'s sunk behind the hills', () => {
-      const up = bringIntoView(pan, FACE_SOUTH, 85, 180, clear);
+      const up = bringIntoView(pan, FACE_SOUTH, 85, 180, clear)!;
       expect(up.tilt).toBeGreaterThan(0);
       const at = viewPoint(pan, up, 85, 180)!;
       expect(clear(at.x, at.y)).toBe(true);
-      const down = bringIntoView(pan, { facing: 180, tilt: 60 }, 20, 180, clear);
+      const down = bringIntoView(pan, { facing: 180, tilt: 60 }, 20, 180, clear)!;
       expect(down.tilt).toBeLessThan(60);
       const p = viewPoint(pan, down, 20, 180)!;
       expect(clear(p.x, p.y)).toBe(true);
     });
 
-    it('if nowhere works, still turns to face it', () => {
-      expect(bringIntoView(pan, FACE_SOUTH, 2, 45, () => false).facing).toBeCloseTo(45, 6);
+    it('says so (null) if no view shows it, rather than turning to it anyway', () => {
+      expect(bringIntoView(pan, FACE_SOUTH, 2, 45, () => false)).toBeNull();
+    });
+
+    it('on a phone, a low star that could only sit under the bottom sheet can\'t be shown (tilting only moves it down)', () => {
+      const phone = computePanorama(390, 844, 2);
+      // The sheet covers everything below y = 430; above it is clear sky.
+      const clearOfSheet = (x: number, y: number) => x > 24 && x < 366 && y > 24 && y < 430;
+      // Low (5° up): at tilt 0 it's at horizonY − 5° ≈ 428 + clearance → under the sheet's edge; no tilt lifts it.
+      const low = 1 + (phone.horizonY - 430) / phone.cssPerDeg;
+      expect(bringIntoView(phone, FACE_SOUTH, low - 2, 20, clearOfSheet)).toBeNull();
+      // A little higher fits above the sheet.
+      const view = bringIntoView(phone, FACE_SOUTH, low + 6, 20, clearOfSheet)!;
+      const at = viewPoint(phone, view, low + 6, 20)!;
+      expect(clearOfSheet(at.x, at.y)).toBe(true);
     });
   });
 });

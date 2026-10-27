@@ -54,9 +54,18 @@ describe('SkyLookUpComponent', () => {
     expect(el.querySelector('app-sky-compass')).toBeNull();
     sky.enterLookUp();
     await fixture.whenStable();
+    // Not until free look is really on (loaded, with a sky to turn).
+    expect(el.querySelector('app-sky-compass')).toBeNull();
+    sky.freeLooking.set(true);
+    await fixture.whenStable();
     expect(el.querySelector('app-sky-compass .compass')).not.toBeNull();
+    // Before the back pill, so focus goes in the order they sit on screen (top-left first).
+    const compass = el.querySelector('app-sky-compass')!;
+    expect(compass.compareDocumentPosition(el.querySelector('.back')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     sky.view.set({ facing: 20, tilt: 30 });
     el.querySelector<HTMLButtonElement>('.back')!.click();
+    await fixture.whenStable();
+    sky.freeLooking.set(false); // (the sky turns it off as it leaves)
     await fixture.whenStable();
     expect(el.querySelector('app-sky-compass')).toBeNull();
     expect(sky.view()).toEqual({ facing: 180, tilt: 0 });

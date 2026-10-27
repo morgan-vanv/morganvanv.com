@@ -3,6 +3,7 @@ import { Router, provideRouter } from '@angular/router';
 import { KeyboardNavService } from './keyboard-nav.service';
 import { ScrollRegionService } from '../scroll-region/scroll-region.service';
 import { MAIN_NAV_ROUTES } from '../main-routes';
+import { SkyService } from '../sky/sky.service';
 
 function key(name: string, init: KeyboardEventInit = {}): KeyboardEvent {
   return new KeyboardEvent('keydown', { key: name, cancelable: true, ...init });
@@ -27,6 +28,18 @@ describe('KeyboardNavService', () => {
     url = '/';
     service.onKeyDown(key('ArrowDown'));
     expect(navigate).toHaveBeenCalledWith([MAIN_NAV_ROUTES[0]]);
+  });
+
+  it('on the greeting while looking up, ↑/↓ do nothing (the page is hidden); ← → still go on', () => {
+    url = '/';
+    const sky = TestBed.inject(SkyService);
+    sky.enterLookUp();
+    service.onKeyDown(key('ArrowUp'));
+    service.onKeyDown(key('ArrowDown'));
+    expect(navigate).not.toHaveBeenCalled();
+    service.onKeyDown(key('ArrowRight'));
+    expect(navigate).toHaveBeenCalledWith([MAIN_NAV_ROUTES[0]]);
+    sky.leaveLookUp();
   });
 
   it('moves to the next and previous main page with Left/Right', () => {

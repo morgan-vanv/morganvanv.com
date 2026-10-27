@@ -95,6 +95,13 @@ export class SkyService {
   readonly viewRequest = signal<{ readonly view: LookView; readonly count: number } | null>(null);
   /** Said politely after a turn: "facing west, 270°, looking up 15°". */
   readonly viewAnnouncement = signal('');
+  /** Free look is on: looking up, loaded, and with a sky to turn. Until then there's no compass and nothing to drag. */
+  readonly freeLooking = signal(false);
+  /**
+   * Whether the sky can turn to show a star (set by the sky while free look is on). ‹ › pass over
+   * stars it can't: low ones behind the hills, or that only fit under a phone's bottom sheet.
+   */
+  showable: ((star: StarAround) => boolean) | null = null;
 
   private attempt = 0;
   private requests = 0;
@@ -115,8 +122,10 @@ export class SkyService {
     this.menuFocusRequests.update(count => count + 1);
   }
 
+  /** Hides the page (and closes the ☾ menu, so the first touch lands on the sky). */
   enterLookUp(): void {
     if (!this.lookingUp()) this.faceSouthNow();
+    this.menuOpen.set(false);
     this.lookingUp.set(true);
   }
 
@@ -203,13 +212,22 @@ export class SkyService {
   /**
    * ‹ (−1) or › (+1): the next unnamed star above the horizon round the sky by
    * azimuth (on screen or not), from the selected one or from where the visitor
-   * is facing. The sky turns to bring it into view.
+   * is facing. The sky turns to bring it into view; stars no view can show are
+   * passed over, and after a whole lap without one it gives up.
    */
   step(direction: 1 | -1): void {
-    const next = stepAround(this.around(), this.selected(), direction, this.view().facing);
-    if (!next) return;
-    this.select(next.star);
-    this.showSelected.update(count => count + 1);
+    const list = this.around();
+    let from = this.selected();
+    for (let tries = list.length; tries > 0; tries--) {
+      const next = stepAround(list, from, direction, this.view().facing);
+      if (!next) return;
+      if (!this.showable || this.showable(next)) {
+        this.select(next.star);
+        this.showSelected.update(count => count + 1);
+        return;
+      }
+      from = next.star;
+    }
   }
 
   /** Selects the candidate nearest a point (CSS pixels) within `reach`; false if there's none. */
