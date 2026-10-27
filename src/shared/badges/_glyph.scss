@@ -1,0 +1,17 @@
+@use '../../styles' as *;
+
+// Colours for the small inline-SVG glyphs in each badge's left cell. A badge's own SCSS includes
+// this once; its SVG parts then take one of these classes instead of hard-coded fills.
+@mixin colors {
+  :host {
+    display: contents;
+  }
+
+  .g-gold { fill: $accent-color; }
+  .g-white { fill: $main-color; }
+  .g-deep { fill: $background-color; }
+  .g-line { stroke: $main-color; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  .g-line-gold { stroke: $accent-color; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+  // An outline that keeps its fill (pair it with .g-deep or .g-gold).
+  .g-stroke { stroke: $main-color; stroke-linejoin: round; }
+}

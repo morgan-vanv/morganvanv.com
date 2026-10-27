@@ -1,0 +1,12 @@
+@use '../../../styles' as *;
+
+// The face, popover and states come from app-badge; this is just the lighthouse, lamp lit.
+:host {
+  display: contents;
+}
+
+.beam { fill: $accent-color; opacity: 0.45; }
+.tower { stroke: $main-color; stroke-width: 1.4; stroke-linejoin: round; }
+.stripe { stroke: $main-color; stroke-width: 1.2; }
+.lamp { fill: $accent-color; }
+.roof { fill: $main-color; }

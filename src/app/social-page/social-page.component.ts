@@ -2,9 +2,10 @@ import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
+import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 import { SITE_CONFIG } from '../../shared/config/site.config';
-import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
+import { COMMUNITY_PHOTOS, photoCountLabel } from '../../shared/constants/community-photos.const';
 
 interface PhotoSpot {
   id: number;
@@ -12,11 +13,6 @@ interface PhotoSpot {
   thumbUrl?: string;
   placeholderText?: string;
   caption?: string;
-}
-
-/** "1 photo", "6 photos": the dim count beside the wall's heading. */
-export function photoCountLabel(count: number): string {
-  return `${count} ${count === 1 ? 'photo' : 'photos'}`;
 }
 
 @Component({
@@ -31,6 +27,7 @@ export function photoCountLabel(count: number): string {
 })
 export class SocialPageComponent {
   readonly siteEmail = SITE_CONFIG.email;
+  readonly shoutboxUnderConstruction = isUnderConstruction('shoutbox');
   readonly selectedPhoto = signal<PhotoSpot | null>(null);
   private lastFocusedElement: HTMLElement | null = null;
 

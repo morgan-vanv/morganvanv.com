@@ -16,7 +16,12 @@ import { BUILD_INFO } from '../../build-info';
 import { NOW_CONTENT_TOKEN } from './now.content';
 import { PROJECTS } from '../../shared/constants/projects.const';
 import { ProjectCardComponent } from '../../shared/project-card/project-card.component';
-import { LighthouseBadgeComponent } from '../../shared/lighthouse-badge/lighthouse-badge.component';
+import { LighthouseBadgeComponent } from '../../shared/badges/lighthouse-badge/lighthouse-badge.component';
+import { PhotoWallBadgeComponent } from '../../shared/badges/photo-wall-badge/photo-wall-badge.component';
+import { AngularBadgeComponent } from '../../shared/badges/angular-badge/angular-badge.component';
+import { NoCookiesBadgeComponent } from '../../shared/badges/no-cookies-badge/no-cookies-badge.component';
+import { UnderConstructionBadgeComponent } from '../../shared/badges/under-construction-badge/under-construction-badge.component';
+import { OwnButtonBadgeComponent } from '../../shared/badges/own-button-badge/own-button-badge.component';
 
 export interface NowRow {
   key: string;
@@ -56,7 +61,9 @@ export function formatDay(value: string): string {
  */
 @Component({
   selector: 'app-now-page',
-  imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent, LighthouseBadgeComponent],
+  imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent,
+    LighthouseBadgeComponent, PhotoWallBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent,
+    UnderConstructionBadgeComponent, OwnButtonBadgeComponent],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,0 +1,47 @@
+<ng-template #face>
+  <span class="glyph" aria-hidden="true"><ng-content select="[glyph]" /></span>
+  <span class="text" aria-hidden="true">
+    <ng-content select="[text]">
+      <span class="name" [class.long]="longName()">{{ name() }}</span>
+      <span class="value">
+        @for (part of parts(); track $index) {
+          <span>{{ part }}</span>
+        }
+      </span>
+    </ng-content>
+  </span>
+</ng-template>
+
+@if (href(); as href) {
+  <a class="badge" [href]="href" target="_blank" rel="noopener noreferrer" [attr.aria-label]="label()">
+    <ng-container [ngTemplateOutlet]="face" />
+  </a>
+} @else if (route(); as route) {
+  <a class="badge" [routerLink]="route" [attr.aria-label]="label()">
+    <ng-container [ngTemplateOutlet]="face" />
+  </a>
+} @else {
+  <button class="badge" type="button" [attr.aria-label]="label()"
+    [attr.aria-expanded]="expanded()" [attr.aria-controls]="controls()" (click)="pressed.emit()">
+    <ng-container [ngTemplateOutlet]="face" />
+  </button>
+}
+
+<!-- Shown on hover/focus; the badge's aria-label already says all of it. -->
+@if (popover(); as popover) {
+  <span #pop class="popover" [class.end]="placement().end" [class.below]="placement().below" [class.dismissed]="dismissed()" aria-hidden="true">
+    <span class="popover-title">{{ popover.title }}</span>
+    @for (row of popover.rows ?? []; track row.label) {
+      <span class="popover-row"><span>{{ row.label }}</span><b>{{ row.value }}</b></span>
+    }
+    @for (line of popover.lines ?? []; track $index) {
+      <span>{{ line }}</span>
+    }
+    @if (popover.note) {
+      <span class="popover-note">{{ popover.note }}</span>
+    }
+    @if (popover.cta) {
+      <span class="popover-cta">{{ popover.cta }}</span>
+    }
+  </span>
+}

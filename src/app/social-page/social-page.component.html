@@ -49,7 +49,9 @@
 
     <section class="panel shoutbox" aria-labelledby="social-shoutbox">
       <h2 id="social-shoutbox">IRC Shoutbox</h2>
-      <app-under-construction />
+      @if (shoutboxUnderConstruction) {
+        <app-under-construction />
+      }
     </section>
   </div>
 </app-base-page>
