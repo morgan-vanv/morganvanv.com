@@ -33,6 +33,16 @@ describe('SocialPageComponent', () => {
     expect(wallHeading?.querySelector('.range-label')?.textContent?.trim()).toBe(photoCountLabel(COMMUNITY_PHOTOS.length));
   });
 
+  it('links the shoutbox panel to the real IRC channel on Libera.Chat', () => {
+    const panel = (fixture.nativeElement as HTMLElement).querySelector('.shoutbox');
+    expect(panel?.querySelector('h2')?.textContent).toContain('#morganvanv');
+    const join = panel?.querySelector<HTMLAnchorElement>('a.irc-join');
+    expect(join?.getAttribute('href')).toBe('https://web.libera.chat/gamja/?nick=guest#morganvanv');
+    expect(join?.getAttribute('target')).toBe('_blank');
+    expect(join?.getAttribute('aria-label')).toContain('Join #morganvanv on Libera.Chat');
+    expect(panel?.querySelector('.irc-client')?.textContent).toContain('irc.libera.chat · 6697 (TLS)');
+  });
+
   it('counts photos in words', () => {
     expect(photoCountLabel(1)).toBe('1 photo');
     expect(photoCountLabel(6)).toBe('6 photos');

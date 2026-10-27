@@ -99,17 +99,28 @@ Grouped by the design pillars.
 - **Astrophotography gallery (My Photos).** `M` — Drop a photo into `public/photos/`, a build script generates thumbnails + a JSON manifest from EXIF (camera, exposure, ISO, stacked frames, location). Lightbox reuses the photo-wall overlay. The stub already exists.
 
 ### Visitors take part
-- **IRC Shoutbox, three ways.** `M`–`L`, `backend`
-  1. *Guestbook-as-PR* — the form posts to a DO function that opens a GitHub PR appending to `public/data/guestbook.json`. Morgan merging the PR is moderation; the site stays static; entries deploy like everything else. Very IndieWeb.
-  2. *KV-backed* — DO function + a small free store (Upstash Redis / DO Spaces JSON), honeypot + rate limit, hard cap on length, a moderation list. Real-time-ish.
-  3. *giscus* — zero backend, GitHub Discussions-backed, but requires GitHub login, which fights the anonymous-visitor vibe.
-  Option 1 reuses the entire existing workflow and is the most "on brand".
+*From the 2026-10-26 interactivity brainstorm, Morgan picked guest subtitles, Hotline Webring, real IRC, Name a star, the shoutbox and the odometer (2026-10-27). The webring and IRC link, guest subtitles and Name a star ride the existing Ask Morgan function; the shoutbox and odometer run on **the campfire**, a Cloudflare Worker + SQLite Durable Object in `morganvanv.com-backend`. Everything below is what's left.*
+
+**Shelved by Morgan as follow-ups (2026-10-27):**
+- **Ask Morgan: the mailbag.** `S` — Answer the good Ask Morgan questions on a public letters page ("you asked, I answered, eventually"). No new backend: answers are a hand-edited data file. Submissions already land in Morgan's Discord.
+- **Friends' buttons.** `S` — Friends' 88×31s as a link exchange in the Buttons panel on `/now`, beside the webring row; copied with permission rather than hotlinked so they don't rot `[TODO: Morgan: whose]`.
+
+**Not picked yet (2026-10-26 brainstorm):**
+- **The logbook (guestbook).** `M`, `backend` — Sign the logbook by the farmhouse door: name, a line, optional website and their own 88×31 (so it doubles as the friends'-buttons wall). A function opens a PR appending to `public/data/guestbook.json`; merging is moderation; the site stays static. The same pipe could automate Name a star and guest subtitle approvals.
+- **Draw a constellation.** `L`, `backend` — Connect stars into your own figure and name it; approved ones join a "community constellations" toggle in the ☾ menu. Name a star's bigger sibling.
+- **Fireflies are visitors.** `M`, `backend` — Each firefly over the field is someone on the site right now (campfire presence). Variant: the farmhouse window lights only when someone else is here.
+- **Shared shooting stars.** `M`, `backend` — "Make a wish" sends a shooting star across the sky for everyone on the site at that moment. Wishes are never shown, so nothing to moderate. Needs the campfire's WebSocket side.
+- **Lanterns until dawn.** `M`, `backend` — Light a lantern in the field with a few words; it burns until local sunrise.
+- **Message in a bottle.** `M`, `backend` — Leave a note for a stranger, get one from a previous visitor.
+- **Polls, with Ada as host.** `M`, `backend` — "Ada asks: is the campfire too bright?" Campfire counters.
+- **Listening along.** `S`, `backend` — "2 others listening along" while stats.fm shows something playing.
+- **Visitor pixel canvas** (r/place in miniature). `L`, `backend` — The campfire is the backend pattern this was waiting for; one pixel per visitor per hour, maybe an 88×31 the community paints.
+- **Where the light came from.** `S`, `backend` — Tonight's visitors by country only (Cloudflare's coarse header, nothing stored). Privacy-adjacent: needs a colophon note.
+- **Secret hunt.** `S` — Seven hidden easter eggs, progress kept only in the visitor's browser; finishers get a mark in the logbook.
+- **Bluesky replies as comments.** `S` — For blog posts: replies to a linked Bluesky post, read from Bluesky's public API, no backend.
 - **Webmentions.** `S` — `webmention.io` + Bridgy to receive replies/likes from the fediverse on blog posts. Pairs with `rel="me"`.
 - **Spirograph wall.** see Games.
-- **Photo wall self-serve.** `M`, `backend` — Upload via a DO function to Spaces with a pending queue Morgan approves. Until then, a "Submit a photo" pill that opens a prefilled `mailto:` (subject + caption prompt) is an `S` improvement.
-- **Webrings and friends' buttons.** `S` — Morgan's follow-up to the badge strip (2026-10-26). Research which rings are active and what they ask (most want their prev/next widget kept working; prefer plain links over a JS embed, for the "no trackers" badge and prerendering), then join one or two `[TODO: Morgan]`. Friends' 88×31s as a link exchange, copied with permission rather than hotlinked so they don't rot `[TODO: Morgan]`. Both would sit in the Buttons panel on `/now`.
-- **Visitor pixel canvas** (r/place in miniature). `L`, `backend` — Fun, needs real-time state. Park until a backend pattern exists.
-- **Polls** ("which subtitle is best?"). `M`, `backend` — Same dependency.
+- **Photo wall self-serve.** `M`, `backend` — Upload into a pending queue Morgan approves (the logbook pipe could carry it). Until then, a "Submit a photo" pill that opens a prefilled `mailto:` (subject + caption prompt) is an `S` improvement.
 
 ### Playful to navigate
 - **Command palette (Cmd+K / `/`).** `M` — Fuzzy jump to pages and Interests items, plus joke commands (`:q`, `sudo`, `ada`). Fits "now navigable via keyboard".

@@ -48,10 +48,20 @@
     </section>
 
     <section class="panel shoutbox" aria-labelledby="social-shoutbox">
-      <h2 id="social-shoutbox">IRC Shoutbox</h2>
+      <h2 id="social-shoutbox">IRC Shoutbox <span class="range-label">{{ irc.channel }}</span></h2>
       @if (shoutboxUnderConstruction) {
         <app-under-construction />
       }
+
+      <div class="irc" aria-labelledby="social-irc">
+        <h3 id="social-irc" class="irc-label">live on IRC</h3>
+        <p class="irc-blurb">Real IRC, on {{ irc.network }}. Pick a nick, say hi, give it a minute.</p>
+        <a class="irc-join" [href]="irc.webClientUrl" target="_blank" rel="noopener noreferrer"
+          [attr.aria-label]="'Join ' + irc.channel + ' on ' + irc.network + ' (opens their web client in a new tab)'">
+          join {{ irc.channel }} ↗
+        </a>
+        <p class="irc-client">or bring your own client:<br />{{ irc.server }} · {{ irc.tlsPort }} (TLS)</p>
+      </div>
     </section>
   </div>
 </app-base-page>
