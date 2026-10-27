@@ -40,6 +40,57 @@
   }
 }
 
+// The way into the real IRC channel, under the shoutbox.
+.irc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+  margin-top: 0.75rem;
+  padding: 0.875rem 0.3rem 0.25rem;
+  border-top: 1px solid rgba($main-color, 0.12);
+}
+
+.irc-label {
+  @include shared.label;
+  margin: 0;
+  font-weight: normal;
+}
+
+.irc-blurb {
+  @include shared.prose;
+  margin: 0;
+}
+
+.irc-join {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid $accent-color;
+  color: $accent-color;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($accent-color, 0.12);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 3px;
+  }
+}
+
+.irc-client {
+  margin: 0;
+  font-size: $font-size-meta;
+  opacity: 0.65;
+}
+
 // Polaroids fill the panel: four across on a laptop, more on wide screens,
 // exactly two on phones.
 .photo-wall {

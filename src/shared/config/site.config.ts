@@ -21,6 +21,26 @@ export const SITE_CONFIG = {
     letterboxd: 'morganvanv',
     osrs: 'TipodissDong',
   },
+  /**
+   * Hotline Webring: a loop of personal sites. There's no sign-up; the first click through our
+   * previous/next links adds the site, and the ring learns where we are from the Referer, so these
+   * links must never carry `rel="noreferrer"`.
+   */
+  webring: {
+    name: 'Hotline Webring',
+    home: 'https://hotlinewebring.club/',
+    previous: 'https://hotlinewebring.club/morganvanv/previous',
+    next: 'https://hotlinewebring.club/morganvanv/next',
+  },
+  /** Real IRC on Libera.Chat; the shoutbox panel on Social links to it. */
+  irc: {
+    network: 'Libera.Chat',
+    channel: '#morganvanv',
+    server: 'irc.libera.chat',
+    tlsPort: 6697,
+    /** Libera's lightweight web client (gamja), opened on the channel with a nick to edit. */
+    webClientUrl: 'https://web.libera.chat/gamja/?nick=guest#morganvanv',
+  },
   askMorganSubmitUrl: 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit',
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',
