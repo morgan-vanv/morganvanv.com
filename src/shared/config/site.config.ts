@@ -41,7 +41,7 @@ export const SITE_CONFIG = {
     /** Libera's lightweight web client (gamja), opened on the channel with a nick to edit. */
     webClientUrl: 'https://web.libera.chat/gamja/?nick=guest#morganvanv',
   },
-  askMorganSubmitUrl:'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit',
+  askMorganSubmitUrl: 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit',
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',
   forecastPageUrl: 'https://forecast.weather.gov/MapClick.php?lat=39.1&lon=-84.51',
