@@ -236,6 +236,9 @@ describe('visitor content: the answer\'s Markdown', () => {
 
     it('drops HTML comments and control characters', () => {
       expect(renderAnswer('Hi<!-- hidden -->\u0000\u0007 there')).toBe('<p>Hi there</p>');
+      // Removing one comment can't leave another behind; a stray "<!--" is just escaped text.
+      expect(renderAnswer('a <!<!-- x -->-- hidden --> b')).toBe('<p>a  b</p>');
+      expect(renderAnswer('a <!-- never closed')).toBe('<p>a &lt;!-- never closed</p>');
     });
   });
 });

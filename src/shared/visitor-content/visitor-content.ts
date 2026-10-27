@@ -235,9 +235,19 @@ export function parseLetter(id: string, text: string, path = `mailbag/${id}.md`)
   return { id, asked, question: asText, answer: renderAnswer(answerMarkdown) };
 }
 
-/** HTML comments are notes to self in Markdown: they never show. */
+/**
+ * HTML comments are notes to self in Markdown: they never show. Removed until none are left, since
+ * taking one out can join the pieces around it into another ("<!<!-- -->-- x -->"). What's left is
+ * escaped anyway; this only decides what shows.
+ */
 function stripComments(markdown: string): string {
-  return markdown.replace(/<!--[\s\S]*?-->/g, '');
+  let text = markdown;
+  let previous: string;
+  do {
+    previous = text;
+    text = text.replace(/<!--[\s\S]*?-->/g, '');
+  } while (text !== previous);
+  return text;
 }
 
 /** The entries in content/ that pass every check, and a problem for each file that doesn't. */
