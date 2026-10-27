@@ -1,6 +1,15 @@
 <div class="ask-morgan-container" [class.success-state]="isSuccess()">
   @if (!isSuccess()) {
 
+    <div class="modes" role="group" aria-label="What are you sending?">
+      @for (option of modes; track option.id) {
+        <button type="button" class="mode"
+          [attr.aria-pressed]="kind() === option.id" [disabled]="isSubmitting()" (click)="choose(option.id)">
+          {{ option.label }}
+        </button>
+      }
+    </div>
+
     @if (errorMessage(); as error) {
       <div class="error-message" aria-live="assertive">
         {{ error }}
@@ -13,27 +22,95 @@
         <input type="text" id="username_honey" name="username_honey" [ngModel]="usernameHoney()" (ngModelChange)="usernameHoney.set($event)" tabindex="-1" autocomplete="off">
       </div>
 
-      <div class="form-group">
-        <label for="question">Your Submission (anonymous)</label>
-        <textarea
-          id="question"
-          name="question"
-          [ngModel]="question()"
-          (ngModelChange)="question.set($event)"
-          [maxlength]="maxLength"
-          rows="4"
-          placeholder="What's on your mind?"
-          aria-label="Your anonymous submission"
-          required
-          [disabled]="isSubmitting()"
-        ></textarea>
-        <div class="char-counter" [class.warning]="counterWarning()" [class.danger]="counterDanger()">
-          {{ charCount() }} / {{ maxLength }}
-        </div>
-      </div>
+      @switch (kind()) {
+        @case ('subtitle') {
+          <div class="form-group">
+            <label for="contact-subtitle">{{ mode().fieldLabel }}</label>
+            <input
+              type="text"
+              id="contact-subtitle"
+              aria-describedby="contact-note"
+              name="subtitle"
+              [ngModel]="subtitle()"
+              (ngModelChange)="subtitle.set($event)"
+              [maxlength]="subtitleMaxLength"
+              [placeholder]="mode().placeholder"
+              autocomplete="off"
+              required
+              [disabled]="isSubmitting()"
+            >
+            <div class="char-counter" [class.warning]="counterWarning()" [class.danger]="counterDanger()">
+              {{ charCount() }} / {{ limit() }}
+            </div>
+          </div>
+
+          <div class="preview" aria-hidden="true">
+            <span class="preview-label">how it'd look</span>
+            <span class="preview-name">{{ ownerName }}</span>
+            <span class="preview-line" [class.empty]="!preview()">{{ preview() || mode().placeholder }}</span>
+          </div>
+
+          <div class="form-group">
+            <label for="contact-credit">Credit it to (optional)</label>
+            <input
+              type="text"
+              id="contact-credit"
+              name="credit"
+              [ngModel]="credit()"
+              (ngModelChange)="credit.set($event)"
+              [maxlength]="creditMaxLength"
+              placeholder="a stranger"
+              autocomplete="off"
+              [disabled]="isSubmitting()"
+            >
+          </div>
+        }
+        @case ('message') {
+          <div class="form-group">
+            <label for="contact-message">{{ mode().fieldLabel }}</label>
+            <textarea
+              id="contact-message"
+              aria-describedby="contact-note"
+              name="message"
+              [ngModel]="message()"
+              (ngModelChange)="message.set($event)"
+              [maxlength]="maxLength"
+              rows="4"
+              [placeholder]="mode().placeholder"
+              required
+              [disabled]="isSubmitting()"
+            ></textarea>
+            <div class="char-counter" [class.warning]="counterWarning()" [class.danger]="counterDanger()">
+              {{ charCount() }} / {{ limit() }}
+            </div>
+          </div>
+        }
+        @default {
+          <div class="form-group">
+            <label for="question">{{ mode().fieldLabel }}</label>
+            <textarea
+              id="question"
+              aria-describedby="contact-note"
+              name="question"
+              [ngModel]="question()"
+              (ngModelChange)="question.set($event)"
+              [maxlength]="maxLength"
+              rows="4"
+              [placeholder]="mode().placeholder"
+              required
+              [disabled]="isSubmitting()"
+            ></textarea>
+            <div class="char-counter" [class.warning]="counterWarning()" [class.danger]="counterDanger()">
+              {{ charCount() }} / {{ limit() }}
+            </div>
+          </div>
+        }
+      }
+
+      <p class="note" id="contact-note">{{ mode().note }}</p>
 
       <button type="submit" class="submit-btn" [disabled]="!canSubmit()">
-        {{ isSubmitting() ? 'Sending...' : 'Submit' }}
+        {{ isSubmitting() ? 'Sending...' : mode().submit }}
       </button>
     </form>
   }
@@ -48,7 +125,7 @@
     </div>
     <h4>Message Sent</h4>
     <p>{{ successMessage() }}</p>
-    <button type="button" class="reset-btn" (click)="resetForm()">Ask Another Question</button>
+    <button type="button" class="reset-btn" (click)="resetForm()">{{ mode().again }}</button>
     </div>
   }
 </div>

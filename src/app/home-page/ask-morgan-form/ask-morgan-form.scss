@@ -1,4 +1,5 @@
 @use '../../../styles' as *;
+@use '../../../shared/shared-styles.scss' as shared;
 
 .ask-morgan-container {
   // Sits inside the Contact panel, so it has no box of its own until it
@@ -37,8 +38,8 @@
     color: rgba(255, 255, 255, 0.8);
   }
 
-  textarea {
-    resize: vertical;
+  textarea,
+  input {
     padding: 0.625rem 0.75rem;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.25);
@@ -47,7 +48,6 @@
     font-family: inherit;
     font-size: 1rem;
     transition: border-color 0.2s ease, background-color 0.2s ease;
-    min-height: 110px;
 
     &:focus {
       outline: none;
@@ -60,6 +60,73 @@
       cursor: not-allowed;
     }
   }
+
+  textarea {
+    resize: vertical;
+    min-height: 110px;
+  }
+
+  input {
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+}
+
+// Which of the three jobs the form is doing: the site's toggle buttons (as Music's top lists and
+// Favorite Media's shelves), so ← → still change page.
+.modes {
+  @include shared.toggle-group;
+  margin-bottom: 0.875rem;
+}
+
+.mode {
+  @include shared.toggle-button;
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+// A suggested subtitle, shown the way the greeting would show it.
+.preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding: 0.875rem;
+  border-radius: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.22);
+  background: rgba(0, 0, 0, 0.25);
+  text-align: center;
+}
+
+.preview-label {
+  @include shared.label;
+}
+
+.preview-name {
+  font-size: $font-size-panel-title;
+}
+
+.preview-line {
+  font-size: $font-size-small;
+  overflow-wrap: anywhere;
+
+  &.empty {
+    opacity: 0.45;
+  }
+}
+
+.note {
+  margin: 0 0 0.875rem;
+  font-size: $font-size-meta;
+  opacity: 0.65;
 }
 
 .char-counter {
