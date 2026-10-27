@@ -6,12 +6,6 @@ updates:
       interval: weekly
     open-pull-requests-limit: 5
     ignore:
-      # vitest 4.1.x crashes npm 10 installs (arborist "edgesOut" of null); we pin ~4.0.
-      # Remove once CI's npm handles it (see .github/copilot-instructions.md).
-      - dependency-name: "vitest"
-        versions: [">=4.1.0"]
-      - dependency-name: "@vitest/coverage-v8"
-        versions: [">=4.1.0"]
       # Angular 22's compiler accepts TypeScript >=6.0 <6.1 only. Lift with the next Angular that accepts more.
       - dependency-name: "typescript"
         versions: [">=6.1.0"]

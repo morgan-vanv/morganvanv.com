@@ -1,0 +1,25 @@
+name: Dependabot auto-merge
+
+# Dependabot's GitHub Actions updates merge themselves (squash) once every required check passes.
+# npm updates stay manual, since master deploys and those change what ships. If GitHub ever refuses
+# (a rule or permission change), the PR simply stays open for a person: nothing breaks.
+#
+# Needs "Allow auto-merge" on in the repo settings. A merge made with this job's token doesn't start
+# other workflows, so the next ordinary merge is what deploys; Actions updates don't change the site.
+
+on: pull_request
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  auto-merge:
+    name: Auto-merge GitHub Actions updates
+    if: github.event.pull_request.user.login == 'dependabot[bot]' && startsWith(github.head_ref, 'dependabot/github_actions/')
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh pr merge --auto --squash "$PR_URL"
+        env:
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          GH_TOKEN: ${{ github.token }}

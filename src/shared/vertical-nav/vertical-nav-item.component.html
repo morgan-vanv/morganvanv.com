@@ -28,11 +28,11 @@
       @if (description(); as text) {
         <p class="item-description">{{ text }}</p>
       }
-      <ng-content select="[description]"></ng-content>
+      <ng-content select="[description]" />
     </div>
 
     @if (!isExpanded()) {
-      <div class="item-preview"><ng-content select="[preview]"></ng-content></div>
+      <div class="item-preview"><ng-content select="[preview]" /></div>
     }
 
     @if (isExpanded()) {
@@ -42,7 +42,7 @@
             <p>🚧 UNDER CONSTRUCTION 🚧</p>
           </div>
         } @else {
-          <ng-content></ng-content>
+          <ng-content />
         }
       </div>
     }

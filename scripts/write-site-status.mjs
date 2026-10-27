@@ -41,6 +41,7 @@ const CHECKS = [
   { name: 'Build', matches: name => name === 'Build' },
   { name: 'Test', matches: name => name === 'Test' },
   { name: 'Lighthouse', matches: name => name === 'Lighthouse' },
+  { name: 'Layout', matches: name => name === 'Layout' },
   { name: 'CodeQL', matches: name => name === 'CodeQL' || name.startsWith('Analyze (') },
 ];
 

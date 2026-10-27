@@ -9,7 +9,7 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
     <app-vertical-nav-container>
       <app-vertical-nav-item title="One"><p>one</p></app-vertical-nav-item>
       <app-vertical-nav-item title="Two"><p>two</p></app-vertical-nav-item>
-      <app-vertical-nav-item title="Three" [isUnderConstruction]="true"></app-vertical-nav-item>
+      <app-vertical-nav-item title="Three" [isUnderConstruction]="true" />
     </app-vertical-nav-container>
   `,
 })

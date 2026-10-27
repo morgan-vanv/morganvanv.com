@@ -3,9 +3,9 @@
     <svg glyph width="22" height="24" viewBox="0 0 24 24">
       @for (led of build.leds; track $index) {
         @if (led.ok) {
-          <circle cx="12" [attr.cy]="led.cy" r="1.9" class="g-gold" />
+          <circle cx="12" [attr.cy]="led.cy" r="1.7" class="g-gold" />
         } @else {
-          <circle cx="12" [attr.cy]="led.cy" r="1.6" class="led-off" stroke-width="1.2" />
+          <circle cx="12" [attr.cy]="led.cy" r="1.4" class="led-off" stroke-width="1.1" />
         }
       } @empty {
         <path d="M2.5 12h6M15.5 12h6" class="g-line" stroke-width="1.4" />

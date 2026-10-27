@@ -85,7 +85,7 @@ export class BuildBadgeComponent {
 
     return {
       value: checks.length ? [`#${commit.number}`, `${passed}/${checks.length}`] : [`#${commit.number}`],
-      leds: checks.slice(0, 5).map((check, i, all) => ({ ok: check.ok, cy: 12 + (i - (all.length - 1) / 2) * 4.6 })),
+      leds: checks.slice(0, 6).map((check, i, all) => ({ ok: check.ok, cy: 12 + (i - (all.length - 1) / 2) * 3.9 })),
       href: pr?.url ?? `${SITE_CONFIG.repoUrl}/commit/${commit.sha}`,
       popover: {
         title: pr ? `Commit #${commit.number}, built by PR #${pr.number}` : `Commit #${commit.number}`,

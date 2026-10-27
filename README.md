@@ -5,9 +5,11 @@ My personal website — live at [morganvanv.com](https://morganvanv.com). Angula
 ## Development
 
 ```bash
+nvm use            # Node 24 (.nvmrc); npm 10 on Node 22 can't install the test runner
 npm install
 npm start          # dev server at http://localhost:4200
-npm run check      # lint + production build + tests (what CI runs)
+npm run check      # lint + production build + tests
+npm run layout     # after a build: every page at every size in Chrome (CI also runs Lighthouse and this)
 ```
 
 Pushing to `master` deploys. Work on a branch and open a PR.

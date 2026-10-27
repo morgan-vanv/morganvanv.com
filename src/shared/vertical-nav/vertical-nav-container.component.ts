@@ -3,7 +3,7 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
 
 @Component({
   selector: 'app-vertical-nav-container',
-  template: `<ng-content></ng-content>`,
+  template: `<ng-content />`,
   styleUrl: './vertical-nav-container.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -12,10 +12,10 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
 })
 export class VerticalNavContainerComponent {
   private readonly elementRef = inject(ElementRef);
-  itemsList = contentChildren(VerticalNavItemComponent);
+  readonly itemsList = contentChildren(VerticalNavItemComponent);
 
-  highlightedIndex = signal(0);
-  isExpanded = signal(false);
+  readonly highlightedIndex = signal(0);
+  readonly isExpanded = signal(false);
 
   focusHighlightedItem() {
     setTimeout(() => {
