@@ -13,7 +13,7 @@ export const MAILBAG_TOKEN = new InjectionToken<readonly MailbagLetter[]>('MAILB
 });
 
 /** How many letters show before "older letters". */
-export const NEWEST_SHOWN = 3;
+export const NEWEST_SHOWN = 2;
 
 /** "3 letters", "1 letter", or "empty, for now" (draft copy). */
 export function letterCountLabel(count: number): string {

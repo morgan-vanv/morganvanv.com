@@ -12,12 +12,15 @@
       }
     </ol>
 
-    @if (olderCount) {
-      <button #toggle type="button" class="older-toggle" aria-controls="mailbag-letters"
-        [attr.aria-expanded]="showOlder()" (click)="toggleOlder()">
-        {{ showOlder() ? 'fewer letters' : 'older letters (' + olderCount + ')' }}
-      </button>
-    }
+    <div class="foot">
+      @if (olderCount) {
+        <button #toggle type="button" class="older-toggle" aria-controls="mailbag-letters"
+          [attr.aria-expanded]="showOlder()" (click)="toggleOlder()">
+          {{ showOlder() ? 'fewer letters' : 'older letters (' + olderCount + ')' }}
+        </button>
+      }
+      <a class="ask" routerLink="/home">ask me something on Home ›</a>
+    </div>
   } @else {
     <p class="empty">
       Nothing in here yet. <a routerLink="/home">Ask me something</a> and the good ones get answered here, in public.

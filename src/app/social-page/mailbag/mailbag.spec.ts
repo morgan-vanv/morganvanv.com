@@ -74,14 +74,14 @@ describe('MailbagComponent', () => {
     expect(el.querySelector('.range-label')?.textContent?.trim()).toBe('5 letters');
     // Every letter is in the page (prerendered), the older ones hidden.
     expect(el.querySelectorAll('.letter').length).toBe(5);
-    expect(visible(el).map(li => li.querySelector('.question')?.textContent)).toEqual(['question 1?', 'question 2?', 'question 3?']);
+    expect(visible(el).map(li => li.querySelector('.question')?.textContent)).toEqual(['question 1?', 'question 2?']);
 
     const toggle = el.querySelector<HTMLButtonElement>('.older-toggle')!;
     expect(toggle.getAttribute('type')).toBe('button');
     expect(toggle.getAttribute('aria-controls')).toBe('mailbag-letters');
     expect(el.querySelector('#mailbag-letters')).not.toBeNull();
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(toggle.textContent?.trim()).toBe('older letters (2)');
+    expect(toggle.textContent?.trim()).toBe('older letters (3)');
 
     toggle.click();
     await fixture.whenStable();
@@ -92,13 +92,23 @@ describe('MailbagComponent', () => {
     toggle.click();
     await fixture.whenStable();
     expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(visible(el).length).toBe(3);
+    expect(visible(el).length).toBe(NEWEST_SHOWN);
   });
 
   it(`has no toggle with ${NEWEST_SHOWN} letters or fewer`, async () => {
-    const { el } = await mount([1, 2, 3].map(n => letter(n)));
-    expect(visible(el).length).toBe(3);
+    const { el } = await mount([1, 2].map(n => letter(n)));
+    expect(visible(el).length).toBe(2);
     expect(el.querySelector('.older-toggle')).toBeNull();
+  });
+
+  it('ends with the way to ask, whether or not there are older letters', async () => {
+    for (const count of [1, 4]) {
+      TestBed.resetTestingModule();
+      const { el } = await mount([1, 2, 3, 4].slice(0, count).map(n => letter(n)));
+      const ask = el.querySelector<HTMLAnchorElement>('.foot a.ask');
+      expect(ask?.getAttribute('href')).toBe('/home');
+      expect(ask?.textContent?.trim()).toBe('ask me something on Home ›');
+    }
   });
 
   it('counts letters in words', () => {

@@ -122,7 +122,7 @@ Grouped by the design pillars.
 - **Bluesky replies as comments.** `S` — For blog posts: replies to a linked Bluesky post, read from Bluesky's public API, no backend.
 - **Webmentions.** `S` — `webmention.io` + Bridgy to receive replies/likes from the fediverse on blog posts. Pairs with `rel="me"`.
 - **Spirograph wall.** see Games.
-- **Photo wall self-serve.** `M`, `backend` — Upload into a pending queue Morgan approves (the logbook pipe could carry it). Until then, a "Submit a photo" pill that opens a prefilled `mailto:` (subject + caption prompt) is an `S` improvement.
+- **Photo wall self-serve.** `M`, `backend` — Upload into a pending queue Morgan approves (the logbook pipe could carry it). Until then, the wall's "your photo here" slot opens a prefilled `mailto:` (subject + caption prompt; built 2026-10-27).
 
 ### Playful to navigate
 - **Command palette (Cmd+K / `/`).** `M` — Fuzzy jump to pages and Interests items, plus joke commands (`:q`, `sudo`, `ada`). Fits "now navigable via keyboard".

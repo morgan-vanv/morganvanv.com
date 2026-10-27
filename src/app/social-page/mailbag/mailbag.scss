@@ -1,19 +1,19 @@
 @use '../../../styles' as *;
 @use '../../../shared/shared-styles.scss' as shared;
 
-// Full width under the wall and the shoutbox (outside their grid, so the sticky shoutbox stops above it).
+// The top-left of /social, beside the shoutbox and as tall as it: letters at the top, the footer at the
+// bottom.
 :host {
   display: block;
   min-width: 0;
-  margin-top: 1.25rem;
-
-  @media (max-width: $breakpoint-mobile) {
-    margin-top: 0.875rem;
-  }
 }
 
 .panel {
   @include shared.panel;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  height: 100%;
   padding: 1rem 1.125rem 0.875rem;
 
   @media (max-width: $breakpoint-mobile) {
@@ -26,13 +26,14 @@
   }
 }
 
-// Letters in columns where there's room (two on a laptop, three on a wide screen), one on phones. Columns
-// rather than a grid, so a long letter doesn't leave a hole beside it; newest at the top left.
+// Two letters side by side where the slot is wide enough, one above the other where it isn't (and on
+// phones); newest first. Each keeps its own height, and a lone letter takes the whole width.
 .letters {
-  columns: 26rem;
-  column-gap: 1rem;
-  // Each letter keeps 1rem below it (a column's bottom margin can't collapse); the last one's isn't needed.
-  margin: 0 0 -1rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  align-items: start;
+  gap: 1rem;
+  margin: 0;
   padding: 0;
   list-style: none;
 }
@@ -43,10 +44,8 @@
   flex-direction: column;
   gap: 0.75rem;
   min-width: 0;
-  margin-bottom: 1rem;
   padding: 0.875rem 1rem 0.75rem;
   border-radius: 8px;
-  break-inside: avoid;
 
   &[hidden] {
     display: none;
@@ -153,10 +152,41 @@
   opacity: 0.6;
 }
 
+// "older letters" and the way to ask, pinned to the bottom of the panel.
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-top: auto;
+  padding-top: 0.875rem;
+}
+
+.ask {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  margin-left: auto;
+  color: $accent-color;
+  font-size: $font-size-small;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+}
+
 .older-toggle {
   display: block;
   min-height: 2.75rem;
-  margin: 0.875rem auto 0.125rem;
+  margin: 0;
   padding: 0 1.25rem;
   border: 1px solid rgba($accent-color, 0.6);
   border-radius: 999px;
