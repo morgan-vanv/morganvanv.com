@@ -41,14 +41,26 @@ export interface SkyCatalog {
   readonly lineIds: readonly string[];
   /** Named bright stars, for hover labels (empty if the names file wasn't given). */
   readonly names: readonly { readonly v: Vec3; readonly name: string; readonly constellation: string }[];
+  /** Stars visitors have named (approved), for hover labels: the name and a line about who named it. */
+  readonly visitorNames: readonly { readonly v: Vec3; readonly name: string; readonly detail: string }[];
   /** Each constellation figure's id and the (normalised) mean direction of its vertices. */
   readonly figures: readonly { readonly id: string; readonly center: Vec3 }[];
 }
 
-export function prepareCatalog(stars: StarFile, constellations: ConstellationFile, names?: NameFile): SkyCatalog {
+/** A star a visitor named, as the catalogue takes it (see sky-naming.ts for the file it comes from). */
+export interface ExtraName {
+  readonly ra: number;
+  readonly dec: number;
+  readonly name: string;
+  /** Shown after the name on hover, e.g. "named by sam, Oct 2026". */
+  readonly detail: string;
+}
+
+export function prepareCatalog(stars: StarFile, constellations: ConstellationFile, names?: NameFile, visitorNames: readonly ExtraName[] = []): SkyCatalog {
   return {
     lineIds: constellations.constellations.flatMap(c => c.lines.map(() => c.id)),
     names: (names?.names ?? []).map(([ra, dec, name, constellation]) => ({ v: raDecToVector(ra, dec), name, constellation })),
+    visitorNames: visitorNames.map(({ ra, dec, name, detail }) => ({ v: raDecToVector(ra, dec), name, detail })),
     stars: stars.stars.map(([ra, dec, mag, bv]) => ({ v: raDecToVector(ra, dec), mag, color: starColor(bv) })),
     lines: constellations.constellations.flatMap(c => c.lines.map(line => line.map(([ra, dec]) => raDecToVector(ra, dec)))),
     figures: constellations.constellations.map(c => {
@@ -83,6 +95,13 @@ export interface SkyLayout {
   readonly imageX: number;
   readonly imageY: number;
   readonly imageScale: number;
+}
+
+/** Where a horizontal direction lands on screen, in buffer pixels (null if it can't be projected). */
+export function screenPoint(layout: SkyLayout, h: Vec3): { x: number; y: number } | null {
+  const p = projectSouth(h);
+  if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return null;
+  return { x: layout.centerX + p.x * layout.scale, y: layout.horizonY - p.y * layout.scale };
 }
 
 /**
@@ -312,6 +331,8 @@ export interface SkySegment {
 
 export interface SkyRenderResult {
   readonly sunAlt: number;
+  /** 0…1: how visible the stars are in this light (named stars can be pointed at above 0.3). */
+  readonly starVisibility: number;
   /** Azimuth of the Sun that lit this look (degrees from north through east). */
   readonly sunAz: number;
   /** How many catalogue stars ended up drawn (above the horizon, on screen, not washed out). */
@@ -344,14 +365,10 @@ export interface SkyGlow {
 }
 
 export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: SkyInput): SkyRenderResult {
-  const { width, height, centerX, horizonY, scale } = layout;
+  const { width, height, horizonY, scale } = layout;
   // The real Sun always lights the Moon, so its phase is right whatever the lighting.
   const sunH = input.bodies?.sun.h ?? sunHorizontal(input.date, input.lat, input.lon);
-  const toScreen = (h: Vec3) => {
-    const p = projectSouth(h);
-    if (!p || !Number.isFinite(p.x) || !Number.isFinite(p.y)) return null;
-    return { x: centerX + p.x * scale, y: horizonY - p.y * scale };
-  };
+  const toScreen = (h: Vec3) => screenPoint(layout, h);
   const look = lookFor(input.lighting ?? 'darkness', sunH, layout, toScreen);
   const sunAlt = look.sunAlt;
 
@@ -472,6 +489,13 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
         if (!p || !onScreen(p, 0)) continue;
         targets.push({ kind: 'star', name: named.name, constellation: named.constellation, x: p.x, y: p.y, radius: px(9) });
       }
+      for (const named of input.catalog.visitorNames) {
+        const h = multiply(matrix, named.v);
+        if (h[2] < 0) continue;
+        const p = toScreen(h);
+        if (!p || !onScreen(p, 0)) continue;
+        targets.push({ kind: 'star', name: named.name, detail: named.detail, x: p.x, y: p.y, radius: px(9) });
+      }
     }
   }
 
@@ -551,7 +575,7 @@ export function renderSky(buffer: Uint8ClampedArray, layout: SkyLayout, input: S
     }
   }
 
-  return { sunAlt, sunAz: look.sunAz, starsDrawn, moon: moonResult, targets, segments, glows, background: { top, horizon, glow },
+  return { sunAlt, starVisibility: stars, sunAz: look.sunAz, starsDrawn, moon: moonResult, targets, segments, glows, background: { top, horizon, glow },
     sun: look.sun ? { x: look.sun.x, y: look.sun.y, radius: discRadius } : null };
 }
 

@@ -7,6 +7,11 @@
 // Bright Star Catalog / Hipparcos. Positions are J2000; the app precesses them
 // to the current date. Output is committed; this only needs re-running to
 // change the magnitude cut or the constellation list.
+//
+// It writes stars.json, constellations.json and names.json, nothing else:
+// visitor-names.json in the same folder is hand-edited (approved visitor star
+// names) and must never be regenerated, so the writes below are checked
+// against that list.
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -62,7 +67,12 @@ if (missing.length) throw new Error(`constellations not found: ${missing.join(',
 const out = fileURLToPath(new URL('../public/data/sky/', import.meta.url));
 mkdirSync(out, { recursive: true });
 const header = { source: 'd3-celestial (BSD-3-Clause, Olaf Frohn); Yale Bright Star Catalog / Hipparcos', epoch: 'J2000' };
-writeFileSync(join(out, 'stars.json'), JSON.stringify({ ...header, format: '[raDeg, decDeg, mag, bv]', magLimit: MAG_LIMIT, stars }));
-writeFileSync(join(out, 'constellations.json'), JSON.stringify({ ...header, format: '[[raDeg, decDeg], ...] polylines', constellations: lines }));
-writeFileSync(join(out, 'names.json'), JSON.stringify({ ...header, format: '[raDeg, decDeg, name, constellation]', magLimit: NAME_MAG_LIMIT, names }));
+const GENERATED = ['stars.json', 'constellations.json', 'names.json'];
+const write = (file, data) => {
+  if (!GENERATED.includes(file)) throw new Error(`build-sky-data only writes ${GENERATED.join(', ')}, not ${file}`);
+  writeFileSync(join(out, file), data);
+};
+write('stars.json', JSON.stringify({ ...header, format: '[raDeg, decDeg, mag, bv]', magLimit: MAG_LIMIT, stars }));
+write('constellations.json', JSON.stringify({ ...header, format: '[[raDeg, decDeg], ...] polylines', constellations: lines }));
+write('names.json', JSON.stringify({ ...header, format: '[raDeg, decDeg, name, constellation]', magLimit: NAME_MAG_LIMIT, names }));
 console.log(`build-sky-data: ${stars.length} stars (mag ≤ ${MAG_LIMIT}), ${lines.length} constellations, ${names.length} named stars (mag ≤ ${NAME_MAG_LIMIT})`);
