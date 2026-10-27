@@ -20,4 +20,10 @@ describe('BasePageComponent', () => {
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('puts the webring line under the card and, for small screens, at the end of the scroll', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector(':scope > app-site-strip.strip-under-card')).not.toBeNull();
+    expect(el.querySelector('.page-content > app-site-strip.strip-in-card:last-child')).not.toBeNull();
+  });
 });
