@@ -1,0 +1,125 @@
+@use '../../../styles' as *;
+
+:host {
+  position: relative;
+  display: block;
+}
+
+// The photo, as a button. The only cue that it does anything: a gold ring and a pointer.
+.avatar {
+  display: block;
+  padding: 0;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 2px solid rgba($main-color, 0.85);
+  background: none;
+  overflow: hidden;
+  cursor: pointer;
+  box-sizing: border-box;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: $accent-color;
+    box-shadow: 0 0 0 3px rgba($accent-color, 0.35);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 4px;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    width: 96px;
+    height: 96px;
+  }
+
+  @media (max-width: $breakpoint-mobile) and (max-height: $breakpoint-short) {
+    width: 72px;
+    height: 72px;
+  }
+}
+
+// The speech bubble: below the photo with its tail pointing up at it. Wide screens: it hangs down to
+// the right, over the top of the panel below, so the name stays clear. Tablets and phones: centred under
+// the photo, briefly over the name.
+.bubble {
+  position: absolute;
+  top: calc(100% + 0.75rem);
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  width: max-content;
+  max-width: min(24rem, 70vw);
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.875rem;
+  border: 1px solid rgba($main-color, 0.4);
+  background: $background-color;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 0.5);
+  text-align: left;
+  font-size: $font-size-small;
+  line-height: 1.4;
+  animation: pop-in 0.2s ease-out;
+
+  // The tail.
+  &::before {
+    content: '';
+    position: absolute;
+    top: -0.5rem;
+    left: 1.25rem;
+    width: 0.875rem;
+    height: 0.875rem;
+    background: inherit;
+    border-left: 1px solid rgba($main-color, 0.4);
+    border-top: 1px solid rgba($main-color, 0.4);
+    transform: rotate(45deg);
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    max-width: min(20rem, calc(100vw - 3rem));
+    text-align: center;
+    transform: translateX(-50%);
+
+    &::before {
+      left: calc(50% - 0.4375rem);
+    }
+  }
+
+  // Landscape phones: beside the photo, where there's room.
+  @media (max-width: $breakpoint-mobile) and (max-height: $breakpoint-short) {
+    top: 50%;
+    left: calc(100% + 0.75rem);
+    text-align: left;
+    transform: translateY(-50%);
+
+    &::before {
+      top: calc(50% - 0.4375rem);
+      left: -0.5rem;
+      transform: rotate(-45deg);
+    }
+  }
+}
+
+.credit {
+  font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
+  font-weight: bold;
+  font-size: 1.15em;
+  color: $accent-color;
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    translate: 0 -0.25rem;
+  }
+}
