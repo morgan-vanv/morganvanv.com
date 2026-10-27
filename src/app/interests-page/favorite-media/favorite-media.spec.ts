@@ -1,3 +1,4 @@
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
@@ -13,6 +14,19 @@ const PICKS: FavoriteMedia[] = [
   { id: 'album-a', kind: 'album', title: 'Album A', by: 'An Artist', cover: '/media/album-a.webp' },
 ];
 
+/** A webp's [width, height], from its VP8/VP8L/VP8X header. */
+function webpSize(data: Uint8Array): [number, number] | null {
+  const tag = String.fromCharCode(...data.slice(12, 16));
+  const u24 = (at: number) => data[at] | data[at + 1] << 8 | data[at + 2] << 16;
+  if (tag === 'VP8X') return [u24(24) + 1, u24(27) + 1];
+  if (tag === 'VP8L') {
+    const bits = data[21] | data[22] << 8 | data[23] << 16 | data[24] << 24;
+    return [(bits & 0x3fff) + 1, ((bits >> 14) & 0x3fff) + 1];
+  }
+  if (tag === 'VP8 ') return [(data[26] | data[27] << 8) & 0x3fff, (data[28] | data[29] << 8) & 0x3fff];
+  return null;
+}
+
 describe('FAVORITE_MEDIA', () => {
   it('holds at most four picks per shelf', () => {
     for (const { kind } of MEDIA_SHELVES) {
@@ -25,6 +39,17 @@ describe('FAVORITE_MEDIA', () => {
     for (const item of FAVORITE_MEDIA.filter(pick => pick.kind === 'book' || pick.kind === 'album')) {
       expect(item.by, item.title).toBeTruthy();
     }
+  });
+
+  it('has every cover it names in public/media, at its shelf\'s size, and no orphaned files', () => {
+    const files = existsSync('public/media') ? readdirSync('public/media') : [];
+    for (const item of FAVORITE_MEDIA.filter(pick => pick.cover)) {
+      const file = `public${item.cover}`;
+      expect(existsSync(file), `${file} is missing (scripts/build-media-covers.py)`).toBe(true);
+      expect(webpSize(readFileSync(file)), item.id).toEqual(item.kind === 'album' ? [400, 400] : [400, 600]);
+    }
+    const named = new Set(FAVORITE_MEDIA.map(pick => pick.cover?.replace('/media/', '')));
+    expect(files.filter(file => !named.has(file)), 'covers no pick uses').toEqual([]);
   });
 
   it('gives every pick a unique id, and covers where the id says', () => {
