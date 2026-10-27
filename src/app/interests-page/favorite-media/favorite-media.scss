@@ -21,7 +21,7 @@
 }
 
 .shelves {
-  @include shared.panel-grid(repeat(var(--shelf-count, 1), minmax(0, 1fr)));
+  @include shared.panel-grid(repeat(var(--shelf-columns, 1), minmax(0, 1fr)));
   margin-bottom: 1.25rem;
 
   @media (max-width: $breakpoint-mobile) {
@@ -50,13 +50,13 @@
   margin: 0;
   padding: 0;
   display: grid;
-  // Four picks a shelf, as a 2×2 of covers: the covers carry the shelf, the words stay short.
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.875rem 0.75rem;
+  // Four picks a shelf, in a row: the covers carry the shelf, the words stay short. Phones: a 2×2.
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.875rem 0.5rem;
 
-  // Tablets show one shelf across the card's whole width, so the four sit in a row.
-  @media (max-width: $breakpoint-mobile) and (min-width: $breakpoint-phone) {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+  @media (max-width: $breakpoint-phone) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem 0.75rem;
   }
 }
 
@@ -107,24 +107,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.6rem 0.5rem;
+  padding: 0.5rem 0.4rem;
   background: linear-gradient(160deg, rgba($background-sky-color, 0.95), rgba($background-color, 0.95));
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 0 0 4px rgba(0, 0, 0, 0.25), inset 0 0 0 5px rgba($accent-color, 0.35);
+  // The type scales with the cover, so a nine-letter word ("AIRBENDER") fits whole on a narrow one.
+  container-type: inline-size;
 
   span {
-    font-size: $font-size-meta;
+    font-size: min(#{$font-size-meta}, 12.5cqi);
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     color: rgba($accent-color, 0.9);
-    overflow-wrap: anywhere;
   }
 }
 
 .media-title {
   font-size: $font-size-small;
   font-weight: bold;
+}
+
+.media-by {
+  font-size: $font-size-meta;
+  color: rgba($main-color, 0.65);
+}
+
+// Albums are square.
+.shelf--square .cover {
+  aspect-ratio: 1;
+}
+
+// A space on the shelf for a pick still to come: just an outline, quieter than any card.
+.media-slot {
+  padding: 0.4rem;
+}
+
+.cover--blank {
+  box-sizing: border-box;
+  background: transparent;
+  border: 1px dashed rgba($main-color, 0.18);
+  box-shadow: none;
 }
 
 // A line or two, in the same mono as everything else.

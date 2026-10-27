@@ -10,9 +10,10 @@
     </div>
   }
 
-  <div class="shelves" [style.--shelf-count]="shelves().length">
+  <div class="shelves" [style.--shelf-columns]="columns()">
     @for (shelf of shelves(); track shelf.kind) {
       <section class="shelf" [id]="'media-shelf-' + shelf.kind" [class.is-active]="activeKind() === shelf.kind"
+               [class.shelf--square]="shelf.kind === 'album'"
                [attr.aria-labelledby]="'media-shelf-title-' + shelf.kind">
         <h3 [id]="'media-shelf-title-' + shelf.kind">{{ shelf.label }} <span class="range-label">{{ shelf.countLabel }}</span></h3>
         <ul class="media-grid">
@@ -29,6 +30,10 @@
               }
             </li>
           }
+          <!-- Room for picks still to come: an empty space on the shelf, nothing to read. -->
+          @for (blank of shelf.blanks; track blank) {
+            <li class="media-slot" aria-hidden="true"><span class="cover cover--blank"></span></li>
+          }
         </ul>
       </section>
     }
@@ -40,11 +45,14 @@
 <ng-template #card let-item>
   @if (item.cover) {
     <!-- Decorative: the title is right below it. Lazy, since a collapsed tile still creates this. -->
-    <img class="cover" [src]="item.cover" alt="" width="400" height="600" loading="lazy" decoding="async" />
+    <img class="cover" [src]="item.cover" alt="" width="400" [attr.height]="item.kind === 'album' ? 400 : 600" loading="lazy" decoding="async" />
   } @else {
     <span class="cover cover--type" aria-hidden="true"><span>{{ item.title }}</span></span>
   }
   <span class="media-title">{{ item.title }}</span>
+  @if (item.by) {
+    <span class="media-by">{{ item.by }}</span>
+  }
   @if (item.blurb) {
     <span class="media-blurb">{{ item.blurb }}</span>
   }

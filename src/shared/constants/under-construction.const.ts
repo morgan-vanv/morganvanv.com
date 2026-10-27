@@ -6,7 +6,7 @@
  */
 export type UnderConstructionId = 'projects' | 'blog' | 'shoutbox' | 'favorite-media' | 'my-photos';
 
-export const UNDER_CONSTRUCTION: readonly UnderConstructionId[] = ['projects', 'blog', 'shoutbox', 'favorite-media', 'my-photos'];
+export const UNDER_CONSTRUCTION: readonly UnderConstructionId[] = ['projects', 'blog', 'shoutbox', 'my-photos'];
 
 export function isUnderConstruction(id: UnderConstructionId): boolean {
   return UNDER_CONSTRUCTION.includes(id);
