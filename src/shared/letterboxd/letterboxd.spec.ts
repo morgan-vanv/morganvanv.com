@@ -1,4 +1,4 @@
-import { DIARY_LIMIT, decodeEntities, parseLetterboxdRss, ratingLabel, ratingStars, reviewText, toDiary, watchedWhen } from './letterboxd';
+import { DIARY_LIMIT, decodeEntities, parseLetterboxdRss, ratingLabel, ratingStars, reviewText, stripTags, toDiary, watchedWhen } from './letterboxd';
 import { LETTERBOXD_FEED_FIXTURE } from './letterboxd-feed.fixture';
 
 const PROFILE = 'https://letterboxd.com/morganvanv/';
@@ -67,6 +67,12 @@ describe('reviewText and decodeEntities', () => {
   it('keeps blockquotes and list items apart from the paragraphs around them', () => {
     expect(reviewText('<p>one</p><blockquote><p>quoted</p></blockquote><p>two</p>').text).toBe('one\n\nquoted\n\ntwo');
     expect(reviewText('<ul><li>a</li><li>b</li></ul>').text).toBe('a\n\nb');
+  });
+
+  it('strips tags completely, even ones that reassemble, but keeps escaped text as text', () => {
+    expect(stripTags('<scr<b>ipt>alert(1)</scr</b>ipt>')).toBe('alert(1)');
+    expect(stripTags('a < b')).toBe('a  b');
+    expect(reviewText('<p>&lt;b&gt; is a tag</p>').text).toBe('<b> is a tag');
   });
 
   it('returns null text when there are no words left', () => {

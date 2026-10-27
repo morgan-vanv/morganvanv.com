@@ -65,18 +65,29 @@ function element(item: string, name: string): string | null {
   return (cdata ? cdata[1] : decodeEntities(match[1])).trim();
 }
 
+/**
+ * Removes every tag, again and again until none is left (so `<scr<b>ipt>` can't reassemble into one).
+ * The result is only ever shown as text, never as HTML, but it should be tag-free all the same.
+ */
+export function stripTags(html: string): string {
+  let text = html;
+  for (let previous = ''; text !== previous;) {
+    previous = text;
+    text = text.replace(/<[^<>]*>/g, '');
+  }
+  return text.replace(/[<>]/g, '');
+}
+
 /** A review's HTML (the feed's `description`) as plain text, without the poster or the spoiler note. */
 export function reviewText(html: string): { text: string | null; spoilers: boolean } {
   const spoilers = SPOILER_WORDS.test(html);
-  const text = decodeEntities(
+  const text = decodeEntities(stripTags(
     html
       .replace(SPOILER_NOTE, '')
-      .replace(/<img\b[^>]*>/gi, '')
       .replace(/<br\s*\/?>/gi, '\n')
       // Paragraphs, blockquotes and list items end in a blank line; the collapse below tidies extras.
-      .replace(/<\/(p|blockquote|li|div|h[1-6])>/gi, '\n\n')
-      .replace(/<[^>]+>/g, ''),
-  )
+      .replace(/<\/(p|blockquote|li|div|h[1-6])>/gi, '\n\n'),
+  ))
     .split('\n')
     .map(line => line.replace(/[ \t]+/g, ' ').trim())
     .join('\n')
