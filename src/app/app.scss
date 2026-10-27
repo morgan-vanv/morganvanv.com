@@ -19,3 +19,24 @@ main {
   // and the background canvas stays put. Animations live in styles.scss.
   view-transition-name: page;
 }
+
+// Look up: the page fades out, then stops taking up the pointer (visibility, after
+// the fade), so hover and taps reach the sky anywhere. Coming back it shows at once
+// and fades in. Under reduced motion the global rule makes both instant.
+main {
+  transition: opacity 400ms ease, visibility 0s linear 0s;
+
+  &.looking-up {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 400ms ease, visibility 0s linear 400ms;
+  }
+}
+
+// The global reduced-motion rule shortens durations but not the visibility delay; drop both.
+@media (prefers-reduced-motion: reduce) {
+  main,
+  main.looking-up {
+    transition: none;
+  }
+}

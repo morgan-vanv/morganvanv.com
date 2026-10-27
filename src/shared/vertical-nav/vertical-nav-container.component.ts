@@ -26,6 +26,8 @@ export class VerticalNavContainerComponent {
 
   handleKeyDown(event: KeyboardEvent) {
     if (event.defaultPrevented) return;
+    // The page is hidden (looking up at the sky): its tiles don't take keys.
+    if ((this.elementRef.nativeElement as HTMLElement).closest('[inert]')) return;
     if (event.metaKey || event.ctrlKey || event.altKey) return;
     
     const active = document.activeElement;

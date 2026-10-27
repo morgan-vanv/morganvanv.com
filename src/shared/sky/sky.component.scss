@@ -84,6 +84,55 @@
   pointer-events: none;
 }
 
+// The star being named: a gold ring with a soft glow, centred on the star (the
+// component places it; it follows the star when the sky redraws). An element,
+// so selecting a star never redraws the sky.
+.star-ring {
+  position: absolute;
+  width: 0;
+  height: 0;
+
+  &::before {
+    content: '';
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid $accent-color;
+    box-shadow: 0 0 10px 1px rgba($accent-color, 0.55), inset 0 0 6px rgba($accent-color, 0.35);
+    transform: translate(-50%, -50%);
+    animation: ring-in 0.35s ease-out;
+  }
+
+  // Sent: a small four-pointed sparkle by the ring.
+  .sparkle {
+    position: absolute;
+    left: 10px;
+    top: -22px;
+    width: 12px;
+    height: 12px;
+    display: none;
+    background: $accent-color;
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+    filter: drop-shadow(0 0 4px rgba($accent-color, 0.8));
+  }
+
+  &.sent .sparkle {
+    display: block;
+    animation: sparkle 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes ring-in {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(1.6); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+@keyframes sparkle {
+  0%, 100% { opacity: 0.6; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.15) rotate(20deg); }
+}
+
 // Fireflies: a small warm point with a soft glow, drifting and fading slowly.
 // How many are out is --fireflies (0…1), set by the component as the light changes.
 .fireflies {
@@ -268,5 +317,11 @@
 
   .ember {
     display: none;
+  }
+
+  // The ring and its sparkle stay, still.
+  .star-ring::before,
+  .star-ring.sent .sparkle {
+    animation: none !important;
   }
 }

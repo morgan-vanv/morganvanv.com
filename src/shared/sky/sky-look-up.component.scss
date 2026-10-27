@@ -1,0 +1,58 @@
+@use '../../styles' as *;
+@use '../shared-styles.scss' as shared;
+
+// No box of its own: the back button and the panel are fixed to the window.
+:host {
+  display: contents;
+}
+
+// A glass pill in the bottom-left corner, in the idiom of the greeting's way in.
+.back {
+  @include shared.surface;
+  position: fixed;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 9;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.75rem;
+  padding: 0 1.1rem 0 0.7rem;
+  border-color: rgba($main-color, 0.22);
+  border-radius: 999px;
+  background: rgba($background-color, 0.6);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: $main-color;
+  font: inherit;
+  font-size: $font-size-small;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($accent-color, 0.6);
+    color: $accent-color;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+
+  // On narrow screens the naming panel is a bottom sheet over this spot, with its own way back.
+  @media (max-width: $breakpoint-mobile) {
+    left: $card-inset-mobile;
+    bottom: $card-inset-mobile;
+
+    &.beside-panel {
+      display: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .back {
+    transition: none;
+  }
+}

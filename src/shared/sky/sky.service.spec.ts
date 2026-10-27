@@ -132,4 +132,94 @@ describe('SkyService lighting', () => {
     localStorage.setItem(SKY_LIGHTING_KEY, 'noon-ish');
     expect(TestBed.inject(SkyService).lighting()).toBe('darkness');
   });
+
+  describe('look up and name a star', () => {
+    const star = (mag: number, ra = mag) => ({ ra, dec: 0, mag, v: [1, 0, 0] as const, near: 'Vega' });
+    const [a, b, c] = [star(4.1, 1), star(3.2, 2), star(4.4, 3)];
+    const onScreen = [{ star: a, x: 100, y: 100 }, { star: b, x: 200, y: 120 }, { star: c, x: 300, y: 90 }];
+
+    it('looks up and comes back; leaving closes the naming panel too', () => {
+      const service = TestBed.inject(SkyService);
+      expect(service.lookingUp()).toBe(false);
+      service.toggleLookUp();
+      expect(service.lookingUp()).toBe(true);
+      service.toggleLookUp();
+      expect(service.lookingUp()).toBe(false);
+      service.startNaming();
+      expect(service.lookingUp()).toBe(true);
+      expect(service.naming()).toBe(true);
+      service.leaveLookUp();
+      expect(service.lookingUp()).toBe(false);
+      expect(service.naming()).toBe(false);
+    });
+
+    it('starting to name closes the ☾ menu and remembers what opened it', () => {
+      const service = TestBed.inject(SkyService);
+      const opener = document.createElement('button');
+      service.menuOpen.set(true);
+      service.startNaming(opener);
+      expect(service.menuOpen()).toBe(false);
+      expect(service.namingOpener).toBe(opener);
+    });
+
+    it('selects the brightest candidate, keeps a selection that\'s still on screen, and steps left to right', () => {
+      const service = TestBed.inject(SkyService);
+      service.startNaming();
+      service.setCandidates(onScreen);
+      expect(service.selected()).toBe(b);
+      service.step(1);
+      expect(service.selected()).toBe(c);
+      service.setCandidates(onScreen.slice()); // redrawn: still there
+      expect(service.selected()).toBe(c);
+      service.step(1);
+      expect(service.selected()).toBe(a); // wraps
+      service.step(-1);
+      expect(service.selected()).toBe(c);
+      // No longer pickable (under the panel, say): the selection stays put; the sky clears it once the star has gone.
+      service.setCandidates(onScreen.slice(0, 2));
+      expect(service.selected()).toBe(c);
+      service.select(null);
+      service.setCandidates(onScreen.slice(0, 2));
+      expect(service.selected()).toBe(b);
+    });
+
+    it('steps on from where the selected star is when it isn\'t pickable just now', () => {
+      const service = TestBed.inject(SkyService);
+      service.startNaming();
+      service.setCandidates(onScreen);
+      const hidden = star(2.0, 9);
+      service.select(hidden);
+      service.selectedPoint.set({ x: 250, y: 100 });
+      service.step(1);
+      expect(service.selected()).toBe(c);
+      service.select(hidden);
+      service.step(-1);
+      expect(service.selected()).toBe(b);
+    });
+
+    it('picks the candidate nearest a click, within reach', () => {
+      const service = TestBed.inject(SkyService);
+      service.startNaming();
+      service.setCandidates(onScreen);
+      expect(service.selectNear(295, 100, 24)).toBe(true);
+      expect(service.selected()).toBe(c);
+      expect(service.selectNear(600, 600, 24)).toBe(false);
+      expect(service.selected()).toBe(c);
+    });
+
+    it('a sent name stays sent until another star is picked; closing the panel clears it all', () => {
+      const service = TestBed.inject(SkyService);
+      service.startNaming();
+      service.setCandidates(onScreen);
+      service.sent.set(true);
+      service.setCandidates(onScreen.slice());
+      expect(service.sent()).toBe(true);
+      service.step(1);
+      expect(service.sent()).toBe(false);
+      service.stopNaming();
+      expect(service.lookingUp()).toBe(true);
+      expect(service.selected()).toBeNull();
+      expect(service.candidates()).toEqual([]);
+    });
+  });
 });

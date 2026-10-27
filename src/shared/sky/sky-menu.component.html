@@ -27,6 +27,25 @@
         <app-sky-toggle />
       </div>
 
+      <div class="group">
+        <h3 class="label">look up</h3>
+        <div class="actions">
+          <button type="button" class="action" [attr.aria-pressed]="sky.lookingUp()" (click)="sky.toggleLookUp()">hide the page</button>
+          <button type="button" class="action" (click)="nameAStar()">name a star</button>
+        </div>
+      </div>
+
+      @if (sky.visitorNames().length) {
+        <div class="group">
+          <h3 class="label">named by visitors</h3>
+          <ul class="up-now visitor-names">
+            @for (line of visitorLines(); track $index) {
+              <li>{{ line }}</li>
+            }
+          </ul>
+        </div>
+      }
+
       @if (sky.upNow(); as up) {
         <div class="group">
           <h3 class="label">up right now</h3>
