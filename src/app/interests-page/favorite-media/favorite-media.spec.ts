@@ -1,22 +1,31 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { FavoriteMediaComponent, mediaMeta } from './favorite-media';
-import { FAVORITE_MEDIA, FavoriteMedia } from '../../../shared/constants/favorite-media.const';
+import { FavoriteMediaComponent } from './favorite-media';
+import { FAVORITE_MEDIA, FavoriteMedia, MEDIA_SHELVES, PICKS_PER_SHELF } from '../../../shared/constants/favorite-media.const';
 import { LETTERBOXD_DIARY_URL } from '../../../shared/letterboxd/letterboxd.service';
 
 // Placeholders in the shape Morgan's picks will take; the real ones live in the constant.
 const PICKS: FavoriteMedia[] = [
-  { id: 'film-a', kind: 'film', title: 'Film A', year: 1978, by: 'Someone', cover: '/media/film-a.webp', note: 'a note', href: 'https://letterboxd.com/film/a/' },
+  { id: 'film-a', kind: 'film', title: 'Film A', blurb: 'a short blurb', cover: '/media/film-a.webp', href: 'https://letterboxd.com/film/a/' },
   { id: 'film-b', kind: 'film', title: 'Film B' },
-  { id: 'book-a', kind: 'book', title: 'Book A', by: 'An Author' },
+  { id: 'book-a', kind: 'book', title: 'Book A', blurb: 'another' },
 ];
 
-describe('mediaMeta', () => {
-  it('joins year and maker, skipping what is missing', () => {
-    expect(mediaMeta(PICKS[0])).toBe('1978 · Someone');
-    expect(mediaMeta(PICKS[2])).toBe('An Author');
-    expect(mediaMeta(PICKS[1])).toBe('');
+describe('FAVORITE_MEDIA', () => {
+  it('holds four picks per shelf (or none yet): the shelves are 2×2 grids', () => {
+    for (const { kind } of MEDIA_SHELVES) {
+      const count = FAVORITE_MEDIA.filter(item => item.kind === kind).length;
+      expect([0, PICKS_PER_SHELF], `${kind} has ${count} picks`).toContain(count);
+    }
+  });
+
+  it('gives every pick a unique id, and covers where the id says', () => {
+    const ids = FAVORITE_MEDIA.map(item => item.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    for (const item of FAVORITE_MEDIA) {
+      if (item.cover) expect(item.cover).toBe(`/media/${item.id}.webp`);
+    }
   });
 });
 
@@ -48,7 +57,7 @@ describe('FavoriteMediaComponent', () => {
     expect([...el().querySelectorAll('.shelf-tab')].map(b => b.textContent?.trim())).toEqual(['Films', 'Books']);
   });
 
-  it('links a card when it has somewhere to go, and sets the title in type when there is no cover', async () => {
+  it('is a cover, a title and a short blurb; linked when it has somewhere to go', async () => {
     await render(PICKS);
     const cards = [...el().querySelectorAll('.media-card')];
     expect(cards[0].tagName).toBe('A');
@@ -57,10 +66,16 @@ describe('FavoriteMediaComponent', () => {
     const cover = cards[0].querySelector('img.cover');
     expect(cover?.getAttribute('loading')).toBe('lazy');
     expect(cover?.getAttribute('alt')).toBe('');
-    expect(cards[0].querySelector('.media-note')?.textContent).toBe('a note');
-    expect(cards[1].tagName).toBe('DIV');
-    expect(cards[1].querySelector('.cover--type')?.getAttribute('aria-hidden')).toBe('true');
-    expect(cards[1].querySelector('.media-meta')).toBeNull();
+    expect([...cards[0].children].map(c => c.className)).toEqual(['cover', 'media-title', 'media-blurb']);
+    expect(cards[0].querySelector('.media-blurb')?.textContent).toBe('a short blurb');
+  });
+
+  it('sets the title in type when there is no cover, and skips a missing blurb', async () => {
+    await render(PICKS);
+    const card = el().querySelectorAll('.media-card')[1];
+    expect(card.tagName).toBe('DIV');
+    expect(card.querySelector('.cover--type')?.getAttribute('aria-hidden')).toBe('true');
+    expect(card.querySelector('.media-blurb')).toBeNull();
   });
 
   it('switches the shelf shown on small screens with toggle buttons', async () => {

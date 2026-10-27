@@ -40,15 +40,12 @@
 <ng-template #card let-item>
   @if (item.cover) {
     <!-- Decorative: the title is right below it. Lazy, since a collapsed tile still creates this. -->
-    <img class="cover" [src]="item.cover" alt="" width="240" height="360" loading="lazy" decoding="async" />
+    <img class="cover" [src]="item.cover" alt="" width="400" height="600" loading="lazy" decoding="async" />
   } @else {
     <span class="cover cover--type" aria-hidden="true"><span>{{ item.title }}</span></span>
   }
   <span class="media-title">{{ item.title }}</span>
-  @if (meta(item); as line) {
-    <span class="media-meta">{{ line }}</span>
-  }
-  @if (item.note) {
-    <span class="media-note">{{ item.note }}</span>
+  @if (item.blurb) {
+    <span class="media-blurb">{{ item.blurb }}</span>
   }
 </ng-template>

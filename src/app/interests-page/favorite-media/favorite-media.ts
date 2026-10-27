@@ -10,14 +10,10 @@ export interface Shelf {
   countLabel: string;
 }
 
-/** "1978 · Terrence Malick", or '' when there's neither. */
-export function mediaMeta(item: FavoriteMedia): string {
-  return [item.year, item.by].filter(part => part !== undefined && part !== '').join(' · ');
-}
-
 /**
- * The Favorite Media section: the hand-picked wall (one shelf each for films, TV and books, side by side
- * on wide screens, one at a time on tablets and phones), then Morgan's Letterboxd diary as its own feed.
+ * The Favorite Media section: the hand-picked wall (one shelf each for films, TV and books, four covers
+ * each, side by side on wide screens and one at a time on tablets and phones), then Morgan's Letterboxd
+ * diary as its own feed. A card is a cover, a title and a short blurb; nothing else.
  */
 @Component({
   selector: 'app-favorite-media',
@@ -44,8 +40,6 @@ export class FavoriteMediaComponent {
     const picked = this.picked();
     return picked && kinds.includes(picked) ? picked : kinds[0] ?? null;
   });
-
-  readonly meta = mediaMeta;
 
   show(kind: MediaKind): void {
     this.picked.set(kind);
