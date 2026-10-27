@@ -8,7 +8,6 @@ import { SkyToggleComponent } from './sky-toggle.component';
 import { CINCINNATI, SkyService, VISITOR_STARS_TOKEN } from './sky.service';
 import { VISITOR_STARS } from '../../generated/visitor-stars';
 import { altAz, j2000ToHorizontalMatrix, multiply } from './sky-math';
-import { computeLayout, screenPoint } from './sky-render';
 import { computePanorama, panoramaOffset, viewPoint } from './sky-panorama';
 import { FACE_SOUTH, spokenView } from './sky-view';
 
