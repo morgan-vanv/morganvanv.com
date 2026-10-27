@@ -81,4 +81,17 @@ describe('Vertical nav', () => {
     keydown('ArrowDown');
     expect(container.highlightedIndex()).toBe(0);
   });
+
+  it('ignores keys while the page is hidden (inert, as when looking up at the sky)', async () => {
+    const host: HTMLElement = fixture.nativeElement;
+    host.setAttribute('inert', '');
+    keydown('ArrowDown');
+    expect(container.highlightedIndex()).toBe(0);
+    const enter = keydown('Enter');
+    expect(container.isExpanded()).toBe(false);
+    expect(enter.defaultPrevented).toBe(false);
+    host.removeAttribute('inert');
+    keydown('ArrowDown');
+    expect(container.highlightedIndex()).toBe(1);
+  });
 });
