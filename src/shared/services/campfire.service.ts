@@ -172,6 +172,7 @@ export class CampfireService {
       this.refresh.next();
       return null;
     } catch (error) {
+      this.forgetRefusedKey(error);
       return shoutError(error);
     }
   }
@@ -184,6 +185,7 @@ export class CampfireService {
       this.refresh.next();
       return null;
     } catch (error) {
+      this.forgetRefusedKey(error);
       return shoutError(error);
     }
   }
@@ -195,6 +197,7 @@ export class CampfireService {
       this.log.update(log => log && { ...log, shouts: log.shouts.filter(s => s.id !== id) });
       return null;
     } catch (error) {
+      this.forgetRefusedKey(error);
       return shoutError(error);
     }
   }
@@ -205,7 +208,7 @@ export class CampfireService {
   }
 
   /**
-   * Picks up `#host=<key>` from the address and takes it out of the address bar, so it isn't left in
+   * Picks up `#host=<key>` from the address (on any page; App calls this at startup) and takes it out of the address bar, so it isn't left in
    * history or a shared link. The key is kept in this browser only once the campfire confirms it
    * (`GET /host`), so a link carrying a wrong key can't replace the real one. `#host=` forgets it.
    */
@@ -215,6 +218,7 @@ export class CampfireService {
     const match = /^#host=(.*)$/.exec(hash);
     if (!match) return;
     this.location.replaceState(this.location.path(false));
+    if (!this.configured) return;
 
     let key: string | null;
     try {
@@ -234,6 +238,16 @@ export class CampfireService {
     if (!ok) return;
     this.writeStorage(localStorage, HOST_KEY, key);
     this.key.set(key);
+  }
+
+  /**
+   * A host key the campfire refuses (401: it was changed, or this browser kept an old one) is forgotten,
+   * so the host controls go away instead of failing on every press. Visit /social/#host=<new key> again.
+   */
+  private forgetRefusedKey(error: unknown): void {
+    if (!(error instanceof HttpErrorResponse) || error.status !== 401 || !this.key()) return;
+    this.writeStorage(localStorage, HOST_KEY, null);
+    this.key.set(null);
   }
 
   private fetchShouts() {
