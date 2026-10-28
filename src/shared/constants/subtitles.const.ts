@@ -2,6 +2,9 @@ import { InjectionToken } from '@angular/core';
 import { GUEST_SUBTITLES } from '../../generated/guest-subtitles';
 import { GuestSubtitle } from '../visitor-content/visitor-content';
 
+/** The line that points at the sky: in the rotation, and what the avatar says first on a first visit after dark. */
+export const SKY_LINE = 'the stars behind me are real. try dragging them ☾';
+
 /** The greeting's rotating lines under Morgan's name. The first is the one prerendered. */
 export const SUBTITLES: readonly string[] = [
   'a real human man',
@@ -9,6 +12,7 @@ export const SUBTITLES: readonly string[] = [
   'relentlessly creating shareholder value',
   'now navigable via keyboard! press those arrow keys!',
   'probably clicking on virtual trees and rocks',
+  SKY_LINE,
 ];
 
 /**

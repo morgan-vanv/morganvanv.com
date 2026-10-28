@@ -48,18 +48,11 @@
 }
 
 // Under the pinned card: which repo moved last, and the way to the Projects page.
-.latest-push {
+.all-projects {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.375rem 0.625rem;
   margin: 0.875rem 0.25rem 0.25rem;
   font-size: $font-size-small;
   opacity: 0.85;
-
-  .label {
-    @include shared.label;
-  }
 
   .pill {
     margin-left: auto;

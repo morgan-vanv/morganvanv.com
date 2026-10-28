@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AvatarSaysComponent, HELLO_AFTER_MS, HELLO_KEY, SAY_FOR_MS } from './avatar-says';
-import { GUEST_SUBTITLES_TOKEN, SUBTITLES } from '../../../shared/constants/subtitles.const';
+import { GUEST_SUBTITLES_TOKEN, SKY_LINE, SUBTITLES } from '../../../shared/constants/subtitles.const';
+import { SkyService } from '../../../shared/sky/sky.service';
 import { GuestSubtitle } from '../../../shared/visitor-content/visitor-content';
 
 const GUEST: GuestSubtitle = { text: 'a guest line', by: 'sam', added: '2026-10' };
@@ -8,11 +9,12 @@ const GUEST: GuestSubtitle = { text: 'a guest line', by: 'sam', added: '2026-10'
 describe('AvatarSaysComponent', () => {
   let fixture: ComponentFixture<AvatarSaysComponent>;
 
-  async function mount(guests: readonly GuestSubtitle[] = []) {
+  async function mount(guests: readonly GuestSubtitle[] = [], lighting: 'darkness' | 'day' = 'darkness') {
     TestBed.configureTestingModule({
       imports: [AvatarSaysComponent],
       providers: [{ provide: GUEST_SUBTITLES_TOKEN, useValue: guests }],
     });
+    TestBed.inject(SkyService).lighting.set(lighting);
     fixture = TestBed.createComponent(AvatarSaysComponent);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
@@ -45,7 +47,8 @@ describe('AvatarSaysComponent', () => {
     expect(bubble()).toBeNull();
     vi.advanceTimersByTime(HELLO_AFTER_MS);
     await fixture.whenStable();
-    expect(SUBTITLES).toContain(said());
+    // With stars to see (the darkness light, the default), the hello points at the sky.
+    expect(said()).toBe(SKY_LINE);
     expect(status()).toBe('');
     expect(sessionStorage.getItem(HELLO_KEY)).toBe('1');
     vi.advanceTimersByTime(SAY_FOR_MS);
@@ -58,6 +61,24 @@ describe('AvatarSaysComponent', () => {
     vi.advanceTimersByTime(HELLO_AFTER_MS + SAY_FOR_MS);
     await fixture.whenStable();
     expect(bubble()).toBeNull();
+  });
+
+  it('says any line as its hello when there are no stars to point at', async () => {
+    await mount([], 'day');
+    vi.advanceTimersByTime(HELLO_AFTER_MS);
+    await fixture.whenStable();
+    expect(SUBTITLES).toContain(said());
+    // (Any of them: with six lines, six tries would all be the sky line by chance about once in 50,000 runs.)
+    const seen = new Set<string>();
+    for (let i = 0; i < 6; i++) {
+      TestBed.resetTestingModule();
+      sessionStorage.clear();
+      await mount([], 'day');
+      vi.advanceTimersByTime(HELLO_AFTER_MS);
+      await fixture.whenStable();
+      seen.add(said()!);
+    }
+    expect(seen.size).toBeGreaterThan(1);
   });
 
   it('says a line each press, out loud, every line before any repeats, a visitor\'s with its credit', async () => {

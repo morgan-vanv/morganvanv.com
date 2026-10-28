@@ -91,21 +91,22 @@ describe('NowPageComponent', () => {
     expect(el.querySelector('#now-building .range-label')?.textContent?.trim()).toBe('pinned');
     expect(el.querySelectorAll('app-project-card').length).toBe(1);
     expect(el.querySelector('app-project-card .name')?.textContent?.trim()).toBe(PINNED_PROJECT.name);
-    expect(el.querySelector('.latest-push a')?.textContent?.trim()).toBe(`all ${PROJECTS.length} projects ›`);
-    expect(el.querySelector('.latest-push a')?.getAttribute('href')).toBe('/projects');
+    expect(el.querySelector('.all-projects a')?.textContent?.trim()).toBe(`all ${PROJECTS.length} projects ›`);
+    expect(el.querySelector('.all-projects a')?.getAttribute('href')).toBe('/projects');
     http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
   });
 
-  it('keeps the way to all projects when GitHub fails for every repo', async () => {
+  it('has no Building row when GitHub fails for every repo, and keeps the way to all projects', async () => {
     for (const req of http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com')) {
       req.flush('rate limited', { status: 403, statusText: 'Forbidden' });
     }
     await fixture.whenStable();
-    const line = (fixture.nativeElement as HTMLElement).querySelector('.latest-push')?.textContent?.replace(/\s+/g, ' ').trim();
+    expect(rowKeys()).not.toContain('building');
+    const line = (fixture.nativeElement as HTMLElement).querySelector('.all-projects')?.textContent?.replace(/\s+/g, ' ').trim();
     expect(line).toBe(`all ${PROJECTS.length} projects ›`);
   });
 
-  it('names whichever project repo was pushed to last, once GitHub answers', async () => {
+  it('a Building row under Lately names whichever project repo was pushed to last, once GitHub answers, linking to its commits', async () => {
     const now = Date.now();
     const requests = http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
     // One request per project with a repo (the pinned card's is shared through the cache).
@@ -116,8 +117,15 @@ describe('NowPageComponent', () => {
       req.flush({ html_url: `https://github.com/x/${name}`, pushed_at: new Date(now - hoursAgo * 3_600_000).toISOString() });
     }
     await fixture.whenStable();
-    const line = (fixture.nativeElement as HTMLElement).querySelector('.latest-push')?.textContent?.replace(/\s+/g, ' ').trim();
-    expect(line).toContain(`latest push ${PROJECTS[1].name} · 1 hour ago`);
+    expect(rowKeys()).toEqual(['building', 'community', 'site']);
+    const row = (fixture.nativeElement as HTMLElement).querySelector('.now-rows li a') as HTMLAnchorElement;
+    const words = row.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(words).toContain('Building');
+    expect(words).toContain('1 hour ago');
+    expect(row.querySelector('.title')?.textContent).toBe(PROJECTS[1].name);
+    expect(row.textContent).toContain(PROJECTS[1].subtitle!);
+    expect(row.getAttribute('href')).toBe(`https://github.com/${PROJECTS[1].repo!.owner}/${PROJECTS[1].repo!.name}/commits`);
+    expect(row.getAttribute('target')).toBe('_blank');
   });
 
   it('hides the note and its date while the note is empty, and shows the static rows', () => {

@@ -57,8 +57,8 @@ export class UpTonightBadgeComponent {
       return finish('no dark sky', { title, lines: [line] }, line);
     }
 
-    // [DRAFT copy] Morgan to edit.
-    const tooBright = `The sky's too bright yet. Dark from ${clock(night.start, zone)}.`;
+    // Copy approved by Morgan (2026-10-28).
+    const tooBright = `too bright for stars yet. dark from ${clock(night.start, zone)}.`;
     const dawn = night.end ? `dawn at ${clock(night.end, zone)}` : 'morning';
     const note = night.dark ? `${where} until ${dawn}` : tooBright;
     const dawnWord = night.end ? 'dawn' : 'morning';
@@ -109,12 +109,12 @@ export class UpTonightBadgeComponent {
       spokenLines.push(`the ${night.shower.name} meteor shower peaks ${peak}, up to ${night.shower.rate} an hour`);
     }
     if (moon?.bright) {
-      lines.push('A bright Moon: only the bright stars show.');
-      spokenLines.push('a bright Moon, so only the bright stars show');
+      lines.push('big Moon tonight. only the bright stars make it through.');
+      spokenLines.push('big Moon tonight, so only the bright stars make it through');
     }
 
     if (!rows.length && !lines.length) {
-      const line = 'Nothing above the horizon tonight but the stars.';
+      const line = 'nothing up tonight but the stars. which is plenty.';
       return finish('just stars', { title, lines: [line], note }, `${line}${night.dark ? '' : ` ${tooBright}`}`);
     }
 

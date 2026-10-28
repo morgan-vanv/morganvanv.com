@@ -7,8 +7,8 @@ import { SkyService } from './sky.service';
 import { MAX_NAME, makeSuggestion, starTitle, suggestionBody, unnamedCountText, unnamedInSky } from './sky-naming';
 
 export const STAR_NAME_MAX_LENGTH = MAX_NAME;
-/** Copy below is a draft for Morgan. */
-export const NAMING_FINE_PRINT = 'These come to me first. The good ones go up in the sky for everyone.';
+/** Copy below approved by Morgan (2026-10-28). */
+export const NAMING_FINE_PRINT = 'These come to me first. The good ones go up there for everyone.';
 export const NAMING_SENT = 'Sent. If it\'s a good one, it\'ll be up there soon.';
 export const NAMING_ERROR = 'Something went wrong sending that. Please try again later.';
 
