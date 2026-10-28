@@ -106,10 +106,10 @@ export class NowPageComponent {
 
   /** Whichever project's repo was pushed to most recently, with "N ago"; null until GitHub answers (or if it doesn't). */
   readonly latestPush = toSignal(
-    forkJoin(PROJECTS.map(project => this.github.getRepo(project.repo.owner, project.repo.name).pipe(
+    forkJoin(PROJECTS.flatMap(project => project.repo ? [this.github.getRepo(project.repo.owner, project.repo.name).pipe(
       map(repo => ({ project, at: Date.parse(repo.pushed_at) })),
       catchError(() => of(null)),
-    ))).pipe(
+    )] : [])).pipe(
       map(results => results
         .filter((r): r is { project: Project; at: number } => r !== null && Number.isFinite(r.at))
         .sort((a, b) => b.at - a.at)

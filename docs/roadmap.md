@@ -28,7 +28,7 @@ PR #87. The Music/OSRS treatment applied site-wide, plus the layout and mobile p
 
 ## 6. Projects — shipped
 
-2026-10-28: `/projects` as a showcase (design A, "Marquee", from the face-lift canvas): Valkenburg Castle, VideoJoker and this site as posters, each with live "updated N ago" from GitHub; the first **colophon** at `/colophon` (a side route, off the navbar); `/now` keeps Valkenburg pinned under Building and names whichever repo was pushed to last. What's next for it: `ideas-later.md` §4 (Projects page).
+2026-10-28: `/projects` as a showcase (design A, "Marquee", from the face-lift canvas): Valkenburg Castle, VideoJoker, this site and the self-hosted Foundry VTT as posters, the coded ones with live "updated N ago" from GitHub; the first **colophon** at `/colophon` (a side route, off the navbar); `/now` keeps Valkenburg pinned under Building and names whichever repo was pushed to last. What's next for it: `ideas-later.md` §4 (Projects page).
 
 Nothing new is agreed yet; pick the next thing from `ideas-later.md`.
 

@@ -27,7 +27,9 @@ export type ProjectArt =
   /** A chat log drawn in CSS, for a bot with no screen to shoot. */
   | { kind: 'chat'; alt: string; lines: readonly ChatLine[] }
   /** A miniature of this site: the glass card over the sky. */
-  | { kind: 'site'; alt: string };
+  | { kind: 'site'; alt: string }
+  /** A battle map drawn in CSS: a gridded table with a few tokens, for the virtual tabletop. */
+  | { kind: 'map'; alt: string };
 
 export interface Project {
   id: string;
@@ -45,8 +47,8 @@ export interface Project {
   liveLabel?: string;
   /** A page on this site to read more, as `[ label › ]`. */
   more?: { label: string; route: string };
-  /** GitHub repo, used for the source link and the live "updated N ago". */
-  repo: { owner: string; name: string };
+  /** GitHub repo, used for the source link and the live "updated N ago"; none for something hosted, not coded. */
+  repo?: { owner: string; name: string };
   tags: readonly string[];
 }
 
@@ -104,6 +106,19 @@ export const PROJECTS: readonly Project[] = [
     more: { label: 'colophon', route: '/colophon' },
     repo: { owner: 'morgan-vanv', name: 'morganvanv.com' },
     tags: ['Angular', 'TypeScript', 'SCSS', 'Cloudflare'],
+  },
+  {
+    id: 'vtt',
+    name: 'vtt.morganvanv.com',
+    subtitle: 'the table',
+    status: 'self-hosted',
+    // Draft. [TODO: Morgan] edit freely.
+    description: 'A Foundry Virtual Tabletop I host myself, for the Vampire: The Masquerade campaign I run, set in Athens, '
+      + 'Ohio. It\'s set up for D&D too, for nights with fewer fangs.',
+    art: { kind: 'map', alt: 'A battle map: a gridded table under a lamp, with a few tokens on it' },
+    liveUrl: 'https://vtt.morganvanv.com/',
+    liveLabel: 'The table',
+    tags: ['Foundry VTT', 'Vampire: The Masquerade', 'D&D'],
   },
 ];
 

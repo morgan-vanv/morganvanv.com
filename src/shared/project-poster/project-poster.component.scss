@@ -402,3 +402,40 @@ $discord-command: #9fb3ff;
   font-size: 0.375rem;
   opacity: 0.7;
 }
+
+// ---- A battle map, for the virtual tabletop ----------------------------------------------------
+
+// A gridded table under a lamp: the grid is two repeating gradients, the lamp a warm radial glow,
+// the tokens a few coloured rings on it.
+.map {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    linear-gradient(rgba($main-color, 0.08) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem,
+    linear-gradient(90deg, rgba($main-color, 0.08) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem,
+    color.mix($accent-color, $background-color, 8%);
+}
+
+.lamp {
+  position: absolute;
+  inset: -20% -10% -10%;
+  background: radial-gradient(ellipse at 50% 30%, rgba($accent-color, 0.28), rgba($accent-color, 0) 55%);
+  pointer-events: none;
+}
+
+.token {
+  position: absolute;
+  width: 2rem;
+  height: 2rem;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 3px solid;
+  background: rgba($background-color, 0.6);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+
+  &--a { left: 31%; top: 36%; border-color: #b23a48; }           // the coterie's red
+  &--b { left: 44%; top: 52%; border-color: $accent-color; }     // gold: the storyteller's
+  &--c { left: 58%; top: 30%; border-color: #5c7f80; }           // teal
+  &--d { left: 66%; top: 58%; border-color: $main-color; }       // white
+}

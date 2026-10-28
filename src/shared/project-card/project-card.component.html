@@ -25,7 +25,9 @@
       @if (project().liveUrl; as liveUrl) {
         <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗</a>
       }
-      <a [href]="sourceUrl()" target="_blank" rel="noopener noreferrer" class="link">Source ↗</a>
+      @if (sourceUrl(); as sourceUrl) {
+        <a [href]="sourceUrl" target="_blank" rel="noopener noreferrer" class="link">Source ↗</a>
+      }
     </div>
     @if (updated(); as when) {
       <span class="updated">updated {{ when }}</span>

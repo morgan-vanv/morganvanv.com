@@ -23,15 +23,19 @@ export class ProjectCardComponent {
     return art.kind === 'image' ? art : null;
   });
 
-  readonly sourceUrl = computed(() => `https://github.com/${this.project().repo.owner}/${this.project().repo.name}`);
+  /** The GitHub link, for a project with a repo. */
+  readonly sourceUrl = computed(() => {
+    const repo = this.project().repo;
+    return repo ? `https://github.com/${repo.owner}/${repo.name}` : null;
+  });
 
-  /** "updated 3 hours ago", or '' until GitHub answers (or if it doesn't). */
+  /** "updated 3 hours ago", or '' until GitHub answers (or if it doesn't, or there's no repo to ask about). */
   readonly updated = toSignal(
     toObservable(this.project).pipe(
-      switchMap(p => this.github.getRepo(p.repo.owner, p.repo.name).pipe(
+      switchMap(p => p.repo ? this.github.getRepo(p.repo.owner, p.repo.name).pipe(
         map(repo => relativeTime(Date.parse(repo.pushed_at))),
         catchError(() => of('')),
-      )),
+      ) : of('')),
     ),
     { initialValue: '' },
   );

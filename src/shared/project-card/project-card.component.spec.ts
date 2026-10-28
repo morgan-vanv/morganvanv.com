@@ -71,8 +71,8 @@ describe('PROJECTS', () => {
     expect(PROJECTS).toContain(PINNED_PROJECT);
   });
 
-  it('ids are unique and every project has a repo', () => {
+  it('ids are unique and every project has a repo or somewhere to open it', () => {
     expect(new Set(PROJECTS.map(p => p.id)).size).toBe(PROJECTS.length);
-    for (const p of PROJECTS) expect(p.repo.owner && p.repo.name, p.id).toBeTruthy();
+    for (const p of PROJECTS) expect(p.repo?.owner || p.liveUrl, p.id).toBeTruthy();
   });
 });

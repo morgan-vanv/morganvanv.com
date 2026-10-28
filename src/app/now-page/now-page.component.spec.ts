@@ -108,11 +108,11 @@ describe('NowPageComponent', () => {
   it('names whichever project repo was pushed to last, once GitHub answers', async () => {
     const now = Date.now();
     const requests = http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
-    // One request per project (the pinned card's is shared through the cache).
-    expect(requests.length).toBe(PROJECTS.length);
+    // One request per project with a repo (the pinned card's is shared through the cache).
+    expect(requests.length).toBe(PROJECTS.filter(p => p.repo).length);
     for (const req of requests) {
       const name = decodeURIComponent(new URL(req.request.url).pathname.split('/').pop() ?? '');
-      const hoursAgo = name === PROJECTS[1].repo.name ? 1 : 24;
+      const hoursAgo = name === PROJECTS[1].repo?.name ? 1 : 24;
       req.flush({ html_url: `https://github.com/x/${name}`, pushed_at: new Date(now - hoursAgo * 3_600_000).toISOString() });
     }
     await fixture.whenStable();

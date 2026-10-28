@@ -89,6 +89,15 @@ describe('ProjectPosterComponent', () => {
     ]);
   });
 
+  it('draws a battle map for a hosted project with no repo: no Source link, no date, no GitHub call', async () => {
+    await mount({ ...base, repo: undefined, art: { kind: 'map', alt: 'A table' }, liveLabel: 'The table', liveUrl: 'https://vtt.example/' });
+    http.expectNone(REPO_URL);
+    expect(el().querySelector('.map')?.getAttribute('aria-label')).toBe('A table');
+    expect(el().querySelectorAll('.token').length).toBe(4);
+    expect(links()).toEqual([['The table ↗ (Thing)', 'https://vtt.example/']]);
+    expect(text()).not.toContain('updated');
+  });
+
   it('follows a changed project to its repo', async () => {
     await mount(base);
     http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date().toISOString() });
