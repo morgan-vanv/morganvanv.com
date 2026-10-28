@@ -63,4 +63,26 @@ describe('ApiCacheService', () => {
     http.expectOne(URL).flush('ok');
     expect(await second).toBe('ok');
   });
+
+  it('shares one request between readers asking while it is in flight', async () => {
+    const first = firstValueFrom(service.get<string>(URL));
+    const second = firstValueFrom(service.get<string>(URL));
+    http.expectOne(URL).flush('shared');
+    expect(await first).toBe('shared');
+    expect(await second).toBe('shared');
+    // A later reader, after the entry is cached, gets the cache; after it expires, a fresh request.
+    expect(await firstValueFrom(service.get<string>(URL))).toBe('shared');
+  });
+
+  it('lets a failed in-flight request fail its sharers and then retries fresh', async () => {
+    const first = firstValueFrom(service.get(URL));
+    const second = firstValueFrom(service.get(URL));
+    http.expectOne(URL).flush('nope', { status: 500, statusText: 'Server Error' });
+    await expect(first).rejects.toBeTruthy();
+    await expect(second).rejects.toBeTruthy();
+
+    const third = firstValueFrom(service.get(URL));
+    http.expectOne(URL).flush('ok');
+    expect(await third).toBe('ok');
+  });
 });

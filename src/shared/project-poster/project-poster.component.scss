@@ -1,0 +1,384 @@
+@use '../../styles' as *;
+@use '../shared-styles.scss' as shared;
+
+:host {
+  display: block;
+  min-width: 0;
+}
+
+// One surface: the art, the plate sitting on its bottom edge, the ledger under it.
+.poster {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba($main-color, 0.1);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+
+  &:hover,
+  &:focus-within {
+    transform: translateY(-4px);
+    box-shadow: 0 26px 50px rgba(0, 0, 0, 0.55);
+    border-color: rgba($accent-color, 0.45);
+
+    .art {
+      filter: brightness(1.08);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover,
+    &:focus-within {
+      transform: none;
+    }
+  }
+}
+
+.art {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  background: #000;
+  overflow: hidden;
+  transition: filter 0.3s ease;
+
+  // The art fades into the surface so the plate reads as sitting on it.
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 55%, rgba($background-color, 0.75) 100%);
+    pointer-events: none;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    aspect-ratio: 16 / 9;
+  }
+}
+
+.shot {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// "live" · "resurrected" · "you're on it", in the art's corner.
+.status {
+  position: absolute;
+  top: 0.625rem;
+  left: 0.625rem;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5625rem;
+  border-radius: 999px;
+  background: rgba($background-color, 0.7);
+  border: 1px solid rgba($main-color, 0.16);
+  font-size: $font-size-label;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: $accent-color;
+    box-shadow: 0 0 8px $accent-color;
+  }
+}
+
+// The title plate: the 88×31 bevel (lit top-left), gold lettering, pulled up over the art's edge.
+.plate {
+  position: relative;
+  z-index: 1;
+  margin: -1.625rem 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  background: #0b1f21;
+  border: 1px solid #2b4a4c;
+  border-top-color: #5c7f80;
+  border-left-color: #5c7f80;
+  border-bottom-color: #06100f;
+  border-right-color: #06100f;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+}
+
+.name {
+  margin: 0;
+  font-size: $font-size-panel-title;
+  line-height: 1.2;
+  color: #f4d78a;
+  text-shadow: 0 0 10px rgba($accent-color, 0.35);
+}
+
+.subtitle {
+  @include shared.label;
+  display: block;
+  margin-top: 0.125rem;
+}
+
+.ledger {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.5625rem;
+  padding: 0.75rem 0.875rem 0.875rem;
+}
+
+.description {
+  margin: 0;
+  font-size: $font-size-small;
+  line-height: 1.55;
+  opacity: 0.9;
+}
+
+.quote {
+  margin: 0;
+  font-size: 0.85rem;
+  font-style: italic;
+  opacity: 0.65;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tag {
+  font-size: 0.75rem;
+  padding: 0.125rem 0.5rem;
+  background: rgba($main-color, 0.07);
+  border: 1px solid rgba($main-color, 0.12);
+  border-radius: 999px;
+}
+
+// The links, then "updated N ago" under them on the right: the same shape on every poster.
+.footer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.25rem;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-self: stretch;
+}
+
+// 44px tall: these are the poster's tap targets.
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0 0.875rem;
+  border: 1px solid rgba($main-color, 0.25);
+  border-radius: 999px;
+  color: inherit;
+  font-size: 0.875rem;
+  text-decoration: none;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($main-color, 0.08);
+    border-color: rgba($main-color, 0.45);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $main-color;
+    outline-offset: 2px;
+  }
+
+  &--primary {
+    border-color: $accent-color;
+    color: $accent-color;
+    font-weight: bold;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($accent-color, 0.12);
+      border-color: $accent-color;
+    }
+  }
+}
+
+.updated {
+  font-size: $font-size-meta;
+  opacity: 0.6;
+}
+
+// ---- A chat log, for a bot that has no screen to shoot -------------------------------------------
+
+// Starts below the status pill; what doesn't fit runs under the fade at the bottom, as a chat would.
+.chat {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 2.5rem 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  background: #1b1f24;
+  font-size: 0.75rem;
+  line-height: 1.3;
+  overflow: hidden;
+}
+
+.msg {
+  display: grid;
+  grid-template-columns: 1.875rem minmax(0, 1fr);
+  gap: 0.5625rem;
+  align-items: start;
+}
+
+.avatar {
+  width: 1.875rem;
+  height: 1.875rem;
+  border-radius: 50%;
+  background: #3b4a53;
+
+  .bot & {
+    background: $accent-color;
+  }
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.who {
+  font-weight: bold;
+}
+
+.app {
+  display: inline-block;
+  margin-left: 0.3rem;
+  padding: 0 0.25rem;
+  border-radius: 3px;
+  background: #5865f2;
+  color: $main-color;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+.command {
+  color: #9fb3ff;
+}
+
+.cards {
+  display: flex;
+  gap: 0.375rem;
+  margin-top: 0.2rem;
+}
+
+.card-button {
+  width: 2.625rem;
+  height: 1.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  line-height: 1.75rem;
+  text-align: center;
+
+  &.a { background: #5865f2; }
+  &.b { background: #248046; }
+  &.c { background: #da373c; }
+}
+
+// ---- A miniature of this site ------------------------------------------------------------------
+
+.mini {
+  position: absolute;
+  inset: 0;
+  background: $background-sky-color url('/landscape/darkness.webp') center / cover no-repeat;
+}
+
+.mini-card {
+  position: absolute;
+  left: 8%;
+  top: 12%;
+  width: 84%;
+  height: 78%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid $main-color;
+  border-radius: 14px;
+  background: rgba($background-color, 0.35);
+  backdrop-filter: blur(3px);
+}
+
+.mini-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  height: 1.375rem;
+  margin: 0 0.625rem;
+  border-bottom: 1px solid rgba($main-color, 0.8);
+  font-size: 0.4rem;
+
+  b {
+    color: $accent-color;
+  }
+}
+
+.mini-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 0.625rem;
+}
+
+.mini-title {
+  font-size: 0.625rem;
+  font-weight: bold;
+}
+
+.mini-line {
+  width: 55%;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba($main-color, 0.35);
+}
+
+.mini-grid {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.3rem;
+  margin-top: 0.2rem;
+
+  > span {
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba($main-color, 0.12);
+  }
+}
+
+.mini-ring {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.1875rem;
+  text-align: center;
+  font-size: 0.375rem;
+  opacity: 0.7;
+}

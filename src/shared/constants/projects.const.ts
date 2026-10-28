@@ -1,21 +1,50 @@
 /**
- * Things Morgan is building. Shown on /now today; the future Projects page
- * will list the same entries. Copy here is drafted from each project's own
+ * Things Morgan is building. The Projects page shows every entry as a poster;
+ * /now pins one of them under "Building" (`PINNED_PROJECT`) and names whichever
+ * repo was pushed to most recently. Copy here is drafted from each project's own
  * README and in-game text; Morgan should edit it freely.
  */
+
+/** One line of the mocked-up Discord exchange that stands in for a bot's screenshot. */
+export interface ChatLine {
+  /** Who's talking: a guest in the server, or the bot itself. */
+  from: 'guest' | 'bot';
+  name: string;
+  /** A slash command the guest ran, shown in the command colour. */
+  command?: string;
+  /** Plain text after the command, or the bot's reply. */
+  text?: string;
+  /** The part of the bot's reply it bolds. */
+  strong?: string;
+  /** Three card buttons under the line, as Three Card Monte deals them. */
+  cards?: boolean;
+}
+
+/** What a poster shows above its title plate. */
+export type ProjectArt =
+  /** A real screenshot in public/. */
+  | { kind: 'image'; url: string; alt: string }
+  /** A chat log drawn in CSS, for a bot with no screen to shoot. */
+  | { kind: 'chat'; alt: string; lines: readonly ChatLine[] }
+  /** A miniature of this site: the glass card over the sky. */
+  | { kind: 'site'; alt: string };
+
 export interface Project {
   id: string;
   name: string;
   subtitle?: string;
+  /** Two or three words on the poster's corner: "live", "resurrected". */
+  status: string;
   /** One or two sentences: what it is. */
   description: string;
   /** Optional line in the project's own voice. */
   quote?: string;
-  imageUrl: string;
-  imageAlt: string;
+  art: ProjectArt;
   /** Where to try it, if it's playable/usable. */
   liveUrl?: string;
   liveLabel?: string;
+  /** A page on this site to read more, as `[ label › ]`. */
+  more?: { label: string; route: string };
   /** GitHub repo, used for the source link and the live "updated N ago". */
   repo: { owner: string; name: string };
   tags: readonly string[];
@@ -26,13 +55,57 @@ export const PROJECTS: readonly Project[] = [
     id: 'valkenburg-castle',
     name: 'Valkenburg Castle',
     subtitle: 'The Heir\'s Return',
+    status: 'live',
     description: 'A turn-based extraction crawler for the browser, inspired by Task Force Games\' Valkenburg Castle (1980).',
     quote: 'Take contracts. Come back alive. If Keven falls, Valkenburg stays dark.',
-    imageUrl: 'images/projects/valkenburg-castle.webp',
-    imageAlt: 'Valkenburg Castle in play: Keven, lantern raised, at the castle gate on a hex-tiled floor',
+    art: {
+      kind: 'image',
+      url: 'images/projects/valkenburg-castle.webp',
+      alt: 'Valkenburg Castle in play: Keven and his party on a hex-tiled castle floor, beside the portcullis',
+    },
     liveUrl: 'https://morgan-vanv.github.io/Valkenburg-Castle/',
     liveLabel: 'Play it',
     repo: { owner: 'morgan-vanv', name: 'Valkenburg-Castle' },
     tags: ['TypeScript', 'Three.js', 'Vite'],
   },
+  {
+    id: 'videojoker',
+    name: 'VideoJoker',
+    subtitle: 'a Discord bot, with friends',
+    status: 'resurrected',
+    // Draft, from the README. [TODO: Morgan] edit freely.
+    description: 'A Discord bot named after the Video Jokers of Uganda, who dub over bootleg action films with their own '
+      + 'commentary. It roasts, flips coins, deals Three Card Monte and pays out in Ugandan Shillings.',
+    quote: 'I don\'t even know why I spent so long on this README lol',
+    art: {
+      kind: 'chat',
+      alt: 'A Discord chat: someone runs /roast and VideoJoker answers; a game of Three Card Monte with three card buttons',
+      // Every bot line is one the bot really says (core/constants.py, cogs/games.py).
+      lines: [
+        { from: 'guest', name: 'someone', command: '/roast', text: '@morgan' },
+        { from: 'bot', name: 'VideoJoker', text: 'someone roasted morgan: ', strong: 'You are a stinky smeller boy.' },
+        { from: 'guest', name: 'morgan', command: '/threecardmonte' },
+        { from: 'bot', name: 'VideoJoker', text: 'Pick a card, any card!', cards: true },
+      ],
+    },
+    repo: { owner: 'morgan-vanv', name: 'VideoJoker' },
+    tags: ['Python', 'discord.py', 'SQLite', 'Docker'],
+  },
+  {
+    id: 'morganvanv-com',
+    name: 'morganvanv.com',
+    subtitle: 'this site',
+    status: 'you\'re on it',
+    // Draft. [TODO: Morgan] edit freely.
+    description: 'The thing you\'re looking at. A personal site in the old-web spirit: a real sky every night, a shoutbox, '
+      + 'a webring, and no cookies. Built properly anyway.',
+    quote: 'Built with: Angular, TypeScript, SCSS, and a mild amount of spite',
+    art: { kind: 'site', alt: 'A miniature of this website: the glass card over the night sky' },
+    more: { label: 'colophon', route: '/colophon' },
+    repo: { owner: 'morgan-vanv', name: 'morganvanv.com' },
+    tags: ['Angular', 'TypeScript', 'SCSS', 'Cloudflare'],
+  },
 ];
+
+/** The project /now keeps under "Building", whatever else is moving. */
+export const PINNED_PROJECT: Project = PROJECTS[0];

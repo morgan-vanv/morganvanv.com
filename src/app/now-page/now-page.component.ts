@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { NgTemplateOutlet } from '@angular/common';
-import { catchError, map, of } from 'rxjs';
+import { catchError, forkJoin, map, of } from 'rxjs';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
 import { RecentStreamService } from '../../shared/services/recent-stream.service';
@@ -14,7 +14,8 @@ import { SITE_CONFIG } from '../../shared/config/site.config';
 import { achievementIcon, achievementLabel, dropIcon, dropLabel } from '../interests-page/osrs-stats/osrs-format';
 import { BUILD_INFO } from '../../build-info';
 import { NOW_CONTENT_TOKEN } from './now.content';
-import { PROJECTS } from '../../shared/constants/projects.const';
+import { PINNED_PROJECT, PROJECTS, Project } from '../../shared/constants/projects.const';
+import { GitHubService } from '../../shared/services/github.service';
 import { ProjectCardComponent } from '../../shared/project-card/project-card.component';
 import { LighthouseBadgeComponent } from '../../shared/badges/lighthouse-badge/lighthouse-badge.component';
 import { MoonBadgeComponent } from '../../shared/badges/moon-badge/moon-badge.component';
@@ -97,8 +98,25 @@ export class NowPageComponent {
   /** Morgan's note; hidden, along with its date, while it has no paragraphs. */
   private readonly content = inject(NOW_CONTENT_TOKEN);
   readonly note = this.content.paragraphs;
-  readonly projects = PROJECTS;
-  readonly projectCountLabel = `${PROJECTS.length} ${PROJECTS.length === 1 ? 'project' : 'projects'}`;
+  /** The one card under Building; the rest are on /projects. */
+  readonly pinnedProject = PINNED_PROJECT;
+  readonly projectCount = PROJECTS.length;
+
+  private readonly github = inject(GitHubService);
+
+  /** Whichever project's repo was pushed to most recently, with "N ago"; null until GitHub answers (or if it doesn't). */
+  readonly latestPush = toSignal(
+    forkJoin(PROJECTS.map(project => this.github.getRepo(project.repo.owner, project.repo.name).pipe(
+      map(repo => ({ project, at: Date.parse(repo.pushed_at) })),
+      catchError(() => of(null)),
+    ))).pipe(
+      map(results => results
+        .filter((r): r is { project: Project; at: number } => r !== null && Number.isFinite(r.at))
+        .sort((a, b) => b.at - a.at)
+        .map(r => ({ project: r.project, when: relativeTime(r.at) }))[0] ?? null),
+    ),
+    { initialValue: null },
+  );
   readonly updated = formatDay(this.content.updated);
 
   private readonly latestAchievement = toSignal(this.latestActivity(ACHIEVEMENT_ACTIVITY_TYPES), { initialValue: null });

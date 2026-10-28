@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { KeyboardNavService } from './keyboard-nav.service';
 import { ScrollRegionService } from '../scroll-region/scroll-region.service';
-import { MAIN_NAV_ROUTES } from '../main-routes';
+import { MAIN_NAV_ROUTES, SIDE_ROUTES } from '../main-routes';
 import { SkyService } from '../sky/sky.service';
 
 function key(name: string, init: KeyboardEventInit = {}): KeyboardEvent {
@@ -48,6 +48,16 @@ describe('KeyboardNavService', () => {
     expect(navigate).toHaveBeenLastCalledWith([MAIN_NAV_ROUTES[2]]);
     service.onKeyDown(key('ArrowLeft'));
     expect(navigate).toHaveBeenLastCalledWith([MAIN_NAV_ROUTES[0]]);
+  });
+
+  it('steps on from a side page as if it were its parent', () => {
+    const side = SIDE_ROUTES[0];
+    const parentIdx = MAIN_NAV_ROUTES.indexOf(`/${side.parent}`);
+    url = `/${side.path}`;
+    service.onKeyDown(key('ArrowRight'));
+    expect(navigate).toHaveBeenLastCalledWith([MAIN_NAV_ROUTES[parentIdx + 1]]);
+    service.onKeyDown(key('ArrowLeft'));
+    expect(navigate).toHaveBeenLastCalledWith([MAIN_NAV_ROUTES[parentIdx - 1]]);
   });
 
   it('does not go past either end of the route list', () => {

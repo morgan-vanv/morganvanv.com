@@ -18,7 +18,7 @@ export const MAIN_ROUTES = [
   { path: 'background', title: 'Background', description: 'A bit about Morgan: physics and applied math at Ohio University, software engineering, and Ada the cat.' },
   { path: 'social', title: 'Social', description: 'The community photo wall, and the mailbag: questions visitors asked, answered.' },
   { path: 'interests', title: 'Interests', description: 'Live stats on what Morgan is listening to and what his Old School RuneScape character is up to.' },
-  { path: 'projects', title: 'Projects', description: 'Things Morgan has built or is building. Under construction.' },
+  { path: 'projects', title: 'Projects', description: 'Things Morgan has built or is building: a browser game, a Discord bot, and this site.' },
   { path: 'blog', title: 'Blog', description: 'Writing from Morgan, eventually. Under construction.' },
 ] as const satisfies readonly MainRoute[];
 
@@ -26,7 +26,34 @@ export type MainRoutePath = (typeof MAIN_ROUTES)[number]['path'];
 
 export const MAIN_NAV_ROUTES = MAIN_ROUTES.map(({ path }) => `/${path}`);
 
+export interface SideRoute extends MainRoute {
+  /** The main page this one hangs off: lit in the navbar, and where ← → go from here. */
+  parent: MainRoutePath;
+}
+
+/**
+ * Pages off the navbar, each reached from one main page (the colophon from the site's poster on
+ * Projects). They keep their parent's place in the nav and in arrow-key order, and slide in beside it.
+ */
+export const SIDE_ROUTES = [
+  { path: 'colophon', title: 'Colophon', description: 'How morganvanv.com is built: Angular prerendered to static HTML, what powers each live panel, and what stays in your browser.', parent: 'projects' },
+] as const satisfies readonly SideRoute[];
+
+export type SideRoutePath = (typeof SIDE_ROUTES)[number]['path'];
+
 /** 1-based index of a main route; the greeting page is 0. */
 export function getMainRouteAnimation(path: MainRoutePath): number {
   return MAIN_ROUTES.findIndex((route) => route.path === path) + 1;
+}
+
+/** A side route slides in from the right of its parent and back out the same way. */
+export function getSideRouteAnimation(path: SideRoutePath): number {
+  const side = SIDE_ROUTES.find((route) => route.path === path);
+  return side ? getMainRouteAnimation(side.parent) + 0.5 : 0;
+}
+
+/** "/colophon" → "/projects"; a main route or anything else comes back unchanged. */
+export function navRouteFor(route: string): string {
+  const side = SIDE_ROUTES.find((s) => `/${s.path}` === route);
+  return side ? `/${side.parent}` : route;
 }

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { IconComponent, IconName } from '../icon/icon.component';
-import { GREETING_ROUTE, MAIN_ROUTES } from '../main-routes';
+import { GREETING_ROUTE, MAIN_ROUTES, navRouteFor } from '../main-routes';
 
 interface NavLink {
   route: string;
@@ -19,10 +19,10 @@ export const NAV_LINKS: readonly NavLink[] = [
   ...MAIN_ROUTES.map(({ path, title }) => ({ route: `/${path}`, label: title })),
 ];
 
-/** "/interests?x=1#y" → "/interests". */
+/** "/interests?x=1#y" → "/interests"; a side page ("/colophon") → its parent's place in the nav. */
 function pathOf(url: string): string {
   const path = url.split(/[?#]/)[0].replace(/\/+$/, '');
-  return path === '' ? GREETING_ROUTE : `/${path.split('/').filter(Boolean)[0]}`;
+  return navRouteFor(path === '' ? GREETING_ROUTE : `/${path.split('/').filter(Boolean)[0]}`);
 }
 
 /**
@@ -34,7 +34,7 @@ function pathOf(url: string): string {
  */
 @Component({
   selector: 'app-custom-navbar',
-  imports: [RouterLink, RouterLinkActive, IconComponent],
+  imports: [RouterLink, IconComponent],
   templateUrl: './custom-navbar.component.html',
   styleUrl: './custom-navbar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -57,6 +57,14 @@ export class CustomNavbarComponent {
   private readonly index = computed(() => this.navLinks.findIndex(link => link.route === this.path()));
 
   readonly current = computed<NavLink | null>(() => this.navLinks[this.index()] ?? null);
+
+  /**
+   * Whether a link is the page we're on. Decided from the path rather than routerLinkActive so a
+   * side page (the colophon) lights its parent (Projects), which routerLinkActive can't do.
+   */
+  isCurrent(link: NavLink): boolean {
+    return link.route === this.path();
+  }
   readonly previous = computed(() => (this.index() > 0 ? this.navLinks[this.index() - 1] : null));
   readonly next = computed(() => {
     const i = this.index();

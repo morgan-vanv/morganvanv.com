@@ -1,10 +1,9 @@
 <app-base-page>
-  <div class="fill">
-    <app-page-header title="Projects" description="Things I've built or am building." />
-    <section class="panel" aria-label="Projects">
-      @if (underConstruction) {
-        <app-under-construction />
-      }
-    </section>
-  </div>
+  <app-page-header title="Projects" description="Things I've built or am building. Three so far, none of them finished." />
+
+  <section class="posters" aria-label="Projects">
+    @for (project of projects; track project.id) {
+      <app-project-poster [project]="project" />
+    }
+  </section>
 </app-base-page>

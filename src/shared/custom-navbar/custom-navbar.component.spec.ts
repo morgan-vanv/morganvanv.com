@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { CustomNavbarComponent } from './custom-navbar.component';
-import { MAIN_ROUTES } from '../main-routes';
+import { MAIN_ROUTES, SIDE_ROUTES } from '../main-routes';
 
 @Component({ template: '' })
 class BlankComponent {}
@@ -23,6 +23,7 @@ describe('CustomNavbarComponent', () => {
       providers: [provideRouter([
         { path: '', component: BlankComponent },
         ...MAIN_ROUTES.map(({ path }) => ({ path, component: BlankComponent })),
+        ...SIDE_ROUTES.map(({ path }) => ({ path, component: BlankComponent })),
       ])],
     }).compileComponents();
 
@@ -40,6 +41,16 @@ describe('CustomNavbarComponent', () => {
     expect(el.querySelector('.pager-current')?.textContent).toContain('[ Now ]');
     const arrows = [...el.querySelectorAll('.pager-arrow')].map(a => a.getAttribute('aria-label'));
     expect(arrows).toEqual(['Previous: Home', 'Next: Background']);
+  });
+
+  it('keeps a side page\'s parent lit, on the line and in the pager', async () => {
+    const side = SIDE_ROUTES[0];
+    const parent = MAIN_ROUTES.find(r => r.path === side.parent)!;
+    await goTo(`/${side.path}`);
+    expect(el.querySelector('.pager-current')?.textContent).toContain(`[ ${parent.title} ]`);
+    const lit = [...el.querySelectorAll('.links a.active-link')].map(a => a.textContent?.trim());
+    expect(lit).toEqual([parent.title]);
+    expect(el.querySelectorAll('.links a').length).toBe(MAIN_ROUTES.length + 1);
   });
 
   it('goes back to the greeting from Home and has no next page on the last one', async () => {

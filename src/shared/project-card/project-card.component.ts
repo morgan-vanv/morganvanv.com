@@ -17,6 +17,12 @@ export class ProjectCardComponent {
 
   private readonly github = inject(GitHubService);
 
+  /** The screenshot, when the project has one (the card has no other art). */
+  readonly image = computed(() => {
+    const art = this.project().art;
+    return art.kind === 'image' ? art : null;
+  });
+
   readonly sourceUrl = computed(() => `https://github.com/${this.project().repo.owner}/${this.project().repo.name}`);
 
   /** "updated 3 hours ago", or '' until GitHub answers (or if it doesn't). */

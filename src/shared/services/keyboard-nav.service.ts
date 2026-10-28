@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { fromEvent } from 'rxjs';
-import { GREETING_ROUTE, MAIN_NAV_ROUTES } from '../main-routes';
+import { GREETING_ROUTE, MAIN_NAV_ROUTES, navRouteFor } from '../main-routes';
 import { ScrollRegionService } from '../scroll-region/scroll-region.service';
 import { SkyService } from '../sky/sky.service';
 
@@ -58,7 +58,8 @@ export class KeyboardNavService {
 
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
 
-    const idx = MAIN_NAV_ROUTES.indexOf(currentPath);
+    // A side page (the colophon) steps on from its parent's place.
+    const idx = MAIN_NAV_ROUTES.indexOf(navRouteFor(currentPath));
     if (idx === -1) return;
 
     const nextIdx = e.key === 'ArrowLeft' ? idx - 1 : idx + 1;
