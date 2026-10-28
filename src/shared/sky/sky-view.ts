@@ -44,7 +44,7 @@ function tiltText(tilt: number): string {
   return t === 0 ? 'at the horizon' : t === MAX_TILT ? 'straight up' : `looking up ${t}°`;
 }
 
-/** The compass reading: "facing NNW · 338° · looking up 40°" (draft copy). */
+/** The compass reading: "facing NNW · 338° · looking up 40°" (approved by Morgan, 2026-10-28). */
 export function compassText(view: LookView): string {
   return `facing ${compassPoint(view.facing)} · ${degrees(view.facing)}° · ${tiltText(view.tilt)}`;
 }

@@ -105,7 +105,7 @@ export class NowPageComponent {
   private readonly github = inject(GitHubService);
 
   /** Whichever project's repo was pushed to most recently, with "N ago"; null until GitHub answers (or if it doesn't). */
-  readonly latestPush = toSignal(
+  private readonly latestPush = toSignal(
     forkJoin(PROJECTS.flatMap(project => project.repo ? [this.github.getRepo(project.repo.owner, project.repo.name).pipe(
       map(repo => ({ project, at: Date.parse(repo.pushed_at) })),
       catchError(() => of(null)),
@@ -113,7 +113,7 @@ export class NowPageComponent {
       map(results => results
         .filter((r): r is { project: Project; at: number } => r !== null && Number.isFinite(r.at))
         .sort((a, b) => b.at - a.at)
-        .map(r => ({ project: r.project, when: relativeTime(r.at) }))[0] ?? null),
+        .map(r => ({ project: r.project, when: relativeTime(r.at), at: r.at }))[0] ?? null),
     ),
     { initialValue: null },
   );
@@ -161,6 +161,19 @@ export class NowPageComponent {
     };
   });
 
+  /** Building: whichever project moved last, linking to its commits. Real data only: the push time and the project's own words. */
+  private readonly building = computed<NowRow | null>(() => {
+    const latest = this.latestPush();
+    if (!latest?.project.repo) return null;
+    const { owner, name } = latest.project.repo;
+    return {
+      key: 'building', label: 'Building', iconUrl: null, iconStyle: 'pixel', glyph: '⌘',
+      title: latest.project.name, detail: latest.project.subtitle,
+      when: latest.when || undefined,
+      href: `https://github.com/${owner}/${name}/commits`,
+    };
+  });
+
   private readonly community: NowRow | null = (() => {
     const newest = COMMUNITY_PHOTOS.at(-1);
     if (!newest) return null;
@@ -180,7 +193,7 @@ export class NowPageComponent {
   } : null;
 
   readonly rows = computed(() =>
-    [this.listening(), this.playing(), this.watched(), this.community, this.site].filter((row): row is NowRow => row !== null)
+    [this.listening(), this.playing(), this.watched(), this.building(), this.community, this.site].filter((row): row is NowRow => row !== null)
   );
 
   private latestActivity(types: readonly RpActivity['type'][]) {

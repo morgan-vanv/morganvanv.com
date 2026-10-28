@@ -1,4 +1,4 @@
-import { InjectionToken, Injectable, PLATFORM_ID, inject, signal } from '@angular/core';
+import { InjectionToken, Injectable, PLATFORM_ID, computed, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { LIGHTINGS, Lighting } from './sky-render';
 import { UpNow } from './sky-up-now';
@@ -72,6 +72,17 @@ export class SkyService {
   readonly ready = signal(false);
   /** What's above the horizon at the last redraw, as text. */
   readonly upNow = signal<UpNow | null>(null);
+  /**
+   * Whether there are stars to see: the darkness light always has them; real time has them once the
+   * Sun is well down (civil dusk); the staged daylights don't. For the nudges that point at the sky.
+   */
+  readonly starsShowing = computed(() => {
+    const lighting = this.lighting();
+    if (lighting === 'darkness') return true;
+    if (lighting !== 'real') return false;
+    const sunAlt = this.upNow()?.detail?.sunAlt;
+    return sunAlt !== undefined && sunAlt < -6;
+  });
   /** The coming night (or the rest of this one) and the planets in it; null without astronomy-engine. */
   readonly tonight = signal<Tonight | null>(null);
   /** Whether the ☾ menu is open. Here rather than in the menu so the sky badges on /now can open it. */

@@ -53,12 +53,12 @@ describe('UpTonightBadgeComponent', () => {
     expect(el.querySelector('.value')?.textContent?.trim()).toBe('Moon +2');
     expect(el.querySelector('.popover-title')?.textContent?.trim()).toBe('In the Cincinnati sky tonight');
     expect(rows).toEqual(['Moon 95% lit, 8:20 pm–dawn', 'Saturn dusk–5:50 am', 'Jupiter 2:10 am–dawn']);
-    expect(lines).toEqual(['Brightest: Vega, Capella, Deneb', 'Overhead: Cygnus, Pegasus, Cassiopeia', 'A bright Moon: only the bright stars show.']);
-    expect(el.querySelector('.popover-note')?.textContent?.trim()).toBe('The sky\'s too bright yet. Dark from 7:10 pm.');
+    expect(lines).toEqual(['Brightest: Vega, Capella, Deneb', 'Overhead: Cygnus, Pegasus, Cassiopeia', 'big Moon tonight. only the bright stars make it through.']);
+    expect(el.querySelector('.popover-note')?.textContent?.trim()).toBe('too bright for stars yet. dark from 7:10 pm.');
     expect(badge?.getAttribute('aria-label')).toBe(
       'Up tonight over Cincinnati: the Moon, 95% lit, from 8:20 pm until dawn; Saturn, from dusk until 5:50 am, highest 10:30 pm; '
       + 'Jupiter, from 2:10 am until dawn; the brightest stars are Vega, Capella, Deneb; overhead, Cygnus, Pegasus, Cassiopeia; '
-      + 'a bright Moon, so only the bright stars show. The sky\'s too bright yet. Dark from 7:10 pm. Opens the sky menu.');
+      + 'big Moon tonight, so only the bright stars make it through. too bright for stars yet. dark from 7:10 pm. Opens the sky menu.');
     badge?.click();
     expect(sky.menuOpen()).toBe(true);
   });
@@ -95,7 +95,7 @@ describe('UpTonightBadgeComponent', () => {
   it('says "your sky" and uses the browser\'s clock for a visitor\'s own sky', async () => {
     const { el, badge } = await render(BY_DAY, sky => sky.location.set({ lat: 51.5, lon: -0.1, mine: true }));
     expect(el.querySelector('.popover-title')?.textContent?.trim()).toBe('In your sky tonight');
-    expect(badge?.getAttribute('aria-label')).toContain(`Dark from ${clock(DUSK)}.`);
+    expect(badge?.getAttribute('aria-label')).toContain(`dark from ${clock(DUSK)}.`);
     expect(badge?.getAttribute('aria-label')).toMatch(/^Up tonight over you: /);
   });
 
@@ -110,8 +110,8 @@ describe('UpTonightBadgeComponent', () => {
     const { el, badge } = await render(NOTHING);
     expect(el.querySelector('.value')?.textContent?.trim()).toBe('just stars');
     expect(badge?.getAttribute('aria-label')).toBe(
-      'Up tonight over Cincinnati: Nothing above the horizon tonight but the stars. '
-      + 'The sky\'s too bright yet. Dark from 7:10 pm. Opens the sky menu.');
+      'Up tonight over Cincinnati: nothing up tonight but the stars. which is plenty. '
+      + 'too bright for stars yet. dark from 7:10 pm. Opens the sky menu.');
   });
 
   it('says when there\'s no dark sky tonight at all', async () => {

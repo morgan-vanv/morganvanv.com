@@ -4,7 +4,7 @@ import { BadgeComponent, BadgePopover } from '../badge/badge.component';
 /**
  * "No cookies · no trackers". True as long as nothing here sets a cookie or loads analytics: the
  * sky's choices and a shoutbox nick live in localStorage (only once a visitor makes them), API
- * responses, a "this visit's been counted" flag and an "the avatar's said hello" flag in sessionStorage,
+ * responses, a "this visit's been counted" flag, "the avatar's said hello" and "the sky's been pointed out" flags in sessionStorage,
  * Morgan's own host key in his own browsers, and the visitor counter is one number with nothing about
  * anyone behind it. Adding analytics or anything that sets a cookie means
  * retiring this badge.
