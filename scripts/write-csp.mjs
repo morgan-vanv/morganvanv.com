@@ -25,11 +25,31 @@ function runs(attributes) {
   return !type || type === 'module' || type === 'text/javascript' || type === 'application/javascript';
 }
 
+/**
+ * Every start tag on the page, in order, with the raw text of a <script> or <style> (which is never
+ * markup, so it's skipped rather than searched for tags). Our own build output, not a sanitizer.
+ */
+function* startTags(html) {
+  const tag = /<([a-zA-Z][^\s/>]*)([^>]*)>/g;
+  for (let match = tag.exec(html); match; match = tag.exec(html)) {
+    const name = match[1].toLowerCase();
+    let body = null;
+    if (name === 'script' || name === 'style') {
+      const close = new RegExp(`</${name}[^>]*>`, 'ig');
+      close.lastIndex = tag.lastIndex;
+      const end = close.exec(html);
+      body = html.slice(tag.lastIndex, end ? end.index : html.length);
+      tag.lastIndex = end ? close.lastIndex : html.length;
+    }
+    yield { name, attributes: match[2], body };
+  }
+}
+
 /** The `'sha256-…'` source for each inline script on the page, in order, without repeats. */
 export function inlineScriptHashes(html) {
   const hashes = new Set();
-  for (const [, attributes, body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
-    if (runs(attributes)) hashes.add(`'sha256-${createHash('sha256').update(body, 'utf8').digest('base64')}'`);
+  for (const { name, attributes, body } of startTags(html)) {
+    if (name === 'script' && runs(attributes)) hashes.add(`'sha256-${createHash('sha256').update(body, 'utf8').digest('base64')}'`);
   }
   return [...hashes];
 }
@@ -37,7 +57,7 @@ export function inlineScriptHashes(html) {
 /** The page with its policy as the first thing in <head> after the charset. */
 export function withPolicy(html) {
   if (html.includes(MARKER)) throw new Error('already has a Content-Security-Policy meta tag');
-  if (/<[a-z][^>]*\son[a-z]+\s*=/i.test(html.replace(/<script\b[\s\S]*?<\/script>/gi, '').replace(/<style\b[\s\S]*?<\/style>/gi, ''))) {
+  if ([...startTags(html)].some(({ attributes }) => /\son[a-z]+\s*=/i.test(attributes))) {
     // An inline handler (onload="…") can't be allowed by a hash without 'unsafe-hashes': fail loudly.
     throw new Error('has an inline event handler attribute, which the policy would block');
   }
