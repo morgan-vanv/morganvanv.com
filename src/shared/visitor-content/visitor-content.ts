@@ -1,6 +1,6 @@
 /**
  * Visitor content: the guest subtitles, star names and mailbag letters Morgan approved, one file each in
- * `content/` (morganvanv.com-backend's "Publish as PR" opens a PR that adds one; merging it publishes it).
+ * `content/` (morganvanv.com-backend's "Publish as PR" link opens GitHub's editor with the file filled in; merging the PR publishes it).
  *
  * This file reads, checks and gathers those files, renders an answer's Markdown to HTML, and writes the
  * generated modules the app imports. `scripts/build-visitor-content.mjs` runs it before every build, test
@@ -22,7 +22,7 @@ export const QUESTION_MAX_LENGTH = 500;
 export const NEAR_MAX_LENGTH = 40;
 const SLUG_MAX_LENGTH = 40;
 
-/** The line Morgan writes his answer under. Exactly the backend's `ANSWER_MARKER` (ask/publish/entry.js). */
+/** The line Morgan writes his answer under. Exactly the backend's `ANSWER_MARKER` (ask/src/publish-link.js). */
 export const ANSWER_MARKER =
   '<!-- Write your answer below this line, then merge. Leave it empty and the site\'s checks will fail. -->';
 
