@@ -933,7 +933,7 @@ export class SkyComponent {
     setTimeout(() => {
       let value: Tonight | null;
       try {
-        value = astronomy ? tonight(astronomy, date, lat, lon) : null;
+        value = astronomy ? tonight(astronomy, date, lat, lon, this.catalog ?? undefined) : null;
       } catch {
         value = null;
       }
