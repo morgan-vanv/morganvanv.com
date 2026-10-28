@@ -24,3 +24,17 @@ export const GUEST_SUBTITLES_TOKEN = new InjectionToken<readonly GuestSubtitle[]
 export function guestCredit(by: string | null): string {
   return `— suggested by ${by ?? 'a stranger'}`;
 }
+
+/** One of the greeting's lines; visitors' lines carry a handwritten credit. */
+export interface GreetingLine {
+  readonly text: string;
+  readonly credit: string | null;
+}
+
+/** Morgan's lines, then the visitors' he approved, as the greeting and the avatar on Home say them. */
+export function taglines(guests: readonly GuestSubtitle[]): readonly GreetingLine[] {
+  return [
+    ...SUBTITLES.map(text => ({ text, credit: null })),
+    ...guests.map(guest => ({ text: guest.text, credit: guestCredit(guest.by) })),
+  ];
+}

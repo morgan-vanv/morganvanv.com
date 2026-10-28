@@ -2,13 +2,9 @@ import { Component, DestroyRef, afterNextRender, computed, inject, signal, Chang
 import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../shared/icon/icon.component';
 import { RecentStreamService } from '../../shared/services/recent-stream.service';
-import { GUEST_SUBTITLES_TOKEN, SUBTITLES, guestCredit } from '../../shared/constants/subtitles.const';
+import { GUEST_SUBTITLES_TOKEN, GreetingLine, taglines } from '../../shared/constants/subtitles.const';
 
-/** One line under the name; visitors' lines carry a handwritten credit. */
-export interface GreetingLine {
-  readonly text: string;
-  readonly credit: string | null;
-}
+export type { GreetingLine } from '../../shared/constants/subtitles.const';
 
 
 const CYCLE_INTERVAL_MS = 10000;
@@ -29,10 +25,7 @@ export class GreetingPageComponent {
   private readonly currentIndex = signal(0);
 
   /** Morgan's own lines and the visitors' ones he approved, which never change while the page is open. */
-  private readonly fixedLines: readonly GreetingLine[] = [
-    ...SUBTITLES.map(text => ({ text, credit: null })),
-    ...inject(GUEST_SUBTITLES_TOKEN).map(guest => ({ text: guest.text, credit: guestCredit(guest.by) })),
-  ];
+  private readonly fixedLines: readonly GreetingLine[] = taglines(inject(GUEST_SUBTITLES_TOKEN));
 
   /** The fixed lines plus, once known, a live "last listened" line that rotates in with them. */
   protected readonly subtitles = computed<readonly GreetingLine[]>(() => {

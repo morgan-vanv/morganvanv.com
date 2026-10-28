@@ -2,13 +2,16 @@
 @use '../../styles' as *;
 @use '../../shared/shared-styles.scss' as shared;
 
-// The photo wall beside a narrow shoutbox; stacked on tablets and phones.
-.social-panels {
-  @include shared.panel-grid(minmax(0, 1fr) 18.75rem);
+// Conversation first: the mailbag beside the shoutbox, both the same height; stacked on tablets and
+// phones (mailbag, then shoutbox), with the wall under them either way.
+.talk {
+  @include shared.panel-grid(minmax(0, 1.3fr) minmax(0, 1fr));
   align-items: stretch;
+  margin-bottom: 1.25rem;
 
   @media (max-width: $breakpoint-mobile) {
     align-items: start;
+    margin-bottom: 0.875rem;
   }
 }
 
@@ -26,17 +29,29 @@
   }
 }
 
+// The qualifier carries the way in: the count, then the address as a pill. It wraps under the title
+// when there isn't room beside it.
+.wall-panel h2 {
+  flex-wrap: wrap;
+  row-gap: 0.25rem;
+
+  .range-label {
+    text-align: right;
+  }
+
+  .pill {
+    font-size: $font-size-meta;
+  }
+}
+
 .shoutbox {
   display: flex;
   flex-direction: column;
-  // Its own height, staying in view while the wall scrolls past (wide screens).
-  align-self: start;
-  position: sticky;
-  top: 0;
 
+  // Until the campfire is live; kept small so the top row doesn't push the wall off the screen.
   app-under-construction {
-    --under-construction-size: 120px;
-    min-height: 12rem;
+    --under-construction-size: 96px;
+    min-height: 7.5rem;
   }
 }
 
@@ -91,12 +106,12 @@
   opacity: 0.65;
 }
 
-// Polaroids fill the panel: four across on a laptop, more on wide screens,
-// exactly two on phones.
+// Polaroids in one row on a laptop (the photos and the open slot), wrapping on smaller screens,
+// exactly two across on phones.
 .photo-wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 11rem), 1fr));
-  gap: 1.625rem 1.875rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 8.5rem), 1fr));
+  gap: 1.375rem 1.5rem;
   padding: 0.375rem 0.625rem 0.625rem;
 
   @media (max-width: $breakpoint-phone) {
@@ -108,7 +123,7 @@
 
 .polaroid {
   background: white;
-  padding: 0.5625rem 0.5625rem 0.125rem;
+  padding: 0.5rem 0.5rem 0.125rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4), 0 6px 20px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   min-width: 0;
@@ -141,12 +156,12 @@
     }
   }
 
-  // Add some static randomness to the rotation (deterministic modulo-based
-  // formula), one per slot; the wall always has 12.
-  @for $i from 1 through 12 {
+  // Some static randomness in the rotation (a deterministic modulo-based formula), one per slot,
+  // repeating after 24.
+  @for $i from 1 through 24 {
     $rot: math.div((($i * 37 + 13) % 60) - 30, 10); // between -3.0 and 3.0
     $hover-rot: math.div((($i * 43 + 29) % 80) - 40, 10); // between -4.0 and 4.0
-    &:nth-child(#{$i}) {
+    &:nth-child(24n + #{$i}) {
       transform: rotate(#{$rot}deg);
       &:hover {
         transform: scale(1.05) rotate(#{$hover-rot}deg);
@@ -175,13 +190,42 @@
   object-fit: cover;
 }
 
-.polaroid-placeholder {
-  color: #777;
-  font-size: $font-size-small;
-  text-align: center;
-  padding: 0.5rem;
-  font-family: 'JetBrains Mono', monospace;
-  opacity: 0.7;
+// The open slot: a dashed outline in the wall's shape, a link to email a photo in.
+.polaroid.invite {
+  background: rgba($main-color, 0.06);
+  border: 1px dashed rgba($main-color, 0.45);
+  box-shadow: none;
+  color: $main-color;
+  text-decoration: none;
+
+  .invite-slot {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    flex-direction: column;
+    text-align: center;
+    font-size: $font-size-small;
+    line-height: 1.4;
+    opacity: 0.85;
+  }
+
+  .invite-caption {
+    font-family: inherit;
+    font-size: $font-size-meta;
+    font-weight: bold;
+    color: $accent-color;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: $accent-color;
+    box-shadow: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $main-color;
+    outline-offset: 3px;
+  }
 }
 
 // Caveat handwriting; long captions wrap to two lines rather than overflow.
@@ -193,7 +237,7 @@
   align-items: center;
   justify-content: center;
   font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
-  font-size: 1.25rem;
+  font-size: 1.125rem;
   line-height: 1;
   color: #1a1a1a;
   text-align: center;

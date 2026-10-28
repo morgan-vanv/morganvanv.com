@@ -1,0 +1,14 @@
+<button type="button" class="avatar" aria-label="Make Morgan say something" (click)="press()">
+  <img src="profile_picture.webp" alt="Morgan Van Valkenburgh" class="u-photo" width="112" height="112" fetchpriority="high" />
+</button>
+
+@if (line(); as line) {
+  <div class="bubble" aria-hidden="true">
+    <span class="said">{{ line.text }}</span>
+    @if (line.credit) {
+      <span class="credit">{{ line.credit }}</span>
+    }
+  </div>
+}
+
+<span class="visually-hidden" role="status">{{ spoken() }}</span>

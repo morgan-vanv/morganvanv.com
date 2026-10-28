@@ -5,15 +5,14 @@ import { PageHeaderComponent } from '../../shared/page-header/page-header.compon
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 import { SITE_CONFIG } from '../../shared/config/site.config';
-import { COMMUNITY_PHOTOS, photoCountLabel } from '../../shared/constants/community-photos.const';
+import { COMMUNITY_PHOTOS, CommunityPhoto, photoCountLabel } from '../../shared/constants/community-photos.const';
 import { MailbagComponent } from './mailbag/mailbag';
 
-interface PhotoSpot {
-  id: number;
-  imageUrl?: string;
-  thumbUrl?: string;
-  placeholderText?: string;
-  caption?: string;
+/** The wall's open slot: an email with the subject set and a nudge for a caption. [DRAFT copy] */
+export function photoMailto(email: string): string {
+  const subject = 'A photo for the wall';
+  const body = 'Photo attached.\n\nCaption (optional): ';
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 @Component({
@@ -28,30 +27,24 @@ interface PhotoSpot {
 })
 export class SocialPageComponent {
   readonly siteEmail = SITE_CONFIG.email;
+  readonly photoMailto = photoMailto(SITE_CONFIG.email);
   readonly irc = SITE_CONFIG.irc;
   readonly shoutboxUnderConstruction = isUnderConstruction('shoutbox');
-  readonly selectedPhoto = signal<PhotoSpot | null>(null);
+  readonly selectedPhoto = signal<CommunityPhoto | null>(null);
   private lastFocusedElement: HTMLElement | null = null;
 
   readonly photoCountLabel = photoCountLabel(COMMUNITY_PHOTOS.length);
 
-  readonly photos: PhotoSpot[] = Array.from({ length: 12 }, (_, i) => {
-    const submitted = COMMUNITY_PHOTOS[i];
-    if (submitted) {
-      return { id: i, ...submitted };
-    }
-    return { id: i, placeholderText: 'Your Photo Here' };
-  });
+  /** The real photos only, oldest first; the wall ends with one open slot rather than a row of empty ones. */
+  readonly photos = COMMUNITY_PHOTOS;
 
-  openFullscreen(photo: PhotoSpot) {
-    if (photo.imageUrl) {
-      this.lastFocusedElement = document.activeElement as HTMLElement;
-      this.selectedPhoto.set(photo);
-      setTimeout(() => {
-        const closeBtn = document.querySelector<HTMLButtonElement>('.fullscreen-overlay .close-button');
-        closeBtn?.focus();
-      }, 0);
-    }
+  openFullscreen(photo: CommunityPhoto) {
+    this.lastFocusedElement = document.activeElement as HTMLElement;
+    this.selectedPhoto.set(photo);
+    setTimeout(() => {
+      const closeBtn = document.querySelector<HTMLButtonElement>('.fullscreen-overlay .close-button');
+      closeBtn?.focus();
+    }, 0);
   }
 
   closeFullscreen() {

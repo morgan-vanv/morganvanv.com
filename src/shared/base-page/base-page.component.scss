@@ -2,6 +2,9 @@
 @use '../../shared/shared-styles.scss' as shared;
 
 :host {
+  // The gap above and below the page card (the Moon lives in the top one, the webring in the bottom).
+  --card-gap: clamp(1rem, 5.5dvh, 3.5rem);
+  position: relative;
   height: 100dvh;
   width: 100%;
   display: flex;
@@ -22,7 +25,7 @@ app-custom-navbar {
   display: flex;
   flex-direction: column;
   width: min(90dvw, $card-max-width);
-  height: calc(100dvh - 2 * clamp(1rem, 5.5dvh, 3.5rem));
+  height: calc(100dvh - 2 * var(--card-gap));
   border: 1px solid $main-color;
   border-radius: 2rem;
   backdrop-filter: blur(8px);
@@ -57,5 +60,30 @@ app-custom-navbar {
 
   @media (max-height: $breakpoint-short) {
     padding: 0.625rem 0.75rem;
+  }
+}
+
+// The webring line: under the card on wide screens, at the end of the scroll on tablets and phones.
+.strip-under-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--card-gap);
+  align-items: center;
+
+  @media (max-width: $breakpoint-mobile) {
+    display: none;
+  }
+}
+
+.strip-in-card {
+  display: none;
+
+  @media (max-width: $breakpoint-mobile) {
+    display: flex;
+    margin-top: 1rem;
+    padding-top: 0.25rem;
+    border-top: 1px solid rgba($main-color, 0.12);
   }
 }

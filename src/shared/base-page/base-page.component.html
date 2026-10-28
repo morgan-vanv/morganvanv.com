@@ -5,8 +5,12 @@
   }
   <div class="page-content" #pageContent appScrollRegion>
     <ng-content />
+    <!-- Tablets and phones: the webring line ends the page's scroll. -->
+    <app-site-strip class="strip-in-card" />
   </div>
   @if (showScrollHint()) {
     <app-scroll-hint [scrollEl]="pageContent" />
   }
 </div>
+<!-- Wide screens: the webring line sits in the gap under the card. -->
+<app-site-strip class="strip-under-card" />

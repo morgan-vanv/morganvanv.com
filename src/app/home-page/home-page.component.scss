@@ -42,25 +42,9 @@ $icon-gap-min: 2px;
   }
 }
 
-.profile-picture {
+// The photo is a button that says things (avatar-says); it sits in the band's photo slot.
+app-avatar-says {
   grid-area: photo;
-  display: block;
-  width: 112px;
-  height: 112px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba($main-color, 0.85);
-  box-sizing: border-box;
-
-  @media (max-width: $breakpoint-mobile) {
-    width: 96px;
-    height: 96px;
-  }
-
-  @media (max-width: $breakpoint-mobile) and (max-height: $breakpoint-short) {
-    width: 72px;
-    height: 72px;
-  }
 }
 
 .intro {

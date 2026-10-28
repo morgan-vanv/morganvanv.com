@@ -100,8 +100,6 @@ export class NowPageComponent {
   readonly projects = PROJECTS;
   readonly projectCountLabel = `${PROJECTS.length} ${PROJECTS.length === 1 ? 'project' : 'projects'}`;
   readonly updated = formatDay(this.content.updated);
-  /** Hotline Webring's previous/next hops, under the buttons. */
-  readonly webring = SITE_CONFIG.webring;
 
   private readonly latestAchievement = toSignal(this.latestActivity(ACHIEVEMENT_ACTIVITY_TYPES), { initialValue: null });
   private readonly latestDrop = toSignal(this.latestActivity(DROP_ACTIVITY_TYPES), { initialValue: null });
