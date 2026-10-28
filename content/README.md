@@ -6,10 +6,12 @@ entry, so pending PRs never touch the same file.
 ## How an entry gets here
 
 1. A visitor uses the Contact form (ask me something, suggest a subtitle) or the sky's "name a star".
-2. It lands in Morgan's Discord. With publishing on (morganvanv.com-backend's `ask/publish`), the message has
-   a **Publish as PR** link; its button opens a PR on this repo that adds one file here.
-3. **Merge to publish it, close to reject it.** For a question, write the answer in the PR first (the PR
-   links to the file's editor). The next deploy shows it.
+2. It lands in Morgan's Discord. With publishing on (morganvanv.com-backend's `ask` Worker), the message has
+   a **Publish as PR** link: it opens GitHub's new-file editor on this repo with the file filled in. For a
+   question, write the answer under the marker line there. Commit to a new branch and create the PR.
+3. **Merge to publish it, close to reject it.** The next deploy shows it.
+
+GitHub's editor puts a `.json` file on one line; that's fine, only its contents are checked.
 
 To add one by hand, write the file yourself in the same format.
 

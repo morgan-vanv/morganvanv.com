@@ -1,8 +1,8 @@
 name: Visitor scope
 
-# Visitor PRs are opened by ask/publish (morganvanv.com-backend) under an account that can write here,
-# so they look like any other PR. This holds anything that calls itself a visitor's (a visitor/ branch
-# or a "visitor:" title) to exactly what ask/publish makes: one new file under content/, named after the
+# Until Ask Morgan 2.1, visitor PRs were opened by a token that could write here, so they looked like any
+# other PR. Morgan now opens them himself from GitHub's editor, but the guard stays: anything that calls
+# itself a visitor's (a visitor/ branch or a "visitor:" title) may only be one new file under content/, named after the
 # branch. Every other PR passes at once, so the check can be required. Its own workflow so a retitled
 # PR is checked again ("edited") without rerunning all of CI.
 
