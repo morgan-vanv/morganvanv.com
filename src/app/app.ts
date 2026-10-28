@@ -21,6 +21,10 @@ export class App {
     inject(KeyboardNavService);
     // One visit, counted once per tab session (on the real site only), whichever page it starts on.
     const campfire = inject(CampfireService);
-    afterNextRender(() => campfire.countVisit());
+    afterNextRender(() => {
+      campfire.countVisit();
+      // On any page, so a #host=<key> typed onto the wrong page doesn't sit in the address bar.
+      void campfire.captureHostKey();
+    });
   }
 }

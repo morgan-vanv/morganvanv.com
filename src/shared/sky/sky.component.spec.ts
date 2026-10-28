@@ -348,6 +348,11 @@ describe('SkyComponent: visitor names and naming', () => {
     stubBrowser({ landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    // A fixed night: at some hours two candidates sit close enough that the click below lands nearer the
+    // wrong one, so a run at the wrong time failed.
+    const component = fixture.componentInstance as unknown as { pinnedTime: Date | null; draw: () => void };
+    component.pinnedTime = new Date('2026-10-28T01:00:00Z');
+    component.draw();
     await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(1));
     const candidates = sky.candidates();

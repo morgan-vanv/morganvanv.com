@@ -162,6 +162,35 @@ describe('CampfireService', () => {
     expect(await tried).toBe('That\'s not the host key.');
   });
 
+  it('forgets a host key the campfire no longer accepts, so the host controls go away', async () => {
+    localStorage.setItem('campfire-host-key', 'old-key');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const host = TestBed.inject(CampfireService);
+    const backend = TestBed.inject(HttpTestingController);
+    expect(host.isHost()).toBe(true);
+    const tried = host.remove(5);
+    backend.expectOne(`${BASE}/shouts/5`).flush({ error: 'That\'s not the host key.' }, { status: 401, statusText: 'Unauthorized' });
+    expect(await tried).toBe('That\'s not the host key.');
+    expect(host.isHost()).toBe(false);
+    expect(localStorage.getItem('campfire-host-key')).toBeNull();
+    backend.verify();
+  });
+
+  it('keeps the host key through other failures (a rate limit, the campfire being down)', async () => {
+    localStorage.setItem('campfire-host-key', 's3cret');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const host = TestBed.inject(CampfireService);
+    const backend = TestBed.inject(HttpTestingController);
+    const tried = host.setOpen(false);
+    backend.expectOne(`${BASE}/fire`).flush(null, { status: 503, statusText: 'Unavailable' });
+    await tried;
+    expect(host.isHost()).toBe(true);
+    backend.verify();
+    localStorage.removeItem('campfire-host-key');
+  });
+
   it('reports why a shout didn\'t go', async () => {
     const said = service.say('sam', 'hello', '');
     http.expectOne(`${BASE}/shouts`).flush({ error: 'Too many links.' }, { status: 400, statusText: 'Bad Request' });

@@ -1,0 +1,44 @@
+name: Visitor scope
+
+# Visitor PRs are opened by ask/publish (morganvanv.com-backend) under an account that can write here,
+# so they look like any other PR. This holds anything that calls itself a visitor's (a visitor/ branch
+# or a "visitor:" title) to exactly what ask/publish makes: one new file under content/, named after the
+# branch. Every other PR passes at once, so the check can be required. Its own workflow so a retitled
+# PR is checked again ("edited") without rerunning all of CI.
+
+on:
+  pull_request:
+    branches:
+      - master
+    types: [opened, synchronize, reopened, edited]
+
+permissions: {}
+
+concurrency:
+  group: visitor-scope-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  visitor-scope:
+    name: Visitor scope
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      # The script reads the PR's file list; nothing here writes.
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+      # No npm ci: the script only imports one dependency-free .ts file.
+      - run: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/check-visitor-pr.mjs
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}

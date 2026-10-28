@@ -28,14 +28,16 @@ class TilesPageComponent {}
 
 describe('App', () => {
   const countVisit = vi.fn();
+  const captureHostKey = vi.fn(async () => undefined);
 
   beforeEach(async () => {
     countVisit.mockClear();
+    captureHostKey.mockClear();
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
         provideRouter([{ path: 'interests', component: TilesPageComponent }]), provideHttpClient(), provideHttpClientTesting(),
-        { provide: CampfireService, useValue: { countVisit } },
+        { provide: CampfireService, useValue: { countVisit, captureHostKey } },
       ],
     }).compileComponents();
   });
@@ -89,5 +91,7 @@ describe('App', () => {
       const fixture = TestBed.createComponent(App);
       await fixture.whenStable();
       expect(countVisit).toHaveBeenCalledTimes(1);
+      // A #host=<key> is taken out of the address on whatever page it was typed onto.
+      expect(captureHostKey).toHaveBeenCalledTimes(1);
   });
 });
