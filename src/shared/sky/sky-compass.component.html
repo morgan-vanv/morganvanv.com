@@ -4,12 +4,6 @@
     <button type="button" class="turn" [attr.aria-label]="'turn left ' + turnStep + '°'" (click)="sky.turn(-turnStep)">
       <app-icon name="chevron-left" />
     </button>
-    <button type="button" class="turn" [attr.aria-label]="'tilt up ' + tiltStep + '°'" (click)="sky.tilt(tiltStep)">
-      <app-icon name="chevron-up" />
-    </button>
-    <button type="button" class="turn" [attr.aria-label]="'tilt down ' + tiltStep + '°'" (click)="sky.tilt(-tiltStep)">
-      <app-icon name="chevron-down" />
-    </button>
     <button type="button" class="turn" [attr.aria-label]="'turn right ' + turnStep + '°'" (click)="sky.turn(turnStep)">
       <app-icon name="chevron-right" />
     </button>

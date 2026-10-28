@@ -106,7 +106,7 @@ export class SkyService {
   /** Bumped when the naming panel has rendered (it loads on first use), so the sky can see what it covers. */
   readonly namingPanelShown = signal(0);
 
-  /** Free look: which way the visitor is facing and how far up (the sky keeps it current as it turns). Always south to start. */
+  /** Free look: which way the visitor is facing (the sky keeps it current as it turns). Always south to start. */
   readonly view = signal<LookView>(FACE_SOUTH);
   /** A view the compass buttons have asked for; the sky turns to it, then clears it. The count makes asking twice turn twice. */
   readonly viewRequest = signal<{ readonly view: LookView; readonly count: number } | null>(null);
@@ -156,13 +156,7 @@ export class SkyService {
   /** Turns left (negative) or right by some degrees, from wherever the last turn was heading. */
   turn(degrees: number): void {
     const from = this.viewRequest()?.view ?? this.view();
-    this.requestView({ facing: from.facing + degrees, tilt: from.tilt });
-  }
-
-  /** Tilts up (positive) or down by some degrees, between the horizon and the zenith. */
-  tilt(degrees: number): void {
-    const from = this.viewRequest()?.view ?? this.view();
-    this.requestView({ facing: from.facing, tilt: from.tilt + degrees });
+    this.requestView({ facing: from.facing + degrees });
   }
 
   faceSouth(): void {

@@ -47,9 +47,9 @@
   padding: 0 0.15rem;
   font-size: $font-size-meta;
   white-space: nowrap;
-  // The reading changes as the sky turns; room for the longest ("facing WNW · 293° · looking up 45°"),
-  // so the panel doesn't twitch.
-  min-width: 34ch;
+  // The reading changes as the sky turns; room for the longest ("facing WNW · 293°"), so the
+  // panel doesn't twitch.
+  min-width: 18ch;
   font-variant-numeric: tabular-nums;
 }
 

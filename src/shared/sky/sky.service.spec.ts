@@ -196,7 +196,7 @@ describe('SkyService lighting', () => {
       expect(service.selected()).toBe(c);
       // Nothing selected: from where the visitor is facing.
       service.select(null);
-      service.view.set({ facing: 100, tilt: 0 });
+      service.view.set({ facing: 100 });
       service.step(1);
       expect(service.selected()).toBe(a);
       service.select(null);
@@ -236,25 +236,21 @@ describe('SkyService lighting', () => {
       service.leaveLookUp();
     });
 
-    it('the compass turns from where the last turn was heading, clamps the tilt, and says where it leaves you', () => {
+    it('the compass turns from where the last turn was heading, and says where it leaves you', () => {
       const service = TestBed.inject(SkyService);
       service.enterLookUp();
-      expect(service.view()).toEqual({ facing: 180, tilt: 0 });
+      expect(service.view()).toEqual({ facing: 180 });
       service.turn(-45);
-      expect(service.viewRequest()?.view).toEqual({ facing: 135, tilt: 0 });
+      expect(service.viewRequest()?.view).toEqual({ facing: 135 });
       service.turn(-45); // before the sky got there: from where it was heading
-      expect(service.viewRequest()?.view).toEqual({ facing: 90, tilt: 0 });
-      expect(service.viewAnnouncement()).toBe('facing east, 90°, at the horizon');
+      expect(service.viewRequest()?.view).toEqual({ facing: 90 });
+      expect(service.viewAnnouncement()).toBe('facing east, 90°');
       service.turn(-135);
       expect(service.viewRequest()?.view.facing).toBe(315); // wraps past north
-      service.tilt(-15);
-      expect(service.viewRequest()?.view.tilt).toBe(0); // not below the horizon
-      for (let i = 0; i < 8; i++) service.tilt(15);
-      expect(service.viewRequest()?.view.tilt).toBe(90); // nor past the zenith
-      expect(service.viewAnnouncement()).toBe('facing northwest, 315°, straight up');
+      expect(service.viewAnnouncement()).toBe('facing northwest, 315°');
       const count = service.viewRequest()!.count;
       service.faceSouth();
-      expect(service.viewRequest()).toEqual({ view: { facing: 180, tilt: 0 }, count: count + 1 });
+      expect(service.viewRequest()).toEqual({ view: { facing: 180 }, count: count + 1 });
       // The same words twice still get said.
       const said = service.viewAnnouncement();
       service.faceSouth();
@@ -265,14 +261,14 @@ describe('SkyService lighting', () => {
     it('leaving look-up faces south again, and so does coming back', () => {
       const service = TestBed.inject(SkyService);
       service.enterLookUp();
-      service.view.set({ facing: 338, tilt: 40 });
+      service.view.set({ facing: 338 });
       service.turn(45);
       service.leaveLookUp();
-      expect(service.view()).toEqual({ facing: 180, tilt: 0 });
+      expect(service.view()).toEqual({ facing: 180 });
       expect(service.viewRequest()).toBeNull();
-      service.view.set({ facing: 20, tilt: 10 }); // (as if left over)
+      service.view.set({ facing: 20 }); // (as if left over)
       service.startNaming();
-      expect(service.view()).toEqual({ facing: 180, tilt: 0 });
+      expect(service.view()).toEqual({ facing: 180 });
     });
 
     it('picks the candidate nearest a click, within reach', () => {

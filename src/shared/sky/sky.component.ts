@@ -13,7 +13,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { SkyService, VISITOR_STARS_TOKEN } from './sky.service';
-import { Mat3, altAz, j2000ToHorizontalMatrix, multiply, sunHorizontal } from './sky-math';
+import { Mat3, altAz, altAzToVector, j2000ToHorizontalMatrix, multiply, sunHorizontal } from './sky-math';
 import { ProperNameFile, starsAround, starsOnScreen, unnamedStars, visitorHoverNames, visitorNames } from './sky-naming';
 import type { FreeLook } from './sky-free-look';
 import { LookView, sameReading } from './sky-view';
@@ -1073,6 +1073,8 @@ export class SkyComponent {
       this.label.set(null);
       this.drawOverlay();
     }
+    // The Sun turns with the sky too.
+    if (this.state) this.placeSun(this.state);
     if (!sameReading(view, this.sky.view())) this.sky.view.set(view);
   }
 
@@ -1100,6 +1102,38 @@ export class SkyComponent {
     if (opacity === 0 && !this.freeOn) this.free?.release();
   }
 
+  /**
+   * Puts the Sun (an element of its own) where the light has it: in the normal view's
+   * projection, or, in free look, wherever the sky is turned to (so it turns with the stars).
+   */
+  private placeSun(state: LightState): void {
+    const layout = this.layout;
+    const sun = this.sunElement().nativeElement;
+    if (!layout || !state.sun) {
+      sun.style.display = 'none';
+      return;
+    }
+    const css = layout.artPixel;
+    const radius = sunDiscRadius(layout) * css;
+    const free = this.freeOn && this.free?.pan ? this.free : null;
+    const place = free
+      ? free.screenPoint(altAzToVector(state.sun.alt, state.sun.az), radius * 8)
+      : (() => {
+        const p = sunScreen(layout, state.sun);
+        if (!p) return null;
+        const [x, y] = [p.x * css, p.y * css];
+        const onScreen = x > -radius * 8 && y > -radius * 8 && x < layout.width * css + radius * 8 && y < layout.height * css + radius * 8;
+        return onScreen ? { x, y } : null;
+      })();
+    if (!place) {
+      sun.style.display = 'none';
+      return;
+    }
+    sun.style.display = 'block';
+    sun.style.setProperty('--radius', `${radius.toFixed(2)}px`);
+    sun.style.transform = `translate(${place.x.toFixed(2)}px, ${place.y.toFixed(2)}px)`;
+  }
+
   /** Where the selected star is now (CSS pixels), for its ring; drawn as an element, never on the sky. */
   private updateSelectedPoint(): void {
     const point = this.selectedOnScreen();
@@ -1109,20 +1143,7 @@ export class SkyComponent {
   /** Puts the Sun where the state has it, and hands the small lights and the page their levels. */
   private apply(state: LightState): void {
     this.state = state;
-    const layout = this.layout;
-    const sun = this.sunElement().nativeElement;
-    const place = layout && state.sun ? sunScreen(layout, state.sun) : null;
-    if (layout && place) {
-      const css = layout.artPixel;
-      const radius = sunDiscRadius(layout) * css;
-      const [x, y] = [place.x * css, place.y * css];
-      const onScreen = x > -radius * 8 && y > -radius * 8 && x < layout.width * css + radius * 8 && y < layout.height * css + radius * 8;
-      sun.style.display = onScreen ? 'block' : 'none';
-      sun.style.setProperty('--radius', `${radius.toFixed(2)}px`);
-      sun.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
-    } else {
-      sun.style.display = 'none';
-    }
+    this.placeSun(state);
     const style = this.host.style;
     style.setProperty('--night-light', state.window.toFixed(3));
     // Out (and not animating) in daylight.

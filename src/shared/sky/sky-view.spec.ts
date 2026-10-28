@@ -1,14 +1,14 @@
 import { FACE_SOUTH, clampView, compassPoint, compassText, sameReading, spokenView } from './sky-view';
 
 describe('sky view (free look)', () => {
-  it('starts facing south, level', () => {
-    expect(FACE_SOUTH).toEqual({ facing: 180, tilt: 0 });
+  it('starts facing south', () => {
+    expect(FACE_SOUTH).toEqual({ facing: 180 });
   });
 
-  it('wraps the facing round and holds the tilt between the horizon and the zenith', () => {
-    expect(clampView({ facing: -22, tilt: -5 })).toEqual({ facing: 338, tilt: 0 });
-    expect(clampView({ facing: 725, tilt: 120 })).toEqual({ facing: 5, tilt: 90 });
-    expect(clampView({ facing: 360, tilt: 40 })).toEqual({ facing: 0, tilt: 40 });
+  it('wraps the facing round', () => {
+    expect(clampView({ facing: -22 })).toEqual({ facing: 338 });
+    expect(clampView({ facing: 725 })).toEqual({ facing: 5 });
+    expect(clampView({ facing: 360 })).toEqual({ facing: 0 });
   });
 
   it('names the 16 points of the compass', () => {
@@ -21,16 +21,16 @@ describe('sky view (free look)', () => {
   });
 
   it('reads like a compass, and says it in words', () => {
-    expect(compassText({ facing: 338, tilt: 40 })).toBe('facing NNW · 338° · looking up 40°');
-    expect(compassText(FACE_SOUTH)).toBe('facing S · 180° · at the horizon');
-    expect(compassText({ facing: 359.7, tilt: 89.8 })).toBe('facing N · 0° · straight up');
-    expect(spokenView({ facing: 337.6, tilt: 40.2 })).toBe('facing north-northwest, 338°, looking up 40°');
-    expect(spokenView({ facing: 90, tilt: 0 })).toBe('facing east, 90°, at the horizon');
+    expect(compassText({ facing: 338 })).toBe('facing NNW · 338°');
+    expect(compassText(FACE_SOUTH)).toBe('facing S · 180°');
+    expect(compassText({ facing: 359.7 })).toBe('facing N · 0°');
+    expect(spokenView({ facing: 337.6 })).toBe('facing north-northwest, 338°');
+    expect(spokenView({ facing: 90 })).toBe('facing east, 90°');
   });
 
   it('only counts a change the compass would show', () => {
-    expect(sameReading({ facing: 180.2, tilt: 0.3 }, FACE_SOUTH)).toBe(true);
-    expect(sameReading({ facing: 181, tilt: 0 }, FACE_SOUTH)).toBe(false);
-    expect(sameReading({ facing: 359.8, tilt: 10 }, { facing: 0.2, tilt: 10 })).toBe(true);
+    expect(sameReading({ facing: 180.2 }, FACE_SOUTH)).toBe(true);
+    expect(sameReading({ facing: 181 }, FACE_SOUTH)).toBe(false);
+    expect(sameReading({ facing: 359.8 }, { facing: 0.2 })).toBe(true);
   });
 });

@@ -15,7 +15,7 @@ import {
   viewPoint,
 } from './sky-panorama';
 import { ease } from './sky-transition';
-import { FACE_SOUTH, LookView, MAX_TILT, clampView } from './sky-view';
+import { FACE_SOUTH, LookView, clampView } from './sky-view';
 
 /** How far (CSS px) a press can wander and still be a tap, by mouse or pen and by finger. */
 export const TAP_SLOP = 6;
@@ -45,10 +45,10 @@ export interface FreeLookHost {
 export type PanoramaInput = Omit<SkyInput, 'projection' | 'paintBackground' | 'drawSun'>;
 
 /**
- * Free look: while looking up, the sky can be dragged round and up. The whole
- * sky is drawn once into a panorama (sky-panorama.ts) on one canvas; a drag
- * only moves that canvas (a CSS transform), so nothing is redrawn per frame.
- * The painting in front stays where it is. Loaded with the first look up.
+ * Free look: while looking up, the sky can be dragged round. The whole sky is
+ * drawn once into a panorama (sky-panorama.ts) on one canvas; a drag only
+ * moves that canvas (a CSS transform), so nothing is redrawn per frame. The
+ * painting in front stays where it is. Loaded with the first look up.
  *
  * Pointer events: a press on open sky that moves more than a few pixels is a
  * drag (the pointer is captured, and the click it ends with is swallowed);
@@ -290,7 +290,7 @@ export class FreeLook {
       this.dragging = true;
       this.surface.classList.add('dragging');
     }
-    this.view = dragView(pan, this.view, event.clientX - pointer.lastX, event.clientY - pointer.lastY);
+    this.view = dragView(pan, this.view, event.clientX - pointer.lastX);
     pointer.lastX = event.clientX;
     pointer.lastY = event.clientY;
     this.samples.push({ t: event.timeStamp, x: event.clientX, y: event.clientY });
@@ -319,9 +319,9 @@ export class FreeLook {
     else this.host.settled(this.view, 'drag');
   }
 
-  /** Carries on after a flick, slowing to a stop. */
+  /** Carries on after a flick, slowing to a stop (only round: up and down don't turn the sky). */
   private glide(velocity: { x: number; y: number }): void {
-    let [vx, vy] = [velocity.x, velocity.y];
+    let vx = velocity.x;
     let last = performance.now();
     this.motion = 'glide';
     const step = (now: number) => {
@@ -329,19 +329,14 @@ export class FreeLook {
       // (Frames can arrive with a time just before the last one's.)
       const dt = Math.max(0, Math.min(50, now - last));
       last = now;
-      if (!pan || Math.hypot(vx, vy) < GLIDE_MIN_SPEED) {
+      if (!pan || Math.abs(vx) < GLIDE_MIN_SPEED) {
         this.motion = null;
         this.frame = 0;
         this.host.settled(this.view, 'drag');
         return;
       }
-      const next = dragView(pan, this.view, vx * dt, vy * dt);
-      // Stopped at the horizon or the zenith: no more up or down.
-      if ((next.tilt <= 0 && vy < 0) || (next.tilt >= MAX_TILT && vy > 0)) vy = 0;
-      this.view = next;
-      const decay = Math.exp(-dt / GLIDE_TIME_CONSTANT);
-      vx *= decay;
-      vy *= decay;
+      this.view = dragView(pan, this.view, vx * dt);
+      vx *= Math.exp(-dt / GLIDE_TIME_CONSTANT);
       this.place();
       this.frame = requestAnimationFrame(step);
     };

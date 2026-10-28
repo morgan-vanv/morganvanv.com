@@ -4,7 +4,7 @@ import { computeBodies } from './sky-bodies';
 import { CINCINNATI } from './sky.service';
 import { Lighting, computeLayout, drawLine, layoutProjection, pieces, prepareCatalog, renderSky, skyColors, starVisibility } from './sky-render';
 import { altAz, altAzToVector, j2000ToHorizontalMatrix, multiply } from './sky-math';
-import { computePanorama, panoramaProjection } from './sky-panorama';
+import { computePanorama, mercator, panoramaProjection, unmercator } from './sky-panorama';
 
 const catalog = prepareCatalog(
   JSON.parse(readFileSync('public/data/sky/stars.json', 'utf8')),
@@ -243,28 +243,30 @@ describe('sky render', () => {
       // Polaris (and so the north) is on it, about 39° up over Cincinnati.
       const polaris = result.targets.find(t => t.name === 'Polaris');
       expect(polaris).toBeTruthy();
-      const asSeen = result.targets.filter(t => t.name === 'Polaris').map(t => pan.altTop - t.y / pan.degPx);
+      const asSeen = result.targets.filter(t => t.name === 'Polaris').map(t => unmercator(mercator(pan.altTop) - t.y / pan.bufScale));
       expect(asSeen.some(a => Math.abs(a - lat) < 1)).toBe(true);
     });
 
-    it('draws each star in both images (as seen, and over the top) and again a period over near the seam', () => {
-      const vega = result.targets.filter(t => t.name === 'Vega');
+    it('draws each star where its altitude is, and again a period over near the seam; nothing above the window\'s top', () => {
       const toHorizontal = j2000ToHorizontalMatrix(date, lat, lon);
-      const vegaH = multiply(toHorizontal, catalog.names.find(n => n.name === 'Vega')!.v);
-      const { alt } = altAz(vegaH);
-      const rows = vega.map(t => pan.altTop - t.y / pan.degPx);
-      expect(rows.some(a => Math.abs(a - alt) < 0.01)).toBe(true);
-      if (180 - alt <= pan.altTop) expect(rows.some(a => Math.abs(a - (180 - alt)) < 0.01)).toBe(true);
+      const altOf = (name: string) => altAz(multiply(toHorizontal, catalog.names.find(n => n.name === name)!.v)).alt;
+      const rowsOf = (name: string) => result.targets.filter(t => t.name === name).map(t => unmercator(mercator(pan.altTop) - t.y / pan.bufScale));
+      // Vega is up in the west at this hour; Alpheratz is nearly overhead, above the window's top.
+      expect(altOf('Vega')).toBeGreaterThan(0);
+      expect(altOf('Vega')).toBeLessThan(pan.altTop);
+      expect(rowsOf('Vega').some(a => Math.abs(a - altOf('Vega')) < 0.01)).toBe(true);
+      expect(altOf('Alpheratz')).toBeGreaterThan(pan.altTop);
+      expect(rowsOf('Alpheratz')).toEqual([]);
       // Anything drawn in the first stretch past 360° is a copy of what's at its start.
       const copies = result.targets.filter(t => t.x > pan.period);
       expect(copies.length).toBeGreaterThan(0);
       for (const copy of copies) {
         expect(result.targets.some(t => t.name === copy.name && Math.abs(t.x - (copy.x - pan.period)) < 1e-6 && Math.abs(t.y - copy.y) < 1e-6)).toBe(true);
       }
-      // And the pixels match too (give or take a neighbour's glow cut off at the very edge).
-      const star = copies.find(t => t.kind === 'star')!;
+      // And the pixels match too (a star right at the edge loses some of its glow there, so one a little in).
+      const star = copies.find(t => t.kind === 'star' && t.x - pan.period > 6)!;
       expect(alpha(star.x, star.y)).toBeGreaterThan(0);
-      expect(Math.abs(alpha(star.x - pan.period, star.y) - alpha(star.x, star.y))).toBeLessThan(8);
+      expect(Math.abs(alpha(star.x - pan.period, star.y) - alpha(star.x, star.y))).toBeLessThan(16);
     });
 
     it('draws constellation lines in short pieces, none jumping across the seam or the zenith', () => {

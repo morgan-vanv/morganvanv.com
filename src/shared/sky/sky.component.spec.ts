@@ -442,7 +442,10 @@ describe('SkyComponent: visitor names and naming', () => {
     component.draw();
     await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.candidates().length).toBeGreaterThan(2));
-    const pick = sky.candidates().find(c => c.star !== sky.selected())!;
+    // One that will have set by 9 am.
+    const later = j2000ToHorizontalMatrix(new Date('2026-10-28T13:00:00Z'), sky.location().lat, sky.location().lon);
+    const pick = sky.candidates().find(c => c.star !== sky.selected() && multiply(later, c.star.v)[2] < 0)!;
+    expect(pick).toBeTruthy();
     const chosen = pick.star;
     sky.select(chosen);
     // Something now covers it (as the panel or the trees might): it's no longer a candidate, but stays selected.
@@ -562,8 +565,8 @@ describe('SkyComponent: free look', () => {
     const transform = panorama(fixture.nativeElement).style.transform;
     const pan = computePanorama(window.innerWidth, window.innerHeight);
 
-    // Drag right by 100px and down by 30: the sky goes with it (turned left, tilted up). The click it
-    // ends with lands right on another star, where that star is once the sky has stopped.
+    // Drag right by 100px and down by 30: the sky goes with it (turned left; down does nothing). The
+    // click it ends with lands right on another star, where that star is once the sky has stopped.
     let clickedOn: typeof another | undefined;
     await press(fixture, { x: another.x - 100, y: another.y - 30 }, another, () => {
       clickedOn = sky.candidates().find(c => c.star !== sky.selected())!;
@@ -572,7 +575,6 @@ describe('SkyComponent: free look', () => {
     expect(putImageData.mock.calls.length).toBe(draws);
     expect(panorama(fixture.nativeElement).style.transform).not.toBe(transform);
     expect(sky.view().facing).toBeCloseTo(180 - 100 / pan.cssPerDeg, 6);
-    expect(sky.view().tilt).toBeCloseTo(30 / pan.cssPerDeg, 6);
     expect(clickedOn).toBeTruthy();
     expect(sky.selected()).not.toBe(clickedOn!.star);
     expect(sky.selected()).toBe(selected);
@@ -607,9 +609,9 @@ describe('SkyComponent: free look', () => {
     await fixture.whenStable();
     sky.turn(-5);
     await fixture.whenStable();
-    expect(sky.view()).toEqual({ facing: 175, tilt: 0 });
+    expect(sky.view()).toEqual({ facing: 175 });
     expect(sky.viewRequest()).toBeNull();
-    expect(sky.viewAnnouncement()).toBe('facing south, 175°, at the horizon');
+    expect(sky.viewAnnouncement()).toBe('facing south, 175°');
     const { alt, az } = altAz(multiply(j2000ToHorizontalMatrix(component.pinnedTime, CINCINNATI.lat, CINCINNATI.lon), middle.star.v));
     const there = viewPoint(computePanorama(window.innerWidth, window.innerHeight), sky.view(), alt, az)!;
     expect(there).not.toBeNull();
@@ -649,9 +651,8 @@ describe('SkyComponent: free look', () => {
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     await lookUp(fixture, sky);
     sky.turn(90);
-    sky.tilt(30);
     await fixture.whenStable();
-    expect(sky.view()).toEqual({ facing: 270, tilt: 30 });
+    expect(sky.view()).toEqual({ facing: 270 });
     sky.leaveLookUp();
     await fixture.whenStable();
     expect(sky.view()).toEqual(FACE_SOUTH);
@@ -777,7 +778,7 @@ describe('SkyComponent: free look', () => {
     (fixture.componentInstance as unknown as Internals).pinnedTime = new Date('2026-10-28T03:00:00Z');
     await startNaming(fixture, sky);
     await vi.waitFor(() => expect(sky.around().length).toBeGreaterThan(100));
-    // Some stars that are up can't be shown clear of the sheet (low ones, which tilting only sinks).
+    // Some stars that are up can't be shown clear of the sheet (low ones, under its edge in every view).
     const low = sky.around().filter(s => s.alt < 4);
     expect(low.length).toBeGreaterThan(0);
     // A whole lap and a bit, so every star that's up is reached.
@@ -816,7 +817,7 @@ describe('SkyComponent: free look', () => {
     expect(sky.viewRequest()).toBeNull();
     sky.turn(45);
     await fixture.whenStable();
-    expect(sky.view()).toEqual({ facing: 225, tilt: 0 });
+    expect(sky.view()).toEqual({ facing: 225 });
   });
 });
 

@@ -1,28 +1,27 @@
 /**
- * Free look: which way the visitor is looking while they look up. Small and
+ * Free look: which way the visitor is facing while they look up. Small and
  * pure, because the service and the compass need it before the free-look code
  * itself (sky-panorama.ts, sky-free-look.ts) has loaded.
+ *
+ * Only a facing: the painting is a window, and you turn behind it. There is no
+ * tilt, so the zenith is never in the window (see sky-panorama.ts for why).
  */
 
 export interface LookView {
   /** The azimuth in the middle of the screen, degrees from north through east, [0, 360). */
   readonly facing: number;
-  /** How far up the sky is turned: the altitude sitting on the painting's horizon line, 0 (as normal) to 90 (the zenith). */
-  readonly tilt: number;
 }
 
 /** The normal view, and where free look always starts. */
-export const FACE_SOUTH: LookView = { facing: 180, tilt: 0 };
-export const MAX_TILT = 90;
-/** What the compass buttons turn and tilt by. */
+export const FACE_SOUTH: LookView = { facing: 180 };
+/** What the compass buttons turn by. */
 export const TURN_STEP = 45;
-export const TILT_STEP = 15;
 
 export const wrapDegrees = (deg: number) => ((deg % 360) + 360) % 360;
 
-/** Facing wrapped into [0, 360), tilt held between the horizon and the zenith. */
+/** Facing wrapped into [0, 360). */
 export function clampView(view: LookView): LookView {
-  return { facing: wrapDegrees(view.facing), tilt: Math.min(MAX_TILT, Math.max(0, view.tilt)) };
+  return { facing: wrapDegrees(view.facing) };
 }
 
 const POINTS = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
@@ -37,24 +36,18 @@ export function compassPoint(facing: number): string {
 }
 
 const degrees = (facing: number) => Math.round(wrapDegrees(facing)) % 360;
-const tiltDegrees = (tilt: number) => Math.round(Math.min(MAX_TILT, Math.max(0, tilt)));
 
-function tiltText(tilt: number): string {
-  const t = tiltDegrees(tilt);
-  return t === 0 ? 'at the horizon' : t === MAX_TILT ? 'straight up' : `looking up ${t}°`;
-}
-
-/** The compass reading: "facing NNW · 338° · looking up 40°" (draft copy). */
+/** The compass reading: "facing NNW · 338°" (draft copy). */
 export function compassText(view: LookView): string {
-  return `facing ${compassPoint(view.facing)} · ${degrees(view.facing)}° · ${tiltText(view.tilt)}`;
+  return `facing ${compassPoint(view.facing)} · ${degrees(view.facing)}°`;
 }
 
-/** The same, for a screen reader: "facing north-northwest, 338°, looking up 40°". */
+/** The same, for a screen reader: "facing north-northwest, 338°". */
 export function spokenView(view: LookView): string {
-  return `facing ${SPOKEN[pointIndex(view.facing)]}, ${degrees(view.facing)}°, ${tiltText(view.tilt)}`;
+  return `facing ${SPOKEN[pointIndex(view.facing)]}, ${degrees(view.facing)}°`;
 }
 
 /** Whether two views read the same on the compass (so the reading only changes when it would show). */
 export function sameReading(a: LookView, b: LookView): boolean {
-  return degrees(a.facing) === degrees(b.facing) && tiltDegrees(a.tilt) === tiltDegrees(b.tilt);
+  return degrees(a.facing) === degrees(b.facing);
 }
