@@ -1,11 +1,12 @@
 import { oneLine } from '../../../shared/visitor-content/visitor-content';
 
 /**
- * What the Contact form sends to the Ask Morgan function, which forwards it to Morgan's Discord.
+ * What the Contact form sends to the Ask Morgan Worker (morganvanv.com-backend `ask/`), which forwards it
+ * to Morgan's Discord.
  *
- * `question` is always a complete, human-readable message: the deployed function only reads
- * `question` (and the honeypot), so it must stand on its own. The other fields describe the same
- * thing in structured form for a function that knows about kinds.
+ * `question` is always a complete, human-readable message, the text Discord shows, so it must stand on
+ * its own. The other fields describe the same thing in structured form: the Worker builds the
+ * "Publish as PR" file from them, and only when they match `question`.
  */
 export type ContactKind = 'question' | 'subtitle' | 'message';
 

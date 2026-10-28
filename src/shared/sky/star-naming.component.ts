@@ -15,7 +15,7 @@ export const NAMING_ERROR = 'Something went wrong sending that. Please try again
 /**
  * Name a star: the panel shown while looking up. The selected star (picked on
  * the sky, or with ‹ ›) gets a ring; the visitor suggests a name and it goes to
- * Morgan through the Ask Morgan function. Nothing is published from here: a
+ * Morgan through the Ask Morgan Worker. Nothing is published from here: a
  * name only appears once Morgan merges its file into content/stars/.
  *
  * No FormsModule (it would land in the initial bundle, as the panel is part of

@@ -259,8 +259,8 @@ export interface StarSuggestion {
 }
 
 /**
- * The message Morgan gets (the Ask Morgan function forwards `question` to his Discord). It's exactly what
- * morganvanv.com-backend's `ask/submit` checks the structured fields against before it offers a
+ * The message Morgan gets (the Ask Morgan Worker forwards `question` to his Discord). It's exactly what
+ * morganvanv.com-backend's `/submit` checks the structured fields against before it offers a
  * "Publish as PR" link (its `matchesMessage`), so keep the two in step.
  */
 export function suggestionText(s: StarSuggestion): string {
