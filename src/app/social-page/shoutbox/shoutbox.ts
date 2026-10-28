@@ -59,6 +59,9 @@ export class ShoutboxComponent {
   readonly canPost = computed(() => this.open() || this.campfire.isHost());
   readonly canSay = computed(() => this.canPost() && !this.sending() && this.nick().trim().length > 0 && this.text().trim().length > 0);
   readonly banking = signal(false);
+  readonly clearing = signal(false);
+  /** A quiet note after the host clears up (how many went). */
+  readonly notice = signal('');
   /** ↑/↓ scroll the log only while it has focus; otherwise they scroll the page as everywhere else. */
   readonly logFocused = signal(false);
 
@@ -105,6 +108,18 @@ export class ShoutboxComponent {
     const problem = await this.campfire.setOpen(!this.open());
     this.banking.set(false);
     if (problem) this.error.set(problem);
+  }
+
+  /** Host only: takes down every guest message from the last hour, after a confirm. */
+  async clearHour(): Promise<void> {
+    if (this.clearing() || !confirm('Take down every guest message from the last hour? Yours stay.')) return;
+    this.clearing.set(true);
+    this.error.set('');
+    this.notice.set('');
+    const result = await this.campfire.clearRecent(60);
+    this.clearing.set(false);
+    if ('error' in result) this.error.set(result.error);
+    else this.notice.set(result.removed === 1 ? 'Took down 1 message.' : `Took down ${result.removed} messages.`);
   }
 
   async remove(line: ShoutLine): Promise<void> {

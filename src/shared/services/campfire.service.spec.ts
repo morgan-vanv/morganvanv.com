@@ -191,6 +191,30 @@ describe('CampfireService', () => {
     localStorage.removeItem('campfire-host-key');
   });
 
+  it('clears the last stretch of guest messages as the host, then refreshes the log', async () => {
+    localStorage.setItem('campfire-host-key', 's3cret');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const host = TestBed.inject(CampfireService);
+    const backend = TestBed.inject(HttpTestingController);
+    const stop = host.watchShouts();
+    backend.expectOne(r => r.url.startsWith(`${BASE}/shouts`) && r.method === 'GET').flush({ shouts: [], here: 1, open: true });
+    const cleared = host.clearRecent(60);
+    const del = backend.expectOne(r => r.method === 'DELETE' && r.url === `${BASE}/shouts`);
+    expect(del.request.params.get('within')).toBe('60');
+    expect(del.request.headers.get('Authorization')).toBe('Bearer s3cret');
+    del.flush({ removed: 12 });
+    expect(await cleared).toEqual({ removed: 12 });
+    backend.expectOne(r => r.method === 'GET' && r.url.startsWith(`${BASE}/shouts`)).flush({ shouts: [], here: 1, open: true });
+    stop();
+
+    const refused = host.clearRecent(60);
+    backend.expectOne(r => r.method === 'DELETE').flush({ error: 'Only the host can do that.' }, { status: 401, statusText: 'Unauthorized' });
+    expect(await refused).toEqual({ error: 'Only the host can do that.' });
+    expect(host.isHost()).toBe(false);
+    backend.verify();
+  });
+
   it('reports why a shout didn\'t go', async () => {
     const said = service.say('sam', 'hello', '');
     http.expectOne(`${BASE}/shouts`).flush({ error: 'Too many links.' }, { status: 400, statusText: 'Bad Request' });

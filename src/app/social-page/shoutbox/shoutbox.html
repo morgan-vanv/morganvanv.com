@@ -55,5 +55,9 @@
   @if (campfire.isHost()) {
     <span class="host-note">· you're the host here</span>
     <button type="button" class="bank" [disabled]="banking()" (click)="toggleFire()">{{ open() ? 'bank the fire' : 'light it again' }}</button>
+    <button type="button" class="clear" [disabled]="clearing()" (click)="clearHour()">clear the last hour</button>
   }
 </p>
+@if (campfire.isHost()) {
+  <p class="notice" role="status">{{ notice() }}</p>
+}

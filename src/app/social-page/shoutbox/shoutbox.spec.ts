@@ -34,6 +34,7 @@ describe('ShoutboxComponent', () => {
     say: vi.fn(async () => null as string | null),
     remove: vi.fn(async () => null as string | null),
     setOpen: vi.fn(async () => null as string | null),
+    clearRecent: vi.fn(async (): Promise<{ removed: number } | { error: string }> => ({ removed: 3 })),
   };
 
   beforeEach(() => {
@@ -180,5 +181,41 @@ describe('ShoutboxComponent', () => {
     campfire.setOpen.mockResolvedValueOnce('That\'s not the host key.');
     await fixture.componentInstance.toggleFire();
     expect(fixture.componentInstance.error()).toBe('That\'s not the host key.');
+  });
+
+  it('lets the host clear the last hour of guest messages in one go, after a confirm', async () => {
+    const original = window.confirm;
+    window.confirm = vi.fn().mockReturnValueOnce(false).mockReturnValue(true);
+    try {
+      host.set(true);
+      log.set({ here: 1, open: true, shouts: [] });
+      const fixture = await create();
+      const el = fixture.nativeElement as HTMLElement;
+      const clear = el.querySelector<HTMLButtonElement>('button.clear')!;
+      expect(clear.getAttribute('type')).toBe('button');
+      expect(clear.textContent?.trim()).toBe('clear the last hour');
+
+      await fixture.componentInstance.clearHour();
+      expect(campfire.clearRecent).not.toHaveBeenCalled();
+
+      await fixture.componentInstance.clearHour();
+      expect(campfire.clearRecent).toHaveBeenCalledWith(60);
+      await fixture.whenStable();
+      expect(el.querySelector('.notice[role="status"]')?.textContent).toBe('Took down 3 messages.');
+
+      campfire.clearRecent.mockResolvedValueOnce({ error: 'Only the host can do that.' });
+      await fixture.componentInstance.clearHour();
+      expect(fixture.componentInstance.error()).toBe('Only the host can do that.');
+    } finally {
+      window.confirm = original;
+    }
+  });
+
+  it('shows guests no clear-up button and no host notice', async () => {
+    log.set({ here: 1, open: true, shouts: [] });
+    const fixture = await create();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('button.clear')).toBeNull();
+    expect(el.querySelector('.notice')).toBeNull();
   });
 });
