@@ -13,7 +13,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { SkyService, VISITOR_STARS_TOKEN } from './sky.service';
-import { Mat3, altAz, j2000ToHorizontalMatrix, multiply, sunHorizontal } from './sky-math';
+import { Mat3, altAz, altAzToVector, j2000ToHorizontalMatrix, multiply, sunHorizontal } from './sky-math';
 import { ProperNameFile, starsAround, starsOnScreen, unnamedStars, visitorHoverNames, visitorNames } from './sky-naming';
 import type { FreeLook } from './sky-free-look';
 import { LookView, sameReading } from './sky-view';
@@ -122,7 +122,7 @@ export function parseSkyAt(search: string): Date | null {
   template: `
     <canvas #sky class="sky"></canvas>
     <canvas #sky class="sky"></canvas>
-    <!-- Free look's panorama goes in here (loaded with the first look up). -->
+    <!-- Free look's cube goes in here (loaded with the first look up). -->
     <div #free class="free"></div>
     <div #sun class="sun"></div>
     <div class="land">
@@ -242,12 +242,12 @@ export class SkyComponent {
   /** The change of light waiting for its look (it draws when that arrives), if any. */
   private lookWait: number | null = null;
 
-  /** Free look (sky-free-look.ts), once loaded: the panorama the visitor can turn while looking up. */
+  /** Free look (sky-free-look.ts), once loaded: the camera the visitor can turn and tilt while looking up. */
   private free: FreeLook | null = null;
   private freeLoad: Promise<FreeLook | null> | null = null;
-  /** Free look is on (looking up, and loaded): the stars are on the panorama, the sky canvas is only the gradient. */
+  /** Free look is on (looking up, and loaded): the stars are on the cube, the sky canvas is only the gradient. */
   private freeOn = false;
-  /** How much of the panorama is showing (it crossfades with the normal view). */
+  /** How much of the cube is showing (it crossfades with the normal view). */
   private freeOpacity = 0;
   /** Something wanted a redraw while the sky was being turned: do it when it comes to rest. */
   private redrawAfterSettle = false;
@@ -580,7 +580,7 @@ export class SkyComponent {
   private isLand(clientX: number, clientY: number): boolean {
     const mask = this.landMask;
     if (!mask) return false;
-    const [x, y] = [Math.floor(clientX / 4), Math.floor(clientY / 4)];
+    const [x, y] = [Math.floor(clientX / 4), Math.floor((clientY - this.groundShift()) / 4)];
     if (x < 0 || y < 0 || x >= mask.width || y >= mask.height) return false;
     return mask.alpha[(y * mask.width + x) * 4 + 3] > 128;
   }
@@ -623,7 +623,7 @@ export class SkyComponent {
     context.clearRect(0, 0, canvas.width, canvas.height);
     if (!scene || (!this.hover.figure && !this.hover.target)) return;
     const css = 1 / layout.artPixel;
-    // What was drawn, in overlay pixels: the normal view's are already; the panorama's are where the view has them.
+    // What was drawn, in overlay pixels: the normal view's are already; the cube's are where the camera has them.
     const at = free
       ? (x: number, y: number) => {
         const p = free.toScreen(x, y);
@@ -644,7 +644,7 @@ export class SkyComponent {
       }
       context.stroke();
     }
-    // The same object in this drawing (the panorama may have it twice: take the one nearest the hover).
+    // The same object in this drawing (the cube may have it on two faces: take the one nearest the hover).
     const wanted = this.hover.target;
     const target = wanted && scene.targets
       .filter(t => t.kind === wanted.kind && t.name === wanted.name)
@@ -661,7 +661,10 @@ export class SkyComponent {
     const night = this.lookImages.get('darkness');
     if (night) {
       context.globalCompositeOperation = 'destination-out';
+      context.save();
+      context.translate(0, this.groundShift() / layout.artPixel);
       this.drawCover(context, night, layout);
+      context.restore();
       context.globalCompositeOperation = 'source-over';
     }
   }
@@ -813,7 +816,9 @@ export class SkyComponent {
       date, lat, lon, catalog, bodies, lighting, paintBackground: false, drawSun: false,
     });
     paintSky(skyContext, layout, result.background, this.scratchCanvas('glow'));
-    // In free look the stars are on the panorama, turned over this; the sky canvas is only the gradient.
+    // Tilted up, the gradient slides down with the painting; the zenith's colour fills in above it.
+    this.host.style.setProperty('--sky-top', `rgb(${result.background.top.map(Math.round).join(', ')})`);
+    // In free look the stars are on the cube, turned over this; the sky canvas is only the gradient.
     const free = this.freeOn ? this.free : null;
     const points = free ? null : this.scratchCanvas('points');
     if (points) {
@@ -861,7 +866,7 @@ export class SkyComponent {
     this.starsVisible = result.starVisibility;
     this.updateNaming();
 
-    // The panorama fades in as free look starts, and out as it ends, with the stars of the normal view.
+    // The cube fades in as free look starts, and out as it ends, with the stars of the normal view.
     const [freeFrom, freeTo] = [this.freeOpacity, this.freeOn ? 1 : 0];
     if (!from) {
       this.showPair(this.shown);
@@ -983,7 +988,7 @@ export class SkyComponent {
     if (!star || !layout || !toHorizontal) return null;
     const h = multiply(toHorizontal, star.v);
     if (h[2] <= 0) return null;
-    if (this.freeOn && this.free?.pan) return this.free.screenPoint(h);
+    if (this.freeOn && this.free?.cube) return this.free.screenPoint(h);
     const p = screenPoint(layout, h);
     if (!p || p.x < 0 || p.y < 0 || p.x > layout.width || p.y > layout.height) return null;
     return { x: p.x * layout.artPixel, y: p.y * layout.artPixel };
@@ -1010,8 +1015,8 @@ export class SkyComponent {
 
   /**
    * Free look on (looking up) or off. On: load it the first time, start facing
-   * south, and crossfade from the normal view to the panorama. Off: crossfade
-   * back, and let the panorama go once it has faded.
+   * south, and crossfade from the normal view to the cube. Off: crossfade
+   * back, and let the cube go once it has faded.
    */
   private setFreeLook(on: boolean): void {
     if (!on) {
@@ -1023,6 +1028,7 @@ export class SkyComponent {
       this.sky.showable = null;
       this.free?.stop();
       this.draw(this.mayEase());
+      this.slideGround();
       return;
     }
     void this.loadFreeLook().then(free => {
@@ -1058,9 +1064,9 @@ export class SkyComponent {
   }
 
   /**
-   * The panorama moved (a frame of a drag or a turn): the ring goes with its star (its transform
-   * set here, like the panorama's, rather than through a signal each frame), hover labels go, and
-   * the compass reads on when its reading changes.
+   * The camera moved (a frame of a drag or a turn): the ground slides with the tilt, the ring goes
+   * with its star and the Sun with the sky (their transforms set here, like the cube's, rather than
+   * through a signal each frame), hover labels go, and the compass reads on when its reading changes.
    */
   private freeMoved(view: LookView): void {
     const point = this.selectedOnScreen();
@@ -1073,11 +1079,14 @@ export class SkyComponent {
       this.label.set(null);
       this.drawOverlay();
     }
+    this.slideGround();
+    // The Sun turns with the sky too.
+    if (this.state) this.placeSun(this.state);
     if (!sameReading(view, this.sky.view())) this.sky.view.set(view);
   }
 
   /**
-   * The panorama came to rest: a redraw that waited is done, what can be picked is worked out
+   * The camera came to rest: a redraw that waited is done, what can be picked is worked out
    * again, and a ‹ › turn says where it left the visitor (the compass's buttons say so as they're
    * pressed; a drag says nothing).
    */
@@ -1100,6 +1109,49 @@ export class SkyComponent {
     if (opacity === 0 && !this.freeOn) this.free?.release();
   }
 
+  /**
+   * Puts the Sun (an element of its own) where the light has it: in the normal view's
+   * projection, or, in free look, wherever the camera is pointed (so it turns with the stars).
+   */
+  private placeSun(state: LightState): void {
+    const layout = this.layout;
+    const sun = this.sunElement().nativeElement;
+    if (!layout || !state.sun) {
+      sun.style.display = 'none';
+      return;
+    }
+    const css = layout.artPixel;
+    const radius = sunDiscRadius(layout) * css;
+    const free = this.freeOn && this.free?.cube ? this.free : null;
+    const place = free
+      ? free.screenPoint(altAzToVector(state.sun.alt, state.sun.az), radius * 8)
+      : (() => {
+        const p = sunScreen(layout, state.sun);
+        if (!p) return null;
+        const [x, y] = [p.x * css, p.y * css];
+        const onScreen = x > -radius * 8 && y > -radius * 8 && x < layout.width * css + radius * 8 && y < layout.height * css + radius * 8;
+        return onScreen ? { x, y } : null;
+      })();
+    if (!place) {
+      sun.style.display = 'none';
+      return;
+    }
+    sun.style.display = 'block';
+    sun.style.setProperty('--radius', `${radius.toFixed(2)}px`);
+    sun.style.transform = `translate(${place.x.toFixed(2)}px, ${place.y.toFixed(2)}px)`;
+  }
+
+  /** How far down the painting has slid (CSS px) for the camera's tilt: 0 unless free look is on and tilted. */
+  private groundShift(): number {
+    return this.freeOn && this.free?.cube ? this.free.groundShift : 0;
+  }
+
+  /** Slides the painting (landscape, gradient, lights, fireflies) down by the camera's tilt. */
+  private slideGround(): void {
+    const shift = this.groundShift();
+    this.host.style.setProperty('--ground-shift', shift ? `${shift.toFixed(2)}px` : '0px');
+  }
+
   /** Where the selected star is now (CSS pixels), for its ring; drawn as an element, never on the sky. */
   private updateSelectedPoint(): void {
     const point = this.selectedOnScreen();
@@ -1109,20 +1161,7 @@ export class SkyComponent {
   /** Puts the Sun where the state has it, and hands the small lights and the page their levels. */
   private apply(state: LightState): void {
     this.state = state;
-    const layout = this.layout;
-    const sun = this.sunElement().nativeElement;
-    const place = layout && state.sun ? sunScreen(layout, state.sun) : null;
-    if (layout && place) {
-      const css = layout.artPixel;
-      const radius = sunDiscRadius(layout) * css;
-      const [x, y] = [place.x * css, place.y * css];
-      const onScreen = x > -radius * 8 && y > -radius * 8 && x < layout.width * css + radius * 8 && y < layout.height * css + radius * 8;
-      sun.style.display = onScreen ? 'block' : 'none';
-      sun.style.setProperty('--radius', `${radius.toFixed(2)}px`);
-      sun.style.transform = `translate(${x.toFixed(2)}px, ${y.toFixed(2)}px)`;
-    } else {
-      sun.style.display = 'none';
-    }
+    this.placeSun(state);
     const style = this.host.style;
     style.setProperty('--night-light', state.window.toFixed(3));
     // Out (and not animating) in daylight.
