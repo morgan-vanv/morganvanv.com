@@ -42,14 +42,14 @@ describe('ProjectPosterComponent', () => {
     http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date(Date.now() - 3 * 3_600_000).toISOString() });
     await fixture.whenStable();
     expect(el().querySelector('img.shot')?.getAttribute('alt')).toBe('A thing');
-    expect(el().querySelector('.status')?.textContent?.trim()).toBe('live');
+    expect(el().querySelector('.status')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('status: live');
     expect(el().querySelector('.plate h2')?.textContent?.trim()).toBe('Thing');
     expect(text()).toContain('Part Two');
     expect(text()).toContain('“Hello.”');
     expect(text()).toContain('updated 3 hours ago');
     expect(links()).toEqual([
-      ['Play it ↗', 'https://example.github.io/thing/'],
-      ['Source ↗', 'https://github.com/someone/thing'],
+      ['Play it ↗ (Thing)', 'https://example.github.io/thing/'],
+      ['Source ↗ (Thing)', 'https://github.com/someone/thing'],
     ]);
   });
 
@@ -76,7 +76,7 @@ describe('ProjectPosterComponent', () => {
     expect(messages[1].querySelector('.app')?.textContent).toBe('APP');
     expect(messages[1].querySelector('strong')?.textContent).toBe('ouch');
     expect(messages[1].querySelectorAll('.card-button').length).toBe(3);
-    expect(links()).toEqual([['Source ↗', 'https://github.com/someone/thing']]);
+    expect(links()).toEqual([['Source ↗ (Thing)', 'https://github.com/someone/thing']]);
   });
 
   it('draws the site miniature and links to a page on this site', async () => {
@@ -84,9 +84,19 @@ describe('ProjectPosterComponent', () => {
     http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date().toISOString() });
     expect(el().querySelector('.mini')?.getAttribute('aria-label')).toBe('This site');
     expect(links()).toEqual([
-      ['[ colophon › ]', '/colophon'],
-      ['Source ↗', 'https://github.com/someone/thing'],
+      ['[\u00a0colophon ›\u00a0] (Thing)', '/colophon'],
+      ['Source ↗ (Thing)', 'https://github.com/someone/thing'],
     ]);
+  });
+
+  it('follows a changed project to its repo', async () => {
+    await mount(base);
+    http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date().toISOString() });
+    fixture.componentRef.setInput('project', { ...base, id: 'q', name: 'Other', repo: { owner: 'someone', name: 'other' } });
+    await fixture.whenStable();
+    http.expectOne('https://api.github.com/repos/someone/other').flush({ html_url: '', pushed_at: new Date().toISOString() });
+    await fixture.whenStable();
+    expect(links()).toContainEqual(['Source ↗ (Other)', 'https://github.com/someone/other']);
   });
 
   it('just omits the date when GitHub fails', async () => {

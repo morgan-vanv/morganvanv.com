@@ -21,20 +21,20 @@
       </p>
       <p>
         The code is public: <a [href]="config.repoUrl" target="_blank" rel="noopener noreferrer" class="pill">the site</a> and
-        <a [href]="config.repoUrl + '-backend'" target="_blank" rel="noopener noreferrer" class="pill">the backend</a>. Every change goes through a
+        <a [href]="config.backendRepoUrl" target="_blank" rel="noopener noreferrer" class="pill">the backend</a>. Every change goes through a
         pull request, a lint, a build, the tests, Lighthouse and a layout check before it ships. A mild amount of spite throughout.
       </p>
     </section>
 
     <section class="panel prose" aria-labelledby="colophon-live">
       <h2 id="colophon-live">What's live</h2>
-      <p>Everything that updates on its own, and where it comes from:</p>
+      <p>Everything that updates on its own, and where it comes from; then the two places this site links out to.</p>
       <ul class="sources">
         <li><span class="what">Listening</span> <a href="https://stats.fm/" target="_blank" rel="noopener noreferrer" class="pill">stats.fm</a></li>
         <li><span class="what">Old School RuneScape</span> <a href="https://wiseoldman.net/" target="_blank" rel="noopener noreferrer" class="pill">Wise Old Man</a> <a href="https://www.runeprofile.com/" target="_blank" rel="noopener noreferrer" class="pill">RuneProfile</a></li>
         <li><span class="what">Watching</span> <a href="https://letterboxd.com/" target="_blank" rel="noopener noreferrer" class="pill">Letterboxd</a> <span class="how">read once a day at deploy time</span></li>
         <li><span class="what">Weather</span> <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="pill">Open-Meteo</a></li>
-        <li><span class="what">Projects, the build</span> <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer" class="pill">GitHub</a></li>
+        <li><span class="what">Projects</span> <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer" class="pill">GitHub</a></li>
         <li><span class="what">The shoutbox, the visitor counter</span> <span class="how">the campfire, a Cloudflare Worker of mine</span></li>
         <li><span class="what">Ask Morgan</span> <span class="how">another Worker, straight to my Discord</span></li>
         <li><span class="what">The webring</span> <a [href]="config.webring.home" target="_blank" rel="noopener" class="pill">{{ config.webring.name }}</a></li>
@@ -49,13 +49,13 @@
         planets are computed in your browser with
         <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener noreferrer" class="pill">astronomy-engine</a>; the star and
         constellation data comes from <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener noreferrer" class="pill">d3-celestial</a>
-        and ships with the site, so no API is involved. The painting in front of it started as a photo I took.
+        and ships with the site, so no API is involved. The painting in front of it is based on a photo of mine.
       </p>
     </section>
 
     <section class="panel prose" aria-labelledby="colophon-browser">
       <h2 id="colophon-browser">What stays in your browser</h2>
-      <p>Only what you put there, and none of it leaves:</p>
+      <p>Only what you put there; the one thing that ever leaves is your nick, with each shout you post:</p>
       <ul class="plain">
         <li>your sky settings, once you change any</li>
         <li>your shoutbox nick, once you pick one</li>
@@ -75,7 +75,7 @@
         websites can be fun. Quality assurance by Ada, who is a cat.
         The rest is in <a href="/humans.txt" target="_blank" rel="noopener noreferrer" class="pill">humans.txt</a>.
       </p>
-      <p class="back"><a routerLink="/projects" class="pill">[ ‹ back to Projects ]</a></p>
+      <p class="back"><a routerLink="/projects" class="pill"><span aria-hidden="true">[&nbsp;</span>‹ back to Projects<span aria-hidden="true">&nbsp;]</span></a></p>
     </section>
 
   </div>

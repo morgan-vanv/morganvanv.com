@@ -96,6 +96,15 @@ describe('NowPageComponent', () => {
     http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
   });
 
+  it('keeps the way to all projects when GitHub fails for every repo', async () => {
+    for (const req of http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com')) {
+      req.flush('rate limited', { status: 403, statusText: 'Forbidden' });
+    }
+    await fixture.whenStable();
+    const line = (fixture.nativeElement as HTMLElement).querySelector('.latest-push')?.textContent?.replace(/\s+/g, ' ').trim();
+    expect(line).toBe(`all ${PROJECTS.length} projects ›`);
+  });
+
   it('names whichever project repo was pushed to last, once GitHub answers', async () => {
     const now = Date.now();
     const requests = http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');

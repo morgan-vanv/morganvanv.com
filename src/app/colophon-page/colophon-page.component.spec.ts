@@ -2,6 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ColophonPageComponent } from './colophon-page.component';
 import { SITE_CONFIG } from '../../shared/config/site.config';
+import { BUILD_INFO } from '../../build-info';
 
 describe('ColophonPageComponent', () => {
   let fixture: ComponentFixture<ColophonPageComponent>;
@@ -34,6 +35,11 @@ describe('ColophonPageComponent', () => {
     expect(hrefs).toContain(SITE_CONFIG.repoUrl);
     expect(hrefs).toContain('/humans.txt');
     expect(hrefs).toContain('/projects');
+    expect(hrefs).toContain(SITE_CONFIG.backendRepoUrl);
+    expect(hrefs).toContain(`${SITE_CONFIG.repoUrl}/commit/${BUILD_INFO.sha}`);
+    // The webring registers members from the Referer, so its link must not say noreferrer.
+    const webring = links.find(a => a.getAttribute('href') === SITE_CONFIG.webring.home);
+    expect(webring?.getAttribute('rel')).toBe('noopener');
     for (const a of links) {
       if (a.getAttribute('href')?.startsWith('http')) {
         expect(a.getAttribute('target'), a.getAttribute('href') ?? '').toBe('_blank');

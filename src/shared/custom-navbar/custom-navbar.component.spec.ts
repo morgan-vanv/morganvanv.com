@@ -50,7 +50,12 @@ describe('CustomNavbarComponent', () => {
     expect(el.querySelector('.pager-current')?.textContent).toContain(`[ ${parent.title} ]`);
     const lit = [...el.querySelectorAll('.links a.active-link')].map(a => a.textContent?.trim());
     expect(lit).toEqual([parent.title]);
+    // Lit, but not this page: aria-current says so.
+    expect(el.querySelector('.links a.active-link')?.getAttribute('aria-current')).toBe('true');
     expect(el.querySelectorAll('.links a').length).toBe(MAIN_ROUTES.length + 1);
+
+    await goTo(`/${parent.path}`);
+    expect(el.querySelector('.links a.active-link')?.getAttribute('aria-current')).toBe('page');
   });
 
   it('goes back to the greeting from Home and has no next page on the last one', async () => {

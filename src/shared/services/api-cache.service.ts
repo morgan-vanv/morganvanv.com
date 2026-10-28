@@ -16,7 +16,9 @@ interface CacheEntry<T> {
  * keys doesn't re-fetch every live panel. Falls through to the network if
  * storage is unavailable (private mode, quota) or the entry has expired.
  * Two readers asking for the same URL while a request is in flight share it
- * (the /now card and the "latest push" line both read one GitHub repo).
+ * (the /now card and the "latest push" line both read one GitHub repo). A
+ * shared request runs to the end even if every reader leaves first, so the
+ * answer still lands in the cache; the first reader's TTL is the one written.
  */
 @Injectable({ providedIn: 'root' })
 export class ApiCacheService {

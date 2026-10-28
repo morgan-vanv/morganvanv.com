@@ -14,4 +14,8 @@ import { ProjectPosterComponent } from '../../shared/project-poster/project-post
 })
 export class ProjectsPageComponent {
   readonly projects = PROJECTS;
+  /** "Three so far, none of them finished." Draft; counts itself so it can't drift. */
+  readonly countLine = `${COUNT_WORDS[PROJECTS.length] ?? PROJECTS.length} so far, none of them finished.`;
 }
+
+const COUNT_WORDS = ['None', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine'];

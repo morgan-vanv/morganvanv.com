@@ -1,6 +1,6 @@
 <article class="poster">
   <div class="art">
-    <span class="status"><span class="dot" aria-hidden="true"></span>{{ project().status }}</span>
+    <span class="status"><span class="dot" aria-hidden="true"></span><span class="visually-hidden">status: </span>{{ project().status }}</span>
 
     @if (image(); as art) {
       <img [src]="art.url" [alt]="art.alt" class="shot" width="1200" height="750" loading="lazy" decoding="async" />
@@ -21,7 +21,7 @@
       </div>
     } @else if (site(); as art) {
       <div class="mini" role="img" [attr.aria-label]="art.alt">
-        <div class="mini-card">
+        <div class="mini-card" aria-hidden="true">
           <div class="mini-nav"><span>Home</span><span>Now</span><span>Background</span><span>Social</span><span>Interests</span><b>[ Projects ]</b><span>Blog</span></div>
           <div class="mini-body">
             <span class="mini-title">Projects</span>
@@ -55,12 +55,12 @@
     <div class="footer">
       <div class="links">
         @if (project().liveUrl; as liveUrl) {
-          <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗</a>
+          <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗<span class="visually-hidden"> ({{ project().name }})</span></a>
         }
         @if (project().more; as more) {
-          <a [routerLink]="more.route" class="link link--primary"><span aria-hidden="true">[ </span>{{ more.label }} ›<span aria-hidden="true"> ]</span></a>
+          <a [routerLink]="more.route" class="link link--primary"><span aria-hidden="true">[&nbsp;</span>{{ more.label }} ›<span aria-hidden="true">&nbsp;]</span><span class="visually-hidden"> ({{ project().name }})</span></a>
         }
-        <a [href]="sourceUrl()" target="_blank" rel="noopener noreferrer" class="link">Source ↗</a>
+        <a [href]="sourceUrl()" target="_blank" rel="noopener noreferrer" class="link">Source ↗<span class="visually-hidden"> ({{ project().name }})</span></a>
       </div>
       @if (updated(); as when) {
         <span class="updated">updated {{ when }}</span>

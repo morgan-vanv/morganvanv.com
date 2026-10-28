@@ -1,5 +1,5 @@
 <app-base-page>
-  <app-page-header title="Projects" description="Things I've built or am building. Three so far, none of them finished." />
+  <app-page-header title="Projects" [description]="'Things I\'ve built or am building. ' + countLine" />
 
   <section class="posters" aria-label="Projects">
     @for (project of projects; track project.id) {

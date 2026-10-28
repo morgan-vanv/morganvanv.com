@@ -10,19 +10,18 @@ interface NavLink {
   label?: string;
   icon?: IconName;
   ariaLabel?: string;
-  exact?: boolean;
 }
 
 /** Greeting link, then every main route in MAIN_ROUTES order. */
 export const NAV_LINKS: readonly NavLink[] = [
-  { route: GREETING_ROUTE, icon: 'exit', ariaLabel: 'Greeting', exact: true },
+  { route: GREETING_ROUTE, icon: 'exit', ariaLabel: 'Greeting' },
   ...MAIN_ROUTES.map(({ path, title }) => ({ route: `/${path}`, label: title })),
 ];
 
-/** "/interests?x=1#y" → "/interests"; a side page ("/colophon") → its parent's place in the nav. */
+/** "/interests?x=1#y" → "/interests". */
 function pathOf(url: string): string {
   const path = url.split(/[?#]/)[0].replace(/\/+$/, '');
-  return navRouteFor(path === '' ? GREETING_ROUTE : `/${path.split('/').filter(Boolean)[0]}`);
+  return path === '' ? GREETING_ROUTE : `/${path.split('/').filter(Boolean)[0]}`;
 }
 
 /**
@@ -50,10 +49,13 @@ export class CustomNavbarComponent {
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
 
-  private readonly path = toSignal(
+  /** The page we're on, as "/now" or "/" (a side page shows as itself here). */
+  private readonly pagePath = toSignal(
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), map(e => pathOf(e.urlAfterRedirects))),
     { initialValue: pathOf(this.router.url) },
   );
+  /** Its place in the nav: a side page ("/colophon") counts as its parent ("/projects"). */
+  private readonly path = computed(() => navRouteFor(this.pagePath()));
   private readonly index = computed(() => this.navLinks.findIndex(link => link.route === this.path()));
 
   readonly current = computed<NavLink | null>(() => this.navLinks[this.index()] ?? null);
@@ -64,6 +66,12 @@ export class CustomNavbarComponent {
    */
   isCurrent(link: NavLink): boolean {
     return link.route === this.path();
+  }
+
+  /** `aria-current`: "page" on the page itself, "true" on a side page's parent (lit, but not this page). */
+  ariaCurrent(link: NavLink): 'page' | 'true' | null {
+    if (!this.isCurrent(link)) return null;
+    return link.route === this.pagePath() ? 'page' : 'true';
   }
   readonly previous = computed(() => (this.index() > 0 ? this.navLinks[this.index() - 1] : null));
   readonly next = computed(() => {

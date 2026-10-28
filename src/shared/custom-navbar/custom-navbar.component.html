@@ -5,7 +5,7 @@
       <li>
         <a [routerLink]="link.route"
            [class.active-link]="isCurrent(link)"
-           [attr.aria-current]="isCurrent(link) ? 'page' : null"
+           [attr.aria-current]="ariaCurrent(link)"
            [attr.aria-label]="link.ariaLabel ?? null">
           @if (isCurrent(link) && i > 1) {
             <app-icon name="chevron-left" class="nav-arrow nav-arrow-left" />
@@ -53,7 +53,7 @@
         <li [class.first]="first">
           <a [routerLink]="link.route"
              [class.active-link]="isCurrent(link)"
-             [attr.aria-current]="isCurrent(link) ? 'page' : null">
+             [attr.aria-current]="ariaCurrent(link)">
             @if (link.label) {
               <span>@if (isCurrent(link)) {<span aria-hidden="true">[ </span>}{{ link.label }}@if (isCurrent(link)) {<span aria-hidden="true"> ]</span>}</span>
             } @else {
