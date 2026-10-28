@@ -1,21 +1,20 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { IconComponent, IconName } from '../icon/icon.component';
-import { GREETING_ROUTE, MAIN_ROUTES } from '../main-routes';
+import { GREETING_ROUTE, MAIN_ROUTES, navRouteFor } from '../main-routes';
 
 interface NavLink {
   route: string;
   label?: string;
   icon?: IconName;
   ariaLabel?: string;
-  exact?: boolean;
 }
 
 /** Greeting link, then every main route in MAIN_ROUTES order. */
 export const NAV_LINKS: readonly NavLink[] = [
-  { route: GREETING_ROUTE, icon: 'exit', ariaLabel: 'Greeting', exact: true },
+  { route: GREETING_ROUTE, icon: 'exit', ariaLabel: 'Greeting' },
   ...MAIN_ROUTES.map(({ path, title }) => ({ route: `/${path}`, label: title })),
 ];
 
@@ -34,7 +33,7 @@ function pathOf(url: string): string {
  */
 @Component({
   selector: 'app-custom-navbar',
-  imports: [RouterLink, RouterLinkActive, IconComponent],
+  imports: [RouterLink, IconComponent],
   templateUrl: './custom-navbar.component.html',
   styleUrl: './custom-navbar.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -50,13 +49,30 @@ export class CustomNavbarComponent {
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
   private readonly menuButton = viewChild<ElementRef<HTMLButtonElement>>('menuButton');
 
-  private readonly path = toSignal(
+  /** The page we're on, as "/now" or "/" (a side page shows as itself here). */
+  private readonly pagePath = toSignal(
     this.router.events.pipe(filter(e => e instanceof NavigationEnd), map(e => pathOf(e.urlAfterRedirects))),
     { initialValue: pathOf(this.router.url) },
   );
+  /** Its place in the nav: a side page ("/colophon") counts as its parent ("/projects"). */
+  private readonly path = computed(() => navRouteFor(this.pagePath()));
   private readonly index = computed(() => this.navLinks.findIndex(link => link.route === this.path()));
 
   readonly current = computed<NavLink | null>(() => this.navLinks[this.index()] ?? null);
+
+  /**
+   * Whether a link is the page we're on. Decided from the path rather than routerLinkActive so a
+   * side page (the colophon) lights its parent (Projects), which routerLinkActive can't do.
+   */
+  isCurrent(link: NavLink): boolean {
+    return link.route === this.path();
+  }
+
+  /** `aria-current`: "page" on the page itself, "true" on a side page's parent (lit, but not this page). */
+  ariaCurrent(link: NavLink): 'page' | 'true' | null {
+    if (!this.isCurrent(link)) return null;
+    return link.route === this.pagePath() ? 'page' : 'true';
+  }
   readonly previous = computed(() => (this.index() > 0 ? this.navLinks[this.index() - 1] : null));
   readonly next = computed(() => {
     const i = this.index();

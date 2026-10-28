@@ -7,7 +7,7 @@ import { NowPageComponent, clip, formatDay } from './now-page.component';
 import { LastListened, RecentStreamService } from '../../shared/services/recent-stream.service';
 import { COMMUNITY_PHOTOS } from '../../shared/constants/community-photos.const';
 import { NOW_CONTENT_TOKEN } from './now.content';
-import { PROJECTS } from '../../shared/constants/projects.const';
+import { PINNED_PROJECT, PROJECTS } from '../../shared/constants/projects.const';
 import { LETTERBOXD_DIARY_URL } from '../../shared/letterboxd/letterboxd.service';
 import { parseLetterboxdRss } from '../../shared/letterboxd/letterboxd';
 import { LETTERBOXD_FEED_FIXTURE } from '../../shared/letterboxd/letterboxd-feed.fixture';
@@ -85,12 +85,39 @@ describe('NowPageComponent', () => {
     expect(panel?.querySelector('app-lighthouse-badge .badge')).toBeNull();
   });
 
-  it('lists the projects under Building, with a count', () => {
+  it('pins one project under Building and links to all of them', () => {
     expect(text()).toContain('Building');
-    const count = (fixture.nativeElement as HTMLElement).querySelector('#now-building .range-label');
-    expect(count?.textContent?.trim()).toBe(`${PROJECTS.length} ${PROJECTS.length === 1 ? 'project' : 'projects'}`);
-    expect((fixture.nativeElement as HTMLElement).querySelectorAll('app-project-card').length).toBe(PROJECTS.length);
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('#now-building .range-label')?.textContent?.trim()).toBe('pinned');
+    expect(el.querySelectorAll('app-project-card').length).toBe(1);
+    expect(el.querySelector('app-project-card .name')?.textContent?.trim()).toBe(PINNED_PROJECT.name);
+    expect(el.querySelector('.latest-push a')?.textContent?.trim()).toBe(`all ${PROJECTS.length} projects ›`);
+    expect(el.querySelector('.latest-push a')?.getAttribute('href')).toBe('/projects');
     http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
+  });
+
+  it('keeps the way to all projects when GitHub fails for every repo', async () => {
+    for (const req of http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com')) {
+      req.flush('rate limited', { status: 403, statusText: 'Forbidden' });
+    }
+    await fixture.whenStable();
+    const line = (fixture.nativeElement as HTMLElement).querySelector('.latest-push')?.textContent?.replace(/\s+/g, ' ').trim();
+    expect(line).toBe(`all ${PROJECTS.length} projects ›`);
+  });
+
+  it('names whichever project repo was pushed to last, once GitHub answers', async () => {
+    const now = Date.now();
+    const requests = http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
+    // One request per project with a repo (the pinned card's is shared through the cache).
+    expect(requests.length).toBe(PROJECTS.filter(p => p.repo).length);
+    for (const req of requests) {
+      const name = decodeURIComponent(new URL(req.request.url).pathname.split('/').pop() ?? '');
+      const hoursAgo = name === PROJECTS[1].repo?.name ? 1 : 24;
+      req.flush({ html_url: `https://github.com/x/${name}`, pushed_at: new Date(now - hoursAgo * 3_600_000).toISOString() });
+    }
+    await fixture.whenStable();
+    const line = (fixture.nativeElement as HTMLElement).querySelector('.latest-push')?.textContent?.replace(/\s+/g, ' ').trim();
+    expect(line).toContain(`latest push ${PROJECTS[1].name} · 1 hour ago`);
   });
 
   it('hides the note and its date while the note is empty, and shows the static rows', () => {

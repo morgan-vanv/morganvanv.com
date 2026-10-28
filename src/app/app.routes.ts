@@ -1,5 +1,5 @@
 import { Routes, Route } from '@angular/router';
-import { GREETING_ROUTE_PATH, MAIN_ROUTES, MainRoutePath, getMainRouteAnimation } from '../shared/main-routes';
+import { GREETING_ROUTE_PATH, MAIN_ROUTES, MainRoutePath, SIDE_ROUTES, SideRoutePath, getMainRouteAnimation, getSideRouteAnimation } from '../shared/main-routes';
 
 const lazyRouteComponents: Record<MainRoutePath, Route['loadComponent']> = {
   home: () => import('./home-page/home-page.component').then(m => m.HomePageComponent),
@@ -9,6 +9,10 @@ const lazyRouteComponents: Record<MainRoutePath, Route['loadComponent']> = {
   interests: () => import('./interests-page/interests-page.component').then(m => m.InterestsPageComponent),
   projects: () => import('./projects-page/projects-page.component').then(m => m.ProjectsPageComponent),
   blog: () => import('./blog-page/blog-page.component').then(m => m.BlogPageComponent),
+};
+
+const lazySideRouteComponents: Record<SideRoutePath, Route['loadComponent']> = {
+  colophon: () => import('./colophon-page/colophon-page.component').then(m => m.ColophonPageComponent),
 };
 
 export const routes: Routes = [
@@ -24,6 +28,12 @@ export const routes: Routes = [
     loadComponent: lazyRouteComponents[route.path],
     title: route.title,
     data: { animation: getMainRouteAnimation(route.path), description: route.description },
+  })),
+  ...SIDE_ROUTES.map((route) => ({
+    path: route.path,
+    loadComponent: lazySideRouteComponents[route.path],
+    title: route.title,
+    data: { animation: getSideRouteAnimation(route.path), description: route.description },
   })),
   {
     path: '**',

@@ -1,0 +1,93 @@
+@use '../../styles' as *;
+@use '../../shared/shared-styles.scss' as shared;
+
+// Two columns of short panels; one column on tablets and phones. Thanks spans the row.
+.colophon-panels {
+  @include shared.panel-grid(minmax(0, 1fr) minmax(0, 1fr));
+}
+
+.panel {
+  @include shared.panel;
+  padding: 1rem 1.125rem 0.875rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 0.875rem 0.8rem 0.75rem;
+  }
+
+  h2 {
+    @include shared.panel-heading;
+    margin: 0 0 0.75rem;
+  }
+}
+
+.prose {
+  @include shared.prose;
+}
+
+.thanks {
+  grid-column: 1 / -1;
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-column: auto;
+  }
+}
+
+// What's live: the thing on the left, where it comes from on the right.
+.sources,
+.plain {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+
+  li {
+    margin: 0 0 0.375rem;
+  }
+}
+
+.sources li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+
+  // Standing alone, not in a sentence: the pills are tap targets on touch sizes.
+  @media (max-width: $breakpoint-mobile) {
+    .pill {
+      min-height: 2.75rem;
+    }
+  }
+}
+
+.what {
+  @include shared.label;
+  flex: 0 0 auto;
+}
+
+.how {
+  font-size: $font-size-small;
+  opacity: 0.75;
+}
+
+.plain li {
+  padding-left: 1.25rem;
+  position: relative;
+
+  &::before {
+    content: '·';
+    position: absolute;
+    left: 0.4rem;
+    color: $accent-color;
+  }
+}
+
+.back {
+  margin-top: 0.5rem;
+
+  .pill {
+    min-height: 2.75rem;
+    padding-left: 0.875rem;
+    padding-right: 0.875rem;
+    color: $accent-color;
+    border-color: rgba($accent-color, 0.5);
+  }
+}

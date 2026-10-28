@@ -1,0 +1,72 @@
+<article class="poster">
+  <div class="art">
+    <span class="status"><span class="dot" aria-hidden="true"></span><span class="visually-hidden">status: </span>{{ project().status }}</span>
+
+    @if (image(); as art) {
+      <img [src]="art.url" [alt]="art.alt" class="shot" width="1200" height="750" loading="lazy" decoding="async" />
+    } @else if (chat(); as art) {
+      <div class="chat" role="img" [attr.aria-label]="art.alt">
+        @for (line of art.lines; track $index) {
+          <div class="msg" [class.bot]="line.from === 'bot'">
+            <span class="avatar" aria-hidden="true"></span>
+            <div class="body">
+              <span class="who">{{ line.name }}@if (line.from === 'bot') {<span class="app">APP</span>}</span>
+              <span class="text">@if (line.command) {<span class="command">{{ line.command }}</span> }{{ line.text }}@if (line.strong) {<strong>{{ line.strong }}</strong>}</span>
+              @if (line.cards) {
+                <span class="cards" aria-hidden="true"><span class="card-button a">🃏</span><span class="card-button b">🃏</span><span class="card-button c">🃏</span></span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (site(); as art) {
+      <div class="mini" role="img" [attr.aria-label]="art.alt">
+        <div class="mini-card" aria-hidden="true">
+          <div class="mini-nav"><span>Home</span><span>Now</span><span>Background</span><span>Social</span><span>Interests</span><b>[ Projects ]</b><span>Blog</span></div>
+          <div class="mini-body">
+            <span class="mini-title">Projects</span>
+            <span class="mini-line"></span>
+            <span class="mini-grid"><span></span><span></span><span></span></span>
+          </div>
+          <span class="mini-ring">‹ prev · hotline webring ↗ · next ›</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="plate">
+    <h2 class="name">{{ project().name }}</h2>
+    <span class="plate-line">
+      @if (project().subtitle; as subtitle) {<span class="subtitle">{{ subtitle }}</span>}
+      @if (updated(); as when) {<span class="updated">updated {{ when }}</span>}
+    </span>
+  </div>
+
+  <div class="ledger">
+    <p class="description">{{ project().description }}</p>
+
+    @if (project().quote; as quote) {
+      <p class="quote">“{{ quote }}”</p>
+    }
+
+    <ul class="tags" aria-label="Built with">
+      @for (tag of project().tags; track tag) {
+        <li class="tag">{{ tag }}</li>
+      }
+    </ul>
+
+    <div class="footer">
+      <div class="links">
+        @if (project().liveUrl; as liveUrl) {
+          <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗<span class="visually-hidden"> ({{ project().name }})</span></a>
+        }
+        @if (project().more; as more) {
+          <a [routerLink]="more.route" class="link link--primary"><span aria-hidden="true">[&nbsp;</span>{{ more.label }} ›<span aria-hidden="true">&nbsp;]</span><span class="visually-hidden"> ({{ project().name }})</span></a>
+        }
+        @if (sourceUrl(); as sourceUrl) {
+          <a [href]="sourceUrl" target="_blank" rel="noopener noreferrer" class="link">Source ↗<span class="visually-hidden"> ({{ project().name }})</span></a>
+        }
+      </div>
+    </div>
+  </div>
+</article>

@@ -4,11 +4,10 @@
     @for (link of navLinks; track link.route; let i = $index) {
       <li>
         <a [routerLink]="link.route"
-           routerLinkActive="active-link"
-           #rla="routerLinkActive"
-           [routerLinkActiveOptions]="{ exact: !!link.exact }"
+           [class.active-link]="isCurrent(link)"
+           [attr.aria-current]="ariaCurrent(link)"
            [attr.aria-label]="link.ariaLabel ?? null">
-          @if (rla.isActive && i > 1) {
+          @if (isCurrent(link) && i > 1) {
             <app-icon name="chevron-left" class="nav-arrow nav-arrow-left" />
           }
           @if (link.icon) {
@@ -16,7 +15,7 @@
           } @else {
             <span>{{ link.label }}</span>
           }
-          @if (rla.isActive && i < navLinks.length - 1) {
+          @if (isCurrent(link) && i < navLinks.length - 1) {
             <app-icon name="chevron-right" class="nav-arrow nav-arrow-right" />
           }
         </a>
@@ -53,12 +52,10 @@
       @for (link of navLinks; track link.route; let first = $first) {
         <li [class.first]="first">
           <a [routerLink]="link.route"
-             routerLinkActive="active-link"
-             #listRla="routerLinkActive"
-             [routerLinkActiveOptions]="{ exact: !!link.exact }"
-             [attr.aria-current]="listRla.isActive ? 'page' : null">
+             [class.active-link]="isCurrent(link)"
+             [attr.aria-current]="ariaCurrent(link)">
             @if (link.label) {
-              <span>@if (listRla.isActive) {<span aria-hidden="true">[ </span>}{{ link.label }}@if (listRla.isActive) {<span aria-hidden="true"> ]</span>}</span>
+              <span>@if (isCurrent(link)) {<span aria-hidden="true">[ </span>}{{ link.label }}@if (isCurrent(link)) {<span aria-hidden="true"> ]</span>}</span>
             } @else {
               <span>Start <span class="dim">the greeting</span></span>
             }

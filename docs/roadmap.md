@@ -26,6 +26,10 @@ PR #87. The Music/OSRS treatment applied site-wide, plus the layout and mobile p
 
 2026-10-26/27, from the interactivity brainstorm (Morgan picked six): Hotline Webring and a real IRC channel (#99), the three-job Contact form and guest subtitles (#100), look up and name a star (#102), free look (#108), visitor content in `content/` with the mailbag on `/social` and one-click "Publish as PR" from Discord (#109, backend #4), Up tonight always on (#113), `/social` conversation first + the webring line under every page + the avatar that speaks (#114), and the campfire: a live shoutbox and the visitor counter on a Cloudflare Worker (#101, backend #2). How it all works: `.github/copilot-instructions.md`; what's left: `ideas-later.md` §4 (Visitors take part) and §3 (Copy pass).
 
+## 6. Projects — shipped
+
+2026-10-28: `/projects` as a showcase (design A, "Marquee", from the face-lift canvas): Valkenburg Castle, VideoJoker, this site and the self-hosted Foundry VTT as posters, the coded ones with live "updated N ago" from GitHub; the first **colophon** at `/colophon` (a side route, off the navbar); `/now` keeps Valkenburg pinned under Building and names whichever repo was pushed to last. What's next for it: `ideas-later.md` §4 (Projects page).
+
 Nothing new is agreed yet; pick the next thing from `ideas-later.md`.
 
 ---

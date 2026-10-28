@@ -3,11 +3,11 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { existsSync } from 'node:fs';
 import { ProjectCardComponent } from './project-card.component';
-import { PROJECTS, Project } from '../constants/projects.const';
+import { PINNED_PROJECT, PROJECTS, Project } from '../constants/projects.const';
 
 const project: Project = {
-  id: 'p', name: 'Thing', subtitle: 'Part Two', description: 'Does stuff.', quote: 'Hello.',
-  imageUrl: 'images/projects/thing.webp', imageAlt: 'A thing',
+  id: 'p', name: 'Thing', subtitle: 'Part Two', status: 'live', description: 'Does stuff.', quote: 'Hello.',
+  art: { kind: 'image', url: 'images/projects/thing.webp', alt: 'A thing' },
   liveUrl: 'https://example.github.io/thing/', liveLabel: 'Play it',
   repo: { owner: 'someone', name: 'thing' }, tags: ['TypeScript'],
 };
@@ -58,10 +58,21 @@ describe('ProjectCardComponent', () => {
 });
 
 describe('PROJECTS', () => {
-  it('every project has an image in public/ and alt text', () => {
+  it('every project has a status, alt text for its art, and a screenshot in public/ when it has one', () => {
     for (const p of PROJECTS) {
-      expect(existsSync(`public/${p.imageUrl}`), p.imageUrl).toBe(true);
-      expect(p.imageAlt.length).toBeGreaterThan(10);
+      expect(p.status.length, p.id).toBeGreaterThan(0);
+      expect(p.art.alt.length, p.id).toBeGreaterThan(10);
+      if (p.art.kind === 'image') expect(existsSync(`public/${p.art.url}`), p.art.url).toBe(true);
     }
+  });
+
+  it('the pinned project has a screenshot, since the /now card has no other art', () => {
+    expect(PINNED_PROJECT.art.kind).toBe('image');
+    expect(PROJECTS).toContain(PINNED_PROJECT);
+  });
+
+  it('ids are unique and every project has a repo or somewhere to open it', () => {
+    expect(new Set(PROJECTS.map(p => p.id)).size).toBe(PROJECTS.length);
+    for (const p of PROJECTS) expect(p.repo?.owner || p.liveUrl, p.id).toBeTruthy();
   });
 });

@@ -1,5 +1,7 @@
 <article class="project-card">
-  <img [src]="project().imageUrl" [alt]="project().imageAlt" class="shot" width="800" height="500" loading="lazy" decoding="async" />
+  @if (image(); as image) {
+    <img [src]="image.url" [alt]="image.alt" class="shot" width="1200" height="750" loading="lazy" decoding="async" />
+  }
 
   <div class="heading">
     <h3 class="name">{{ project().name }}</h3>
@@ -23,7 +25,9 @@
       @if (project().liveUrl; as liveUrl) {
         <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗</a>
       }
-      <a [href]="sourceUrl()" target="_blank" rel="noopener noreferrer" class="link">Source ↗</a>
+      @if (sourceUrl(); as sourceUrl) {
+        <a [href]="sourceUrl" target="_blank" rel="noopener noreferrer" class="link">Source ↗</a>
+      }
     </div>
     @if (updated(); as when) {
       <span class="updated">updated {{ when }}</span>

@@ -43,7 +43,8 @@ src/
     base-page/       # Shell: the glass page card + navbar (+ optional visually-hidden <h1>)
     site-strip/      # The webring line under every page (base-page places it: under the card, or ending the scroll on tablets/phones)
     page-header/     # <app-page-header>: a page's visible h1, dim one-liner, optional meta
-    custom-navbar/   # Navigation: one line on wide screens, a pager on tablets/phones; links from MAIN_ROUTES
+    custom-navbar/   # Navigation: one line on wide screens, a pager on tablets/phones; links from MAIN_ROUTES (a side page lights its parent)
+    project-poster/  # <app-project-poster>: a project on /projects (art, status, title plate, links, live "updated"); project-card/ is the /now version
     icon/            # <app-icon name="…">: the site's few glyphs as inline SVG
     vertical-nav/    # Interests tiles: a [preview] slot while collapsed, ↑/↓ + Enter/Esc, one section expanded at a time
     scroll-region/   # ScrollRegionService + [appScrollRegion] for arrow-key scrolling
@@ -52,7 +53,7 @@ src/
     sky/             # Tonight's sky: live canvas behind every page (see below)
     badges/          # The 88×31 buttons on /now: the app-badge shell, one small component per badge
     route-transition.ts  # View Transitions direction logic
-    main-routes.ts       # the main pages: path, title, description
+    main-routes.ts       # the main pages: path, title, description; SIDE_ROUTES for pages off the navbar (the colophon)
     shared-styles.scss   # Shared mixins: surface, panel, band, panel-grid, prose, label, progress-bar, scrollbar-styled
   styles.scss        # Global styles, color variables, route-transition CSS
   generated/         # gitignored: content/ gathered by scripts/build-visitor-content.mjs
@@ -64,9 +65,9 @@ art/                 # source art (the painting, lossless); not served
 
 **Page structure:** Each route has its own folder under `src/app/<name>-page/`. Pages import `BasePageComponent` to get the navbar. Complex pages may contain nested sub-components in subfolders (e.g. `interests-page/osrs-stats/` is one data-fetching parent plus one small component per panel).
 
-**Routing:** Main routes are declared once in `MAIN_ROUTES` (`src/shared/main-routes.ts`) with a `path`, `title` and `description`. Their order drives arrow-key navigation (`KeyboardNavService`), the navbar, slide direction, titles and meta tags. `src/app/app.routes.ts` maps each path to a lazy `loadComponent` via `lazyRouteComponents` and derives `data.animation` / `data.description` from the route. Don't hand-write `animation` values.
+**Routing:** Main routes are declared once in `MAIN_ROUTES` (`src/shared/main-routes.ts`) with a `path`, `title` and `description`. Their order drives arrow-key navigation (`KeyboardNavService`), the navbar, slide direction, titles and meta tags. `src/app/app.routes.ts` maps each path to a lazy `loadComponent` via `lazyRouteComponents` and derives `data.animation` / `data.description` from the route. Don't hand-write `animation` values. **Side routes** (`SIDE_ROUTES`, e.g. `/colophon`) are pages off the navbar, each with a `parent` main route: they take the parent's place in the nav (`navRouteFor`), ← → step on from the parent, and they slide in just past it (`getSideRouteAnimation`: the parent's index + 0.5). Keep them few; a page people should find from the nav is a main route.
 
-**Adding a page:** add the entry to `MAIN_ROUTES`, add its loader to `lazyRouteComponents` in `app.routes.ts` (the `MainRoutePath` type fails the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget; Lighthouse CI picks the page up from there), and give the page a header: `<app-page-header title="…" description="…">` inside `<app-base-page>` (or a visually-hidden h1 when the page shows its title another way: `<app-base-page pageTitle="…">`, or its own as Interests does while a section is open). Exactly one `<h1>` per page. The navbar and pager update themselves.
+**Adding a page:** add the entry to `MAIN_ROUTES` (or `SIDE_ROUTES`, with its parent), add its loader to `lazyRouteComponents` (or `lazySideRouteComponents`) in `app.routes.ts` (the `MainRoutePath`/`SideRoutePath` types fail the build if you forget), add the URL to `public/sitemap.xml` (a test fails if you forget; Lighthouse CI picks the page up from there), and give the page a header: `<app-page-header title="…" description="…">` inside `<app-base-page>` (or a visually-hidden h1 when the page shows its title another way: `<app-base-page pageTitle="…">`, or its own as Interests does while a section is open). Exactly one `<h1>` per page. The navbar and pager update themselves.
 
 **Build info:** `npm run build` runs `scripts/write-build-info.mjs` first (the `prebuild` hook), writing the gitignored `src/build-info.prod.ts` that the production configuration swaps in for `src/build-info.ts`, and then `npm run content` (Visitor content, below). Always build production through `npm run build`; a bare `ng build` skips the hooks and fails on the missing files (likewise `ng test` and `ng serve`: use `npm test` / `npm start`, or run `npm run content` once).
 

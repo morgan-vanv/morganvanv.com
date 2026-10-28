@@ -1,0 +1,82 @@
+<app-base-page>
+  <app-page-header title="Colophon" description="How this thing is put together, for the curious.">
+    <span pageMeta>built at <a [href]="config.repoUrl + '/commit/' + build.sha" target="_blank" rel="noopener noreferrer" class="pill">{{ build.sha.slice(0, 7) }}</a></span>
+  </app-page-header>
+
+  <div class="colophon-panels">
+
+    <section class="panel prose" aria-labelledby="colophon-built">
+      <h2 id="colophon-built">Built with</h2>
+      <p>
+        <a href="https://angular.dev/" target="_blank" rel="noopener noreferrer" class="pill">Angular</a>, written in TypeScript and SCSS, then
+        prerendered to plain HTML at build time. There's no server: every page is a static file on
+        <a href="https://pages.github.com/" target="_blank" rel="noopener noreferrer" class="pill">GitHub Pages</a>, and the few things that need a
+        backend (the shoutbox, the contact form) are small
+        <a href="https://workers.cloudflare.com/" target="_blank" rel="noopener noreferrer" class="pill">Cloudflare Workers</a>.
+      </p>
+      <p>
+        The type is <a href="https://www.jetbrains.com/lp/mono/" target="_blank" rel="noopener noreferrer" class="pill">JetBrains Mono</a> for everything,
+        with a little <a href="https://fonts.google.com/specimen/Caveat" target="_blank" rel="noopener noreferrer" class="pill">Caveat</a> where someone's
+        handwriting belongs. Icons are inline SVG. No cookies, no analytics, no trackers.
+      </p>
+      <p>
+        The code is public: <a [href]="config.repoUrl" target="_blank" rel="noopener noreferrer" class="pill">the site</a> and
+        <a [href]="config.backendRepoUrl" target="_blank" rel="noopener noreferrer" class="pill">the backend</a>. Every change goes through a
+        pull request, a lint, a build, the tests, Lighthouse and a layout check before it ships. A mild amount of spite throughout.
+      </p>
+    </section>
+
+    <section class="panel prose" aria-labelledby="colophon-live">
+      <h2 id="colophon-live">What's live</h2>
+      <p>Everything that updates on its own, and where it comes from; then the two places this site links out to.</p>
+      <ul class="sources">
+        <li><span class="what">Listening</span> <a href="https://stats.fm/" target="_blank" rel="noopener noreferrer" class="pill">stats.fm</a></li>
+        <li><span class="what">Old School RuneScape</span> <a href="https://wiseoldman.net/" target="_blank" rel="noopener noreferrer" class="pill">Wise Old Man</a> <a href="https://www.runeprofile.com/" target="_blank" rel="noopener noreferrer" class="pill">RuneProfile</a></li>
+        <li><span class="what">Watching</span> <a href="https://letterboxd.com/" target="_blank" rel="noopener noreferrer" class="pill">Letterboxd</a> <span class="how">read once a day at deploy time</span></li>
+        <li><span class="what">Weather</span> <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer" class="pill">Open-Meteo</a></li>
+        <li><span class="what">Projects</span> <a href="https://docs.github.com/en/rest" target="_blank" rel="noopener noreferrer" class="pill">GitHub</a></li>
+        <li><span class="what">The shoutbox, the visitor counter</span> <span class="how">the campfire, a Cloudflare Worker of mine</span></li>
+        <li><span class="what">Ask Morgan</span> <span class="how">another Worker, straight to my Discord</span></li>
+        <li><span class="what">The webring</span> <a [href]="config.webring.home" target="_blank" rel="noopener" class="pill">{{ config.webring.name }}</a></li>
+        <li><span class="what">The IRC channel</span> <a [href]="config.irc.webClientUrl" target="_blank" rel="noopener noreferrer" class="pill">{{ config.irc.channel }} on {{ config.irc.network }}</a></li>
+      </ul>
+    </section>
+
+    <section class="panel prose" aria-labelledby="colophon-sky">
+      <h2 id="colophon-sky">The sky</h2>
+      <p>
+        The stars behind every page are the real ones, for tonight, over Cincinnati (or over you, if you let it look). The Moon's phase and the
+        planets are computed in your browser with
+        <a href="https://github.com/cosinekitty/astronomy" target="_blank" rel="noopener noreferrer" class="pill">astronomy-engine</a>; the star and
+        constellation data comes from <a href="https://github.com/ofrohn/d3-celestial" target="_blank" rel="noopener noreferrer" class="pill">d3-celestial</a>
+        and ships with the site, so no API is involved. The painting in front of it is based on a photo of mine.
+      </p>
+    </section>
+
+    <section class="panel prose" aria-labelledby="colophon-browser">
+      <h2 id="colophon-browser">What stays in your browser</h2>
+      <p>Only what you put there; the one thing that ever leaves is your nick, with each shout you post:</p>
+      <ul class="plain">
+        <li>your sky settings, once you change any</li>
+        <li>your shoutbox nick, once you pick one</li>
+        <li>a note that this visit has been counted, so the counter ticks once</li>
+        <li>a note that the avatar's already said hello</li>
+        <li>cached copies of the live data above, for a few minutes, so the arrow keys stay quick</li>
+      </ul>
+      <p>The visitor counter is one number with nobody behind it.</p>
+    </section>
+
+    <section class="panel prose thanks" aria-labelledby="colophon-thanks">
+      <h2 id="colophon-thanks">Thanks</h2>
+      <p>
+        Wise Old Man, RuneProfile and stats.fm for the live numbers. Don Cross and Olaf Frohn for the sky.
+        The <a href="https://indieweb.org/" target="_blank" rel="noopener noreferrer" class="pill">IndieWeb</a>,
+        <a href="https://neocities.org/" target="_blank" rel="noopener noreferrer" class="pill">neocities</a> and the Web Revival for the reminder that
+        websites can be fun. Quality assurance by Ada, who is a cat.
+        The rest is in <a href="/humans.txt" target="_blank" rel="noopener noreferrer" class="pill">humans.txt</a>.
+      </p>
+      <p class="back"><a routerLink="/projects" class="pill"><span aria-hidden="true">[&nbsp;</span>‹ back to Projects<span aria-hidden="true">&nbsp;]</span></a></p>
+    </section>
+
+  </div>
+</app-base-page>
