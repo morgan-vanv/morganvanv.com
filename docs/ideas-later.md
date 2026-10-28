@@ -4,7 +4,7 @@ The parking lot for morganvanv.com. Nothing here is a commitment. When something
 
 **Legend** — effort: `S` an evening · `M` a weekend · `L` several sessions. `backend` = needs a serverless function (the site itself stays static). `data` = needs data fetched at deploy, or committed history (see "Patterns" at the bottom).
 
-Last big refresh: 2026-10-25 (audit of the repo at `4890dba`; sections 1–2 executed in PR #74 the same day).
+Last big refresh: 2026-10-25 (audit of the repo at `4890dba`; sections 1–2 executed in PR #74 the same day). Wind-down after "Visitors take part": 2026-10-27.
 
 ---
 
@@ -16,6 +16,12 @@ Most of the 2026-10-25 audit list shipped in PR #74 (fonts, icons/Material, view
   `git fetch --prune && git branch -r --merged origin/master | sed 's|^ *origin/||' | grep -v -e '^HEAD' -e '^master$' -e '^archived-old-website$' | xargs -n1 git push origin --delete`
   `for b in feature/face-lift dependabot/npm_and_yarn/angular/material-22.0.1 dependabot/npm_and_yarn/npm_and_yarn-b6205c8ac9; do git push origin --delete "$b"; done`
   ("Automatically delete head branches" is on. The `archived-old-website` ruleset is in the 2026-10-27 security report's settings list.)
+- **Leftovers from the "Visitors take part" sessions (2026-10-27).** `S` each —
+  - Stale branches to delete on GitHub: site `feat/name-a-star`, `test/referrer-policy`, `visitor/question/2026-10-27-how-did-you-make-your-website-so-good-41afb6c1` (its PR, #111, was closed); backend `feat/submission-kinds`, `fix/ask-hardening`. The backend repo doesn't auto-delete merged branches yet; turn that on.
+  - Closed (rejected) visitor PRs leave their `visitor/*` branch behind. A tiny workflow on `pull_request: closed` that deletes `visitor/*` heads would keep the repo tidy (needs `contents: write`).
+  - Morgan's CI/CD pass: backend ruleset required checks (`Campfire tests`, `Ask tests`), backend CodeQL default setup, backend auto-delete head branches, and a look at whether the site's required checks and auto-merge are where he wants them.
+  - Backend Dependabot #7 bumps the campfire's dev tools to TypeScript 7 + a new Vitest (green). The campfire isn't Angular, so TS 7 is fine there; merging redeploys the Worker.
+  - The mailbag panel stretches to the shoutbox's height on wide screens, so with one letter there's empty space under it. It fills as letters arrive; revisit if it still looks bare at three or four.
 - **TypeScript 7.** `M` — Dependabot ignores TypeScript ≥ 6.1 because Angular 22's compiler only accepts 6.0. Lift the ignore in `.github/dependabot.yml` when a new Angular accepts 7 (the Angular blog mentions TSGo support in the application builder).
 - **Dev-dependency audit.** `S` — `npm audit` is clean (prod and dev) since 2026-10-27. The six Dependabot alerts were all `vite` 8.3.0, which `@angular/build` 22.2.x pins exactly (dev server only, incl. launch-editor); `package.json` `overrides` lifts it to 8.3.5. **Drop the override** once an `@angular/build` release depends on vite ≥ 8.3.3 (`npm view @angular/build dependencies.vite`), then `npm install` and check `npm ls vite`. Don't take `npm audit fix --force`: it "fixes" `@angular/build` by downgrading it.
 - **Content-Security-Policy.** `M` — none yet (GitHub Pages can't send headers, so it'd be a `<meta http-equiv>`). Angular's `security.autoCsp` refuses to run with prerendering, and the prerendered pages carry inline scripts (event dispatch, the stylesheet `media` swap, a per-page `__jsaction_bootstrap`) whose hashes change with templates, so it needs a small post-build script that hashes each page's inline scripts and writes the meta after `<meta charset>`, run inside `npm run build` so Layout exercises it. A policy drafted and tested 2026-10-27 (all 8 pages + the 3D model, no violations): `default-src 'self'`, `script-src 'self' 'wasm-unsafe-eval'` + hashes (model-viewer needs wasm), `style-src 'self' 'unsafe-inline'` (Angular's style blocks and `[style.--brand-color]`), `img-src 'self' data: blob: https:` (narrow once stats.fm's image CDN is known), `connect-src` = the API hosts in `site.config.ts` + the campfire, `worker-src 'self' blob:`, `object-src 'none'; base-uri 'self'; form-action 'self'; frame-src 'none'`. A meta CSP can't do `frame-ancestors`, so the site stays frameable; only a header from a proxy in front of Pages could change that. Worth it most once the campfire stores a host key in localStorage.
@@ -36,6 +42,16 @@ Shipped in PR #74: meta/OG/Twitter tags, prerendering of every route, `robots.tx
 - **`humans.txt` copy is a draft.** `S` — written in Morgan's voice by Claude; edit freely.
 
 ## 3. Features: Morgan's seeds, worked out
+
+### Copy pass (waiting on Morgan's words)
+`S` — One sitting to put every drafted line into Morgan's voice. Everything below was written by Claude and marked as a draft; edit in place, no logic changes needed (specs pin a few strings, so update those alongside):
+- **Sky:** the ☾ menu's lighting labels and hints (`sky/sky-menu.component.ts`), "show my sky" (`sky-toggle.component.ts`), look up's "‹ back to the page" (`sky-look-up.component.ts`), the compass reading and buttons (`sky-view.ts`, `sky-compass.component.ts`), the naming panel and its count line (`star-naming.component.ts`, `sky-naming.ts`).
+- **Badges:** Up tonight's notes ("The sky's too bright to see them yet. Dark from …", "just stars"; `planets-badge.component.ts`), the weather verdicts (`weather-badge/weather.ts`).
+- **Home:** the Contact form's three jobs and their notes (`ask-morgan-form.ts`).
+- **Social:** the mailbag's count/empty lines and "ask me something on Home ›" (`mailbag/`), the wall's "your photo here / email it ›" and the prefilled email (`social-page.component.ts`), the shoutbox's "messages burn down after a month", "N by the fire", the banked messages and the IRC line (`shoutbox/`).
+- **Interests:** the Letterboxd diary's heading, "updates daily", spoiler line and footer (`letterboxd-diary.html`), the media preview (`media-preview.ts`).
+- **Projects:** card copy drafted from each project's README (`projects.const.ts`).
+- Morgan's own: Favorite Media's two missing books and any blurbs (`favorite-media.const.ts`), and the `/now` note (`now.content.ts`).
 
 ### Letterboxd, what's left
 The data path shipped (2026-10-27: deploy-time `letterboxd.json`, daily deploy, Watched on `/now`), and the diary sits under Favorite Media as its own feed. Not done, on purpose:
@@ -101,11 +117,17 @@ Grouped by the design pillars.
 - **Astrophotography gallery (My Photos).** `M` — Drop a photo into `public/photos/`, a build script generates thumbnails + a JSON manifest from EXIF (camera, exposure, ISO, stacked frames, location). Lightbox reuses the photo-wall overlay. The stub already exists.
 
 ### Visitors take part
-*From the 2026-10-26 interactivity brainstorm, Morgan picked guest subtitles, Hotline Webring, real IRC, Name a star, the shoutbox and the odometer (2026-10-27). The webring and IRC link, guest subtitles and Name a star ride the existing Ask Morgan function; the shoutbox and odometer run on **the campfire**, a Cloudflare Worker + SQLite Durable Object in `morganvanv.com-backend`. Everything below is what's left.*
+*From the 2026-10-26 interactivity brainstorm, Morgan picked guest subtitles, Hotline Webring, real IRC, Name a star, the shoutbox and the odometer. All six shipped 2026-10-27 (see `roadmap.md` §5), plus the mailbag, free look, one-click publishing and the avatar that speaks. Everything below is what's left.*
+
+**The campfire, next (options offered 2026-10-27, not picked):**
+- **Mute.** `S` — A host-only "mute" beside × that stops that visitor's hashed IP posting for a week (kept in the Durable Object, not in memory). Morgan picked Discord pings and the close switch instead; add if deleting isn't enough.
+- **Hold for approval.** `M` — Shouts wait until Morgan OKs them. Safest, but it stops being a live chat; not picked.
+- **Live instead of polling.** `M` — The campfire's WebSocket side (hibernatable Durable Object sockets) would make the log live and is what shared shooting stars and fireflies-as-visitors below need.
+- **A permalink per mailbag letter, and an RSS feed of answers.** `S`
 
 **Shelved by Morgan as follow-ups (2026-10-27):**
-- ~~**Ask Morgan: the mailbag.**~~ Built (2026-10-27): "You Asked" on `/social`, one file per letter in `content/mailbag/`, opened as a PR from Discord (backend #4) and answered in the PR before merging. Later, maybe: a permalink per letter, and an RSS feed of answers.
-- **Friends' buttons.** `S` — Friends' 88×31s as a link exchange in the Buttons panel on `/now`, beside the webring row; copied with permission rather than hotlinked so they don't rot `[TODO: Morgan: whose]`.
+- ~~**Ask Morgan: the mailbag.**~~ Built 2026-10-27.
+- **Friends' buttons.** `S` — Friends' 88×31s as a link exchange: a "friends" row in the Buttons panel on `/now` (the webring moved to the line under every page), or the logbook below; copied with permission rather than hotlinked so they don't rot `[TODO: Morgan: whose]`.
 
 **Not picked yet (2026-10-26 brainstorm):**
 - **The logbook (guestbook).** `M`, `backend` — Sign the logbook by the farmhouse door: name, a line, optional website and their own 88×31 (so it doubles as the friends'-buttons wall). The "Publish as PR" pipe that now carries subtitles, star names and the mailbag (`content/`) could carry it too: one file per entry in a `content/logbook/` folder; merging is moderation; the site stays static.
