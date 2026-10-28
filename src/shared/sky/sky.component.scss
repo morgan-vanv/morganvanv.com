@@ -29,19 +29,39 @@
   cursor: grabbing;
 }
 
-// Free look's panorama: the whole sky on one canvas (free look creates it and styles it
-// itself), moved by a transform as it's dragged, never redrawn per frame. Over the sky's
-// gradient, under the Sun and the landscape.
+// Free look's cube: the sky on five canvases in a CSS 3D box (free look creates and styles
+// them itself; it sets the perspective here), turned by one transform as it's dragged, never
+// redrawn per frame. Over the sky's gradient, under the Sun and the landscape.
 .free {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
 
+// Tilting the camera up slides the ground (the painting, with the gradient, the lights and
+// the fireflies on it) down the screen by --ground-shift (set by the component each frame);
+// the zenith's colour (--sky-top) fills in above it.
+:host(.free-look) {
+  background: var(--sky-top, #012031);
+}
+
+.sky,
+.land,
+.fireflies,
+.window-light,
+.campfire {
+  --slide: translate3d(0, var(--ground-shift, 0px), 0);
+}
+
 .sky {
   position: absolute;
   top: 0;
   left: 0;
+  transform: var(--slide);
+}
+
+.land .sky {
+  transform: none;
 }
 
 // The two landscape canvases are added, not stacked: mid-change they're weighted to sum
@@ -51,6 +71,7 @@
   position: absolute;
   inset: 0;
   isolation: isolate;
+  transform: var(--slide);
 
   .sky {
     mix-blend-mode: plus-lighter;
@@ -164,6 +185,7 @@
   position: absolute;
   inset: 0;
   opacity: var(--fireflies, 0);
+  transform: var(--slide);
 }
 
 .firefly {
@@ -196,6 +218,7 @@
   height: 0;
   opacity: var(--night-light, 0);
   mix-blend-mode: plus-lighter;
+  transform: var(--slide);
 }
 
 // Lit only when there's any night light (so nothing animates in daylight).

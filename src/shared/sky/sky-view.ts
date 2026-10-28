@@ -1,7 +1,7 @@
 /**
  * Free look: which way the visitor is looking while they look up. Small and
  * pure, because the service and the compass need it before the free-look code
- * itself (sky-panorama.ts, sky-free-look.ts) has loaded.
+ * itself (sky-cube.ts, sky-free-look.ts) has loaded.
  */
 
 export interface LookView {

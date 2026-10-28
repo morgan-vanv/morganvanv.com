@@ -99,9 +99,9 @@ export interface SkyLayout {
 
 /**
  * How the renderer puts directions onto its buffer. The normal view is one
- * stereographic picture facing south (`layoutProjection`); the free-look
- * panorama (sky-panorama.ts) is a cylinder that wraps round at 360° and runs on
- * past the zenith, so a direction can land in more than one place on it.
+ * stereographic picture facing south (`layoutProjection`); free look's cube
+ * (sky-cube.ts) is five faces side by side in one buffer, so a direction near
+ * an edge can land on more than one of them.
  */
 export interface SkyProjection {
   /** Buffer size, in buffer pixels. */

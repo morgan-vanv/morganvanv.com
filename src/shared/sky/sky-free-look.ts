@@ -1,19 +1,24 @@
-import { NO_HOVER, SkyHover, hoverAt, isOpenSky } from './sky-hover';
-import { Vec3, altAz } from './sky-math';
-import { SkyInput, SkyLayout, SkySegment, SkyTarget, drawGlows, renderSky } from './sky-render';
-import { ScreenMap } from './sky-naming';
 import {
-  Panorama,
+  Cube,
+  FACES,
+  GUTTER,
+  atlasPoint,
   bringIntoView,
-  bufferPoint,
-  computePanorama,
+  computeCube,
+  faceProjection,
+  cubeTransform,
   dragView,
-  panoramaOffset,
-  panoramaProjection,
-  screenOfBuffer,
+  faceOrigin,
+  faceTransform,
+  groundShift,
+  screenOfAtlas,
   viewBetween,
   viewPoint,
-} from './sky-panorama';
+} from './sky-cube';
+import { NO_HOVER, SkyHover, hoverAt, isOpenSky } from './sky-hover';
+import { Vec3 } from './sky-math';
+import { SkyInput, SkyLayout, SkySegment, SkyTarget, drawGlows, renderSky } from './sky-render';
+import { ScreenMap } from './sky-naming';
 import { ease } from './sky-transition';
 import { FACE_SOUTH, LookView, MAX_TILT, clampView } from './sky-view';
 
@@ -35,20 +40,22 @@ const VELOCITY_WINDOW = 100;
 
 /** What free look tells the sky component. */
 export interface FreeLookHost {
-  /** The view moved (each frame while it does): the ring follows, hover goes. */
+  /** The view moved (each frame while it does): the ring follows, hover goes, the ground slides. */
   moved(view: LookView): void;
   /** The view came to rest, after a drag (and its glide), a turn, or a press that stopped either. */
   settled(view: LookView, cause: 'drag' | 'turn' | 'stop'): void;
 }
 
-/** What the panorama needs to draw: the normal draw's input and its layout (which decides the light). */
+/** What the cube needs to draw: the normal draw's input and its layout (which decides the light). */
 export type PanoramaInput = Omit<SkyInput, 'projection' | 'paintBackground' | 'drawSun'>;
 
 /**
- * Free look: while looking up, the sky can be dragged round and up. The whole
- * sky is drawn once into a panorama (sky-panorama.ts) on one canvas; a drag
- * only moves that canvas (a CSS transform), so nothing is redrawn per frame.
- * The painting in front stays where it is. Loaded with the first look up.
+ * Free look: while looking up, the sky can be dragged round and up to the
+ * zenith, through a camera. The whole sky is drawn once onto the faces of a
+ * cube (sky-cube.ts), five canvases in a CSS 3D box round the viewer; a drag
+ * only changes the box's transform, so nothing is redrawn per frame. The
+ * painting in front stays put as you turn, and slides down as you tilt (the
+ * component does that from `groundShift`). Loaded with the first look up.
  *
  * Pointer events: a press on open sky that moves more than a few pixels is a
  * drag (the pointer is captured, and the click it ends with is swallowed);
@@ -58,9 +65,11 @@ export type PanoramaInput = Omit<SkyInput, 'projection' | 'paintBackground' | 'd
 export class FreeLook {
   /** Which way the visitor is looking. */
   view: LookView = FACE_SOUTH;
-  pan: Panorama | null = null;
-  readonly canvas: HTMLCanvasElement;
-  /** What the last render drew (buffer px), for hover. */
+  cube: Cube | null = null;
+  /** The 3D box the faces hang on; its transform is the view. */
+  readonly box: HTMLElement;
+  readonly faces: HTMLCanvasElement[];
+  /** What the last render drew (atlas px), for hover. */
   scene: { targets: readonly SkyTarget[]; segments: readonly SkySegment[] } | null = null;
   private pointer: { id: number; startX: number; startY: number; lastX: number; lastY: number; slop: number } | null = null;
   private samples: { t: number; x: number; y: number }[] = [];
@@ -73,16 +82,23 @@ export class FreeLook {
   private listening = false;
 
   constructor(
-    container: HTMLElement,
+    private readonly container: HTMLElement,
     private readonly surface: HTMLElement,
     private readonly host: FreeLookHost,
     private readonly reducedMotion: () => boolean,
   ) {
-    this.canvas = document.createElement('canvas');
-    this.canvas.className = 'panorama';
+    this.box = document.createElement('div');
+    this.box.className = 'cube';
     // Made here, so the component's styles don't reach it.
-    Object.assign(this.canvas.style, { position: 'absolute', top: '0', left: '0', transformOrigin: '0 0', opacity: '0' });
-    container.append(this.canvas);
+    Object.assign(this.box.style, { position: 'absolute', width: '0', height: '0', transformStyle: 'preserve-3d', transformOrigin: '0 0', opacity: '0' });
+    this.faces = FACES.map((_, i) => {
+      const canvas = document.createElement('canvas');
+      canvas.className = `face face-${i}`;
+      Object.assign(canvas.style, { position: 'absolute', backfaceVisibility: 'hidden' });
+      this.box.append(canvas);
+      return canvas;
+    });
+    container.append(this.box);
   }
 
   /** Moving on its own (gliding or turning), or being dragged. */
@@ -90,34 +106,54 @@ export class FreeLook {
     return this.dragging || this.motion !== null;
   }
 
-  /** Draws the whole sky into the panorama (sized for the screen), and puts it where the view has it. */
+  /** Draws the whole sky onto the cube (sized for the screen), a face at a time, and turns it to the view. */
   render(viewWidth: number, viewHeight: number, dpr: number, layout: SkyLayout, input: PanoramaInput): void {
-    const pan = computePanorama(viewWidth, viewHeight, dpr);
-    const context = this.canvas.getContext('2d');
-    if (!context) return;
-    if (this.canvas.width !== pan.width || this.canvas.height !== pan.height) [this.canvas.width, this.canvas.height] = [pan.width, pan.height];
-    this.canvas.style.width = `${pan.width * pan.artPixel}px`;
-    this.canvas.style.height = `${pan.height * pan.artPixel}px`;
-    // Made for each render and let go straight after: kept, it would double the panorama's
-    // memory for something needed once a minute.
-    const image = context.createImageData(pan.width, pan.height);
-    const result = renderSky(image.data, layout, { ...input, projection: panoramaProjection(pan), paintBackground: false, drawSun: false });
-    context.putImageData(image, 0, 0);
-    drawGlows(context, result.glows);
-    this.pan = pan;
-    this.scene = { targets: result.targets, segments: result.segments };
+    const cube = computeCube(viewWidth, viewHeight, dpr);
+    const targets: SkyTarget[] = [];
+    const segments: SkySegment[] = [];
+    this.faces.forEach((canvas, i) => {
+      if (canvas.width !== cube.face || canvas.height !== cube.face) [canvas.width, canvas.height] = [cube.face, cube.face];
+      const face = canvas.getContext('2d');
+      if (!face) return;
+      const projection = faceProjection(cube, i);
+      // Made for each face and let go straight after: kept, they would double the cube's memory.
+      const image = face.createImageData(projection.width, projection.height);
+      const result = renderSky(image.data, layout, { ...input, projection, paintBackground: false, drawSun: false });
+      face.clearRect(0, 0, cube.face, cube.face);
+      face.putImageData(image, -GUTTER, -GUTTER, GUTTER, GUTTER, cube.face, cube.face);
+      face.save();
+      face.translate(-GUTTER, -GUTTER);
+      drawGlows(face, result.glows);
+      face.restore();
+      // Into the atlas, where hover and the ring look things up.
+      const o = faceOrigin(cube, i);
+      const [dx, dy] = [o.x - GUTTER, o.y - GUTTER];
+      for (const t of result.targets) targets.push({ ...t, x: t.x + dx, y: t.y + dy });
+      for (const s of result.segments) segments.push({ ...s, ax: s.ax + dx, ay: s.ay + dy, bx: s.bx + dx, by: s.by + dy });
+      Object.assign(canvas.style, {
+        width: `${cube.faceCss}px`,
+        height: `${cube.faceCss}px`,
+        left: `${-cube.focal}px`,
+        top: `${-cube.focal}px`,
+        transform: faceTransform(cube, i),
+      });
+    });
+    Object.assign(this.container.style, { perspective: `${cube.focal}px`, perspectiveOrigin: `${cube.centerX}px ${cube.horizonY}px` });
+    Object.assign(this.box.style, { left: `${cube.centerX}px`, top: `${cube.horizonY}px` });
+    this.cube = cube;
+    this.scene = { targets, segments };
     this.place();
   }
 
   setOpacity(opacity: number): void {
-    this.canvas.style.opacity = String(opacity);
+    this.box.style.opacity = String(opacity);
   }
 
   /** Starts listening for drags on the sky. */
   start(): void {
     if (this.listening) return;
     this.listening = true;
-    this.canvas.style.willChange = 'transform';
+    this.box.style.willChange = 'transform';
     this.surface.addEventListener('pointerdown', this.onDown);
     this.surface.addEventListener('pointermove', this.onMove);
     this.surface.addEventListener('pointerup', this.onUp);
@@ -127,7 +163,7 @@ export class FreeLook {
   /** Stops listening, and stops any motion. */
   stop(): void {
     this.listening = false;
-    this.canvas.style.willChange = '';
+    this.box.style.willChange = '';
     this.surface.classList.remove('dragging');
     this.surface.removeEventListener('pointerdown', this.onDown);
     this.surface.removeEventListener('pointermove', this.onMove);
@@ -145,19 +181,19 @@ export class FreeLook {
     this.place();
   }
 
-  /** Gives the panorama's memory back (phones are short of it) and forgets the view. */
+  /** Gives the faces' memory back (phones are short of it) and forgets the view. */
   release(): void {
     this.stop();
-    if (!this.pan && !this.canvas.width) return;
+    if (!this.cube && !this.faces[0].width) return;
     this.view = FACE_SOUTH;
     this.scene = null;
-    this.pan = null;
-    [this.canvas.width, this.canvas.height] = [0, 0];
+    this.cube = null;
+    for (const canvas of this.faces) [canvas.width, canvas.height] = [0, 0];
   }
 
   destroy(): void {
     this.release();
-    this.canvas.remove();
+    this.box.remove();
   }
 
   /** Whether a click should be ignored because it ended a drag (asking clears it). */
@@ -172,11 +208,16 @@ export class FreeLook {
     return this.dragEnded;
   }
 
+  /** How far down the painting has slid for the view (CSS px). */
+  get groundShift(): number {
+    return this.cube ? groundShift(this.cube, this.view) : 0;
+  }
+
   /** Turns to a view: briefly animated, or at once under reduced motion. */
   turnTo(target: LookView): void {
     this.halt();
     const to = clampView(target);
-    if (this.reducedMotion() || !this.pan) {
+    if (this.reducedMotion() || !this.cube) {
       this.view = to;
       this.place();
       this.host.settled(this.view, 'turn');
@@ -202,13 +243,13 @@ export class FreeLook {
 
   /** Whether some view shows a direction (see `bringIntoView`). */
   canShow(alt: number, az: number, visible: (x: number, y: number) => boolean): boolean {
-    return !!this.pan && bringIntoView(this.pan, this.view, alt, az, visible) !== null;
+    return !!this.cube && bringIntoView(this.cube, this.view, alt, az, visible) !== null;
   }
 
   /** Turns (as little as it can) so a direction can be seen; true if that means turning. */
   show(alt: number, az: number, visible: (x: number, y: number) => boolean): boolean {
-    if (!this.pan) return false;
-    const target = bringIntoView(this.pan, this.view, alt, az, visible);
+    if (!this.cube) return false;
+    const target = bringIntoView(this.cube, this.view, alt, az, visible);
     if (!target || target === this.view) return false;
     this.turnTo(target);
     return true;
@@ -216,41 +257,39 @@ export class FreeLook {
 
   /** Where a horizontal direction is on screen (CSS px), or null if it's off screen. */
   screenPoint(h: Vec3, margin = 0): { x: number; y: number } | null {
-    if (!this.pan) return null;
-    const { alt, az } = altAz(h);
-    return viewPoint(this.pan, this.view, alt, az, margin);
+    return this.cube ? viewPoint(this.cube, this.view, h, margin) : null;
   }
 
   /** The screen (CSS px) as the naming candidates see it. */
   screenMap(): ScreenMap | null {
-    const pan = this.pan;
-    if (!pan) return null;
-    return { width: pan.viewWidth, height: pan.viewHeight, point: h => this.screenPoint(h) };
+    const cube = this.cube;
+    if (!cube) return null;
+    return { width: cube.viewWidth, height: cube.viewHeight, point: h => this.screenPoint(h) };
   }
 
   /** What's under a screen point (CSS px). */
   hoverAt(clientX: number, clientY: number, lineReachCss: number): SkyHover {
-    const pan = this.pan;
+    const cube = this.cube;
     const scene = this.scene;
-    if (!pan || !scene) return NO_HOVER;
-    const at = bufferPoint(pan, this.view, clientX, clientY);
-    return hoverAt(at.x, at.y, scene.targets, scene.segments, lineReachCss / pan.artPixel);
+    if (!cube || !scene) return NO_HOVER;
+    const at = atlasPoint(cube, this.view, clientX, clientY);
+    return hoverAt(at.x, at.y, scene.targets, scene.segments, lineReachCss / cube.artPixel);
   }
 
-  /** A buffer point on screen (CSS px), and CSS px per buffer px. */
+  /** An atlas point on screen (CSS px). */
   toScreen(x: number, y: number): { x: number; y: number } {
-    return this.pan ? screenOfBuffer(this.pan, this.view, x, y) : { x, y };
+    return this.cube ? screenOfAtlas(this.cube, this.view, x, y) : { x, y };
   }
 
+  /** CSS px per atlas px (at the middle of a face). */
   get cssPerPixel(): number {
-    return this.pan?.artPixel ?? 1;
+    return this.cube?.artPixel ?? 1;
   }
 
   private place(): void {
-    const pan = this.pan;
-    if (!pan) return;
-    const { x, y } = panoramaOffset(pan, this.view);
-    this.canvas.style.transform = `translate3d(${x.toFixed(2)}px, ${y.toFixed(2)}px, 0)`;
+    const cube = this.cube;
+    if (!cube) return;
+    this.box.style.transform = cubeTransform(cube, this.view);
     this.host.moved(this.view);
   }
 
@@ -262,7 +301,7 @@ export class FreeLook {
   }
 
   private readonly onDown = (event: PointerEvent) => {
-    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0) || !this.pan || !isOpenSky(event.target)) return;
+    if (!event.isPrimary || (event.pointerType === 'mouse' && event.button !== 0) || !this.cube || !isOpenSky(event.target)) return;
     // A press stops a glide or a turn; let the sky catch up (a tap now picks from where things are).
     if (this.motion) {
       this.halt();
@@ -283,14 +322,14 @@ export class FreeLook {
 
   private readonly onMove = (event: PointerEvent) => {
     const pointer = this.pointer;
-    const pan = this.pan;
-    if (!pointer || event.pointerId !== pointer.id || !pan) return;
+    const cube = this.cube;
+    if (!pointer || event.pointerId !== pointer.id || !cube) return;
     if (!this.dragging) {
       if (Math.hypot(event.clientX - pointer.startX, event.clientY - pointer.startY) <= pointer.slop) return;
       this.dragging = true;
       this.surface.classList.add('dragging');
     }
-    this.view = dragView(pan, this.view, event.clientX - pointer.lastX, event.clientY - pointer.lastY);
+    this.view = dragView(cube, this.view, event.clientX - pointer.lastX, event.clientY - pointer.lastY);
     pointer.lastX = event.clientX;
     pointer.lastY = event.clientY;
     this.samples.push({ t: event.timeStamp, x: event.clientX, y: event.clientY });
@@ -325,17 +364,17 @@ export class FreeLook {
     let last = performance.now();
     this.motion = 'glide';
     const step = (now: number) => {
-      const pan = this.pan;
+      const cube = this.cube;
       // (Frames can arrive with a time just before the last one's.)
       const dt = Math.max(0, Math.min(50, now - last));
       last = now;
-      if (!pan || Math.hypot(vx, vy) < GLIDE_MIN_SPEED) {
+      if (!cube || Math.hypot(vx, vy) < GLIDE_MIN_SPEED) {
         this.motion = null;
         this.frame = 0;
         this.host.settled(this.view, 'drag');
         return;
       }
-      const next = dragView(pan, this.view, vx * dt, vy * dt);
+      const next = dragView(cube, this.view, vx * dt, vy * dt);
       // Stopped at the horizon or the zenith: no more up or down.
       if ((next.tilt <= 0 && vy < 0) || (next.tilt >= MAX_TILT && vy > 0)) vy = 0;
       this.view = next;

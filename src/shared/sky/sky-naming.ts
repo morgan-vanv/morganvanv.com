@@ -149,7 +149,7 @@ export function visitorHoverNames(entries: readonly VisitorName[]): ExtraName[] 
   return entries.map(entry => ({ ra: entry.ra, dec: entry.dec, name: entry.name, detail: visitorDetail(entry) }));
 }
 
-/** A screen of some size and how directions land on it: free look's turned view (sky-panorama.ts). */
+/** A screen of some size and how directions land on it: free look's camera (sky-cube.ts). */
 export interface ScreenMap {
   readonly width: number;
   readonly height: number;

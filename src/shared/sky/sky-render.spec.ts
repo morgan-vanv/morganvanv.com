@@ -4,7 +4,7 @@ import { computeBodies } from './sky-bodies';
 import { CINCINNATI } from './sky.service';
 import { Lighting, computeLayout, drawLine, layoutProjection, pieces, prepareCatalog, renderSky, skyColors, starVisibility } from './sky-render';
 import { altAz, altAzToVector, j2000ToHorizontalMatrix, multiply } from './sky-math';
-import { computePanorama, panoramaProjection } from './sky-panorama';
+import { computeCube, faceProjection } from './sky-cube';
 
 const catalog = prepareCatalog(
   JSON.parse(readFileSync('public/data/sky/stars.json', 'utf8')),
@@ -213,18 +213,19 @@ describe('sky render', () => {
   });
 
 
-  describe('onto free look\'s panorama', () => {
+  describe('onto free look\'s cube', () => {
     const date = new Date('2026-10-28T03:00:00Z');
-    const pan = computePanorama(1024, 768);
-    const projection = panoramaProjection(pan);
+    const cube = computeCube(1024, 768);
     const layout = computeLayout(1024, 768);
-    const draw = (lighting: Lighting = 'darkness') => {
-      const buffer = new Uint8ClampedArray(pan.width * pan.height * 4);
+    const draw = (face: number, lighting: Lighting = 'darkness') => {
+      const projection = faceProjection(cube, face);
+      const buffer = new Uint8ClampedArray(projection.width * projection.height * 4);
       const result = renderSky(buffer, layout, { date, lat, lon, catalog, bodies: computeBodies(Astronomy, date, lat, lon), lighting, projection });
-      return { buffer, result };
+      return { buffer, result, projection };
     };
-    const { buffer, result } = draw();
-    const alpha = (x: number, y: number) => buffer[(Math.round(y) * pan.width + Math.round(x)) * 4 + 3];
+    const south = draw(0);
+    const up = draw(4);
+    const alpha = (b: Uint8ClampedArray, width: number, x: number, y: number) => b[(Math.round(y) * width + Math.round(x)) * 4 + 3];
 
     it('the normal view\'s projection is the stereographic one it always was', () => {
       const normal = layoutProjection(layout);
@@ -236,40 +237,46 @@ describe('sky render', () => {
       expect(p.x).toBeLessThan(layout.centerX); // east of south is to the left
     });
 
-    it('draws the whole sky, the north included, onto a transparent buffer, with no Sun or background', () => {
-      expect(result.starsDrawn).toBeGreaterThan(300);
-      expect(buffer[3]).toBe(0); // the corner's transparent: no gradient painted
-      expect(result.targets.some(t => t.kind === 'sun')).toBe(false);
-      // Polaris (and so the north) is on it, about 39° up over Cincinnati.
-      const polaris = result.targets.find(t => t.name === 'Polaris');
+    it('draws each face onto a transparent buffer, with no Sun or background, and only what that face sees', () => {
+      expect(south.result.starsDrawn).toBeGreaterThan(50);
+      expect(south.buffer[3]).toBe(0); // the corner's transparent: no gradient painted
+      expect(south.result.targets.some(t => t.kind === 'sun')).toBe(false);
+      // Polaris is on the north face, where its real place (not quite the pole, 0.7° off) projects, and on no other.
+      const north = draw(2);
+      const polaris = north.result.targets.find(t => t.name === 'Polaris')!;
       expect(polaris).toBeTruthy();
-      const asSeen = result.targets.filter(t => t.name === 'Polaris').map(t => pan.altTop - t.y / pan.degPx);
-      expect(asSeen.some(a => Math.abs(a - lat) < 1)).toBe(true);
+      const h = multiply(j2000ToHorizontalMatrix(date, lat, lon), catalog.names.find(n => n.name === 'Polaris')!.v);
+      expect(altAz(h).alt).toBeCloseTo(lat, 0);
+      const expected = north.projection.point(h, 0)!;
+      expect(polaris.x).toBeCloseTo(expected.x, 6);
+      expect(polaris.y).toBeCloseTo(expected.y, 6);
+      expect(south.result.targets.some(t => t.name === 'Polaris')).toBe(false);
+      expect(up.result.targets.some(t => t.name === 'Polaris')).toBe(false);
     });
 
-    it('draws each star in both images (as seen, and over the top) and again a period over near the seam', () => {
-      const vega = result.targets.filter(t => t.name === 'Vega');
+    it('a star near an edge is drawn on both faces that share it, in the gutter of one', () => {
+      // Deneb is about 55° up in the west-south-west at this hour: on the up face, and just over the south face's top edge.
       const toHorizontal = j2000ToHorizontalMatrix(date, lat, lon);
-      const vegaH = multiply(toHorizontal, catalog.names.find(n => n.name === 'Vega')!.v);
-      const { alt } = altAz(vegaH);
-      const rows = vega.map(t => pan.altTop - t.y / pan.degPx);
-      expect(rows.some(a => Math.abs(a - alt) < 0.01)).toBe(true);
-      if (180 - alt <= pan.altTop) expect(rows.some(a => Math.abs(a - (180 - alt)) < 0.01)).toBe(true);
-      // Anything drawn in the first stretch past 360° is a copy of what's at its start.
-      const copies = result.targets.filter(t => t.x > pan.period);
-      expect(copies.length).toBeGreaterThan(0);
-      for (const copy of copies) {
-        expect(result.targets.some(t => t.name === copy.name && Math.abs(t.x - (copy.x - pan.period)) < 1e-6 && Math.abs(t.y - copy.y) < 1e-6)).toBe(true);
+      const deneb = multiply(toHorizontal, catalog.names.find(n => n.name === 'Deneb')!.v);
+      const { alt } = altAz(deneb);
+      expect(alt).toBeGreaterThan(45);
+      expect(alt).toBeLessThan(60);
+      const onUp = up.result.targets.find(t => t.name === 'Deneb');
+      expect(onUp).toBeTruthy();
+      // The faces its gutter reaches (the south or west face, whichever it's nearer) draw it too.
+      const faces = [0, 1].filter(face => faceProjection(cube, face).point(deneb, 0));
+      expect(faces.length).toBeGreaterThanOrEqual(0);
+      for (const face of faces) {
+        const { result, buffer, projection } = draw(face);
+        const there = result.targets.find(t => t.name === 'Deneb')!;
+        expect(there).toBeTruthy();
+        expect(alpha(buffer, projection.width, there.x, there.y)).toBeGreaterThan(0);
       }
-      // And the pixels match too (give or take a neighbour's glow cut off at the very edge).
-      const star = copies.find(t => t.kind === 'star')!;
-      expect(alpha(star.x, star.y)).toBeGreaterThan(0);
-      expect(Math.abs(alpha(star.x - pan.period, star.y) - alpha(star.x, star.y))).toBeLessThan(8);
     });
 
-    it('draws constellation lines in short pieces, none jumping across the seam or the zenith', () => {
-      expect(result.segments.length).toBeGreaterThan(1000);
-      for (const s of result.segments) expect(Math.hypot(s.bx - s.ax, s.by - s.ay)).toBeLessThan(90 * pan.degPx);
+    it('draws constellation lines in short pieces, none jumping between faces', () => {
+      expect(south.result.segments.length + up.result.segments.length).toBeGreaterThan(400);
+      for (const s of [...south.result.segments, ...up.result.segments]) expect(Math.hypot(s.bx - s.ax, s.by - s.ay)).toBeLessThan(cube.face / 4);
       expect(pieces(altAzToVector(10, 0), altAzToVector(10, 30), 2).length).toBe(15);
       expect(pieces(altAzToVector(10, 0), altAzToVector(10, 30), 0).length).toBe(1);
       // The pieces join up end to end, and stay on the sky.
@@ -279,7 +286,7 @@ describe('sky render', () => {
     });
 
     it('in daylight there are no stars to draw', () => {
-      expect(draw('day').result.starsDrawn).toBe(0);
+      expect(draw(0, 'day').result.starsDrawn).toBe(0);
     });
   });
 });
