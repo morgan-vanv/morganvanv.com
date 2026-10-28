@@ -20,7 +20,7 @@ Update conventions there, not here. This file only holds Claude-specific rules.
   ```
   When a change touches layout, also run `npm run layout` after the build (needs Chrome: `CHROME_PATH=/opt/pw-browsers/chromium-1243/chrome-linux64/chrome` in Claude's sandbox). CI runs it either way.
 - **Copy is Morgan's voice.** Draft visible text in a casual, dry, first-person tone, keep it short, and flag it as a draft. Never invent facts about Morgan's life, opinions, or projects; use `[TODO: Morgan]` instead.
-- **Static site only.** No server code in this app. Anything needing a backend is a serverless function called over HTTP (see `ask-morgan-form`).
+- **Static site only.** No server code in this app. Anything needing a backend is a Cloudflare Worker in morganvanv.com-backend, called over HTTP (see `ask-morgan-form` and the campfire).
 - **Images** go in `public/` as compressed `.webp`, with real `alt` text.
 
 ## Project docs

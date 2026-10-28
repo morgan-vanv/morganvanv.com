@@ -9,7 +9,7 @@ It's a one-person hobby site, so there's no bounty and no SLA, but I read everyt
 ## What's in scope
 
 - This repo and the site it deploys (https://morganvanv.com, a static site on GitHub Pages).
-- Its backend, [morganvanv.com-backend](https://github.com/morgan-vanv/morganvanv.com-backend): the Ask Morgan function and the campfire (visitor counter and shoutbox). Report those on that repo, or by email.
+- Its backend, [morganvanv.com-backend](https://github.com/morgan-vanv/morganvanv.com-backend): the Ask Morgan and campfire Cloudflare Workers (the Contact form, the visitor counter and the shoutbox). Report those on that repo, or by email.
 
 Third-party APIs the site reads from (stats.fm, Wise Old Man, RuneProfile, Open-Meteo, Letterboxd, GitHub) belong to their owners; please report problems in them to them.
 
