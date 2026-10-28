@@ -2,7 +2,7 @@
 
 The parking lot for morganvanv.com. Nothing here is a commitment. When something gets picked up, move it into a PR and delete it from here; when a decision gets made about it, add a line to `decisions.md`.
 
-**Legend** — effort: `S` an evening · `M` a weekend · `L` several sessions. `backend` = needs a serverless function (the site itself stays static). `data` = needs data fetched at deploy, or committed history (see "Patterns" at the bottom).
+**Legend** — effort: `S` an evening · `M` a weekend · `L` several sessions. `backend` = needs a Cloudflare Worker in morganvanv.com-backend (the site itself stays static). `data` = needs data fetched at deploy, or committed history (see "Patterns" at the bottom).
 
 Last big refresh: 2026-10-25 (audit of the repo at `4890dba`; sections 1–2 executed in PR #74 the same day). Wind-down after "Visitors take part": 2026-10-27.
 

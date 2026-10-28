@@ -23,14 +23,14 @@ export interface PullRequestFacts {
   readonly files: readonly PullRequestFile[];
 }
 
-/** Where each kind's file goes, as ask/publish writes it (publish-link.js, DIRECTORIES and filePath). */
+/** Where each kind's file goes (the backend's ask/src/publish-link.js, filePath). */
 export const VISITOR_FILES: Readonly<Record<string, { readonly folder: string; readonly extension: string }>> = {
   subtitle: { folder: 'content/subtitles', extension: '.json' },
   star: { folder: 'content/stars', extension: '.json' },
   question: { folder: 'content/mailbag', extension: '.md' },
 };
 
-/** The ids ask/publish makes: `YYYY-MM-DD-<slug>-<8 hex>`. */
+/** The ids the backend makes: `YYYY-MM-DD-<slug>-<8 hex>`. */
 const ID_PATTERN = /^\d{4}-\d{2}-\d{2}-[a-z0-9]+(?:-[a-z0-9]+)*-[0-9a-f]{8}$/;
 
 /** A PR that presents itself as a visitor's, by its branch or its title. */
@@ -47,7 +47,7 @@ export function visitorPrProblems(pr: PullRequestFacts): string[] {
   const id = branch?.[2] ?? '';
   const target = Object.hasOwn(VISITOR_FILES, kind) ? VISITOR_FILES[kind] : undefined;
   if (!branch || !target || !ID_PATTERN.test(id)) {
-    return [`the branch "${pr.headRef}" isn't visitor/<subtitle|star|question>/<id>, as ask/publish names them`];
+    return [`the branch "${pr.headRef}" isn't visitor/<subtitle|star|question>/<id>`];
   }
 
   const problems: string[] = [];

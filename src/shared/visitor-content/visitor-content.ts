@@ -269,7 +269,7 @@ export function hasVisibleText(html: string): boolean {
 const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/;
 
 /**
- * Several lines of visitor text, cleaned exactly as morganvanv.com-backend's `block()` (ask/publish
+ * Several lines of visitor text, cleaned exactly as morganvanv.com-backend's `block()` (ask/src/
  * publish-link.js) cleans a question: no invisible or control characters, spaces folded, each line
  * trimmed, at most one blank line in a row, no blank lines at either end.
  */
