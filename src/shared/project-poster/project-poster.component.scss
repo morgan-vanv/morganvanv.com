@@ -136,10 +136,30 @@ $discord-command: #9fb3ff;
   text-shadow: 0 0 10px rgba($accent-color, 0.35);
 }
 
+// Under the name: the subtitle on the left, "updated N ago" quietly on the right. Here rather than by
+// the links, so every footer lines up; and one line tall whether or not GitHub has answered yet, so
+// the posters match. Too long to share the line, the date is cut rather than wrapped.
+.plate-line {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 1.1rem;
+  margin-top: 0.125rem;
+}
+
 .subtitle {
   @include shared.label;
-  display: block;
-  margin-top: 0.125rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.updated {
+  flex: none;
+  font-size: $font-size-label;
+  opacity: 0.55;
+  white-space: nowrap;
 }
 
 .ledger {
@@ -181,12 +201,7 @@ $discord-command: #9fb3ff;
   border-radius: 999px;
 }
 
-// The links, then "updated N ago" under them on the right: the same shape on every poster.
 .footer {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.5rem;
   margin-top: auto;
   padding-top: 0.25rem;
 }
@@ -195,7 +210,6 @@ $discord-command: #9fb3ff;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
-  align-self: stretch;
 }
 
 // 44px tall: these are the poster's tap targets.
@@ -234,11 +248,6 @@ $discord-command: #9fb3ff;
       border-color: $accent-color;
     }
   }
-}
-
-.updated {
-  font-size: $font-size-meta;
-  opacity: 0.6;
 }
 
 // ---- A chat log, for a bot that has no screen to shoot -------------------------------------------
@@ -403,39 +412,3 @@ $discord-command: #9fb3ff;
   opacity: 0.7;
 }
 
-// ---- A battle map, for the virtual tabletop ----------------------------------------------------
-
-// A gridded table under a lamp: the grid is two repeating gradients, the lamp a warm radial glow,
-// the tokens a few coloured rings on it.
-.map {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  background:
-    linear-gradient(rgba($main-color, 0.08) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem,
-    linear-gradient(90deg, rgba($main-color, 0.08) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem,
-    color.mix($accent-color, $background-color, 8%);
-}
-
-.lamp {
-  position: absolute;
-  inset: -20% -10% -10%;
-  background: radial-gradient(ellipse at 50% 30%, rgba($accent-color, 0.28), rgba($accent-color, 0) 55%);
-  pointer-events: none;
-}
-
-.token {
-  position: absolute;
-  width: 2rem;
-  height: 2rem;
-  box-sizing: border-box;
-  border-radius: 50%;
-  border: 3px solid;
-  background: rgba($background-color, 0.6);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-
-  &--a { left: 31%; top: 36%; border-color: #b23a48; }           // the coterie's red
-  &--b { left: 44%; top: 52%; border-color: $accent-color; }     // gold: the storyteller's
-  &--c { left: 58%; top: 30%; border-color: #5c7f80; }           // teal
-  &--d { left: 66%; top: 58%; border-color: $main-color; }       // white
-}

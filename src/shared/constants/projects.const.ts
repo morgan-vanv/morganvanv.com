@@ -27,9 +27,7 @@ export type ProjectArt =
   /** A chat log drawn in CSS, for a bot with no screen to shoot. */
   | { kind: 'chat'; alt: string; lines: readonly ChatLine[] }
   /** A miniature of this site: the glass card over the sky. */
-  | { kind: 'site'; alt: string }
-  /** A battle map drawn in CSS: a gridded table with a few tokens, for the virtual tabletop. */
-  | { kind: 'map'; alt: string };
+  | { kind: 'site'; alt: string };
 
 export interface Project {
   id: string;
@@ -101,7 +99,7 @@ export const PROJECTS: readonly Project[] = [
     // Draft. [TODO: Morgan] edit freely.
     description: 'The thing you\'re looking at. A personal site in the old-web spirit: a real sky every night, a shoutbox, '
       + 'a webring, and no cookies. Built properly anyway.',
-    quote: 'Built with: Angular, TypeScript, SCSS, and a mild amount of spite',
+    quote: 'Built with: Angular, TypeScript, SCSS',
     art: { kind: 'site', alt: 'A miniature of this website: the glass card over the night sky' },
     more: { label: 'colophon', route: '/colophon' },
     repo: { owner: 'morgan-vanv', name: 'morganvanv.com' },
@@ -114,8 +112,12 @@ export const PROJECTS: readonly Project[] = [
     status: 'self-hosted',
     // Draft. [TODO: Morgan] edit freely.
     description: 'A Foundry Virtual Tabletop I host myself, for the Vampire: The Masquerade campaign I run, set in Athens, '
-      + 'Ohio. It\'s set up for D&D too, for nights with fewer fangs.',
-    art: { kind: 'map', alt: 'A battle map: a gridded table under a lamp, with a few tokens on it' },
+      + 'Ohio. It\'s set up for D&D too, for all my TTRPG lovers.',
+    art: {
+      kind: 'image',
+      url: 'images/projects/foundry-vtt.webp',
+      alt: 'Foundry VTT\'s sixth-anniversary art: a glowing orange d20 in a candlelit hall of stained glass',
+    },
     liveUrl: 'https://vtt.morganvanv.com/',
     liveLabel: 'The table',
     tags: ['Foundry VTT', 'Vampire: The Masquerade', 'D&D'],

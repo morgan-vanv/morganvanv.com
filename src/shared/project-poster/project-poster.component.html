@@ -31,20 +31,15 @@
           <span class="mini-ring">‹ prev · hotline webring ↗ · next ›</span>
         </div>
       </div>
-    } @else if (map(); as art) {
-      <div class="map" role="img" [attr.aria-label]="art.alt">
-        <span class="token token--a"></span>
-        <span class="token token--b"></span>
-        <span class="token token--c"></span>
-        <span class="token token--d"></span>
-        <span class="lamp"></span>
-      </div>
     }
   </div>
 
   <div class="plate">
     <h2 class="name">{{ project().name }}</h2>
-    @if (project().subtitle; as subtitle) {<span class="subtitle">{{ subtitle }}</span>}
+    <span class="plate-line">
+      @if (project().subtitle; as subtitle) {<span class="subtitle">{{ subtitle }}</span>}
+      @if (updated(); as when) {<span class="updated">updated {{ when }}</span>}
+    </span>
   </div>
 
   <div class="ledger">
@@ -72,9 +67,6 @@
           <a [href]="sourceUrl" target="_blank" rel="noopener noreferrer" class="link">Source ↗<span class="visually-hidden"> ({{ project().name }})</span></a>
         }
       </div>
-      @if (updated(); as when) {
-        <span class="updated">updated {{ when }}</span>
-      }
     </div>
   </div>
 </article>

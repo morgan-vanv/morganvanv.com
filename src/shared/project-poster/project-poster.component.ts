@@ -28,7 +28,6 @@ export class ProjectPosterComponent {
   readonly image = computed(() => { const art = this.project().art; return art.kind === 'image' ? art : null; });
   readonly chat = computed(() => { const art = this.project().art; return art.kind === 'chat' ? art : null; });
   readonly site = computed(() => { const art = this.project().art; return art.kind === 'site' ? art : null; });
-  readonly map = computed(() => { const art = this.project().art; return art.kind === 'map' ? art : null; });
 
   /** The GitHub link, for a project with a repo. */
   readonly sourceUrl = computed(() => {

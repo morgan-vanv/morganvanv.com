@@ -46,7 +46,7 @@ describe('ProjectPosterComponent', () => {
     expect(el().querySelector('.plate h2')?.textContent?.trim()).toBe('Thing');
     expect(text()).toContain('Part Two');
     expect(text()).toContain('“Hello.”');
-    expect(text()).toContain('updated 3 hours ago');
+    expect(el().querySelector('.plate .updated')?.textContent).toBe('updated 3 hours ago');
     expect(links()).toEqual([
       ['Play it ↗ (Thing)', 'https://example.github.io/thing/'],
       ['Source ↗ (Thing)', 'https://github.com/someone/thing'],
@@ -89,11 +89,9 @@ describe('ProjectPosterComponent', () => {
     ]);
   });
 
-  it('draws a battle map for a hosted project with no repo: no Source link, no date, no GitHub call', async () => {
-    await mount({ ...base, repo: undefined, art: { kind: 'map', alt: 'A table' }, liveLabel: 'The table', liveUrl: 'https://vtt.example/' });
+  it('a hosted project with no repo gets no Source link, no date and no GitHub call', async () => {
+    await mount({ ...base, repo: undefined, liveLabel: 'The table', liveUrl: 'https://vtt.example/' });
     http.expectNone(REPO_URL);
-    expect(el().querySelector('.map')?.getAttribute('aria-label')).toBe('A table');
-    expect(el().querySelectorAll('.token').length).toBe(4);
     expect(links()).toEqual([['The table ↗ (Thing)', 'https://vtt.example/']]);
     expect(text()).not.toContain('updated');
   });
