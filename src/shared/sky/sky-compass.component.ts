@@ -9,7 +9,7 @@ import { TILT_STEP, TURN_STEP, compassText } from './sky-view';
  * for anyone who'd rather not (or can't) drag. Buttons, not arrow keys: ← →
  * stay page navigation. A polite live region says where each turn leaves you.
  * Small, so it's in main (unlike the panorama and the dragging, which load with
- * the first look up); shown only once free look is on. Copy is a draft for Morgan.
+ * the first look up); shown only once free look is on. Copy approved by Morgan (2026-10-28).
  */
 @Component({
   selector: 'app-sky-compass',

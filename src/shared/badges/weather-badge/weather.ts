@@ -31,7 +31,7 @@ export function isClear(weather: CurrentWeather): boolean {
   return weather.cloud_cover <= 30 && weather.weather_code <= 2;
 }
 
-/** The popover's one-line verdict. Drafts in Morgan's voice. */
+/** The popover's one-line verdict. Approved by Morgan (2026-10-28). */
 export function verdict(weather: CurrentWeather): string {
   if (weather.is_day) return 'ask again after dark';
   return isClear(weather) ? 'clear enough to go look up' : 'the clouds win tonight';

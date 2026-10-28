@@ -1,8 +1,12 @@
 @if (sky.ready()) {
-  <button #button type="button" class="sky-button" aria-label="Sky settings" aria-controls="sky-menu"
+  <button #button type="button" class="sky-button" [class.hinting]="hinting()" aria-label="Sky settings" aria-controls="sky-menu"
     [attr.aria-expanded]="open()" (click)="toggleOpen()">
     <app-icon name="moon" />
   </button>
+  <!-- The one-time nudge; the button's own label is what a screen reader gets. -->
+  @if (hinting() && !open()) {
+    <p class="sky-hint" aria-hidden="true">{{ hintText }}</p>
+  }
 
   @if (open()) {
     <div id="sky-menu" class="sky-panel" role="group" aria-labelledby="sky-menu-title">

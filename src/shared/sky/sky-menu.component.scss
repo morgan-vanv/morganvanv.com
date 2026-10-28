@@ -195,8 +195,46 @@ legend,
   opacity: 0.9;
 }
 
+// The one-time nudge: a ring that breathes round the ☾ and a glass pill under it, for a few seconds.
+.sky-button.hinting {
+  border-color: $accent-color;
+  animation: sky-hint-ring 1.6s ease-in-out infinite;
+}
+
+@keyframes sky-hint-ring {
+  0%, 100% { box-shadow: 0 0 0 0 rgba($accent-color, 0.45); }
+  50% { box-shadow: 0 0 0 6px rgba($accent-color, 0), 0 0 18px 4px rgba($accent-color, 0.3); }
+}
+
+.sky-hint {
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba($accent-color, 0.6);
+  background: rgba($background-color, 0.7);
+  backdrop-filter: blur(6px);
+  color: $main-color;
+  font-size: $font-size-meta;
+  white-space: nowrap;
+  animation: sky-hint-in 0.6s ease both;
+}
+
+@keyframes sky-hint-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .sky-button {
     transition: none;
+  }
+
+  .sky-button.hinting {
+    animation: none;
+    box-shadow: 0 0 0 3px rgba($accent-color, 0.35);
+  }
+
+  .sky-hint {
+    animation: none;
   }
 }

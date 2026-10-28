@@ -45,8 +45,7 @@ Shipped in PR #74: meta/OG/Twitter tags, prerendering of every route, `robots.tx
 
 ### Copy pass (waiting on Morgan's words)
 `S` — One sitting to put every drafted line into Morgan's voice. Everything below was written by Claude and marked as a draft; edit in place, no logic changes needed (specs pin a few strings, so update those alongside):
-- **Sky:** the ☾ menu's lighting labels and hints (`sky/sky-menu.component.ts`), "show my sky" (`sky-toggle.component.ts`), look up's "‹ back to the page" (`sky-look-up.component.ts`), the compass reading and buttons (`sky-view.ts`, `sky-compass.component.ts`), the naming panel and its count line (`star-naming.component.ts`, `sky-naming.ts`).
-- **Badges:** Up tonight's notes ("The sky's too bright to see them yet. Dark from …", "just stars"; `planets-badge.component.ts`), the weather verdicts (`weather-badge/weather.ts`).
+- ~~**Sky** and **Badges**~~: approved by Morgan 2026-10-28 (the ☾ menu, show my sky, back to the page, the compass, the naming panel, Up tonight's notes, the weather verdicts, plus the new sky hint and greeting line).
 - **Home:** the Contact form's three jobs and their notes (`ask-morgan-form.ts`).
 - **Social:** the mailbag's count/empty lines and "ask me something on Home ›" (`mailbag/`), the wall's "your photo here / email it ›" and the prefilled email (`social-page.component.ts`), the shoutbox's "messages burn down after a month", "N by the fire", the banked messages and the IRC line (`shoutbox/`).
 - **Interests:** the Letterboxd diary's heading, "updates daily", spoiler line and footer (`letterboxd-diary.html`), the media preview (`media-preview.ts`).
