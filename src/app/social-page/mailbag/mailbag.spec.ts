@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MAILBAG_TOKEN, MailbagComponent, NEWEST_SHOWN, letterCountLabel } from './mailbag';
+import { MAILBAG_TOKEN, MailbagComponent, NEWEST_SHOWN, NOTE_TILTS, letterCountLabel, noteTilt } from './mailbag';
 import { MAILBAG } from '../../../generated/mailbag';
 import { MailbagLetter, renderAnswer } from '../../../shared/visitor-content/visitor-content';
 
@@ -109,6 +109,52 @@ describe('MailbagComponent', () => {
       expect(ask?.getAttribute('href')).toBe('/home');
       expect(ask?.textContent?.trim()).toBe('ask me something on Home ›');
     }
+  });
+
+  it('folds every answer away until its note is unfolded, one letter at a time', async () => {
+    const { fixture, el } = await mount([1, 2].map(n => letter(n)));
+    const [first, second] = [...el.querySelectorAll<HTMLLIElement>('.letter')];
+    const button = (li: HTMLLIElement) => li.querySelector<HTMLButtonElement>('button.unfold')!;
+    const fold = (li: HTMLLIElement) => li.querySelector<HTMLElement>('.fold')!;
+
+    // Folded: the answer is in the page (prerendered) but inert, and the button says how to open it.
+    for (const li of [first, second]) {
+      expect(button(li).getAttribute('type')).toBe('button');
+      expect(button(li).getAttribute('aria-expanded')).toBe('false');
+      expect(button(li).textContent?.trim()).toBe('unfold for my answer');
+      expect(fold(li).hasAttribute('inert')).toBe(true);
+      expect(button(li).getAttribute('aria-controls')).toBe(fold(li).id);
+      expect(fold(li).querySelector('.answer')?.textContent).toContain('answer');
+    }
+    expect(fold(first).id).not.toBe(fold(second).id);
+
+    button(first).click();
+    await fixture.whenStable();
+    expect(button(first).getAttribute('aria-expanded')).toBe('true');
+    expect(button(first).textContent?.trim()).toBe('fold it back up');
+    expect(fold(first).hasAttribute('inert')).toBe(false);
+    expect(first.querySelector('.note')?.classList).toContain('unfolded');
+    // Its neighbour stays folded.
+    expect(button(second).getAttribute('aria-expanded')).toBe('false');
+    expect(fold(second).hasAttribute('inert')).toBe(true);
+
+    button(first).click();
+    await fixture.whenStable();
+    expect(button(first).getAttribute('aria-expanded')).toBe('false');
+    expect(fold(first).hasAttribute('inert')).toBe(true);
+  });
+
+  it('tilts each note by a small amount worked out from its id, the same every time', async () => {
+    const id = '2026-10-27-does-this-feature-work-3995b433';
+    expect(noteTilt(id)).toBe(noteTilt(id));
+    const tilts = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(noteTilt);
+    for (const tilt of tilts) {
+      expect(NOTE_TILTS.map(t => `${t}deg`)).toContain(tilt);
+    }
+    expect(new Set(tilts).size).toBeGreaterThan(1);
+
+    const { el } = await mount([letter(1)]);
+    expect(el.querySelector<HTMLElement>('.letter')!.style.getPropertyValue('--tilt')).toBe(noteTilt(letter(1).id));
   });
 
   it('counts letters in words', () => {

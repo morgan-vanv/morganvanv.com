@@ -26,59 +26,134 @@
   }
 }
 
+// The paper. Lamp-lit cream rather than white, so a note doesn't glare against the night (pillar 6), with
+// dark ink: every colour here passes 4.5:1 on $paper and on $paper-flap.
+$paper: #ece5d5;
+$paper-flap: #ddd5c2;
+$paper-flap-light: #e4ddcb;
+$paper-flap-hover: #d6cdb8;
+$ink: #1d2630;
+$ink-soft: #5b5446;
+$ink-link: #7a4a0c;
+
 // Two letters side by side where the slot is wide enough, one above the other where it isn't (and on
-// phones); newest first. Each keeps its own height, and a lone letter takes the whole width.
+// phones); newest first. Each keeps its own height, so unfolding one never stretches its neighbour. auto-fill
+// keeps the empty column, so a lone letter stays note-sized rather than stretching into a banner.
 .letters {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
   align-items: start;
-  gap: 1rem;
+  gap: 1.75rem;
   margin: 0;
-  padding: 0;
+  // Room for the tilt, the tape and the shadow, so none of it is clipped or widens the page.
+  padding: 0.5rem 0.375rem 0.25rem;
   list-style: none;
+
+  @media (max-width: $breakpoint-phone) {
+    gap: 1.5rem;
+  }
 }
 
+// Each note sits at its own small tilt (from its id) and straightens a little when pointed at.
 .letter {
-  @include shared.surface;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
   min-width: 0;
-  padding: 0.875rem 1rem 0.75rem;
-  border-radius: 8px;
+  transform: rotate(var(--tilt, 0deg));
+  transition: transform 0.25s ease;
 
   &[hidden] {
     display: none;
   }
 
-  @media (max-width: $breakpoint-phone) {
-    padding: 0.75rem 0.75rem 0.625rem;
+  @media (hover: hover) {
+    &:hover {
+      transform: rotate(0deg) translateY(-2px);
+    }
+  }
+}
+
+// One sheet per letter: no layers. A strip of tape holds it to the panel, clear of the text.
+.note {
+  position: relative;
+  border-radius: 3px;
+  background: $paper;
+  color: $ink;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.45), 0 12px 22px rgba(0, 0, 0, 0.25);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -0.5rem;
+    left: 0.875rem;
+    width: 3.625rem;
+    height: 1.125rem;
+    background: rgba(226, 218, 196, 0.6);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    transform: rotate(-6deg);
+    pointer-events: none;
   }
 }
 
 // The visitor's words, exactly as sent: plain text, line breaks kept.
 .question {
   margin: 0;
-  padding: 0.125rem 0 0.125rem 0.75rem;
-  border-left: 2px solid rgba($accent-color, 0.7);
+  padding: 1.625rem 1.125rem 0;
   font-size: $font-size-small;
-  line-height: 1.55;
-  opacity: 0.8;
+  line-height: 1.6;
 
   p {
     margin: 0;
     white-space: pre-line;
     overflow-wrap: anywhere;
   }
+
+  @media (max-width: $breakpoint-phone) {
+    padding: 1.5rem 0.875rem 0;
+  }
 }
 
-// Morgan's answer (HTML made at build time from his Markdown). It comes in through [innerHTML], so its
-// elements don't carry this component's style scope: everything inside is styled through ::ng-deep,
-// pinned under .answer so nothing leaks. shared.prose sets the type; its paragraph rules are repeated
-// here for the same reason.
+.asked {
+  margin: 0;
+  padding: 0.625rem 1.125rem 0.875rem;
+  color: $ink-soft;
+  font-size: $font-size-meta;
+
+  @media (max-width: $breakpoint-phone) {
+    padding-inline: 0.875rem;
+  }
+}
+
+// The fold: the answer's row grows from nothing to its own height, so a long answer just makes a longer
+// note. Folded, it's inert (out of the tab order and the accessibility tree). The global reduced-motion rule
+// makes it snap open instead.
+.fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.4s cubic-bezier(0.3, 0.7, 0.2, 1);
+
+  .unfolded & {
+    grid-template-rows: 1fr;
+  }
+}
+
+.fold-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+// Morgan's answer (HTML made at build time from his Markdown), on the paper under a dashed crease. It
+// comes in through [innerHTML], so its elements don't carry this component's style scope: everything inside
+// is styled through ::ng-deep, pinned under .answer so nothing leaks.
 .answer {
-  @include shared.prose;
+  padding: 0.875rem 1.125rem 0.75rem;
+  border-top: 1px dashed rgba($ink, 0.28);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.06), transparent 0.875rem);
+  font-size: $font-size-small;
+  line-height: 1.6;
   overflow-wrap: anywhere;
+
+  @media (max-width: $breakpoint-phone) {
+    padding-inline: 0.875rem;
+  }
 
   ::ng-deep {
     p {
@@ -104,12 +179,13 @@
       margin-top: 0.25rem;
     }
 
+    // The site's gold is too light on paper; links take a dark amber, with an underline.
     a {
-      color: $accent-color;
+      color: $ink-link;
       text-underline-offset: 0.15em;
 
       &:focus-visible {
-        outline: 2px solid $accent-color;
+        outline: 2px solid $ink-link;
         outline-offset: 2px;
       }
     }
@@ -117,19 +193,18 @@
     code {
       padding: 0 0.25em;
       border-radius: 4px;
-      background: rgba($main-color, 0.08);
+      background: rgba($ink, 0.08);
       font-size: 0.92em;
     }
 
-    // A code block scrolls inside itself rather than widening the page.
+    // A code block scrolls inside itself rather than widening the note.
     pre {
-      @include shared.scrollbar-styled;
       margin: 0 0 0.75rem;
       padding: 0.625rem 0.75rem;
       overflow-x: auto;
-      border-radius: 6px;
-      background: rgba(0, 0, 0, 0.3);
-      font-size: $font-size-small;
+      border-radius: 4px;
+      background: rgba($ink, 0.07);
+      font-size: $font-size-meta;
       line-height: 1.5;
 
       &:last-child {
@@ -146,10 +221,51 @@
   }
 }
 
-.asked {
+// The folded-up flap along the bottom edge, and the way to unfold it.
+.unfold {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.75rem;
   margin: 0;
+  padding: 0 1.125rem;
+  border: 0;
+  border-top: 1px solid rgba($ink, 0.16);
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(180deg, $paper-flap, $paper-flap-light);
+  color: $ink-link;
+  font: inherit;
   font-size: $font-size-meta;
-  opacity: 0.6;
+  font-weight: bold;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: linear-gradient(180deg, $paper-flap-hover, $paper-flap);
+  }
+
+  // Drawn inside the flap, in ink, where it reads (the gold would be lost on paper).
+  &:focus-visible {
+    outline: 2px solid $ink-link;
+    outline-offset: -4px;
+  }
+
+  @media (max-width: $breakpoint-phone) {
+    padding-inline: 0.875rem;
+  }
+}
+
+.chevron {
+  flex: none;
+  font-size: 1.25rem;
+  transition: transform 0.3s ease;
+
+  .unfolded & {
+    transform: rotate(180deg);
+  }
 }
 
 // "older letters" and the way to ask, pinned to the bottom of the panel.
