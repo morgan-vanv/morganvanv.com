@@ -77,7 +77,7 @@ describe('NowPageComponent', () => {
     // Morgan's order, left to right.
     const rows = [...panel!.querySelectorAll('.strip')].map(strip => [...strip.children].map(badge => badge.tagName.toLowerCase()));
     expect(rows).toEqual([
-      ['app-weather-badge', 'app-moon-badge', 'app-planets-badge'],
+      ['app-weather-badge', 'app-moon-badge', 'app-up-tonight-badge'],
       ['app-own-button-badge', 'app-angular-badge', 'app-no-cookies-badge', 'app-page-weight-badge', 'app-lighthouse-badge', 'app-build-badge'],
     ]);
     // The ones whose data ships with the site are there from the start; the Lighthouse badge waits for its report.

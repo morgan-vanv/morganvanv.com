@@ -7,8 +7,8 @@ import { SkyTarget } from './sky-render';
 import { SkyToggleComponent } from './sky-toggle.component';
 import { CINCINNATI, SkyService, VISITOR_STARS_TOKEN } from './sky.service';
 import { VISITOR_STARS } from '../../generated/visitor-stars';
-import { altAz, j2000ToHorizontalMatrix, multiply } from './sky-math';
-import { computePanorama, panoramaOffset, viewPoint } from './sky-panorama';
+import { altAzToVector, j2000ToHorizontalMatrix, multiply } from './sky-math';
+import { FACES, computeCube, cubeTransform, viewPoint } from './sky-cube';
 import { FACE_SOUTH, spokenView } from './sky-view';
 
 const files: Record<string, string> = {
@@ -410,9 +410,9 @@ describe('SkyComponent: visitor names and naming', () => {
     const expected = (date: Date) => {
       const star = sky.selected()!;
       const { lat, lon } = sky.location();
-      // Looking up, the sky is free look's panorama, facing south to start.
-      const { alt, az } = altAz(multiply(j2000ToHorizontalMatrix(date, lat, lon), star.v));
-      return viewPoint(computePanorama(window.innerWidth, window.innerHeight), FACE_SOUTH, alt, az)!;
+      // Looking up, the sky is free look's camera, facing south to start.
+      const h = multiply(j2000ToHorizontalMatrix(date, lat, lon), star.v);
+      return viewPoint(computeCube(window.innerWidth, window.innerHeight), FACE_SOUTH, h)!;
     };
     component.pinnedTime = new Date('2026-10-28T01:00:00Z');
     component.draw();
@@ -484,7 +484,8 @@ describe('SkyComponent: free look', () => {
   });
 
   interface Internals { freeOn: boolean; pinnedTime: Date | null; draw: () => void }
-  const panorama = (root: HTMLElement) => root.querySelector<HTMLCanvasElement>('.free canvas')!;
+  const box = (root: HTMLElement) => root.querySelector<HTMLElement>('.free .cube')!;
+  const face = (root: HTMLElement) => root.querySelector<HTMLCanvasElement>('.free .face-0')!;
   interface Fixture { nativeElement: HTMLElement; whenStable: () => Promise<unknown> }
   /** Pointer events on the sky (on one of its canvases, so they reach free look's listeners on the host). */
   const fire = (fixture: Fixture, type: string, x: number, y: number) =>
@@ -529,25 +530,26 @@ describe('SkyComponent: free look', () => {
     };
   }
 
-  it('looking up draws the whole sky once onto the panorama, facing south, and the sky canvas keeps only the gradient', async () => {
+  it('looking up draws the whole sky once onto the cube\'s faces, facing south, and the sky canvas keeps only the gradient', async () => {
     const { putImageData } = stubBrowser({ reducedMotion: true });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(fixture.nativeElement.classList).not.toContain('free-look');
     const before = putImageData.mock.calls.length;
     await lookUp(fixture, sky);
-    const canvas = panorama(fixture.nativeElement);
-    const pan = computePanorama(window.innerWidth, window.innerHeight);
-    expect([canvas.width, canvas.height]).toEqual([pan.width, pan.height]);
-    expect(canvas.style.opacity).toBe('1');
+    const cube = computeCube(window.innerWidth, window.innerHeight);
+    const faces = (fixture.nativeElement as HTMLElement).querySelectorAll<HTMLCanvasElement>('.free .face');
+    expect(faces.length).toBe(FACES.length);
+    for (const canvas of faces) expect([canvas.width, canvas.height]).toEqual([cube.face, cube.face]);
+    expect(box(fixture.nativeElement).style.opacity).toBe('1');
     expect(fixture.nativeElement.classList).toContain('free-look');
-    // One redraw: the panorama's stars (the sky canvas, now just the gradient, puts none).
-    expect(putImageData.mock.calls.length - before).toBe(1);
-    const offset = panoramaOffset(pan, FACE_SOUTH);
-    expect(canvas.style.transform).toBe(`translate3d(${offset.x.toFixed(2)}px, ${offset.y.toFixed(2)}px, 0)`);
+    // One redraw, a face at a time (the sky canvas, now just the gradient, puts none).
+    expect(putImageData.mock.calls.length - before).toBe(FACES.length);
+    expect(box(fixture.nativeElement).style.transform).toBe(cubeTransform(cube, FACE_SOUTH));
+    expect(fixture.nativeElement.style.getPropertyValue('--ground-shift')).toBe('0px');
   });
 
-  it('a drag only moves the panorama: nothing is redrawn, the sky follows the pointer, and the click it ends with picks nothing', async () => {
+  it('a drag only turns the cube: nothing is redrawn, the sky follows the pointer, and the click it ends with picks nothing', async () => {
     const { putImageData } = stubBrowser({ reducedMotion: true, landBelow: 0.6 });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
@@ -559,8 +561,9 @@ describe('SkyComponent: free look', () => {
     expect(selected).not.toBeNull();
     const another = sky.candidates().find(c => c.star !== selected)!;
     const draws = putImageData.mock.calls.length;
-    const transform = panorama(fixture.nativeElement).style.transform;
-    const pan = computePanorama(window.innerWidth, window.innerHeight);
+    const transform = box(fixture.nativeElement).style.transform;
+    const cube = computeCube(window.innerWidth, window.innerHeight);
+    const perPx = 180 / Math.PI / cube.focal;
 
     // Drag right by 100px and down by 30: the sky goes with it (turned left, tilted up). The click it
     // ends with lands right on another star, where that star is once the sky has stopped.
@@ -570,9 +573,11 @@ describe('SkyComponent: free look', () => {
       return clickedOn;
     });
     expect(putImageData.mock.calls.length).toBe(draws);
-    expect(panorama(fixture.nativeElement).style.transform).not.toBe(transform);
-    expect(sky.view().facing).toBeCloseTo(180 - 100 / pan.cssPerDeg, 6);
-    expect(sky.view().tilt).toBeCloseTo(30 / pan.cssPerDeg, 6);
+    expect(box(fixture.nativeElement).style.transform).not.toBe(transform);
+    expect(sky.view().facing).toBeCloseTo(180 - 100 * perPx, 6);
+    expect(sky.view().tilt).toBeCloseTo(30 * perPx, 6);
+    // Tilted up a little, the ground has slid down a little.
+    expect(parseFloat(fixture.nativeElement.style.getPropertyValue('--ground-shift'))).toBeCloseTo(cube.focal * Math.tan((30 * perPx * Math.PI) / 180), 1);
     expect(clickedOn).toBeTruthy();
     expect(sky.selected()).not.toBe(clickedOn!.star);
     expect(sky.selected()).toBe(selected);
@@ -610,11 +615,13 @@ describe('SkyComponent: free look', () => {
     expect(sky.view()).toEqual({ facing: 175, tilt: 0 });
     expect(sky.viewRequest()).toBeNull();
     expect(sky.viewAnnouncement()).toBe('facing south, 175°, at the horizon');
-    const { alt, az } = altAz(multiply(j2000ToHorizontalMatrix(component.pinnedTime, CINCINNATI.lat, CINCINNATI.lon), middle.star.v));
-    const there = viewPoint(computePanorama(window.innerWidth, window.innerHeight), sky.view(), alt, az)!;
+    const h = multiply(j2000ToHorizontalMatrix(component.pinnedTime, CINCINNATI.lat, CINCINNATI.lon), middle.star.v);
+    const cube = computeCube(window.innerWidth, window.innerHeight);
+    const there = viewPoint(cube, sky.view(), h)!;
     expect(there).not.toBeNull();
-    // Turned left 5°, the star has moved right by 5° worth.
-    expect(there.x - middle.x).toBeCloseTo(5 * computePanorama(window.innerWidth, window.innerHeight).cssPerDeg, 3);
+    // Turned left 5°, the star has moved right by about 5° worth (a little more, off the camera's axis).
+    expect(there.x - middle.x).toBeGreaterThan(5 * cube.focal * (Math.PI / 180) * 0.9);
+    expect(there.x - middle.x).toBeLessThan(5 * cube.focal * (Math.PI / 180) * 1.5);
     const ring = ringAt(fixture.nativeElement);
     expect(ring.x).toBeCloseTo(there.x, 3);
     expect(ring.y).toBeCloseTo(there.y, 3);
@@ -637,13 +644,13 @@ describe('SkyComponent: free look', () => {
     expect(sky.selected()).toBe(around[i].star);
     expect(Math.abs(sky.view().facing - around[i].az)).toBeLessThan(60);
     const ring = ringAt(fixture.nativeElement);
-    const there = viewPoint(computePanorama(window.innerWidth, window.innerHeight), sky.view(), around[i].alt, around[i].az)!;
+    const there = viewPoint(computeCube(window.innerWidth, window.innerHeight), sky.view(), altAzToVector(around[i].alt, around[i].az))!;
     expect(ring.x).toBeCloseTo(there.x, 3);
     expect(ring.y).toBeCloseTo(there.y, 3);
     expect(there.y).toBeLessThan(window.innerHeight * 0.6); // above the landscape
   });
 
-  it('leaving looks south again with the usual crossfade, and lets the panorama go; coming back starts south', async () => {
+  it('leaving looks south again with the usual crossfade, and lets the cube go; coming back starts south', async () => {
     stubBrowser({ reducedMotion: true });
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
@@ -657,35 +664,36 @@ describe('SkyComponent: free look', () => {
     expect(sky.view()).toEqual(FACE_SOUTH);
     expect((fixture.componentInstance as unknown as Internals).freeOn).toBe(false);
     expect(fixture.nativeElement.classList).not.toContain('free-look');
-    expect(panorama(fixture.nativeElement).width).toBe(0);
-    expect(panorama(fixture.nativeElement).style.opacity).toBe('0');
+    expect(face(fixture.nativeElement).width).toBe(0);
+    expect(box(fixture.nativeElement).style.opacity).toBe('0');
+    expect(fixture.nativeElement.style.getPropertyValue('--ground-shift')).toBe('0px');
 
     await lookUp(fixture, sky);
-    const offset = panoramaOffset(computePanorama(window.innerWidth, window.innerHeight), FACE_SOUTH);
-    expect(panorama(fixture.nativeElement).style.transform).toBe(`translate3d(${offset.x.toFixed(2)}px, ${offset.y.toFixed(2)}px, 0)`);
+    expect(box(fixture.nativeElement).style.transform).toBe(cubeTransform(computeCube(window.innerWidth, window.innerHeight), FACE_SOUTH));
   });
 
-  it('with motion allowed, entering crossfades: the panorama fades in as the stars of the normal view go (quicker), and leaving fades it out', async () => {
+  it('with motion allowed, entering crossfades: the cube fades in as the stars of the normal view go (quicker), and leaving fades it out', async () => {
     stubBrowser();
     const frames = fakeFrames();
     const { fixture, sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     await lookUp(fixture, sky);
-    const canvas = panorama(fixture.nativeElement);
-    expect(canvas.style.opacity).toBe('0');
+    const cube = box(fixture.nativeElement);
+    const canvas = face(fixture.nativeElement);
+    expect(cube.style.opacity).toBe('0');
     frames.advance(TRANSITION_MS / 2);
-    expect(Number(canvas.style.opacity)).toBeGreaterThan(0.3);
-    expect(Number(canvas.style.opacity)).toBeLessThan(0.7);
+    expect(Number(cube.style.opacity)).toBeGreaterThan(0.3);
+    expect(Number(cube.style.opacity)).toBeLessThan(0.7);
     // Half way, the normal view's stars have already gone: its upper canvas is all the way in or out.
     const over = fixture.nativeElement.querySelectorAll('canvas.sky')[1] as HTMLCanvasElement;
     expect(['0', '1']).toContain(over.style.opacity);
     frames.advance(TRANSITION_MS);
-    expect(canvas.style.opacity).toBe('1');
+    expect(cube.style.opacity).toBe('1');
     sky.leaveLookUp();
     await fixture.whenStable();
     expect(canvas.width).toBeGreaterThan(0);
     frames.advance(TRANSITION_MS / 2);
-    expect(canvas.style.opacity).toBe('0'); // the panorama goes in the first part
+    expect(cube.style.opacity).toBe('0'); // the cube goes in the first part
     frames.advance(TRANSITION_MS);
     expect(canvas.width).toBe(0);
   });
@@ -716,7 +724,7 @@ describe('SkyComponent: free look', () => {
     expect(sky.selected()).toBe(target);
     frames.advance(TURN_MS + 100);
     expect(sky.selected()).toBe(target);
-    const there = viewPoint(computePanorama(window.innerWidth, window.innerHeight), sky.view(), around[i].alt, around[i].az)!;
+    const there = viewPoint(computeCube(window.innerWidth, window.innerHeight), sky.view(), altAzToVector(around[i].alt, around[i].az))!;
     expect(there).not.toBeNull();
     await fixture.whenStable();
     const ring = ringAt(fixture.nativeElement);
@@ -741,7 +749,7 @@ describe('SkyComponent: free look', () => {
     fire(fixture, 'pointermove', 380, 120);
     fire(fixture, 'pointerup', 380, 120);
     frames.advance(3000); // any glide
-    expect(putImageData.mock.calls.length).toBe(before + 1);
+    expect(putImageData.mock.calls.length).toBe(before + FACES.length); // one redraw: a face at a time
   });
 
   it('when the naming panel first appears, a star it covers is picked again', async () => {
