@@ -1,12 +1,13 @@
-import { Component, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { A11yModule } from '@angular/cdk/a11y';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
-import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 import { UnderConstructionComponent } from '../../shared/under-construction/under-construction.component';
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { COMMUNITY_PHOTOS, CommunityPhoto, photoCountLabel } from '../../shared/constants/community-photos.const';
+import { CampfireService } from '../../shared/services/campfire.service';
 import { MailbagComponent } from './mailbag/mailbag';
+import { ShoutboxComponent } from './shoutbox/shoutbox';
 
 /** The wall's open slot: an email with the subject set and a nudge for a caption. [DRAFT copy] */
 export function photoMailto(email: string): string {
@@ -17,7 +18,7 @@ export function photoMailto(email: string): string {
 
 @Component({
   selector: 'app-social-page',
-  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, A11yModule, MailbagComponent],
+  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, ShoutboxComponent, A11yModule, MailbagComponent],
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -29,7 +30,15 @@ export class SocialPageComponent {
   readonly siteEmail = SITE_CONFIG.email;
   readonly photoMailto = photoMailto(SITE_CONFIG.email);
   readonly irc = SITE_CONFIG.irc;
-  readonly shoutboxUnderConstruction = isUnderConstruction('shoutbox');
+  /** The shoutbox lives on the campfire; without one configured it stays under construction. */
+  private readonly campfire = inject(CampfireService);
+  readonly shoutboxLive = this.campfire.configured;
+  /** "3 by the fire", once the campfire has said who's here. */
+  readonly hereLabel = computed(() => {
+    const here = this.campfire.shoutLog()?.here;
+    if (!here) return null;
+    return here === 1 ? 'just you by the fire' : `${here} by the fire`;
+  });
   readonly selectedPhoto = signal<CommunityPhoto | null>(null);
   private lastFocusedElement: HTMLElement | null = null;
 

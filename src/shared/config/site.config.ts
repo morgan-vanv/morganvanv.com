@@ -41,6 +41,13 @@ export const SITE_CONFIG = {
     /** Libera's lightweight web client (gamja), opened on the channel with a nick to edit. */
     webClientUrl: 'https://web.libera.chat/gamja/?nick=guest#morganvanv',
   },
+  /**
+   * The campfire: a Cloudflare Worker (morganvanv.com-backend/campfire) holding the visitor count and the
+   * shoutbox. Empty means none: the visitor counter hides and the shoutbox stays under construction.
+   */
+  campfireUrl: 'https://campfire.morganvanv.workers.dev',
+  /** Where the campfire's code and its privacy notes live, for anyone curious how they're counted. */
+  campfireSourceUrl: 'https://github.com/morgan-vanv/morganvanv.com-backend/tree/main/campfire',
   askMorganSubmitUrl: 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-fb12a0f7-e7af-4149-8e0a-f676ef64d868/ask/submit',
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',

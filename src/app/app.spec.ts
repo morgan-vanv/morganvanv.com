@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { CUSTOM_ELEMENTS_SCHEMA, ChangeDetectionStrategy, Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Router, provideRouter } from '@angular/router';
+import { Router, RouterOutlet, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
 import { SkyService } from '../shared/sky/sky.service';
+import { CampfireService } from '../shared/services/campfire.service';
 import { VerticalNavContainerComponent } from '../shared/vertical-nav/vertical-nav-container.component';
 import { VerticalNavItemComponent } from '../shared/vertical-nav/vertical-nav-item.component';
 import { ScrollRegionDirective } from '../shared/scroll-region/scroll-region.directive';
@@ -26,10 +27,16 @@ import { ScrollRegionDirective } from '../shared/scroll-region/scroll-region.dir
 class TilesPageComponent {}
 
 describe('App', () => {
+  const countVisit = vi.fn();
+
   beforeEach(async () => {
+    countVisit.mockClear();
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([{ path: 'interests', component: TilesPageComponent }]), provideHttpClient(), provideHttpClientTesting()],
+      providers: [
+        provideRouter([{ path: 'interests', component: TilesPageComponent }]), provideHttpClient(), provideHttpClientTesting(),
+        { provide: CampfireService, useValue: { countVisit } },
+      ],
     }).compileComponents();
   });
 
@@ -74,5 +81,13 @@ describe('App', () => {
     press('ArrowDown');
     expect(tiles.highlightedIndex()).toBe(1);
     el.remove();
+  });
+
+  it('counts the visit once it has rendered', async () => {
+      // Without the sky, so settling doesn't go fetching star data.
+      TestBed.overrideComponent(App, { set: { imports: [RouterOutlet], schemas: [CUSTOM_ELEMENTS_SCHEMA] } });
+      const fixture = TestBed.createComponent(App);
+      await fixture.whenStable();
+      expect(countVisit).toHaveBeenCalledTimes(1);
   });
 });

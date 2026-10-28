@@ -1,6 +1,8 @@
 import { existsSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SocialPageComponent, photoMailto } from './social-page.component';
 import { COMMUNITY_PHOTOS, photoCountLabel } from '../../shared/constants/community-photos.const';
 
@@ -11,7 +13,7 @@ describe('SocialPageComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [SocialPageComponent],
-      providers: [provideRouter([])],
+      providers: [provideRouter([]), provideHttpClient(), provideHttpClientTesting()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(SocialPageComponent);
@@ -51,7 +53,6 @@ describe('SocialPageComponent', () => {
 
   it('links the shoutbox panel to the real IRC channel on Libera.Chat', () => {
     const panel = (fixture.nativeElement as HTMLElement).querySelector('.shoutbox');
-    expect(panel?.querySelector('h2')?.textContent).toContain('#morganvanv');
     const join = panel?.querySelector<HTMLAnchorElement>('a.irc-join');
     expect(join?.getAttribute('href')).toBe('https://web.libera.chat/gamja/?nick=guest#morganvanv');
     expect(join?.getAttribute('target')).toBe('_blank');
@@ -68,6 +69,12 @@ describe('SocialPageComponent', () => {
     expect(top.querySelector('.shoutbox h2')?.textContent).toContain('Shoutbox');
     // The wall comes after, outside the top row.
     expect(top.nextElementSibling?.matches('.wall-panel')).toBe(true);
+  });
+
+  it('puts the live shoutbox in its panel, above the way into IRC', () => {
+    const panel = (fixture.nativeElement as HTMLElement).querySelector('.shoutbox');
+    expect(panel?.querySelector('app-shoutbox')).not.toBeNull();
+    expect(panel?.querySelector('app-under-construction')).toBeNull();
   });
 
   it('counts photos in words', () => {

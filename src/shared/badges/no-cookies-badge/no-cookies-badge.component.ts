@@ -3,8 +3,11 @@ import { BadgeComponent, BadgePopover } from '../badge/badge.component';
 
 /**
  * "No cookies · no trackers". True as long as nothing here sets a cookie or loads analytics: the
- * sky's choices live in localStorage (only once a visitor makes one) and API responses in
- * sessionStorage. Adding analytics or anything that sets a cookie means retiring this badge.
+ * sky's choices and a shoutbox nick live in localStorage (only once a visitor makes them), API
+ * responses, a "this visit's been counted" flag and an "the avatar's said hello" flag in sessionStorage,
+ * Morgan's own host key in his own browsers, and the visitor counter is one number with nothing about
+ * anyone behind it. Adding analytics or anything that sets a cookie means
+ * retiring this badge.
  */
 @Component({
   selector: 'app-no-cookies-badge',
@@ -17,10 +20,11 @@ export class NoCookiesBadgeComponent {
   readonly popover: BadgePopover = {
     title: 'Nothing to accept',
     lines: ['No cookies, no analytics, no trackers.'],
-    note: 'Your sky settings stay in your browser.',
+    note: 'Your sky settings and shoutbox nick stay in your browser. The visitor counter is just a number.',
     cta: 'humans.txt ↗',
   };
 
-  readonly label = 'No cookies, no analytics and no trackers on this site; your sky settings stay in your browser. ' +
+  readonly label = 'No cookies, no analytics and no trackers on this site; your sky settings and shoutbox nick stay in ' +
+    'your browser, and the visitor counter is just a number. ' +
     'Opens humans.txt in a new tab.';
 }

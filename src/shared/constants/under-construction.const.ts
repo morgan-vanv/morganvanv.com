@@ -4,9 +4,9 @@
  * deletion: take its line out. (An Under construction badge counted this list on /now for a day; it's
  * shelved in docs/ideas-later.md and can be brought back from git history.)
  */
-export type UnderConstructionId = 'projects' | 'blog' | 'shoutbox' | 'favorite-media' | 'my-photos';
+export type UnderConstructionId = 'projects' | 'blog' | 'favorite-media' | 'my-photos';
 
-export const UNDER_CONSTRUCTION: readonly UnderConstructionId[] = ['projects', 'blog', 'shoutbox', 'my-photos'];
+export const UNDER_CONSTRUCTION: readonly UnderConstructionId[] = ['projects', 'blog', 'my-photos'];
 
 export function isUnderConstruction(id: UnderConstructionId): boolean {
   return UNDER_CONSTRUCTION.includes(id);

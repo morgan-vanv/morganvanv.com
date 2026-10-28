@@ -1,0 +1,59 @@
+@if (!loaded()) {
+  <p class="status">
+    @if (campfire.unreachable()) {
+      Can't reach the campfire right now. IRC's below.
+    } @else {
+      Stoking the fire…
+    }
+  </p>
+} @else {
+  <div #log class="log" role="log" aria-label="Shoutbox messages" tabindex="0" [appScrollRegion]="logFocused()"
+    (focusin)="logFocused.set(true)" (focusout)="logFocused.set(false)" (scroll)="onScroll(log)">
+    <ol class="lines">
+      @for (line of lines(); track line.id) {
+        <li class="line">
+          <span class="time">[{{ line.time }}]</span>&ngsp;<span [class]="line.host ? 'nick host' : 'nick n' + line.colour">&lt;@if (line.host) {&#64;}<bdi>{{ line.nick }}</bdi>&gt;@if (line.host) {<span class="visually-hidden"> (the host)</span>}</span>&ngsp;<bdi class="said">{{ line.text }}</bdi>
+          @if (campfire.isHost()) {
+            <button type="button" class="drop" [attr.aria-label]="'Delete ' + line.nick + '\'s message'" (click)="remove(line)">×</button>
+          }
+        </li>
+      } @empty {
+        <li class="line system">* the fire's lit. nobody's said anything yet.</li>
+      }
+      @if (!open()) {
+        <li class="line system">* the fire's banked for now.</li>
+      }
+    </ol>
+  </div>
+}
+
+@if (!campfire.unreachable() && canPost()) {
+<form class="composer" (ngSubmit)="say()">
+  <div class="honey-pot" aria-hidden="true">
+    <label for="shout-website">Leave this field blank if you are human:</label>
+    <input type="text" id="shout-website" name="shout_honey" [ngModel]="website()" (ngModelChange)="website.set($event)" tabindex="-1" autocomplete="off">
+  </div>
+  <input class="field nick-field" type="text" name="nick" aria-label="Your nick" autocomplete="nickname"
+    [maxlength]="nickMaxLength" [ngModel]="campfire.isHost() ? 'morgan' : nick()" (ngModelChange)="nick.set($event)"
+    [readonly]="campfire.isHost()" [disabled]="sending()">
+  <input class="field" type="text" name="text" aria-label="Your message" placeholder="say something…" autocomplete="off"
+    [maxlength]="maxLength" [ngModel]="text()" (ngModelChange)="text.set($event)" [disabled]="sending()">
+  <button type="submit" class="say" [disabled]="!canSay()">{{ sending() ? '…' : 'say' }}</button>
+</form>
+}
+
+@if (error(); as error) {
+  <p class="error" role="alert">{{ error }}</p>
+}
+
+@if (loaded() && !canPost()) {
+  <p class="status banked">The fire's banked for now. Read on; come back later to say something.</p>
+}
+
+<p class="foot">
+  messages burn down after a month
+  @if (campfire.isHost()) {
+    <span class="host-note">· you're the host here</span>
+    <button type="button" class="bank" [disabled]="banking()" (click)="toggleFire()">{{ open() ? 'bank the fire' : 'light it again' }}</button>
+  }
+</p>
