@@ -1,10 +1,10 @@
 /**
  * What a visitor PR may change.
  *
- * ask/publish (morganvanv.com-backend) opens one PR per approved suggestion: branch
- * `visitor/<kind>/<id>`, title `visitor: <kind> <id>`, and one new file, `content/<folder>/<id>.<ext>`.
- * Those PRs are opened under an account that can write to this repo, so to a reviewer they look like
- * any other PR. The "Visitor scope" check holds anything that calls itself a visitor PR (by branch or
+ * Until Ask Morgan 2.1 (morganvanv.com-backend), a token that could write to this repo opened one PR per
+ * approved suggestion: branch `visitor/<kind>/<id>`, title `visitor: <kind> <id>`, and one new file,
+ * `content/<folder>/<id>.<ext>`; to a reviewer they looked like any other PR. Morgan now opens them
+ * himself from GitHub's editor, and the guard stays for anything that claims the old shape. The "Visitor scope" check holds anything that calls itself a visitor PR (by branch or
  * by title) to exactly that shape, so "it's just a visitor PR" is safe to merge: a PR that says it's a
  * visitor's and touches anything else fails.
  *
