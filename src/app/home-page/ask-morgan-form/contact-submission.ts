@@ -33,7 +33,7 @@ export function dropboxSubmission(text: string): ContactSubmission {
 }
 
 /**
- * A suggested greeting subtitle. The message is exactly what morganvanv.com-backend's `ask/submit` checks
+ * A suggested greeting subtitle. The message is exactly what morganvanv.com-backend's `/submit` checks
  * the structured fields against before it offers a "Publish as PR" link (its `matchesMessage`): the
  * title, the line in quotes, the credit, and nothing else.
  */

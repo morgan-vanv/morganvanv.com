@@ -1,7 +1,7 @@
 import { ContactSubmission, dropboxSubmission, oneLine, questionSubmission, subtitleSubmission } from './contact-submission';
 
 /**
- * morganvanv.com-backend #4's `matchesMessage` (ask/submit/embed.js), which only offers a "Publish as PR"
+ * morganvanv.com-backend #4's `matchesMessage` (ask/src/embed.js), which only offers a "Publish as PR"
  * link when the message says what the fields say. Copied here so a change to the message can't quietly
  * cost Morgan his links.
  */

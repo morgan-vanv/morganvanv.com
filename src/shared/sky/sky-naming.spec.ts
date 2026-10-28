@@ -245,7 +245,7 @@ describe('sky naming', () => {
     });
 
     it('matches the backend\'s check (#4\'s matchesMessage), so it gets a Publish as PR link', () => {
-      // ask/submit/embed.js, for a star: the name as JSON, "unnamed star near X", the magnitude to one place.
+      // The backend's ask/src/embed.js, for a star: the name as JSON, "unnamed star near X", the magnitude to one place.
       for (const s of [makeSuggestion('The "Big" One', 'o\'neil', star)!, makeSuggestion('Pat', '', { ...star, near: null })!, makeSuggestion(' Ger\u202Eald  ', ' \u200Bsam ', star)!]) {
         const body = suggestionBody(s);
         const lines = body.question.trim().split('\n');

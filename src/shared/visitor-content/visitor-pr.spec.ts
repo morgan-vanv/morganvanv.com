@@ -8,7 +8,7 @@ const question = {
 };
 
 describe('visitor PRs (the Visitor scope check)', () => {
-  it('passes a PR exactly as ask/publish opens it, for each kind', () => {
+  it('passes a PR in the visitor shape, for each kind', () => {
     expect(visitorPrProblems(question)).toEqual([]);
     const subtitle = `2026-10-27-trying-to-escape-the-permanent-a305f7ae`;
     expect(visitorPrProblems({
@@ -54,7 +54,7 @@ describe('visitor PRs (the Visitor scope check)', () => {
     expect(isVisitorPr({ title: '  Visitor: hi', headRef: 'x' })).toBe(true);
   });
 
-  it('wants the exact title, and an id shaped like ask/publish\'s', () => {
+  it('wants the exact title, and an id shaped like the backend\'s', () => {
     expect(visitorPrProblems({ ...question, title: 'visitor: something nice' })).toEqual([`the title should be exactly "visitor: question ${id}"`]);
     expect(visitorPrProblems({ ...question, headRef: 'visitor/question/../../etc' })[0]).toContain('isn\'t visitor/');
     expect(visitorPrProblems({ ...question, headRef: `visitor/toString/${id}` })[0]).toContain('isn\'t visitor/');

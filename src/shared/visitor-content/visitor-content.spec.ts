@@ -23,7 +23,7 @@ import {
 const ID = '2026-10-27-a-certified-night-owl-3fa9c1b2';
 const json = (data: unknown) => JSON.stringify(data, null, 2) + '\n';
 
-/** A mailbag file exactly as morganvanv.com-backend's ask/publish writes it, plus an answer. */
+/** A mailbag file exactly as morganvanv.com-backend's /publish fills it in, plus an answer. */
 function letterFile(question: string, answer = '', asked = '2026-10-27'): string {
   const quoted = question.split('\n').map(line => (line ? `> ${line}` : '>')).join('\n');
   return `---\nasked: ${asked}\n---\n${quoted}\n\n${ANSWER_MARKER}\n${answer}`;
