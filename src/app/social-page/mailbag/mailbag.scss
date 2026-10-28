@@ -36,39 +36,77 @@ $ink: #1d2630;
 $ink-soft: #5b5446;
 $ink-link: #7a4a0c;
 
-// Two letters side by side where the slot is wide enough, one above the other where it isn't (and on
-// phones); newest first. Each keeps its own height, so unfolding one never stretches its neighbour. auto-fill
-// keeps the empty column, so a lone letter stays note-sized rather than stretching into a banner.
-.letters {
+// The rolodex. Every card sits in the same grid cell, so the stage is as tall as its tallest note (and
+// grows while the front one is unfolded), and each is moved into place by its pose: --x in units of
+// --spread, --rotate in degrees, --scale and --fade. Cards past the sides overflow the stage; it clips them
+// sideways only, so the tape and shadows still show above and below.
+.stage {
+  --card-w: min(20rem, 78%);
+  --spread: calc(var(--card-w) * 0.62);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  justify-items: center;
   align-items: start;
-  gap: 1.75rem;
-  margin: 0;
-  // Room for the tilt, the tape and the shadow, so none of it is clipped or widens the page.
-  padding: 0.5rem 0.375rem 0.25rem;
-  list-style: none;
+  margin: 0 -1.125rem;
+  padding: 0.75rem 0 0.5rem;
+  overflow-x: clip;
+  perspective: 1200px;
+  touch-action: pan-y;
+
+  @media (max-width: $breakpoint-mobile) {
+    margin-inline: -0.75rem;
+  }
 
   @media (max-width: $breakpoint-phone) {
-    gap: 1.5rem;
+    --card-w: 82%;
+    --spread: calc(var(--card-w) * 0.5);
   }
 }
 
-// Each note sits at its own small tilt (from its id) and straightens a little when pointed at.
-.letter {
+.slot {
+  position: relative;
+  grid-area: 1 / 1;
+  width: var(--card-w);
   min-width: 0;
-  transform: rotate(var(--tilt, 0deg));
-  transition: transform 0.25s ease;
+  opacity: var(--fade, 1);
+  transform: translateX(calc(var(--x, 0) * var(--spread))) rotateY(calc(var(--rotate, 0) * 1deg)) scale(var(--scale, 1));
+  transition:
+    transform 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+    opacity 0.45s ease,
+    filter 0.45s ease,
+    visibility 0s linear 0s;
 
-  &[hidden] {
-    display: none;
-  }
+  // The side cards: dimmer, and a whole-card target that brings them to the front.
+  &:not(.front) {
+    filter: brightness(0.7);
 
-  @media (hover: hover) {
-    &:hover {
-      transform: rotate(0deg) translateY(-2px);
+    @media (hover: hover) {
+      &:hover {
+        filter: brightness(0.85);
+      }
     }
   }
+
+  // Out of sight: faded first, then hidden, so it can't be seen or found.
+  &.away {
+    visibility: hidden;
+    transition:
+      transform 0.45s cubic-bezier(0.3, 0.7, 0.2, 1),
+      opacity 0.45s ease,
+      filter 0.45s ease,
+      visibility 0s linear 0.45s;
+  }
+}
+
+.pick {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  cursor: pointer;
 }
 
 // One sheet per letter: no layers. A strip of tape holds it to the panel, clear of the text.
@@ -268,7 +306,7 @@ $ink-link: #7a4a0c;
   }
 }
 
-// "older letters" and the way to ask, pinned to the bottom of the panel.
+// The rolodex controls and the way to ask, pinned to the bottom of the panel.
 .foot {
   display: flex;
   flex-wrap: wrap;
@@ -299,19 +337,29 @@ $ink-link: #7a4a0c;
   }
 }
 
-.older-toggle {
-  display: block;
-  min-height: 2.75rem;
+// ‹ 2 / 5 › on the left of the foot. At either end the arrow stays focusable (aria-disabled), so focus
+// isn't dropped when you reach the last letter.
+.turn {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.arrow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
   margin: 0;
-  padding: 0 1.25rem;
+  padding: 0;
   border: 1px solid rgba($accent-color, 0.6);
   border-radius: 999px;
   background: transparent;
   color: $accent-color;
-  font: inherit;
-  font-size: $font-size-small;
+  font-size: 1.25rem;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color 0.2s ease, opacity 0.2s ease;
 
   &:hover,
   &:focus-visible {
@@ -322,6 +370,22 @@ $ink-link: #7a4a0c;
     outline: 2px solid $accent-color;
     outline-offset: 3px;
   }
+
+  &[aria-disabled='true'] {
+    opacity: 0.35;
+    cursor: default;
+
+    &:hover {
+      background: transparent;
+    }
+  }
+}
+
+.position {
+  min-width: 4.5rem;
+  font-size: $font-size-small;
+  text-align: center;
+  opacity: 0.75;
 }
 
 .empty {

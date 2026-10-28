@@ -2,12 +2,18 @@
   <h2 id="social-mailbag">You Asked <span class="range-label">{{ countLabel }}</span></h2>
 
   @if (letters.length) {
-    <ol class="letters" id="mailbag-letters">
+    <!-- A rolodex of folded notes: the front one is live, the rest fan away and wait. -->
+    <div class="stage" id="mailbag-letters" role="group" aria-roledescription="rolodex" aria-labelledby="social-mailbag"
+      (pointerdown)="swipeDown($event)" (pointerup)="swipeUp($event)" (pointercancel)="swipeCancel()">
       @for (letter of letters; track letter.id; let i = $index) {
-        @let open = unfolded().has(letter.id);
-        <!-- A folded note: the question on top, the answer under the crease until it's unfolded. -->
-        <li class="letter" [hidden]="i >= newestShown && !showOlder()" [style.--tilt]="letter.tilt">
-          <div class="note" [class.unfolded]="open">
+        @let pose = poses()[i];
+        @let front = i === current();
+        @let open = front && unfolded();
+        <div class="slot" [class.front]="front" [class.away]="!pose.shown"
+          [style.--x]="pose.x" [style.--rotate]="pose.rotate" [style.--scale]="pose.scale" [style.--fade]="pose.opacity"
+          [style.z-index]="pose.depth"
+          role="group" aria-roledescription="letter" [attr.aria-label]="'letter ' + (i + 1) + ' of ' + letters.length">
+          <div class="note" [class.unfolded]="open" [attr.inert]="front ? null : ''">
             <blockquote class="question"><p>{{ letter.question }}</p></blockquote>
             <p class="asked">asked <time [attr.datetime]="letter.asked">{{ letter.askedLabel }}</time></p>
             <div class="fold" [id]="'answer-' + letter.id" [attr.inert]="open ? null : ''">
@@ -16,21 +22,32 @@
               </div>
             </div>
             <button type="button" class="unfold" [attr.aria-controls]="'answer-' + letter.id"
-              [attr.aria-expanded]="open" (click)="toggleLetter(letter.id)">
+              [attr.aria-expanded]="open" (click)="toggleUnfolded()">
               <span>{{ open ? 'fold it back up' : 'unfold for my answer' }}</span>
               <app-icon name="chevron-down" class="chevron" />
             </button>
           </div>
-        </li>
+          @if (!front && pose.shown) {
+            <!-- Pointer only: ‹ › and the count are the way round for keyboards and screen readers. -->
+            <button type="button" class="pick" tabindex="-1" aria-hidden="true" (click)="show(i)"></button>
+          }
+        </div>
       }
-    </ol>
+    </div>
 
     <div class="foot">
-      @if (olderCount) {
-        <button #toggle type="button" class="older-toggle" aria-controls="mailbag-letters"
-          [attr.aria-expanded]="showOlder()" (click)="toggleOlder()">
-          {{ showOlder() ? 'fewer letters' : 'older letters (' + olderCount + ')' }}
-        </button>
+      @if (letters.length > 1) {
+        <div class="turn">
+          <button type="button" class="arrow" aria-label="Newer letter" aria-controls="mailbag-letters"
+            [attr.aria-disabled]="atNewest()" (click)="newer()">
+            <app-icon name="chevron-left" />
+          </button>
+          <span class="position" aria-live="polite">{{ position() }}</span>
+          <button type="button" class="arrow" aria-label="Older letter" aria-controls="mailbag-letters"
+            [attr.aria-disabled]="atOldest()" (click)="older()">
+            <app-icon name="chevron-right" />
+          </button>
+        </div>
       }
       <a class="ask" routerLink="/home">ask me something on Home ›</a>
     </div>

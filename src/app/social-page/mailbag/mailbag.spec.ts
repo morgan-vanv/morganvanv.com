@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MAILBAG_TOKEN, MailbagComponent, NEWEST_SHOWN, NOTE_TILTS, letterCountLabel, noteTilt } from './mailbag';
+import { MAILBAG_TOKEN, MailbagComponent, SIDE_CARDS, SWIPE_PX, cardPose, letterCountLabel } from './mailbag';
 import { MAILBAG } from '../../../generated/mailbag';
 import { MailbagLetter, renderAnswer } from '../../../shared/visitor-content/visitor-content';
 
@@ -21,7 +21,10 @@ async function mount(letters: readonly MailbagLetter[]) {
   return { fixture, el: fixture.nativeElement as HTMLElement };
 }
 
-const visible = (el: HTMLElement) => [...el.querySelectorAll<HTMLLIElement>('.letter')].filter(li => !li.hidden);
+const slots = (el: HTMLElement) => [...el.querySelectorAll<HTMLElement>('.slot')];
+const front = (el: HTMLElement) => el.querySelector<HTMLElement>('.slot.front')!;
+const position = (el: HTMLElement) => el.querySelector('.position')?.textContent?.trim();
+const arrow = (el: HTMLElement, which: 'Newer' | 'Older') => el.querySelector<HTMLButtonElement>(`button[aria-label="${which} letter"]`)!;
 
 describe('MailbagComponent', () => {
   it('reads the letters gathered from content/mailbag/ by default', () => {
@@ -36,13 +39,13 @@ describe('MailbagComponent', () => {
     const ask = el.querySelector<HTMLAnchorElement>('.empty a');
     expect(ask?.getAttribute('href')).toBe('/home');
     expect(ask?.textContent).toBe('Ask me something');
-    expect(el.querySelector('.older-toggle')).toBeNull();
+    expect(el.querySelector('.stage, .turn')).toBeNull();
   });
 
   it('shows each letter: the question as a quote, the answer, the date asked', async () => {
     const { el } = await mount([letter(1, 'why the cat?\nreally?', renderAnswer('Because *Ada*. See [now](/now).'))]);
     expect(el.querySelector('.range-label')?.textContent?.trim()).toBe('1 letter');
-    const item = el.querySelector('.letter')!;
+    const item = front(el);
     expect(item.querySelector('blockquote.question p')?.textContent).toBe('why the cat?\nreally?');
     expect(item.querySelector('.answer em')?.textContent).toBe('Ada');
     expect(item.querySelector('.answer a')?.getAttribute('href')).toBe('/now');
@@ -68,37 +71,129 @@ describe('MailbagComponent', () => {
     expect(el.querySelector('.answer')?.textContent).toContain('<script>x</script>');
   });
 
-  it(`shows the newest ${NEWEST_SHOWN}, with the rest behind "older letters"`, async () => {
+  it('stacks every letter as a card, the newest in front and the rest inert', async () => {
     const letters = [1, 2, 3, 4, 5].map(n => letter(n));
-    const { fixture, el } = await mount(letters);
+    const { el } = await mount(letters);
     expect(el.querySelector('.range-label')?.textContent?.trim()).toBe('5 letters');
-    // Every letter is in the page (prerendered), the older ones hidden.
-    expect(el.querySelectorAll('.letter').length).toBe(5);
-    expect(visible(el).map(li => li.querySelector('.question')?.textContent)).toEqual(['question 1?', 'question 2?']);
-
-    const toggle = el.querySelector<HTMLButtonElement>('.older-toggle')!;
-    expect(toggle.getAttribute('type')).toBe('button');
-    expect(toggle.getAttribute('aria-controls')).toBe('mailbag-letters');
-    expect(el.querySelector('#mailbag-letters')).not.toBeNull();
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(toggle.textContent?.trim()).toBe('older letters (3)');
-
-    toggle.click();
-    await fixture.whenStable();
-    expect(toggle.getAttribute('aria-expanded')).toBe('true');
-    expect(toggle.textContent?.trim()).toBe('fewer letters');
-    expect(visible(el).length).toBe(5);
-
-    toggle.click();
-    await fixture.whenStable();
-    expect(toggle.getAttribute('aria-expanded')).toBe('false');
-    expect(visible(el).length).toBe(NEWEST_SHOWN);
+    // Every letter is in the page (prerendered); only the front one is live.
+    expect(slots(el).length).toBe(5);
+    expect(front(el).querySelector('.question')?.textContent).toBe('question 1?');
+    expect(front(el).getAttribute('aria-label')).toBe('letter 1 of 5');
+    for (const slot of slots(el).slice(1)) {
+      expect(slot.querySelector('.note')?.hasAttribute('inert')).toBe(true);
+    }
+    expect(front(el).querySelector('.note')?.hasAttribute('inert')).toBe(false);
+    // Up to SIDE_CARDS fan out to the side, each with a pointer-only target; the rest are out of sight.
+    const shown = slots(el).filter(slot => !slot.classList.contains('away'));
+    expect(shown.length).toBe(1 + SIDE_CARDS);
+    const pick = shown[1].querySelector('button.pick')!;
+    expect(pick.getAttribute('tabindex')).toBe('-1');
+    expect(pick.getAttribute('aria-hidden')).toBe('true');
+    expect(front(el).querySelector('button.pick')).toBeNull();
+    expect(slots(el)[4].querySelector('button.pick')).toBeNull();
   });
 
-  it(`has no toggle with ${NEWEST_SHOWN} letters or fewer`, async () => {
-    const { el } = await mount([1, 2].map(n => letter(n)));
-    expect(visible(el).length).toBe(2);
-    expect(el.querySelector('.older-toggle')).toBeNull();
+  it('turns with ‹ ›, says where it is, and stays focusable at either end', async () => {
+    const { fixture, el } = await mount([1, 2, 3].map(n => letter(n)));
+    expect(position(el)).toBe('1 / 3');
+    expect(el.querySelector('.position')?.getAttribute('aria-live')).toBe('polite');
+    expect(arrow(el, 'Newer').getAttribute('aria-disabled')).toBe('true');
+    expect(arrow(el, 'Older').getAttribute('aria-disabled')).toBe('false');
+    expect(arrow(el, 'Older').getAttribute('aria-controls')).toBe('mailbag-letters');
+
+    arrow(el, 'Older').click();
+    await fixture.whenStable();
+    expect(position(el)).toBe('2 / 3');
+    expect(front(el).querySelector('.question')?.textContent).toBe('question 2?');
+
+    arrow(el, 'Older').click();
+    arrow(el, 'Older').click(); // already at the oldest: nothing happens
+    await fixture.whenStable();
+    expect(position(el)).toBe('3 / 3');
+    expect(arrow(el, 'Older').getAttribute('aria-disabled')).toBe('true');
+    expect(arrow(el, 'Older').disabled).toBe(false);
+
+    arrow(el, 'Newer').click();
+    await fixture.whenStable();
+    expect(position(el)).toBe('2 / 3');
+  });
+
+  it('brings a side card to the front when it is clicked', async () => {
+    const { fixture, el } = await mount([1, 2, 3].map(n => letter(n)));
+    slots(el)[2].querySelector<HTMLButtonElement>('button.pick')!.click();
+    await fixture.whenStable();
+    expect(position(el)).toBe('3 / 3');
+    expect(slots(el)[2].classList).toContain('front');
+  });
+
+  it('turns on a sideways swipe, not on a short or mostly vertical one, and not for a mouse', async () => {
+    const { fixture, el } = await mount([1, 2, 3].map(n => letter(n)));
+    const stage = el.querySelector<HTMLElement>('.stage')!;
+    const swipe = async (dx: number, dy = 0, pointerType = 'touch') => {
+      const at = (x: number, y: number) => ({ bubbles: true, pointerId: 1, pointerType, clientX: x, clientY: y });
+      stage.dispatchEvent(new PointerEvent('pointerdown', at(200, 100)));
+      stage.dispatchEvent(new PointerEvent('pointerup', at(200 + dx, 100 + dy)));
+      await fixture.whenStable();
+    };
+    await swipe(-(SWIPE_PX + 20));
+    expect(position(el)).toBe('2 / 3');
+    await swipe(SWIPE_PX + 20);
+    expect(position(el)).toBe('1 / 3');
+    await swipe(-(SWIPE_PX - 10));
+    await swipe(-(SWIPE_PX + 20), 80);
+    await swipe(-(SWIPE_PX + 20), 0, 'mouse');
+    expect(position(el)).toBe('1 / 3');
+  });
+
+  it('with one letter, shows just the note: no arrows, no side cards', async () => {
+    const { el } = await mount([letter(1)]);
+    expect(slots(el).length).toBe(1);
+    expect(el.querySelector('.turn')).toBeNull();
+    expect(el.querySelector('button.pick')).toBeNull();
+  });
+
+  it('folds the answer away until the front note is unfolded, and folds it again on a turn', async () => {
+    const { fixture, el } = await mount([1, 2].map(n => letter(n)));
+    const button = () => front(el).querySelector<HTMLButtonElement>('button.unfold')!;
+    const fold = () => front(el).querySelector<HTMLElement>('.fold')!;
+
+    // Folded: the answer is in the page (prerendered) but inert, and the button says how to open it.
+    expect(button().getAttribute('type')).toBe('button');
+    expect(button().getAttribute('aria-expanded')).toBe('false');
+    expect(button().textContent?.trim()).toBe('unfold for my answer');
+    expect(fold().hasAttribute('inert')).toBe(true);
+    expect(button().getAttribute('aria-controls')).toBe(fold().id);
+    expect(fold().querySelector('.answer')?.textContent).toBe('answer 1');
+
+    button().click();
+    await fixture.whenStable();
+    expect(button().getAttribute('aria-expanded')).toBe('true');
+    expect(button().textContent?.trim()).toBe('fold it back up');
+    expect(fold().hasAttribute('inert')).toBe(false);
+    expect(front(el).querySelector('.note')?.classList).toContain('unfolded');
+
+    arrow(el, 'Older').click();
+    await fixture.whenStable();
+    expect(el.querySelectorAll('.note.unfolded').length).toBe(0);
+    expect(button().getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('poses the cards: the front one flat, the sides fanned toward it, the rest out of sight', () => {
+    expect(cardPose(0)).toEqual({ x: 0, rotate: 0, scale: 1, opacity: 1, depth: SIDE_CARDS + 1, shown: true });
+    const right = cardPose(1);
+    const left = cardPose(-1);
+    expect(right.x).toBeGreaterThan(0);
+    expect(left.x).toBe(-right.x);
+    expect(right.rotate).toBeLessThan(0);
+    expect(left.rotate).toBe(-right.rotate);
+    expect(cardPose(2).x).toBeGreaterThan(right.x);
+    expect(cardPose(2).scale).toBeLessThan(right.scale);
+    expect(cardPose(2).depth).toBeLessThan(right.depth);
+    expect(cardPose(SIDE_CARDS).shown).toBe(true);
+    const away = cardPose(SIDE_CARDS + 1);
+    expect(away).toMatchObject({ shown: false, opacity: 0, depth: 0 });
+    // Everything further out waits in the same spot, so it slides in from there.
+    expect(cardPose(SIDE_CARDS + 5)).toEqual(away);
   });
 
   it('ends with the way to ask, whether or not there are older letters', async () => {
@@ -109,52 +204,6 @@ describe('MailbagComponent', () => {
       expect(ask?.getAttribute('href')).toBe('/home');
       expect(ask?.textContent?.trim()).toBe('ask me something on Home ›');
     }
-  });
-
-  it('folds every answer away until its note is unfolded, one letter at a time', async () => {
-    const { fixture, el } = await mount([1, 2].map(n => letter(n)));
-    const [first, second] = [...el.querySelectorAll<HTMLLIElement>('.letter')];
-    const button = (li: HTMLLIElement) => li.querySelector<HTMLButtonElement>('button.unfold')!;
-    const fold = (li: HTMLLIElement) => li.querySelector<HTMLElement>('.fold')!;
-
-    // Folded: the answer is in the page (prerendered) but inert, and the button says how to open it.
-    for (const li of [first, second]) {
-      expect(button(li).getAttribute('type')).toBe('button');
-      expect(button(li).getAttribute('aria-expanded')).toBe('false');
-      expect(button(li).textContent?.trim()).toBe('unfold for my answer');
-      expect(fold(li).hasAttribute('inert')).toBe(true);
-      expect(button(li).getAttribute('aria-controls')).toBe(fold(li).id);
-      expect(fold(li).querySelector('.answer')?.textContent).toContain('answer');
-    }
-    expect(fold(first).id).not.toBe(fold(second).id);
-
-    button(first).click();
-    await fixture.whenStable();
-    expect(button(first).getAttribute('aria-expanded')).toBe('true');
-    expect(button(first).textContent?.trim()).toBe('fold it back up');
-    expect(fold(first).hasAttribute('inert')).toBe(false);
-    expect(first.querySelector('.note')?.classList).toContain('unfolded');
-    // Its neighbour stays folded.
-    expect(button(second).getAttribute('aria-expanded')).toBe('false');
-    expect(fold(second).hasAttribute('inert')).toBe(true);
-
-    button(first).click();
-    await fixture.whenStable();
-    expect(button(first).getAttribute('aria-expanded')).toBe('false');
-    expect(fold(first).hasAttribute('inert')).toBe(true);
-  });
-
-  it('tilts each note by a small amount worked out from its id, the same every time', async () => {
-    const id = '2026-10-27-does-this-feature-work-3995b433';
-    expect(noteTilt(id)).toBe(noteTilt(id));
-    const tilts = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'].map(noteTilt);
-    for (const tilt of tilts) {
-      expect(NOTE_TILTS.map(t => `${t}deg`)).toContain(tilt);
-    }
-    expect(new Set(tilts).size).toBeGreaterThan(1);
-
-    const { el } = await mount([letter(1)]);
-    expect(el.querySelector<HTMLElement>('.letter')!.style.getPropertyValue('--tilt')).toBe(noteTilt(letter(1).id));
   });
 
   it('counts letters in words', () => {

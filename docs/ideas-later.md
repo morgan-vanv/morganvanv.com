@@ -145,7 +145,6 @@ Grouped by the design pillars.
 - **Webmentions.** `S` — `webmention.io` + Bridgy to receive replies/likes from the fediverse on blog posts. Pairs with `rel="me"`.
 - **Spirograph wall.** see Games.
 - **Photo wall self-serve.** `M`, `backend` — Upload into a pending queue Morgan approves (the logbook pipe could carry it). Until then, the wall's "your photo here" slot opens a prefilled `mailto:` (subject + caption prompt; built 2026-10-27).
-- **The mailbag as a rolodex.** `M` — When there are about five letters or more: the folded notes in a horizontal rolodex, the current one facing you and its neighbours fanned at an angle, so the panel's height stays put however many there are (mockup F, "morganvanv.com face-lift" canvas, Round 2 row; its Tweaks switch the reveal between unfold and flip). It needs buttons and swipe only, since ← → change page; side cards `inert` behind one "show this letter" button each; and a live "3 / 7". Until then the grid plus "older letters" scales fine.
 
 ### Playful to navigate
 - **Command palette (Cmd+K / `/`).** `M` — Fuzzy jump to pages and Interests items, plus joke commands (`:q`, `sudo`, `ada`). Fits "now navigable via keyboard".
