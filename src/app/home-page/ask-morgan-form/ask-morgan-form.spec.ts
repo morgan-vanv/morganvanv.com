@@ -41,9 +41,9 @@ describe('AskMorganFormComponent', () => {
     expect(component.successMessage()).toContain('Social');
   });
 
-  it('says good questions get answered in public, in the mailbag on Social', () => {
+  it('says good questions get answered in public, over on Social', () => {
     const note = (fixture.nativeElement as HTMLElement).querySelector('#contact-note')?.textContent;
-    expect(note).toContain('mailbag on Social');
+    expect(note).toContain('over on Social');
     expect(note).not.toContain('Email me');
   });
 

@@ -73,7 +73,7 @@ export const PROJECTS: readonly Project[] = [
     name: 'VideoJoker',
     subtitle: 'a Discord bot, with friends',
     status: 'resurrected',
-    // Draft, from the README. [TODO: Morgan] edit freely.
+    // From the README; approved by Morgan (2026-10-28).
     description: 'A Discord bot named after the Video Jokers of Uganda, who dub over bootleg action films with their own '
       + 'commentary. It roasts, flips coins, deals Three Card Monte and pays out in Ugandan Shillings.',
     quote: 'I don\'t even know why I spent so long on this README lol',
@@ -96,9 +96,8 @@ export const PROJECTS: readonly Project[] = [
     name: 'morganvanv.com',
     subtitle: 'this site',
     status: 'you\'re on it',
-    // Draft. [TODO: Morgan] edit freely.
-    description: 'The thing you\'re looking at. A personal site in the old-web spirit: a real sky every night, a shoutbox, '
-      + 'a webring, and no cookies. Built properly anyway.',
+    // Approved by Morgan (2026-10-28).
+    description: 'the thing you\'re looking at.',
     quote: 'Built with: Angular, TypeScript, SCSS',
     art: { kind: 'site', alt: 'A miniature of this website: the glass card over the night sky' },
     more: { label: 'colophon', route: '/colophon' },
@@ -110,7 +109,7 @@ export const PROJECTS: readonly Project[] = [
     name: 'vtt.morganvanv.com',
     subtitle: 'the table',
     status: 'self-hosted',
-    // Draft. [TODO: Morgan] edit freely.
+    // Approved by Morgan (2026-10-28).
     description: 'A Foundry Virtual Tabletop I host myself, for the Vampire: The Masquerade campaign I run, set in Athens, '
       + 'Ohio. It\'s set up for D&D too, for all my TTRPG lovers.',
     art: {

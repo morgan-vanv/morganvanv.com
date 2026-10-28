@@ -9,7 +9,7 @@ import { CampfireService } from '../../shared/services/campfire.service';
 import { MailbagComponent } from './mailbag/mailbag';
 import { ShoutboxComponent } from './shoutbox/shoutbox';
 
-/** The wall's open slot: an email with the subject set and a nudge for a caption. [DRAFT copy] */
+/** The wall's open slot: an email with the subject set and a nudge for a caption. Copy approved by Morgan (2026-10-28). */
 export function photoMailto(email: string): string {
   const subject = 'A photo for the wall';
   const body = 'Photo attached.\n\nCaption (optional): ';

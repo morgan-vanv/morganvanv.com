@@ -14,7 +14,7 @@ import { ProjectPosterComponent } from '../../shared/project-poster/project-post
 })
 export class ProjectsPageComponent {
   readonly projects = PROJECTS;
-  /** "Three so far, none of them finished." Draft; counts itself so it can't drift. */
+  /** "Four so far, none of them finished." Approved by Morgan (2026-10-28); counts itself so it can't drift. */
   readonly countLine = `${COUNT_WORDS[PROJECTS.length] ?? PROJECTS.length} so far, none of them finished.`;
 }
 
