@@ -8,6 +8,7 @@
     "start": "ng serve",
     "prebuild": "node scripts/write-build-info.mjs && npm run content",
     "build": "ng build",
+    "postbuild": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/write-csp.mjs",
     "prewatch": "npm run content",
     "watch": "ng build --watch --configuration development",
     "pretest": "npm run content",
