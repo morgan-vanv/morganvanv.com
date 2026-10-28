@@ -1,13 +1,44 @@
 import { readFileSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
-import { SiteStripComponent } from './site-strip.component';
+import { signal } from '@angular/core';
+import { SiteStripComponent, odometer } from './site-strip.component';
+import { CampfireService } from '../services/campfire.service';
+
+describe('odometer', () => {
+  it('pads to six wheels and grows past them', () => {
+    expect(odometer(4213)).toEqual(['0', '0', '4', '2', '1', '3']);
+    expect(odometer(1234567)).toEqual(['1', '2', '3', '4', '5', '6', '7']);
+  });
+});
 
 describe('SiteStripComponent', () => {
+  const visitors = signal<number | null>(null);
+
+  beforeEach(() => {
+    visitors.set(null);
+    TestBed.configureTestingModule({ providers: [{ provide: CampfireService, useValue: { visitors, configured: true } }] });
+  });
+
   async function render() {
     const fixture = TestBed.createComponent(SiteStripComponent);
     await fixture.whenStable();
     return fixture.nativeElement as HTMLElement;
   }
+
+  it('says nothing about visitors until the campfire has the count', async () => {
+    expect((await render()).querySelector('.visitors')).toBeNull();
+  });
+
+  it('then says which visitor you are, as odometer wheels, give or take', async () => {
+    visitors.set(4213);
+    const el = await render();
+    const line = el.querySelector('.visitors')!;
+    expect(line.querySelector('.visually-hidden')?.textContent?.trim()).toBe('You are visitor 4,213, give or take.');
+    expect([...line.querySelectorAll('.wheel')].map(w => w.textContent)).toEqual(['0', '0', '4', '2', '1', '3']);
+    expect(line.querySelector('.wheel.last')?.textContent).toBe('3');
+    // The counter isn't part of the webring's navigation.
+    expect(el.querySelector('nav.ring .visitors')).toBeNull();
+  });
 
   it('links to the Hotline Webring neighbours without hiding where the click came from', async () => {
     const ring = (await render()).querySelector<HTMLElement>('nav.ring');

@@ -7,21 +7,28 @@
     <app-mailbag />
 
     <section class="panel shoutbox" aria-labelledby="social-shoutbox">
-      <h2 id="social-shoutbox">Shoutbox <span class="range-label">{{ irc.channel }}</span></h2>
-      <!-- The live log and composer (the campfire, #101) go here, above the IRC way in. -->
-      @if (shoutboxUnderConstruction) {
+      <h2 id="social-shoutbox">Shoutbox <span class="range-label">{{ irc.channel }}@if (hereLabel(); as here) { · {{ here }}}</span></h2>
+      @if (shoutboxLive) {
+        <app-shoutbox />
+        <!-- With the live shoutbox above it, the way into real IRC is one quiet line. -->
+        <p class="irc compact">
+          or real IRC:
+          <a class="irc-join" [href]="irc.webClientUrl" target="_blank" rel="noopener noreferrer"
+            [attr.aria-label]="'Join ' + irc.channel + ' on ' + irc.network + ' (opens their web client in a new tab)'">join {{ irc.channel }} on {{ irc.network }} ↗</a>
+          <span class="irc-client">or your own client: {{ irc.server }} · {{ irc.tlsPort }} (TLS)</span>
+        </p>
+      } @else {
         <app-under-construction />
+        <div class="irc" aria-labelledby="social-irc">
+          <h3 id="social-irc" class="irc-label">live on IRC</h3>
+          <p class="irc-blurb">Real IRC, on {{ irc.network }}. Pick a nick, say hi, give it a minute.</p>
+          <a class="irc-join" [href]="irc.webClientUrl" target="_blank" rel="noopener noreferrer"
+            [attr.aria-label]="'Join ' + irc.channel + ' on ' + irc.network + ' (opens their web client in a new tab)'">
+            join {{ irc.channel }} ↗
+          </a>
+          <p class="irc-client">or bring your own client:<br />{{ irc.server }} · {{ irc.tlsPort }} (TLS)</p>
+        </div>
       }
-
-      <div class="irc" aria-labelledby="social-irc">
-        <h3 id="social-irc" class="irc-label">live on IRC</h3>
-        <p class="irc-blurb">Real IRC, on {{ irc.network }}. Pick a nick, say hi, give it a minute.</p>
-        <a class="irc-join" [href]="irc.webClientUrl" target="_blank" rel="noopener noreferrer"
-          [attr.aria-label]="'Join ' + irc.channel + ' on ' + irc.network + ' (opens their web client in a new tab)'">
-          join {{ irc.channel }} ↗
-        </a>
-        <p class="irc-client">or bring your own client:<br />{{ irc.server }} · {{ irc.tlsPort }} (TLS)</p>
-      </div>
     </section>
   </div>
 

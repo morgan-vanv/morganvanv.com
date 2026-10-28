@@ -1,0 +1,215 @@
+@use '../../../styles' as *;
+@use '../../../shared/shared-styles.scss' as shared;
+
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  min-width: 0;
+}
+
+.status {
+  margin: 0;
+  padding: 1.5rem 0.5rem;
+  font-size: $font-size-meta;
+  opacity: 0.65;
+  text-align: center;
+}
+
+// An old client's scrollback: monospace lines, newest at the bottom.
+.log {
+  @include shared.scrollbar-styled;
+  padding: 0.625rem 0.75rem;
+  height: 16rem;
+  overflow-y: auto;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba($main-color, 0.1);
+  font-size: $font-size-small;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    height: 13rem;
+  }
+}
+
+.lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.line {
+  & + & {
+    margin-top: 0.1875rem;
+  }
+
+  &.system {
+    font-style: italic;
+    opacity: 0.6;
+  }
+}
+
+.time {
+  opacity: 0.6;
+}
+
+// Nicks and messages are isolated, so right-to-left text can't reorder the rest of the line.
+.said {
+  unicode-bidi: isolate;
+}
+
+// Nick colours, as IRC clients spread them; all readable on the dark log, and none close to
+// the gold kept for Morgan.
+.nick {
+  font-weight: bold;
+
+  &.n0 { color: #7fc8c0; }
+  &.n1 { color: #d4a5e0; }
+  &.n2 { color: #9ab8ec; }
+  &.n3 { color: #f2a0b6; }
+  &.n4 { color: #a9d68b; }
+  &.host { color: $accent-color; }
+}
+
+.drop {
+  // A full 44px target that doesn't push the lines apart: the negative margins give the height back,
+  // and only the × itself shows.
+  margin: -0.875rem -0.5rem -0.875rem 0;
+  vertical-align: middle;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: $danger-color;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $danger-color;
+    outline-offset: -0.5rem;
+  }
+}
+
+.composer {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr) auto;
+  gap: 0.5rem;
+
+  @media (max-width: $breakpoint-phone) {
+    grid-template-columns: minmax(0, 1fr) auto;
+
+    .nick-field {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+.field {
+  min-width: 0;
+  min-height: 2.75rem;
+  box-sizing: border-box;
+  padding: 0 0.625rem;
+  border-radius: 8px;
+  border: 1px solid rgba($main-color, 0.25);
+  background: rgba(0, 0, 0, 0.35);
+  color: $main-color;
+  font: inherit;
+  font-size: $font-size-small;
+
+  &:focus {
+    outline: none;
+    border-color: rgba($main-color, 0.75);
+  }
+}
+
+.say {
+  min-height: 2.75rem;
+  padding: 0 1rem;
+  border-radius: 999px;
+  border: 1px solid $accent-color;
+  background: transparent;
+  color: $accent-color;
+  font: inherit;
+  font-weight: bold;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+}
+
+.honey-pot {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.error {
+  margin: 0;
+  font-size: $font-size-meta;
+  color: $danger-color;
+}
+
+.status.banked {
+  padding: 0.25rem 0.5rem;
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 0.5rem;
+  margin: 0;
+  font-size: $font-size-meta;
+  color: rgba($main-color, 0.6);
+}
+
+// Host only: bank the fire / light it again.
+.bank {
+  min-height: 2.75rem;
+  margin-left: auto;
+  padding: 0 0.875rem;
+  border-radius: 999px;
+  border: 1px solid rgba($accent-color, 0.6);
+  background: transparent;
+  color: $accent-color;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    background: rgba($accent-color, 0.12);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+}

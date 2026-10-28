@@ -320,3 +320,23 @@
     cursor: default;
   }
 }
+
+// Under the live shoutbox: one quiet line instead of the whole block.
+.irc.compact {
+  display: block;
+  margin: 0.75rem 0 0;
+  padding: 0.25rem 0.3rem 0;
+  font-size: $font-size-meta;
+  overflow-wrap: anywhere;
+
+  .irc-join {
+    display: inline-flex;
+    min-height: 2.75rem;
+    padding: 0 0.75rem;
+    font-weight: normal;
+  }
+
+  .irc-client {
+    display: block;
+  }
+}

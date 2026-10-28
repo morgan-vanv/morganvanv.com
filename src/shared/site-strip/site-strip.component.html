@@ -1,9 +1,22 @@
-<nav class="ring" [attr.aria-label]="webring.name">
-  <a class="hop" [href]="webring.previous">
-    <span class="bracket" aria-hidden="true">[</span>‹ prev<span class="visually-hidden"> site in the {{ webring.name }}</span><span class="bracket" aria-hidden="true">]</span>
-  </a>
-  <a class="ring-home" [href]="webring.home" target="_blank" rel="noopener">hotline webring ↗<span class="visually-hidden"> (opens in a new tab)</span></a>
-  <a class="hop" [href]="webring.next">
-    <span class="bracket" aria-hidden="true">[</span>next<span class="visually-hidden"> site in the {{ webring.name }}</span> ›<span class="bracket" aria-hidden="true">]</span>
-  </a>
-</nav>
+<div class="line" [class.counted]="counted">
+  <nav class="ring" [attr.aria-label]="webring.name">
+    <a class="hop" [href]="webring.previous">
+      <span class="bracket" aria-hidden="true">[</span>‹ prev<span class="visually-hidden"> site in the {{ webring.name }}</span><span class="bracket" aria-hidden="true">]</span>
+    </a>
+    <a class="ring-home" [href]="webring.home" target="_blank" rel="noopener">hotline webring ↗<span class="visually-hidden"> (opens in a new tab)</span></a>
+    <a class="hop" [href]="webring.next">
+      <span class="bracket" aria-hidden="true">[</span>next<span class="visually-hidden"> site in the {{ webring.name }}</span> ›<span class="bracket" aria-hidden="true">]</span>
+    </a>
+  </nav>
+  @if (visitor(); as visitor) {
+    <p class="visitors">
+      <span class="visually-hidden">{{ visitor.spoken }}</span>
+      <span class="said" aria-hidden="true">you are visitor</span>
+      <span class="odometer" aria-hidden="true">
+        @for (digit of visitor.digits; track $index) {
+          <span class="wheel" [class.last]="$last">{{ digit }}</span>
+        }
+      </span>
+    </p>
+  }
+</div>
