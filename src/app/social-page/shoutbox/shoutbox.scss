@@ -186,8 +186,9 @@
   color: rgba($main-color, 0.6);
 }
 
-// Host only: bank the fire / light it again.
-.bank {
+// Host only: bank the fire / light it again, and clear the last hour.
+.bank,
+.clear {
   min-height: 2.75rem;
   margin-left: auto;
   padding: 0 0.875rem;
@@ -212,4 +213,16 @@
     outline: 2px solid $accent-color;
     outline-offset: 2px;
   }
+}
+
+// After "bank the fire", not pushed to the far end too.
+.clear {
+  margin-left: 0;
+}
+
+// The host's quiet note after a clear-up. Always there, so screen readers hear it; empty, it takes no room.
+.notice {
+  margin: 0;
+  font-size: $font-size-meta;
+  color: rgba($main-color, 0.6);
 }

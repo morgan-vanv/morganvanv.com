@@ -202,6 +202,25 @@ export class CampfireService {
     }
   }
 
+  /**
+   * Host only: takes down every guest message from the last `minutes` in one go (the host's own stay),
+   * for cleaning up after a flood. Resolves to how many went, or why it didn't go.
+   */
+  async clearRecent(minutes: number): Promise<{ readonly removed: number } | { readonly error: string }> {
+    try {
+      const body = await firstValueFrom(this.http.delete<unknown>(`${this.base}/shouts`, {
+        params: { within: String(minutes) },
+        headers: this.authHeaders(),
+      }));
+      const removed = (body as { removed?: unknown } | null)?.removed;
+      this.refresh.next();
+      return { removed: isCount(removed) ? removed : 0 };
+    } catch (error) {
+      this.forgetRefusedKey(error);
+      return { error: shoutError(error) };
+    }
+  }
+
   /** The nick this visitor used last, or a fresh guest one. */
   savedNick(): string {
     return (this.isBrowser && this.readStorage(localStorage, NICK_KEY)) || guestNick();
