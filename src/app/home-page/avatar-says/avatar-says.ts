@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, afterNextRender, inject, signal } from '@angular/core';
-import { GUEST_SUBTITLES_TOKEN, GreetingLine, taglines } from '../../../shared/constants/subtitles.const';
+import { GUEST_SUBTITLES_TOKEN, GreetingLine, SKY_LINE, taglines } from '../../../shared/constants/subtitles.const';
+import { SkyService } from '../../../shared/sky/sky.service';
 
 /** How long a line stays up before the bubble fades. */
 export const SAY_FOR_MS = 7000;
@@ -11,8 +12,10 @@ export const HELLO_KEY = 'avatar-hello';
 /**
  * Morgan's photo on Home, as a button: each press says one of the greeting's lines (his and the
  * visitors', shuffled) in a speech bubble, a visitor's with its handwritten credit. Once a visit it says
- * one on its own, a moment after Home loads. The bubble fades after a few seconds, or at once on Escape
- * or a press anywhere else. Screen readers hear the lines someone asked for, not the hello.
+ * one on its own, a moment after Home loads: the line about the sky, while there are stars to see, so
+ * first-time visitors hear about the best thing on the site; any line otherwise. The bubble fades after
+ * a few seconds, or at once on Escape or a press anywhere else. Screen readers hear the lines someone
+ * asked for, not the hello.
  */
 @Component({
   selector: 'app-avatar-says',
@@ -26,6 +29,7 @@ export const HELLO_KEY = 'avatar-hello';
 })
 export class AvatarSaysComponent {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+  private readonly sky = inject(SkyService);
   private readonly lines = taglines(inject(GUEST_SUBTITLES_TOKEN));
 
   /** What the bubble says, or null while it's hidden. */
@@ -42,7 +46,12 @@ export class AvatarSaysComponent {
       this.order = shuffled(this.lines.length);
       if (readFlag()) return;
       writeFlag();
-      this.timer = setTimeout(() => this.say(false), HELLO_AFTER_MS);
+      this.timer = setTimeout(() => {
+        // The hello points at the sky while there's one to see: that line comes first, the rest stay shuffled.
+        const skyLine = this.lines.findIndex(line => line.text === SKY_LINE);
+        if (skyLine >= 0 && this.sky.starsShowing()) this.order = [skyLine, ...this.order.filter(i => i !== skyLine)];
+        this.say(false);
+      }, HELLO_AFTER_MS);
     });
     inject(DestroyRef).onDestroy(() => clearTimeout(this.timer));
   }

@@ -21,11 +21,8 @@
       <div class="projects">
         <app-project-card [project]="pinnedProject" />
       </div>
-      <!-- Which repo moved last, live from GitHub; the way to the rest. -->
-      <p class="latest-push">
-        @if (latestPush(); as latest) {
-          <span class="label">latest push</span> {{ latest.project.name }} · {{ latest.when }}
-        }
+      <!-- The way to the rest. (Which repo moved last is a row under Lately.) -->
+      <p class="all-projects">
         <a routerLink="/projects" class="pill">all {{ projectCount }} projects ›</a>
       </p>
     </section>

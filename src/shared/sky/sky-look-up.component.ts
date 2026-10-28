@@ -10,7 +10,7 @@ import { SkyCompassComponent } from './sky-compass.component';
  * Look up: while the page is hidden (App fades out <main> and makes it inert),
  * a "back to the page" button in the bottom-left corner, free look's compass
  * (top-left), and the name-a-star panel when it's open. Escape closes the ☾ menu or the panel first, then leaves look-up;
- * so does any route change (← →, a link). Copy is a draft for Morgan.
+ * so does any route change (← →, a link). Copy approved by Morgan (2026-10-28).
  */
 @Component({
   selector: 'app-sky-look-up',

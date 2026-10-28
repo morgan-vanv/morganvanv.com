@@ -5,7 +5,7 @@ import { SkyService } from './sky.service';
  * Whose sky it is (Cincinnati or the visitor's own), shown in the sky menu.
  * One persistent button, so keyboard focus survives every state change; the
  * status line is a live region. Only the button's click ever asks for a
- * location. Copy is a draft for Morgan.
+ * location. Copy approved by Morgan (2026-10-28).
  */
 @Component({
   selector: 'app-sky-toggle',

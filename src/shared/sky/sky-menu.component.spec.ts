@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { SkyMenuComponent } from './sky-menu.component';
+import { HINT_AFTER_MS, HINT_FOR_MS, HINT_KEY, HINT_TEXT, SkyMenuComponent } from './sky-menu.component';
 import { SkyService } from './sky.service';
 
-async function mount(ready = true) {
+async function mount(ready = true, setup: (sky: SkyService) => void = () => undefined) {
+  setup(TestBed.inject(SkyService));
   const fixture = TestBed.createComponent(SkyMenuComponent);
   TestBed.inject(SkyService).ready.set(ready);
   await fixture.whenStable();
@@ -11,7 +12,11 @@ async function mount(ready = true) {
 }
 
 describe('SkyMenuComponent', () => {
-  afterEach(() => localStorage.clear());
+  afterEach(() => {
+    localStorage.clear();
+    sessionStorage.clear();
+    vi.useRealTimers();
+  });
 
   it('shows nothing until the sky has drawn', async () => {
     const { button } = await mount(false);
@@ -140,5 +145,63 @@ describe('SkyMenuComponent', () => {
     const items = Array.from(el.querySelectorAll('.visitor-names li')).map(li => li.textContent!.trim());
     expect(items).toEqual(['Gerald · near Vega · by sam', 'Pat · near Mirach · by a visitor']);
   });
-});
 
+  describe('the one-time nudge', () => {
+    const hint = (el: HTMLElement) => el.querySelector('.sky-hint');
+
+    it('a moment after the sky is up, points at it: a pill under the ☾ and a ring on it, gone after a few seconds', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, el, button } = await mount();
+      expect(hint(el)).toBeNull();
+      vi.advanceTimersByTime(HINT_AFTER_MS);
+      await fixture.whenStable();
+      expect(hint(el)?.textContent?.trim()).toBe(HINT_TEXT);
+      expect(hint(el)?.getAttribute('aria-hidden')).toBe('true');
+      expect(button()!.classList).toContain('hinting');
+      expect(sessionStorage.getItem(HINT_KEY)).toBe('1');
+      vi.advanceTimersByTime(HINT_FOR_MS);
+      await fixture.whenStable();
+      expect(hint(el)).toBeNull();
+      expect(button()!.classList).not.toContain('hinting');
+    });
+
+    it('goes at once when the menu opens or on a press anywhere, and only comes once a visit', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, el, button } = await mount();
+      vi.advanceTimersByTime(HINT_AFTER_MS);
+      await fixture.whenStable();
+      expect(hint(el)).not.toBeNull();
+      document.body.dispatchEvent(new Event('pointerdown', { bubbles: true }));
+      await fixture.whenStable();
+      expect(hint(el)).toBeNull();
+      // Opening the menu would end it too, and it never comes back this page.
+      button()!.click();
+      await fixture.whenStable();
+      vi.advanceTimersByTime(HINT_AFTER_MS + HINT_FOR_MS);
+      await fixture.whenStable();
+      expect(hint(el)).toBeNull();
+
+      // The next page this visit: the flag says it's been shown.
+      TestBed.resetTestingModule();
+      const again = await mount();
+      vi.advanceTimersByTime(HINT_AFTER_MS);
+      await again.fixture.whenStable();
+      expect(hint(again.el)).toBeNull();
+    });
+
+    it('stays away while there are no stars to point at (a daylight), and when the menu is already open', async () => {
+      vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+      const { fixture, el, sky } = await mount(true, s => s.lighting.set('day'));
+      vi.advanceTimersByTime(HINT_AFTER_MS);
+      await fixture.whenStable();
+      expect(hint(el)).toBeNull();
+      expect(sessionStorage.getItem(HINT_KEY)).toBeNull();
+      // Real time counts once the Sun is down.
+      sky.lighting.set('real');
+      sky.upNow.set({ planets: [], moon: null, constellations: [], detail: { moon: { illuminated: 0, phase: 0, alt: 0 }, sunAlt: -20, planets: [] } });
+      expect(sky.starsShowing()).toBe(true);
+      sky.upNow.set({ planets: [], moon: null, constellations: [], detail: { moon: { illuminated: 0, phase: 0, alt: 0 }, sunAlt: 10, planets: [] } });
+      expect(sky.starsShowing()).toBe(false);
+    });
+  });
+});

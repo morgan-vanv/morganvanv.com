@@ -241,7 +241,7 @@ export function unnamedInSky(stars: readonly Pick<UnnamedStar, 'dec'>[], lat: nu
   return stars.filter(s => everRises(s.dec, lat)).length;
 }
 
-/** "428 stars over Cincinnati have no name yet" (draft copy). */
+/** "428 stars over Cincinnati have no name yet" (approved by Morgan, 2026-10-28). */
 export function unnamedCountText(count: number, mine: boolean): string {
   const where = mine ? 'in your sky' : 'over Cincinnati';
   return `${count} star${count === 1 ? '' : 's'} ${where} ${count === 1 ? 'has' : 'have'} no name yet`;
