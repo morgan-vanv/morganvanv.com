@@ -13,7 +13,7 @@ import { StarsComponent } from '../../../../shared/stars/stars.component';
   template: `
     @if (latest(); as entry) {
       <span class="last-watched">
-        <!-- Draft copy (Morgan to edit). -->
+        <!-- Copy approved by Morgan (2026-10-28). -->
         <span class="label">Last watched@if (when()) {<span class="when"> · {{ when() }}</span>}</span>
         <span class="title">{{ entry.title }}@if (entry.year) {<span class="year"> {{ entry.year }}</span>}</span>
         @if (entry.rating) {<app-stars [rating]="entry.rating" />}

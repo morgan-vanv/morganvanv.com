@@ -1,9 +1,10 @@
 import { readFileSync } from 'node:fs';
 import { TestBed } from '@angular/core/testing';
 import { REDRAW_INTERVAL_MS, SkyComponent, labelPosition } from './sky.component';
+import { METEOR_AFTER_MS, METEOR_KEY } from './sky-meteor';
 import { TRANSITION_MS } from './sky-transition';
 import { TURN_MS } from './sky-free-look';
-import { SkyTarget } from './sky-render';
+import { SkyTarget, computeLayout } from './sky-render';
 import { SkyToggleComponent } from './sky-toggle.component';
 import { CINCINNATI, SkyService, VISITOR_STARS_TOKEN } from './sky.service';
 import { VISITOR_STARS } from '../../generated/visitor-stars';
@@ -86,6 +87,7 @@ describe('SkyComponent', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
+    sessionStorage.clear();
     document.documentElement.style.removeProperty('--daylight');
   });
 
@@ -103,11 +105,76 @@ describe('SkyComponent', () => {
     expect(document.documentElement.style.getPropertyValue('--daylight')).toBe('');
   });
 
+  it('a shooting star falls once a visit, a moment after the sky is up, behind the landscape, and never under reduced motion', async () => {
+    stubBrowser();
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.meteor')).toBeNull();
+    await vi.waitFor(() => expect(el.querySelector('.meteor')).not.toBeNull(), { timeout: METEOR_AFTER_MS + 2000 });
+    const star = el.querySelector('.meteor') as HTMLElement;
+    expect(sessionStorage.getItem(METEOR_KEY)).toBe('1');
+    // In the upper sky, with a path and a length, and it comes before the landscape in the stack.
+    expect(parseFloat(star.style.top)).toBeGreaterThan(0);
+    expect(star.style.getPropertyValue('--dx')).toMatch(/px$/);
+    expect(star.style.getPropertyValue('--length')).toMatch(/px$/);
+    expect(star.compareDocumentPosition(el.querySelector('.land')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // Gone when its animation ends.
+    star.dispatchEvent(new Event('animationend'));
+    await fixture.whenStable();
+    expect(el.querySelector('.meteor')).toBeNull();
+
+    // The next page this visit: no arrival star.
+    fixture.destroy();
+    TestBed.resetTestingModule();
+    stubBrowser();
+    const again = await mount();
+    await vi.waitFor(() => expect(again.sky.ready()).toBe(true), { timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, METEOR_AFTER_MS + 300));
+    expect((again.fixture.nativeElement as HTMLElement).querySelector('.meteor')).toBeNull();
+  }, 15000);
+
+  it('no shooting star under reduced motion, or in a daylight', async () => {
+    sessionStorage.removeItem(METEOR_KEY);
+    stubBrowser({ reducedMotion: true });
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    await new Promise(resolve => setTimeout(resolve, METEOR_AFTER_MS + 300));
+    expect((fixture.nativeElement as HTMLElement).querySelector('.meteor')).toBeNull();
+    expect(sessionStorage.getItem(METEOR_KEY)).toBeNull();
+    // With stars hidden by the light, a roll makes nothing fall; with them showing, it does.
+    const roll = () => (fixture.componentInstance as unknown as { shootingStar: () => void }).shootingStar();
+    sky.lighting.set('day');
+    roll();
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.meteor')).toBeNull();
+    sky.lighting.set('darkness');
+    roll();
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('.meteor')).not.toBeNull();
+  }, 10000);
+
   it('never redraws on a timer under reduced motion', async () => {
     const { setIntervalSpy } = stubBrowser({ reducedMotion: true });
     const { sky } = await mount();
     await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
     expect(setIntervalSpy.mock.calls.some(([, ms]) => ms === REDRAW_INTERVAL_MS)).toBe(false);
+  });
+
+  it('the landscape canvas holds what the painting has above the screen, so the treetops come down whole when the ground slides', async () => {
+    stubBrowser();
+    const { fixture, sky } = await mount();
+    await vi.waitFor(() => expect(sky.ready()).toBe(true), { timeout: 5000 });
+    const layout = computeLayout(window.innerWidth, window.innerHeight);
+    const above = Math.ceil(Math.max(0, -layout.imageY));
+    const land = (fixture.nativeElement as HTMLElement).querySelector('.land canvas') as HTMLCanvasElement;
+    expect(land.height).toBe(layout.height + above);
+    expect(land.style.top).toBe(`${-above}px`);
+    // (This 1024×768 window crops the painting's sides, not its top, so here that's nothing extra;
+    // a 1600×900 one crops 83 px off the top, and gets them back.)
+    expect(above).toBe(0);
+    const wide = computeLayout(1600, 900);
+    expect(Math.ceil(-wide.imageY)).toBeGreaterThanOrEqual(83);
   });
 
   it('names what the pointer is over, but not through the landscape', async () => {

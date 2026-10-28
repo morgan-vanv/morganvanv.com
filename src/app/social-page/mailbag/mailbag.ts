@@ -51,7 +51,7 @@ export function cardPose(offset: number): CardPose {
   };
 }
 
-/** "3 letters", "1 letter", or "empty, for now" (draft copy). */
+/** "3 letters", "1 letter", or "empty, for now" (approved by Morgan, 2026-10-28). */
 export function letterCountLabel(count: number): string {
   return count ? `${count} letter${count === 1 ? '' : 's'}` : 'empty, for now';
 }

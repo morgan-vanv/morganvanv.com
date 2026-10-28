@@ -18,6 +18,7 @@ import { ProperNameFile, starsAround, starsOnScreen, unnamedStars, visitorHoverN
 import type { FreeLook } from './sky-free-look';
 import { LookView, sameReading } from './sky-view';
 import { upNow } from './sky-up-now';
+import { METEOR_AFTER_MS, METEOR_KEY, METEOR_REPEAT_CHANCE, Meteor, planMeteor } from './sky-meteor';
 import { Tonight, tonight } from './sky-tonight';
 import { AstronomyModule, Bodies, computeBodies, loadAstronomy } from './sky-bodies';
 import { NO_HOVER, SkyHover, hoverAt, hoverLabel, isOpenSky, sameHover } from './sky-hover';
@@ -124,6 +125,12 @@ export function parseSkyAt(search: string): Date | null {
     <canvas #sky class="sky"></canvas>
     <!-- Free look's cube goes in here (loaded with the first look up). -->
     <div #free class="free"></div>
+    <!-- A shooting star (sky-meteor.ts): behind the landscape, so it goes behind the trees. -->
+    @if (meteor(); as star) {
+      <span class="meteor" [style.left.px]="star.x" [style.top.px]="star.y" [style.--dx.px]="star.dx" [style.--dy.px]="star.dy"
+        [style.--length.px]="star.length" [style.--angle.deg]="star.angle" [style.animation-duration.ms]="star.duration"
+        (animationend)="meteor.set(null)"></span>
+    }
     <div #sun class="sun"></div>
     <div class="land">
       <canvas #land class="sky"></canvas>
@@ -194,6 +201,9 @@ export class SkyComponent {
   ] as const;
   /** The hover label, in CSS pixels, or null. */
   protected readonly label = signal<{ text: string; x: number; y: number } | null>(null);
+  /** The shooting star crossing the sky right now, or null. */
+  protected readonly meteor = signal<Meteor | null>(null);
+  private meteorTimer?: ReturnType<typeof setTimeout>;
 
   private catalog: SkyCatalog | null = null;
   private astronomy: AstronomyModule | null = null;
@@ -307,7 +317,10 @@ export class SkyComponent {
     });
 
     afterNextRender(() => {
-      destroyRef.onDestroy(() => (this.destroyed = true));
+      destroyRef.onDestroy(() => {
+        this.destroyed = true;
+        clearTimeout(this.meteorTimer);
+      });
       this.pinnedTime = parseSkyAt(location.search);
       const forcedLighting = new URLSearchParams(location.search).get('sky-light') as Lighting | null;
       if (forcedLighting && LIGHTINGS.includes(forcedLighting)) this.sky.lighting.set(forcedLighting);
@@ -325,8 +338,16 @@ export class SkyComponent {
           else this.draw();
         };
         const interval = reducedMotion ? undefined : setInterval(() => {
-          if (document.visibilityState === 'visible') redraw();
+          if (document.visibilityState !== 'visible') return;
+          redraw();
+          // Now and then, another shooting star for anyone still here.
+          if (Math.random() < METEOR_REPEAT_CHANCE) this.shootingStar();
         }, REDRAW_INTERVAL_MS);
+        // The arrival star: once a visit, a moment after the sky is up, just before the ☾ hint says what it was.
+        if (!reducedMotion && !readMeteorFlag()) {
+          writeMeteorFlag();
+          this.meteorTimer = setTimeout(() => this.shootingStar(), METEOR_AFTER_MS);
+        }
         const onVisibility = () => {
           if (document.visibilityState === 'visible') redraw();
         };
@@ -794,11 +815,18 @@ export class SkyComponent {
     const skyContext = sky?.getContext('2d');
     const landContext = land?.getContext('2d');
     if (!sky || !land || !skyContext || !landContext) return;
-    for (const c of [sky, land, this.overlay().nativeElement]) {
+    for (const c of [sky, this.overlay().nativeElement]) {
       if (c.width !== layout.width || c.height !== layout.height) [c.width, c.height] = [layout.width, layout.height];
       c.style.width = `${layout.width / dpr}px`;
       c.style.height = `${layout.height / dpr}px`;
     }
+    // The landscape canvas also holds what the painting has above the screen (cover-fit crops the top
+    // on wide screens), so when free look slides the ground down, the treetops come with it whole.
+    const above = Math.ceil(Math.max(0, -layout.imageY));
+    if (land.width !== layout.width || land.height !== layout.height + above) [land.width, land.height] = [layout.width, layout.height + above];
+    land.style.width = `${layout.width / dpr}px`;
+    land.style.height = `${(layout.height + above) / dpr}px`;
+    land.style.top = `${-above / dpr}px`;
 
     const date = this.pinnedTime ?? new Date();
     const { lat, lon } = this.sky.location();
@@ -839,8 +867,11 @@ export class SkyComponent {
       else nightWeight += weight;
     }
     if (nightWeight > 0) layers.unshift({ image: night, weight: nightWeight });
-    landContext.clearRect(0, 0, layout.width, layout.height);
+    landContext.clearRect(0, 0, land.width, land.height);
+    landContext.save();
+    landContext.translate(0, above);
     this.drawCover(landContext, this.blendedLandscape(layers) ?? night, layout);
+    landContext.restore();
     this.updateLandMask(night);
 
     const state = lightState(lighting, result, layout);
@@ -1152,6 +1183,12 @@ export class SkyComponent {
     this.host.style.setProperty('--ground-shift', shift ? `${shift.toFixed(2)}px` : '0px');
   }
 
+  /** One shooting star across the upper sky, if there are stars to see, the tab is visible and none is falling now. */
+  private shootingStar(): void {
+    if (this.destroyed || this.meteor() || !this.layout || !this.sky.starsShowing() || document.visibilityState !== 'visible') return;
+    this.meteor.set(planMeteor(this.viewWidth(), this.layout.horizonY * this.layout.artPixel));
+  }
+
   /** Where the selected star is now (CSS pixels), for its ring; drawn as an element, never on the sky. */
   private updateSelectedPoint(): void {
     const point = this.selectedOnScreen();
@@ -1287,4 +1324,21 @@ async function fetchJson<T>(url: string): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) throw new Error(`${url}: ${response.status}`);
   return (await response.json()) as T;
+}
+
+// Storage can be unavailable (private mode, blocked site data): then the arrival star just falls every page.
+function readMeteorFlag(): boolean {
+  try {
+    return sessionStorage.getItem(METEOR_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+function writeMeteorFlag(): void {
+  try {
+    sessionStorage.setItem(METEOR_KEY, '1');
+  } catch {
+    // Fine without.
+  }
 }

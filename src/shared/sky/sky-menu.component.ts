@@ -14,8 +14,8 @@ export const LIGHT_OPTIONS: readonly { id: Lighting; label: string; hint: string
   { id: 'day', label: 'day', hint: 'for the daylight people' },
 ];
 
-/** The one-time nudge under the ☾: shown this long after the sky is up, for this long. */
-export const HINT_AFTER_MS = 3000;
+/** The one-time nudge under the ☾: shown this long after the sky is up (just after the arrival star), for this long. */
+export const HINT_AFTER_MS = 4000;
 export const HINT_FOR_MS = 8000;
 /** Remembers, for this tab, that the hint has been shown. */
 export const HINT_KEY = 'sky-hint';

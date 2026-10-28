@@ -15,7 +15,7 @@ import {
 
 const ERROR_MESSAGE = 'An error occurred while sending your message. Please try again later.';
 
-/** One of the form's three jobs, and the words that change with it. Draft copy, Morgan's to edit. */
+/** One of the form's three jobs, and the words that change with it. Copy approved by Morgan (2026-10-28). */
 interface ContactMode {
   readonly id: ContactKind;
   readonly label: string;
@@ -33,7 +33,7 @@ export const CONTACT_MODES: readonly ContactMode[] = [
     label: 'ask me something',
     fieldLabel: 'Your question (anonymous)',
     placeholder: 'What do you want to know?',
-    note: 'Anonymous, so I can\'t write back. Good ones get answered in public, in the mailbag on Social.',
+    note: 'anonymous, so I can\'t write back. the good ones get answered in public, over on Social.',
     submit: 'Ask',
     success: 'Sent, anonymously. If it\'s a good one, the answer turns up on Social.',
     again: 'Ask another question',

@@ -78,6 +78,42 @@
   }
 }
 
+// A shooting star: a streak with a bright head, crossing from where the component puts it by
+// --dx/--dy, pointing along its path (--angle). Behind the landscape, under the Sun. Only ever
+// one, for under a second; none under reduced motion (the component never makes one).
+.meteor {
+  position: absolute;
+  width: var(--length, 200px);
+  height: 2px;
+  margin-top: -1px;
+  transform-origin: 100% 50%;
+  border-radius: 1px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.35) 60%, #fffdf2 100%);
+  box-shadow: 0 0 6px 1px rgba(255, 250, 230, 0.35);
+  pointer-events: none;
+  animation: meteor 0.85s ease-out both;
+
+  // The head.
+  &::after {
+    content: '';
+    position: absolute;
+    right: -2px;
+    top: -1.5px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #fffdf2;
+    box-shadow: 0 0 10px 3px rgba(255, 250, 230, 0.55);
+  }
+}
+
+@keyframes meteor {
+  0% { transform: translate(0, 0) rotate(var(--angle, 30deg)) scaleX(0.2); opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx, -400px), var(--dy, 220px)) rotate(var(--angle, 30deg)) scaleX(1); opacity: 0; }
+}
+
 // The Sun: a disc with a soft halo, centred on its place (the component sets the
 // transform and --radius). Light adds to the sky behind it, like the halos on the canvas.
 .sun {
