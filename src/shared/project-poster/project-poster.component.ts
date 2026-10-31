@@ -3,6 +3,7 @@ import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { Project } from '../constants/projects.const';
+import { ProjectArtLinkComponent } from '../project-art-link/project-art-link.component';
 import { ProjectRibbonComponent } from '../project-ribbon/project-ribbon.component';
 import { GitHubService } from '../services/github.service';
 import { relativeTime } from '../services/relative-time';
@@ -15,7 +16,7 @@ import { relativeTime } from '../services/relative-time';
  */
 @Component({
   selector: 'app-project-poster',
-  imports: [RouterLink, ProjectRibbonComponent],
+  imports: [RouterLink, ProjectArtLinkComponent, ProjectRibbonComponent],
   templateUrl: './project-poster.component.html',
   styleUrl: './project-poster.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -43,6 +43,8 @@ export interface Project {
   /** Where to try it, if it's playable/usable. */
   liveUrl?: string;
   liveLabel?: string;
+  /** The words that rise onto the art on hover (it links where `liveUrl`, else `more`, goes); default: that link's label. */
+  artLabel?: string;
   /** A page on this site to read more, as `[ label › ]`. */
   more?: { label: string; route: string };
   /** GitHub repo, used for the source link and the live "updated N ago"; none for something hosted, not coded. */
@@ -69,6 +71,8 @@ export const PROJECTS: readonly Project[] = [
     },
     liveUrl: 'https://morgan-vanv.github.io/Valkenburg-Castle/',
     liveLabel: 'Play it',
+    // Draft from the hover mockups (2026-10-31); Morgan may reword.
+    artLabel: 'enter the castle',
     repo: { owner: 'morgan-vanv', name: 'Valkenburg-Castle' },
     tags: ['TypeScript', 'Three.js', 'Vite'],
     pinned: true,

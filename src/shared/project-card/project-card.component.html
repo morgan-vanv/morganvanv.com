@@ -2,6 +2,7 @@
   @if (image(); as image) {
     <div class="art">
       <img [src]="image.url" [alt]="image.alt" class="shot" width="1280" height="720" loading="lazy" decoding="async" />
+      <app-project-art-link [project]="project()" />
       @if (project().ribbon; as ribbon) {<app-project-ribbon [text]="ribbon" />}
     </div>
   }
