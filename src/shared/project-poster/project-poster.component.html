@@ -3,7 +3,7 @@
     <span class="status"><span class="dot" aria-hidden="true"></span><span class="visually-hidden">status: </span>{{ project().status }}</span>
 
     @if (image(); as art) {
-      <img [src]="art.url" [alt]="art.alt" class="shot" width="1200" height="750" loading="lazy" decoding="async" />
+      <img [src]="art.url" [alt]="art.alt" class="shot" width="1280" height="720" loading="lazy" decoding="async" />
     } @else if (chat(); as art) {
       <div class="chat" role="img" [attr.aria-label]="art.alt">
         @for (line of art.lines; track $index) {
@@ -32,10 +32,12 @@
         </div>
       </div>
     }
+
+    @if (project().ribbon; as ribbon) {<app-project-ribbon [text]="ribbon" />}
   </div>
 
   <div class="plate">
-    <h2 class="name">{{ project().name }}</h2>
+    <h2 class="name">{{ project().name }}@if (project().ribbon; as ribbon) {<span class="visually-hidden"> ({{ ribbon }})</span>}</h2>
     <span class="plate-line">
       @if (project().subtitle; as subtitle) {<span class="subtitle">{{ subtitle }}</span>}
       @if (updated(); as when) {<span class="updated">updated {{ when }}</span>}

@@ -34,7 +34,7 @@ describe('ProjectsPageComponent', () => {
 
   it('shows every project as a poster, in order, and nothing under construction', () => {
     const el = fixture.nativeElement as HTMLElement;
-    const names = [...el.querySelectorAll('app-project-poster .plate h2')].map(h => h.textContent?.trim());
+    const names = [...el.querySelectorAll('app-project-poster .plate h2')].map(h => h.childNodes[0]?.textContent?.trim());
     expect(names).toEqual(PROJECTS.map(p => p.name));
     expect(el.querySelector('app-under-construction')).toBeNull();
   });

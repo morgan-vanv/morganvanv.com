@@ -18,6 +18,13 @@
   }
 }
 
+// Holds the screenshot and, after a big update, the ribbon across its corner (clipped to the rounding).
+.art {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
 .shot {
   display: block;
   width: 100%;

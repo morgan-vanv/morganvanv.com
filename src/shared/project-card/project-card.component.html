@@ -1,10 +1,13 @@
 <article class="project-card">
   @if (image(); as image) {
-    <img [src]="image.url" [alt]="image.alt" class="shot" width="1200" height="750" loading="lazy" decoding="async" />
+    <div class="art">
+      <img [src]="image.url" [alt]="image.alt" class="shot" width="1280" height="720" loading="lazy" decoding="async" />
+      @if (project().ribbon; as ribbon) {<app-project-ribbon [text]="ribbon" />}
+    </div>
   }
 
   <div class="heading">
-    <h3 class="name">{{ project().name }}</h3>
+    <h3 class="name">{{ project().name }}@if (project().ribbon; as ribbon) {<span class="visually-hidden"> ({{ ribbon }})</span>}</h3>
     @if (project().subtitle; as subtitle) {<span class="subtitle">{{ subtitle }}</span>}
   </div>
 

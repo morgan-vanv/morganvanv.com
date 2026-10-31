@@ -53,6 +53,18 @@ describe('ProjectPosterComponent', () => {
     ]);
   });
 
+  it('puts the ribbon across the art and its words beside the name, only when the project has one', async () => {
+    await mount({ ...base, ribbon: 'new · v5' });
+    http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date().toISOString() });
+    await fixture.whenStable();
+    expect(el().querySelector('.art app-project-ribbon')?.textContent?.trim()).toBe('new · v5');
+    expect(el().querySelector('.plate h2')?.textContent?.trim()).toBe('Thing (new · v5)');
+
+    fixture.componentRef.setInput('project', { ...base, id: 'q', ribbon: undefined });
+    await fixture.whenStable();
+    expect(el().querySelector('app-project-ribbon')).toBeNull();
+  });
+
   it('draws a chat log, line by line, in place of a screenshot', async () => {
     await mount({
       ...base, liveUrl: undefined,
