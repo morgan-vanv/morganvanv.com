@@ -10,23 +10,58 @@
   display: flex;
   flex-direction: column;
   gap: 0.625rem;
-  padding: 0 0.25rem;
+  padding: 0.25rem;
+  border-radius: 12px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease;
 
   @media (max-width: $breakpoint-mobile) {
     gap: 0.5rem;
     padding: 0;
   }
+
+  // The lift the posters on /projects have: up a little, a thin gold edge. For pointers that hover
+  // (a tap would leave it stuck up) and for keyboard focus inside the card.
+  @media (hover: hover) {
+    &:hover,
+    &:focus-within {
+      transform: translateY(-4px);
+      background: rgba(0, 0, 0, 0.2);
+      box-shadow: 0 0 0 1px rgba($accent-color, 0.45), 0 22px 40px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+
+    &:hover,
+    &:focus-within {
+      transform: none;
+    }
+  }
 }
 
-// Holds the screenshot and, after a big update, the ribbon across its corner (clipped to the rounding).
+// Holds the screenshot, the link over it and, after a big update, the ribbon across its corner
+// (clipped to the rounding). The picture pushes in while the pointer is on its link.
 .art {
   position: relative;
   overflow: hidden;
   border-radius: 8px;
+
+  &:has(app-project-art-link:hover) .shot {
+    transform: scale(1.04);
+    filter: brightness(1.05);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:has(app-project-art-link:hover) .shot {
+      transform: none;
+    }
+  }
 }
 
 .shot {
   display: block;
+  transition: transform 0.5s ease, filter 0.3s ease;
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;

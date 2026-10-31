@@ -46,6 +46,7 @@ src/
     custom-navbar/   # Navigation: one line on wide screens, a pager on tablets/phones; links from MAIN_ROUTES (a side page lights its parent)
     project-poster/  # <app-project-poster>: a project on /projects (art, status, title plate, links, live "updated"); project-card/ is the /now version (the project marked `pinned`)
     project-ribbon/  # <app-project-ribbon>: the red "new · v5" sash over a project's art, from its `ribbon` field; card and poster both use it
+    project-art-link/  # <app-project-art-link>: the project's art as a pointer-only link (live site, else `more`) with a gold `[ label › ]` on hover; card and poster both use it
     icon/            # <app-icon name="…">: the site's few glyphs as inline SVG
     vertical-nav/    # Interests tiles: a [preview] slot while collapsed, ↑/↓ + Enter/Esc, one section expanded at a time
     scroll-region/   # ScrollRegionService + [appScrollRegion] for arrow-key scrolling

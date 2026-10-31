@@ -18,7 +18,7 @@ describe('ProjectPosterComponent', () => {
   let http: HttpTestingController;
   const el = () => fixture.nativeElement as HTMLElement;
   const text = () => el().textContent ?? '';
-  const links = () => [...el().querySelectorAll('a')].map(a => [a.textContent?.trim(), a.getAttribute('href')]);
+  const links = () => [...el().querySelectorAll('a:not(.art-link)')].map(a => [a.textContent?.trim(), a.getAttribute('href')]);
 
   async function mount(project: Project): Promise<void> {
     fixture = TestBed.createComponent(ProjectPosterComponent);
@@ -51,6 +51,21 @@ describe('ProjectPosterComponent', () => {
       ['Play it ↗ (Thing)', 'https://example.github.io/thing/'],
       ['Source ↗ (Thing)', 'https://github.com/someone/thing'],
     ]);
+  });
+
+  it('makes the art a pointer-only way in: the live site, else the page here, else nothing', async () => {
+    await mount(base);
+    http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date().toISOString() });
+    await fixture.whenStable();
+    expect(el().querySelector('.art a.art-link')?.getAttribute('href')).toBe('https://example.github.io/thing/');
+
+    fixture.componentRef.setInput('project', { ...base, id: 'q', liveUrl: undefined, repo: undefined, more: { label: 'colophon', route: '/colophon' } });
+    await fixture.whenStable();
+    expect(el().querySelector('.art a.art-link')?.getAttribute('href')).toBe('/colophon');
+
+    fixture.componentRef.setInput('project', { ...base, id: 'r', liveUrl: undefined, repo: undefined });
+    await fixture.whenStable();
+    expect(el().querySelector('.art a.art-link')).toBeNull();
   });
 
   it('puts the ribbon across the art and its words beside the name, only when the project has one', async () => {

@@ -1,0 +1,11 @@
+@if (target(); as target) {
+  @if (target.href) {
+    <a class="art-link" [href]="target.href" target="_blank" rel="noopener noreferrer" tabindex="-1" aria-hidden="true">
+      <span class="enter"><span class="bracket">[</span> {{ label() }} › <span class="bracket">]</span></span>
+    </a>
+  } @else {
+    <a class="art-link" [routerLink]="target.route" tabindex="-1" aria-hidden="true">
+      <span class="enter"><span class="bracket">[</span> {{ label() }} › <span class="bracket">]</span></span>
+    </a>
+  }
+}

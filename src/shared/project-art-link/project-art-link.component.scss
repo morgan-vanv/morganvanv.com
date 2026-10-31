@@ -1,0 +1,59 @@
+@use 'sass:color';
+@use '../../styles' as *;
+
+// The words on the picture: gold warmed toward white, so they read over the darkened art.
+$enter-text: color.mix($main-color, $accent-color, 30%);
+
+// The whole picture is the target. `--art-label-bottom` lets a host lift the words clear of
+// anything sitting on the art's bottom edge (the poster's title plate).
+:host {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.art-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+
+  // The bottom darkens so the words read.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba($background-color, 0) 40%, rgba($background-color, 0.85) 100%);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+
+  &:hover::before,
+  &:hover .enter {
+    opacity: 1;
+  }
+
+  &:hover .enter {
+    transform: none;
+  }
+}
+
+.enter {
+  position: absolute;
+  left: 0.875rem;
+  bottom: var(--art-label-bottom, 0.75rem);
+  font-size: $font-size-small;
+  font-weight: bold;
+  letter-spacing: 0.04em;
+  color: $enter-text;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.bracket {
+  color: $accent-color;
+}

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, map, of, switchMap } from 'rxjs';
 import { Project } from '../constants/projects.const';
+import { ProjectArtLinkComponent } from '../project-art-link/project-art-link.component';
 import { ProjectRibbonComponent } from '../project-ribbon/project-ribbon.component';
 import { GitHubService } from '../services/github.service';
 import { relativeTime } from '../services/relative-time';
@@ -9,7 +10,7 @@ import { relativeTime } from '../services/relative-time';
 /** A project: screenshot, what it is, links, and when it was last worked on (live from GitHub). */
 @Component({
   selector: 'app-project-card',
-  imports: [ProjectRibbonComponent],
+  imports: [ProjectArtLinkComponent, ProjectRibbonComponent],
   templateUrl: './project-card.component.html',
   styleUrl: './project-card.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

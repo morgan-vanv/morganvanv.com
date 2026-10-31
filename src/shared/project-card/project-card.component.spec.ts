@@ -17,7 +17,7 @@ describe('ProjectCardComponent', () => {
   let fixture: ComponentFixture<ProjectCardComponent>;
   let http: HttpTestingController;
   const text = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
-  const links = () => [...(fixture.nativeElement as HTMLElement).querySelectorAll('a')].map(a => [a.textContent?.trim(), a.getAttribute('href')]);
+  const links = () => [...(fixture.nativeElement as HTMLElement).querySelectorAll('a:not(.art-link)')].map(a => [a.textContent?.trim(), a.getAttribute('href')]);
 
   beforeEach(async () => {
     sessionStorage.clear();
@@ -55,6 +55,14 @@ describe('ProjectCardComponent', () => {
     expect(ribbon?.textContent?.trim()).toBe('new · v5');
     expect(ribbon?.getAttribute('aria-hidden')).toBe('true');
     expect(el.querySelector('h3.name')?.textContent?.trim()).toBe('Thing (new · v5)');
+  });
+
+  it('makes the screenshot a pointer-only way into the game, beside the real links', () => {
+    http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date().toISOString() });
+    const art = (fixture.nativeElement as HTMLElement).querySelector('.art a.art-link');
+    expect(art?.getAttribute('href')).toBe('https://example.github.io/thing/');
+    expect(art?.getAttribute('tabindex')).toBe('-1');
+    expect(art?.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('shows when the repo was last pushed to', async () => {
