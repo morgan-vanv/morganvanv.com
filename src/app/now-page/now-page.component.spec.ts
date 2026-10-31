@@ -90,7 +90,7 @@ describe('NowPageComponent', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.querySelector('#now-building .range-label')?.textContent?.trim()).toBe('pinned');
     expect(el.querySelectorAll('app-project-card').length).toBe(1);
-    expect(el.querySelector('app-project-card .name')?.textContent?.trim()).toBe(PINNED_PROJECT.name);
+    expect(el.querySelector('app-project-card .name')?.childNodes[0]?.textContent?.trim()).toBe(PINNED_PROJECT.name);
     expect(el.querySelector('.all-projects a')?.textContent?.trim()).toBe(`all ${PROJECTS.length} projects ›`);
     expect(el.querySelector('.all-projects a')?.getAttribute('href')).toBe('/projects');
     http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');

@@ -1,6 +1,6 @@
 /**
  * Things Morgan is building. The Projects page shows every entry as a poster;
- * /now pins one of them under "Building" (`PINNED_PROJECT`) and names whichever
+ * /now pins the one marked `pinned` under "Building" (`PINNED_PROJECT`) and names whichever
  * repo was pushed to most recently. Copy here is drafted from each project's own
  * README and in-game text; Morgan should edit it freely.
  */
@@ -48,6 +48,10 @@ export interface Project {
   /** GitHub repo, used for the source link and the live "updated N ago"; none for something hosted, not coded. */
   repo?: { owner: string; name: string };
   tags: readonly string[];
+  /** Pin this one on /now under "Building". Exactly one project has it, and it needs a screenshot (the card has no other art). */
+  pinned?: true;
+  /** A red sash on the art's corner after a big update, e.g. "new · v5". Morgan removes the line when it's had its moment. */
+  ribbon?: string;
 }
 
 export const PROJECTS: readonly Project[] = [
@@ -60,13 +64,15 @@ export const PROJECTS: readonly Project[] = [
     quote: 'Take contracts. Come back alive. If Keven falls, Valkenburg stays dark.',
     art: {
       kind: 'image',
-      url: 'images/projects/valkenburg-castle.webp',
-      alt: 'Valkenburg Castle in play: Keven and his party on a hex-tiled castle floor, beside the portcullis',
+      url: 'images/projects/valkenburg-castle-v5.webp',
+      alt: 'Valkenburg Castle v5 in play: the party on a firelit hex floor, facing a red dragon on its pile of gold',
     },
     liveUrl: 'https://morgan-vanv.github.io/Valkenburg-Castle/',
     liveLabel: 'Play it',
     repo: { owner: 'morgan-vanv', name: 'Valkenburg-Castle' },
     tags: ['TypeScript', 'Three.js', 'Vite'],
+    pinned: true,
+    ribbon: 'new · v5',
   },
   {
     id: 'videojoker',
@@ -123,5 +129,5 @@ export const PROJECTS: readonly Project[] = [
   },
 ];
 
-/** The project /now keeps under "Building", whatever else is moving. */
-export const PINNED_PROJECT: Project = PROJECTS[0];
+/** The project /now keeps under "Building", whatever else is moving: the one marked `pinned` (a spec holds it to one). */
+export const PINNED_PROJECT: Project = PROJECTS.find(p => p.pinned) ?? PROJECTS[0];

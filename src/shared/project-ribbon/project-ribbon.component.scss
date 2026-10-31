@@ -1,0 +1,50 @@
+@use 'sass:color';
+@use '../../styles' as *;
+
+// The cloth: a woven crimson with a faint sheen, lettered in gold warmed toward white (plain gold on
+// crimson is too dim to read at this size). Approved as option A, "corner sash" (2026-10-31).
+$ribbon-crimson: #9e1f29;
+$ribbon-lit: color.adjust($ribbon-crimson, $lightness: 8%);
+$ribbon-deep: color.adjust($ribbon-crimson, $lightness: -12%);
+$ribbon-text: color.mix($main-color, $accent-color, 30%);
+
+:host {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  width: 7.5rem;
+  height: 7.5rem;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sash {
+  position: absolute;
+  top: 1.15rem;
+  right: -2.6rem;
+  width: 10.5rem;
+  padding: 0.3rem 0;
+  transform: rotate(45deg);
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 1.2;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: $ribbon-text;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.45);
+  background:
+    repeating-linear-gradient(90deg, rgba($main-color, 0.035) 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, $ribbon-lit, $ribbon-crimson 45%, $ribbon-deep);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.55);
+
+  // Stitching along both edges.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 2px 0;
+    border-block: 1px dashed rgba($ribbon-text, 0.55);
+  }
+}

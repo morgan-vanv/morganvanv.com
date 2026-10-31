@@ -44,6 +44,19 @@ describe('ProjectCardComponent', () => {
     ]);
   });
 
+  it('has no ribbon until the project asks for one, then a sash on the screenshot and the words beside the name', async () => {
+    http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date().toISOString() });
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-project-ribbon')).toBeNull();
+
+    fixture.componentRef.setInput('project', { ...project, ribbon: 'new · v5' });
+    await fixture.whenStable();
+    const ribbon = el.querySelector('.art app-project-ribbon');
+    expect(ribbon?.textContent?.trim()).toBe('new · v5');
+    expect(ribbon?.getAttribute('aria-hidden')).toBe('true');
+    expect(el.querySelector('h3.name')?.textContent?.trim()).toBe('Thing (new · v5)');
+  });
+
   it('shows when the repo was last pushed to', async () => {
     http.expectOne(REPO_URL).flush({ html_url: '', pushed_at: new Date(Date.now() - 3 * 3_600_000).toISOString() });
     await fixture.whenStable();
@@ -66,9 +79,9 @@ describe('PROJECTS', () => {
     }
   });
 
-  it('the pinned project has a screenshot, since the /now card has no other art', () => {
+  it('exactly one project is pinned, and it has a screenshot, since the /now card has no other art', () => {
+    expect(PROJECTS.filter(p => p.pinned)).toEqual([PINNED_PROJECT]);
     expect(PINNED_PROJECT.art.kind).toBe('image');
-    expect(PROJECTS).toContain(PINNED_PROJECT);
   });
 
   it('ids are unique and every project has a repo or somewhere to open it', () => {

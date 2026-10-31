@@ -44,7 +44,8 @@ src/
     site-strip/      # The webring line under every page (base-page places it: under the card, or ending the scroll on tablets/phones)
     page-header/     # <app-page-header>: a page's visible h1, dim one-liner, optional meta
     custom-navbar/   # Navigation: one line on wide screens, a pager on tablets/phones; links from MAIN_ROUTES (a side page lights its parent)
-    project-poster/  # <app-project-poster>: a project on /projects (art, status, title plate, links, live "updated"); project-card/ is the /now version
+    project-poster/  # <app-project-poster>: a project on /projects (art, status, title plate, links, live "updated"); project-card/ is the /now version (the project marked `pinned`)
+    project-ribbon/  # <app-project-ribbon>: the red "new · v5" sash over a project's art, from its `ribbon` field; card and poster both use it
     icon/            # <app-icon name="…">: the site's few glyphs as inline SVG
     vertical-nav/    # Interests tiles: a [preview] slot while collapsed, ↑/↓ + Enter/Esc, one section expanded at a time
     scroll-region/   # ScrollRegionService + [appScrollRegion] for arrow-key scrolling
