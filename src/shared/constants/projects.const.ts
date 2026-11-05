@@ -141,7 +141,7 @@ export const PROJECTS: readonly Project[] = [
   },
   {
     id: 'vtt',
-    name: 'vtt.morganvanv.com',
+    name: 'Foundry VTT',
     subtitle: 'the table',
     status: 'self-hosted',
     // Approved by Morgan (2026-10-28).
@@ -152,8 +152,8 @@ export const PROJECTS: readonly Project[] = [
       url: 'images/projects/foundry-vtt.webp',
       alt: 'Foundry VTT\'s sixth-anniversary art: a glowing orange d20 in a candlelit hall of stained glass',
     },
-    liveUrl: 'https://vtt.morganvanv.com/',
-    liveLabel: 'The table',
+    // No public link or address (Morgan, 2026-11-05): the table is for his players, like Jellyfin on /lab.
+    more: { label: 'the lab', route: '/lab' },
     tags: ['Foundry VTT', 'Vampire: The Masquerade', 'D&D'],
   },
   {

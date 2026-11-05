@@ -129,15 +129,14 @@ describe('LabPageComponent', () => {
     expect(rows.every(r => r.querySelector('svg path')?.getAttribute('d'))).toBe(true);
   });
 
-  it('puts the table on the air as a link, and the rest under construction', async () => {
+  it('puts the table and Jellyfin on the air with no links or addresses, and the rest under construction', async () => {
     await render();
-    const link = el().querySelector<HTMLAnchorElement>('.air a.air-row');
-    expect(link?.href).toBe('https://vtt.morganvanv.com/');
-    expect(link?.target).toBe('_blank');
-    expect(link?.rel).toContain('noopener');
+    expect(el().querySelector('.air a')).toBeNull();
     expect(el().querySelectorAll('.air .wip').length).toBe(3);
     const rows = [...el().querySelectorAll('.air-row')].map(r => [r.querySelector('.air-name')?.textContent, r.querySelector('.air-what')?.textContent]);
-    expect(rows[1]).toEqual(['Jellyfin', 'movies and shows']);
+    expect(rows[0]).toEqual(['Foundry VTT', 'my Vampire: The Masquerade table']);
+    expect(rows[1]).toEqual(['Jellyfin', 'my movies and shows']);
+    expect(rows[4]).toEqual(['my retro library', 'my collection of old games, dumped, and playable via browser']);
     expect(rows.length).toBe(5);
   });
 
@@ -152,7 +151,7 @@ describe('LabPageComponent', () => {
     const checkedAt = new Date(Date.now() - 3 * 60_000).toISOString();
     await render(of({ checkedAt, services: { vtt: 'up', jellyfin: 'down' } }));
     expect(pills()).toEqual(['up', 'down']);
-    expect(el().querySelector('.air a .state')?.classList.contains('down')).toBe(false);
+    expect(el().querySelector('.air-row .state')?.classList.contains('down')).toBe(false);
     expect(el().querySelectorAll('.air .state.down').length).toBe(1);
     expect(text('.air .note')).toBe('Up or down is checked from outside every few minutes; last 3 minutes ago.');
   });

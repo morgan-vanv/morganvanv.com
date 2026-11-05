@@ -24,14 +24,11 @@ describe('the lab\'s data', () => {
     }
   });
 
-  it('links only to the public front doors', () => {
-    const urls = all.filter(text => /^[a-z]+:\/\//i.test(text));
-    expect(urls).toEqual(['https://vtt.morganvanv.com/']);
-    for (const text of all.filter(t => !urls.includes(t))) {
-      // A host name, if any, is one of the site's own public ones.
-      for (const host of text.match(/\b[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|net|org|dev|io|app)\b/gi) ?? []) {
-        expect(host).toBe('vtt.morganvanv.com');
-      }
+  it('links nowhere and names no host: what\'s on the air is for the people Morgan invites', () => {
+    for (const text of all) {
+      // A URL anywhere in the string (any scheme), or anything shaped like a host name with any suffix.
+      expect(text, text).not.toMatch(/[a-z][a-z0-9+.-]*:\/\//i);
+      expect(text, text).not.toMatch(/\b[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}\b/i);
     }
   });
 
