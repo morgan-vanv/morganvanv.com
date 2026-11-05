@@ -12,7 +12,7 @@ import { relativeTime } from '../services/relative-time';
  * A project as a poster on the Projects page: the art on top with a status in its corner, a bevelled
  * title plate in the 88×31 language sitting on the art's bottom edge, then what it is, the stack, the
  * links and when it was last pushed to (live from GitHub). One surface per project (pillar 9): the art
- * is a real screenshot, a chat log drawn in CSS, or a miniature of this site.
+ * is a real screenshot, a chat log drawn in CSS, a miniature of this site, or a server rack.
  */
 @Component({
   selector: 'app-project-poster',
@@ -30,6 +30,7 @@ export class ProjectPosterComponent {
   readonly image = computed(() => { const art = this.project().art; return art.kind === 'image' ? art : null; });
   readonly chat = computed(() => { const art = this.project().art; return art.kind === 'chat' ? art : null; });
   readonly site = computed(() => { const art = this.project().art; return art.kind === 'site' ? art : null; });
+  readonly rack = computed(() => { const art = this.project().art; return art.kind === 'rack' ? art : null; });
 
   /** The GitHub link, for a project with a repo. */
   readonly sourceUrl = computed(() => {

@@ -4,6 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { existsSync } from 'node:fs';
 import { ProjectCardComponent } from './project-card.component';
 import { PINNED_PROJECT, PROJECTS, Project } from '../constants/projects.const';
+import { routes } from '../../app/app.routes';
 
 const project: Project = {
   id: 'p', name: 'Thing', subtitle: 'Part Two', status: 'live', description: 'Does stuff.', quote: 'Hello.',
@@ -87,13 +88,19 @@ describe('PROJECTS', () => {
     }
   });
 
+  it('a page a project links to here is a real route', () => {
+    for (const p of PROJECTS) {
+      if (p.more) expect(routes.map(r => `/${r.path}`), p.id).toContain(p.more.route);
+    }
+  });
+
   it('exactly one project is pinned, and it has a screenshot, since the /now card has no other art', () => {
     expect(PROJECTS.filter(p => p.pinned)).toEqual([PINNED_PROJECT]);
     expect(PINNED_PROJECT.art.kind).toBe('image');
   });
 
-  it('ids are unique and every project has a repo or somewhere to open it', () => {
+  it('ids are unique and every project has a repo, somewhere to open it, or a page here', () => {
     expect(new Set(PROJECTS.map(p => p.id)).size).toBe(PROJECTS.length);
-    for (const p of PROJECTS) expect(p.repo?.owner || p.liveUrl, p.id).toBeTruthy();
+    for (const p of PROJECTS) expect(p.repo?.owner || p.liveUrl || p.more?.route, p.id).toBeTruthy();
   });
 });

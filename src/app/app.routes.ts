@@ -13,6 +13,7 @@ const lazyRouteComponents: Record<MainRoutePath, Route['loadComponent']> = {
 
 const lazySideRouteComponents: Record<SideRoutePath, Route['loadComponent']> = {
   colophon: () => import('./colophon-page/colophon-page.component').then(m => m.ColophonPageComponent),
+  lab: () => import('./lab-page/lab-page.component').then(m => m.LabPageComponent),
 };
 
 export const routes: Routes = [
