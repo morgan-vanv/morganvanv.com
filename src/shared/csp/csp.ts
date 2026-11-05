@@ -23,6 +23,7 @@ export const CONNECT_ORIGINS: readonly string[] = [
   'https://api.github.com',
   'https://campfire.morganvanv.workers.dev',
   'https://ask.morganvanv.workers.dev',
+  'https://lab-status.morganvanv.workers.dev',
 ];
 
 /** The policy for one page, given the `'sha256-…'` sources of its inline scripts. */

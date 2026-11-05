@@ -37,7 +37,7 @@ export interface SideRoute extends MainRoute {
  */
 export const SIDE_ROUTES = [
   { path: 'colophon', title: 'Colophon', description: 'How morganvanv.com is built: Angular prerendered to static HTML, what powers each live panel, and what stays in your browser.', parent: 'projects' },
-  { path: 'lab', title: 'Lab', description: 'The computers in my closet, and what they\'re for.', parent: 'projects' },
+  { path: 'lab', title: 'Lab', description: 'The machines in my office rack and closet, and what they run: specs, services, and what\'s up right now.', parent: 'projects' },
 ] as const satisfies readonly SideRoute[];
 
 export type SideRoutePath = (typeof SIDE_ROUTES)[number]['path'];

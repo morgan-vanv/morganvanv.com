@@ -13,7 +13,7 @@ function serviceOrigins(): string[] {
 
 describe('the Content Security Policy', () => {
   it('lets the site reach every API it calls', () => {
-    const urls: string[] = [SITE_CONFIG.campfireUrl, SITE_CONFIG.askMorganSubmitUrl, SITE_CONFIG.weatherApiUrl];
+    const urls: string[] = [SITE_CONFIG.campfireUrl, SITE_CONFIG.askMorganSubmitUrl, SITE_CONFIG.weatherApiUrl, SITE_CONFIG.labStatusUrl];
     const origins = urls
       .filter(url => url !== '')
       .map(url => new URL(url).origin);
