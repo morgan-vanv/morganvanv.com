@@ -1,0 +1,14 @@
+<!-- Over the painting: the spot is the real link (keyboard, screen readers); the label is the same
+     link for a pointer, shown on hover, focus or a first tap. -->
+@for (entry of doors(); track entry.door.id) {
+  <div class="greeting-door" [attr.data-door]="entry.door.id" [class.showing]="showing() === entry.door.id"
+    [style.left.px]="entry.place.x" [style.top.px]="entry.place.y" [style.--shift.px]="entry.place.shift"
+    (pointerenter)="pointerEnter($event, entry.door.id)" (pointerleave)="pointerLeave(entry.door.id)">
+    <a class="spot" [href]="entry.door.path" [attr.aria-label]="entry.door.name"
+      (pointerdown)="pointerDown($event)" (click)="press($event, entry.door)"
+      (focus)="focus($event, entry.door.id)" (blur)="blur(entry.door.id)"></a>
+    <span class="ring" aria-hidden="true"></span>
+    <span class="lead" aria-hidden="true"></span>
+    <a class="label" [routerLink]="entry.door.path" tabindex="-1" aria-hidden="true">{{ entry.lead }} <b>[ {{ entry.door.label }} › ]</b></a>
+  </div>
+}

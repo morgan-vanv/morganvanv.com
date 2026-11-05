@@ -26,7 +26,6 @@ import {
   Firefly,
   LANDSCAPE_LOOKS,
   LandscapeLook,
-  NightLights,
   fireflies,
   fireflyAmount,
   landscapeUrl,
@@ -190,8 +189,8 @@ export class SkyComponent {
 
   /** Fireflies on the meadow at dusk (CSS-animated; nothing at all otherwise). */
   protected readonly fireflies = signal<readonly Firefly[]>([]);
-  /** Where the farmhouse window and the campfire are (CSS pixels); how bright they are is a CSS variable. */
-  protected readonly lights = signal<NightLights | null>(null);
+  /** Where the farmhouse window and the campfire are (CSS pixels); how bright they are is a CSS variable. Shared, for the greeting's doors. */
+  protected readonly lights = this.sky.nightLights;
   /** Sparks off the campfire: sideways drift (CSS px) and start offset (s). */
   protected readonly embers = [
     { drift: -2, delay: 0 },
