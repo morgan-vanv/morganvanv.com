@@ -1,4 +1,5 @@
 import { LAB_AROUND_THE_HOUSE, LAB_DEFAULT_MACHINE, LAB_MACHINES, LAB_ON_AIR, LAB_SERVICES, runningSummary } from './lab.const';
+import { isPs1ModelKey } from '../../app/lab-page/ps1/ps1-models';
 
 /** Every string in the lab's data, except the icons' SVG paths (numbers and letters by design). */
 function strings(value: unknown, key = ''): string[] {
@@ -41,6 +42,13 @@ describe('the lab\'s data', () => {
       expect(machine.specs.length, machine.id).toBeGreaterThan(0);
       expect(machine.runs.length, machine.id).toBeGreaterThan(0);
     }
+  });
+
+  it('gives every machine a PS1 model that exists, the UPSes sharing one', () => {
+    for (const machine of LAB_MACHINES) expect(isPs1ModelKey(machine.model), machine.id).toBe(true);
+    expect(Object.fromEntries(LAB_MACHINES.map(m => [m.id, m.model]))).toEqual({
+      hoss: 'hoss', switch: 'switch', ups1: 'ups', nas: 'nas', pihole: 'pihole', ups2: 'ups', vps: 'vps',
+    });
   });
 
   it('keeps BIG HOSS at 64 GB with the 2 TB NVMe', () => {

@@ -5,6 +5,8 @@
  * From the approved Lab A2 mockup (2026-11-05); `[TODO: Morgan]` where he hasn't said yet.
  */
 
+import type { Ps1ModelKey } from '../../app/lab-page/ps1/ps1-models';
+
 export type LabMachineId = 'hoss' | 'switch' | 'ups1' | 'nas' | 'pihole' | 'ups2' | 'vps';
 
 /** Where a machine lives: the office rack, the closet shelf, or out front (the one public door). */
@@ -27,6 +29,8 @@ export interface LabMachine {
   face?: 'vent' | 'bays' | 'ports';
   /** Power gear shows amber, everything else green. */
   led: 'green' | 'amber';
+  /** Its low-poly model on the spec sheet's stage (`src/app/lab-page/ps1/ps1-models.ts`). */
+  model: Ps1ModelKey;
   /** The spec sheet. */
   name: string;
   role: string;
@@ -36,7 +40,7 @@ export interface LabMachine {
 
 export const LAB_MACHINES: readonly LabMachine[] = [
   {
-    id: 'hoss', place: 'rack', label: 'BIG HOSS', sub: 'Proxmox host', height: 2, face: 'vent', led: 'green',
+    id: 'hoss', place: 'rack', label: 'BIG HOSS', sub: 'Proxmox host', height: 2, face: 'vent', led: 'green', model: 'hoss',
     name: 'BIG HOSS', role: 'the Proxmox host',
     specs: [
       { term: 'cpu', detail: 'AMD Threadripper 1920X, 12 cores' },
@@ -50,7 +54,7 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     runs: ['a handful of VMs and containers', 'nightly guest backups', 'the subnet route', 'Uptime Kuma'],
   },
   {
-    id: 'switch', place: 'rack', label: 'FLEX MINI', sub: 'the office switch', height: 1, face: 'ports', led: 'green',
+    id: 'switch', place: 'rack', label: 'FLEX MINI', sub: 'the office switch', height: 1, face: 'ports', led: 'green', model: 'switch',
     name: 'UniFi Flex Mini', role: 'the office switch',
     specs: [
       { term: 'ports', detail: '5 × gigabit' },
@@ -60,7 +64,7 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     runs: ['the office end of the network'],
   },
   {
-    id: 'ups1', place: 'rack', label: 'UPS', sub: 'CyberPower 1500', height: 1, led: 'amber',
+    id: 'ups1', place: 'rack', label: 'UPS', sub: 'CyberPower 1500', height: 1, led: 'amber', model: 'ups',
     name: 'CyberPower CP1500', role: 'the rack UPS',
     specs: [
       { term: 'keeps up', detail: 'BIG HOSS, the switch, a Wi-Fi node' },
@@ -70,7 +74,7 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     runs: ['an ordered shutdown'],
   },
   {
-    id: 'nas', place: 'closet', label: 'FALKENBURGHNAS', sub: 'Synology DS918+', height: 2, face: 'bays', led: 'green',
+    id: 'nas', place: 'closet', label: 'FALKENBURGHNAS', sub: 'Synology DS918+', height: 2, face: 'bays', led: 'green', model: 'nas',
     name: 'FalkenburghNAS', role: 'storage, backups, the media house',
     specs: [
       { term: 'model', detail: 'Synology DS918+, 16 GB' },
@@ -82,7 +86,7 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     runs: ['Jellyfin', 'Foundry VTT (for now)', 'the backup hub'],
   },
   {
-    id: 'pihole', place: 'closet', label: 'PI-HOLE', sub: 'Raspberry Pi 2', height: 1, led: 'green',
+    id: 'pihole', place: 'closet', label: 'PI-HOLE', sub: 'Raspberry Pi 2', height: 1, led: 'green', model: 'pihole',
     name: 'Pi-hole', role: 'DNS for my devices',
     specs: [
       { term: 'board', detail: 'Raspberry Pi 2' },
@@ -91,7 +95,7 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     runs: ['Pi-hole'],
   },
   {
-    id: 'ups2', place: 'closet', label: 'UPS', sub: 'APC 600', height: 1, led: 'amber',
+    id: 'ups2', place: 'closet', label: 'UPS', sub: 'APC 600', height: 1, led: 'amber', model: 'ups',
     name: 'APC Back-UPS 600', role: 'the closet UPS',
     specs: [
       { term: 'keeps up', detail: 'the NAS, the modem, a Wi-Fi node, the Pi-hole' },
@@ -100,7 +104,7 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     runs: ['an ordered shutdown'],
   },
   {
-    id: 'vps', place: 'edge', label: 'THE VPS', sub: 'one small droplet, the only public door', height: 1, led: 'green',
+    id: 'vps', place: 'edge', label: 'THE VPS', sub: 'one small droplet, the only public door', height: 1, led: 'green', model: 'vps',
     name: 'The VPS', role: 'the front door',
     specs: [
       { term: 'size', detail: '1 GB RAM, 25 GB disk' },

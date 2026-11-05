@@ -311,21 +311,9 @@ $down-text: color.mix($danger-color, $main-color, 70%);
   }
 }
 
-// Where Morgan's photo of the machine will go.
-.photo {
-  flex: 1 1 12rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  min-height: 10.5rem;
-  padding: 0.75rem;
-  border: 1px dashed rgba($main-color, 0.25);
-  border-radius: 10px;
-  background: repeating-linear-gradient(-45deg, rgba($main-color, 0.03) 0 10px, transparent 10px 20px);
-  font-size: $font-size-meta;
-  text-align: center;
-  opacity: 0.75;
+// The machine's PS1 model on its stage (app-ps1-stage), beside the specs while there's room, under them when not.
+.sheet-body .stage {
+  flex: 1 1 15.5rem;
 }
 
 .sheet-runs {
