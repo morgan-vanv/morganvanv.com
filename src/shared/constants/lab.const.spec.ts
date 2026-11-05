@@ -25,9 +25,10 @@ describe('the lab\'s data', () => {
   });
 
   it('links nowhere and names no host: what\'s on the air is for the people Morgan invites', () => {
-    expect(all.filter(text => /^[a-z]+:\/\//i.test(text))).toEqual([]);
     for (const text of all) {
-      expect(text, text).not.toMatch(/\b[a-z0-9-]+(\.[a-z0-9-]+)*\.(com|net|org|dev|io|app|tv)\b/i);
+      // A URL anywhere in the string (any scheme), or anything shaped like a host name with any suffix.
+      expect(text, text).not.toMatch(/[a-z][a-z0-9+.-]*:\/\//i);
+      expect(text, text).not.toMatch(/\b[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}\b/i);
     }
   });
 
