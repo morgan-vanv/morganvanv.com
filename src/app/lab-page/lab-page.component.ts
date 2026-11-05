@@ -7,6 +7,7 @@ import {
   LabStatusId, runningSummary,
 } from '../../shared/constants/lab.const';
 import { LabStatusService } from './lab-status.service';
+import { Ps1StageComponent } from './ps1/ps1-stage.component';
 
 interface MachineGroup {
   place: LabPlace;
@@ -21,13 +22,14 @@ const groupOf = (place: LabPlace): MachineGroup =>
 
 /**
  * /lab, off the homelab's poster on Projects: the machines in Morgan's office rack and closet (drawn in
- * CSS, each a button that shows its spec sheet), what's on the air with live up/down pills from the
+ * CSS, each a button that shows its spec sheet, with the machine turning as a PS1-style model on a little
+ * stage), what's on the air with live up/down pills from the
  * status Worker, and everything they run. On phones the machines are a list whose selected one opens
  * its sheet beneath it (an accordion); both layouts share one selection, BIG HOSS by default.
  */
 @Component({
   selector: 'app-lab-page',
-  imports: [BasePageComponent, PageHeaderComponent, NgTemplateOutlet],
+  imports: [BasePageComponent, PageHeaderComponent, NgTemplateOutlet, Ps1StageComponent],
   providers: [LabStatusService],
   templateUrl: './lab-page.component.html',
   styleUrl: './lab-page.component.scss',

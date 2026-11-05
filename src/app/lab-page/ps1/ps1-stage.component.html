@@ -1,0 +1,13 @@
+<canvas
+  #canvas
+  role="img"
+  [attr.aria-label]="label()"
+  [width]="buffer().width"
+  [height]="buffer().height"
+  (pointerdown)="grab($event)"
+  (pointermove)="drag($event)"
+  (pointerup)="release($event)"
+  (pointercancel)="release($event)"
+  (lostpointercapture)="release($event)"></canvas>
+<!-- Draft copy. A mouse or trackpad gets the invitation; touch screens are told it moves by itself (and can still swipe it). -->
+<span class="hint" aria-hidden="true"><span class="fine">[ drag to spin it ]</span><span class="coarse">turning on its own</span></span>

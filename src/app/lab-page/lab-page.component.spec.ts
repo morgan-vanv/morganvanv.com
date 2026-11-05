@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { Observable, NEVER, of, throwError } from 'rxjs';
 import { LabPageComponent } from './lab-page.component';
@@ -8,6 +9,7 @@ import { SITE_CONFIG } from '../../shared/config/site.config';
 import { LAB_MACHINES, LAB_SERVICES } from '../../shared/constants/lab.const';
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 import { LAB_STATUS_POLL_MS } from './lab-status';
+import { Ps1StageComponent } from './ps1/ps1-stage.component';
 
 describe('LabPageComponent', () => {
   let fixture: ComponentFixture<LabPageComponent>;
@@ -17,6 +19,12 @@ describe('LabPageComponent', () => {
   const rackButtons = () => [...el().querySelectorAll<HTMLButtonElement>('.hardware button.unit')];
   const listButtons = () => [...el().querySelectorAll<HTMLButtonElement>('.machine-list button.unit')];
   const button = (buttons: HTMLButtonElement[], label: string) => buttons.find(b => b.querySelector('.unit-name')?.firstChild?.textContent?.trim() === label)!;
+  /** The PS1 stages on the page, as [where, model, size, the canvas's name]. */
+  const stages = () => fixture.debugElement.queryAll(By.directive(Ps1StageComponent)).map(stage => {
+    const instance = stage.componentInstance as Ps1StageComponent;
+    const where = (stage.nativeElement as HTMLElement).closest('.sheet') ? 'sheet' : (stage.nativeElement as HTMLElement).closest('.fold')?.id;
+    return [where, instance.model(), instance.size(), (stage.nativeElement as HTMLElement).querySelector('canvas')?.getAttribute('aria-label')];
+  });
   const pills = () => [...el().querySelectorAll('.air .state')].map(p => p.textContent?.trim());
 
   async function render(response: Observable<unknown> = NEVER) {
@@ -76,7 +84,12 @@ describe('LabPageComponent', () => {
     const specs = [...el().querySelectorAll('.sheet dt')].map(dt => [dt.textContent, dt.nextElementSibling?.textContent]);
     expect(specs).toContainEqual(['memory', '64 GB DDR4-2666']);
     expect(specs).toContainEqual(['storage', '2 × 12 TB HGST in a ZFS mirror; 512 GB + 2 TB NVMe']);
-    expect(text('.photo')).toBe('[ a photo of BIG HOSS, taken by Morgan ]');
+    // The machine turning on its stage, in place of a photo; the phone list's open fold has a smaller one.
+    expect(el().querySelector('.photo')).toBeNull();
+    expect(stages()).toEqual([
+      ['sheet', 'hoss', 'large', 'BIG HOSS, a low-poly model turning slowly'],
+      ['lab-fold-hoss', 'hoss', 'small', 'BIG HOSS, a low-poly model turning slowly'],
+    ]);
     expect([...el().querySelectorAll('.sheet .chip')].map(c => c.textContent)).toEqual(LAB_MACHINES[0].runs);
   });
 
@@ -87,11 +100,14 @@ describe('LabPageComponent', () => {
     expect(button(rackButtons(), 'BIG HOSS').getAttribute('aria-pressed')).toBe('false');
     expect(text('#lab-sheet-title')).toBe('FalkenburghNAS storage, backups, the media house');
     expect(text('.sheet dl')).toContain('2 × 8 TB IronWolf, 2 × 14 TB Exos (SHR-1)');
-    expect(text('.photo')).toBe('[ a photo of FalkenburghNAS, taken by Morgan ]');
+    expect(stages()[0]).toEqual(['sheet', 'nas', 'large', 'FalkenburghNAS, a low-poly model turning slowly']);
 
     await click(button(rackButtons(), 'THE VPS'));
     expect(text('#lab-sheet-title')).toBe('The VPS the front door');
+    expect(stages()[0]).toEqual(['sheet', 'vps', 'large', 'The VPS, a low-poly model turning slowly']);
     expect([...el().querySelectorAll('.sheet .chip')].map(c => c.textContent)).toEqual(['Caddy', 'CrowdSec', 'a game relay, later']);
+    await click(button(rackButtons(), 'UPS'));
+    expect(stages()[0]).toEqual(['sheet', 'ups', 'large', 'CyberPower CP1500, a low-poly model turning slowly']);
   });
 
   it('on phones, opens the selected machine beneath it, and folds it again', async () => {
@@ -107,12 +123,17 @@ describe('LabPageComponent', () => {
     expect(button(listButtons(), 'BIG HOSS').getAttribute('aria-expanded')).toBe('false');
     expect(text('#lab-fold-pihole')).toContain('Raspberry Pi 2');
     expect(el().querySelector('#lab-fold-hoss')).toBeNull();
+    expect(stages()).toEqual([
+      ['sheet', 'pihole', 'large', 'Pi-hole, a low-poly model turning slowly'],
+      ['lab-fold-pihole', 'pihole', 'small', 'Pi-hole, a low-poly model turning slowly'],
+    ]);
     // The same selection as the rack's.
     expect(text('#lab-sheet-title')).toBe('Pi-hole DNS for my devices');
 
     await click(button(listButtons(), 'PI-HOLE'));
     expect(button(listButtons(), 'PI-HOLE').getAttribute('aria-expanded')).toBe('false');
     expect(el().querySelector('.fold')).toBeNull();
+    expect(stages().map(([where]) => where)).toEqual(['sheet']);
     // The sheet beside the rack keeps it.
     expect(text('#lab-sheet-title')).toBe('Pi-hole DNS for my devices');
   });

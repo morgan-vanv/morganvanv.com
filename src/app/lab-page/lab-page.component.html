@@ -36,7 +36,7 @@
             <dd>{{ spec.detail }}</dd>
           }
         </dl>
-        <div class="photo">[ a photo of {{ machine.name }}, taken by Morgan ]</div>
+        <app-ps1-stage class="stage" [model]="machine.model" [name]="machine.name" />
       </div>
       <div class="sheet-runs">
         <span class="group-label" id="lab-sheet-runs">runs</span>
@@ -89,6 +89,7 @@
           </button>
           @if (isOpen) {
             <div class="fold" [id]="'lab-fold-' + item.id">
+              <app-ps1-stage class="stage" size="small" [model]="item.model" [name]="item.name" />
               <p class="fold-role">{{ item.name }}, {{ item.role }}</p>
               <dl class="specs">
                 @for (spec of item.specs; track spec.term) {
