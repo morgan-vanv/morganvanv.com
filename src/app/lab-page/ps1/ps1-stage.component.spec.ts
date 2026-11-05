@@ -14,7 +14,18 @@ function stubBrowser({ reducedMotion = false } = {}) {
     putImageData: vi.fn((image: ImageData) => frames.push(image.data.slice())),
   };
   const getContext = vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(context as unknown as CanvasRenderingContext2D);
-  vi.spyOn(window, 'matchMedia').mockImplementation(query => ({ matches: reducedMotion && query.includes('reduce') }) as MediaQueryList);
+  // A media query whose answer can change while the page is open, as when a visitor turns on Reduce Motion.
+  const motionListeners = new Set<(event: MediaQueryListEvent) => void>();
+  let reduce = reducedMotion;
+  vi.spyOn(window, 'matchMedia').mockImplementation(query => ({
+    get matches() { return reduce && query.includes('reduce'); },
+    addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => motionListeners.add(listener),
+    removeEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => motionListeners.delete(listener),
+  }) as unknown as MediaQueryList);
+  const setReducedMotion = (value: boolean) => {
+    reduce = value;
+    for (const listener of [...motionListeners]) listener({ matches: value } as MediaQueryListEvent);
+  };
   const observers: { callback: IntersectionObserverCallback; disconnect: ReturnType<typeof vi.fn> }[] = [];
   vi.stubGlobal('IntersectionObserver', class {
     disconnect = vi.fn();
@@ -27,7 +38,7 @@ function stubBrowser({ reducedMotion = false } = {}) {
   const clearIntervalSpy = vi.spyOn(window, 'clearInterval');
   const onScreen = (isIntersecting: boolean) =>
     observers.at(-1)!.callback([{ isIntersecting } as IntersectionObserverEntry], {} as IntersectionObserver);
-  return { frames, getContext, observers, onScreen, setIntervalSpy, clearIntervalSpy };
+  return { frames, getContext, observers, onScreen, setIntervalSpy, clearIntervalSpy, setReducedMotion, motionListeners };
 }
 
 const frameTimers = (spy: { mock: { calls: unknown[][] } }) => spy.mock.calls.filter(call => call[1] === FRAME_MS).length;
@@ -97,6 +108,29 @@ describe('Ps1StageComponent', () => {
     expect(frames[0]).toEqual(expected('nas', 0));
     expect(frameTimers(setIntervalSpy)).toBe(0);
     expect(canvas().getAttribute('aria-label')).toBe('FalkenburghNAS, a low-poly model');
+  });
+
+  it('follows Reduce Motion switched on or off while the page is open', async () => {
+    const { frames, clearIntervalSpy, setIntervalSpy, setReducedMotion, motionListeners } = stubBrowser();
+    await mount();
+    expect(frameTimers(setIntervalSpy)).toBe(1);
+
+    setReducedMotion(true);
+    await fixture.whenStable();
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    expect(canvas().getAttribute('aria-label')).toBe('BIG HOSS, a low-poly model');
+    const before = frames.length;
+    vi.advanceTimersByTime(1000);
+    expect(frames.length).toBe(before);
+
+    setReducedMotion(false);
+    await fixture.whenStable();
+    expect(frameTimers(setIntervalSpy)).toBe(2);
+    vi.advanceTimersByTime(1000);
+    expect(frames.length).toBeGreaterThan(before);
+
+    fixture.destroy();
+    expect(motionListeners.size).toBe(0);
   });
 
   it('only turns while on screen and while the tab is visible', async () => {

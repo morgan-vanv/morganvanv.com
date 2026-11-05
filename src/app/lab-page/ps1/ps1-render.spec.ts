@@ -113,4 +113,26 @@ describe('renderPs1', () => {
     expect(at('vps', 0.8)).not.toEqual(at('vps', 0));
     expect(at('hoss', 0.8)).toEqual(at('hoss', 0));
   });
+
+  it('draws the nearer part in front where two overlap', () => {
+    // A big red slab at the back and a small green box in front of it, seen head on.
+    const model: Ps1Model = {
+      parts: [
+        { kind: 'box', x: 0, y: 0, z: 0.7, w: 1.6, h: 1.2, d: 0.1, color: '#c03030' },
+        { kind: 'box', x: 0, y: 0, z: -0.7, w: 0.5, h: 0.5, d: 0.5, color: '#30c030' },
+      ],
+      scale: 1, phase: 0, bobs: false,
+    };
+    const { data, width, height } = renderPs1(model, { turn: 0, time: 0 }, 120, 90);
+    const at = (x: number, y: number) => { const i = (y * width + x) * 4; return [data[i], data[i + 1], data[i + 2], data[i + 3]]; };
+    // Find the green box's pixels: every one of them must be green, never the slab showing through.
+    let green = 0;
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      const [r, g, , a] = at(x, y);
+      if (a === 255 && g > r) green++;
+    }
+    expect(green).toBeGreaterThan(50);
+    const [r, g] = at(width / 2, Math.round(height * 0.54));
+    expect(g).toBeGreaterThan(r);
+  });
 });

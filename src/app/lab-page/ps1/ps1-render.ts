@@ -119,7 +119,9 @@ export function renderPs1(model: Ps1Model, pose: Ps1Pose, width: number, height:
   const H = height;
   const px = into ?? new Uint8ClampedArray(W * H * 4);
   px.fill(0);
-  const zbuffer = new Float32Array(W * H).fill(Infinity);
+  // Holds 1/depth: screen-space weights interpolate that linearly (depth itself doesn't, after the
+  // perspective divide), so overlapping parts keep the right order. Bigger is nearer; 0 is empty.
+  const zbuffer = new Float32Array(W * H);
 
   const yaw = pose.turn + model.phase;
   const cosYaw = Math.cos(yaw), sinYaw = Math.sin(yaw), cosPitch = Math.cos(PITCH), sinPitch = Math.sin(PITCH);
@@ -163,10 +165,10 @@ export function renderPs1(model: Ps1Model, pose: Ps1Pose, width: number, height:
         const w1 = ((C[0] - x) * (A[1] - y) - (C[1] - y) * (A[0] - x)) / area;
         const w2 = 1 - w0 - w1;
         if (w0 < 0 || w1 < 0 || w2 < 0) continue;
-        const z = w0 * A[2] + w1 * B[2] + w2 * C[2];
+        const inverseDepth = w0 / A[2] + w1 / B[2] + w2 / C[2];
         const i = y * W + x;
-        if (z >= zbuffer[i]) continue;
-        zbuffer[i] = z;
+        if (inverseDepth <= zbuffer[i]) continue;
+        zbuffer[i] = inverseDepth;
         const d = (BAYER[(x & 3) + (y & 3) * 4] / 16 - 0.5) * DITHER;
         px[i * 4] = quantize(r0 + d);
         px[i * 4 + 1] = quantize(g0 + d);

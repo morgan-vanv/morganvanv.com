@@ -86,7 +86,18 @@ export class Ps1StageComponent {
     if (!this.browser) return;
 
     afterNextRender(() => {
-      this.still.set(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
+      // Reduced motion can be switched on (or off) while the page is open: follow it.
+      const motion = typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : null;
+      this.still.set(motion?.matches ?? false);
+      if (motion) {
+        const onMotion = (event: MediaQueryListEvent) => {
+          this.still.set(event.matches);
+          this.sync();
+          this.draw();
+        };
+        motion.addEventListener('change', onMotion);
+        destroyRef.onDestroy(() => motion.removeEventListener('change', onMotion));
+      }
       this.tabVisible = document.visibilityState !== 'hidden';
       const onVisibility = () => {
         this.tabVisible = document.visibilityState !== 'hidden';
