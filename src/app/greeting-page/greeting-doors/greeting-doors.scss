@@ -1,0 +1,122 @@
+@use '../../../styles' as *;
+
+// A layer the size of the window, over the painting: only the doors take the pointer, and nothing in
+// it can widen the page.
+:host {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+// A point on the painting (the sky's own window light or campfire); everything hangs off it.
+.greeting-door {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+// The 44 px link. Invisible: the window and the fire already flicker, and that's the invitation.
+.spot {
+  position: absolute;
+  left: -22px;
+  top: -22px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+}
+
+// The star picker's gold ring, so it reads as part of the same sky.
+.ring {
+  position: absolute;
+  left: -12px;
+  top: -12px;
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1px solid rgba(244, 215, 138, 0.9);
+  box-shadow: 0 0 14px rgba(255, 190, 90, 0.75);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+}
+
+// A short gold line from the label down to the ring (it stays on the spot when the label slides in from an edge).
+.lead {
+  position: absolute;
+  left: -0.5px;
+  top: -30px;
+  width: 1px;
+  height: 18px;
+  background: linear-gradient(180deg, rgba(244, 215, 138, 0.75), rgba(244, 215, 138, 0));
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+// The label, 30 px above the spot (doors.ts: LABEL_GAP, LABEL_HEIGHT, and its width from the 0.8 rem mono).
+.label {
+  position: absolute;
+  left: 0;
+  bottom: 30px;
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  padding: 0 12px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  border: 1px solid rgba($main-color, 0.22);
+  background: rgba(0, 18, 17, 0.88);
+  color: $main-color;
+  font-size: 0.8rem;
+  line-height: 1;
+  white-space: pre;
+  text-decoration: none;
+  transform: translate(calc(-50% + var(--shift, 0px)), 6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: auto;
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s;
+
+  b {
+    color: $accent-color;
+  }
+
+  // A bigger target than the pill, down to the spot, so the pointer can cross from one to the other.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: -8px -4px;
+  }
+}
+
+.showing {
+  .ring {
+    opacity: 1;
+    transform: none;
+  }
+
+  .lead {
+    opacity: 1;
+  }
+
+  .label {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(calc(-50% + var(--shift, 0px)), 0);
+    transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0s;
+  }
+}

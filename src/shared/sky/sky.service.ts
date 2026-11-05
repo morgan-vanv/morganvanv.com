@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { LIGHTINGS, Lighting } from './sky-render';
 import { UpNow } from './sky-up-now';
 import { Tonight } from './sky-tonight';
+import type { NightLights } from './sky-landscape';
 import { StarAround, StarOnScreen, UnnamedStar, VisitorName, brightest, nearestTo, stepAround } from './sky-naming';
 import { FACE_SOUTH, LookView, clampView, spokenView } from './sky-view';
 import { VisitorStar } from '../visitor-content/visitor-content';
@@ -70,6 +71,11 @@ export class SkyService {
   readonly lighting = signal<Lighting>('darkness');
   /** True once the live sky has drawn its first frame (until then the painted sky shows). */
   readonly ready = signal(false);
+  /**
+   * Where the farmhouse window and the campfire are on screen (CSS pixels), as the sky last placed its
+   * lights there; null until it has drawn. The greeting's hidden doors sit on them.
+   */
+  readonly nightLights = signal<NightLights | null>(null);
   /** What's above the horizon at the last redraw, as text. */
   readonly upNow = signal<UpNow | null>(null);
   /**

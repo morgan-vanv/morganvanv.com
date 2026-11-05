@@ -24,12 +24,14 @@ describe('sky hover', () => {
 
   it('only open sky counts: text, controls and page cards block it', () => {
     const page = document.createElement('div');
-    page.innerHTML = '<main><section id="open"></section><div class="page-container"><span id="card"></span></div><h1 id="title">x</h1><button id="b">b</button></main>';
+    page.innerHTML = '<main><section id="open"></section><div class="page-container"><span id="card"></span></div><h1 id="title">x</h1><button id="b">b</button><div class="greeting-door"><span id="ring"></span></div></main>';
     document.body.append(page);
     expect(isOpenSky(page.querySelector('#open'))).toBe(true);
     expect(isOpenSky(page.querySelector('#card'))).toBe(false);
     expect(isOpenSky(page.querySelector('#title'))).toBe(false);
     expect(isOpenSky(page.querySelector('#b'))).toBe(false);
+    // The greeting's hidden doors: their ring and label, not just the links.
+    expect(isOpenSky(page.querySelector('#ring'))).toBe(false);
     expect(isOpenSky(null)).toBe(false);
     page.remove();
   });

@@ -324,6 +324,11 @@ describe('SkyComponent', () => {
     (fixture.componentInstance as unknown as { draw: () => void }).draw();
     expect(host.querySelector<HTMLElement>('.sun')!.style.display).toBe('none');
     expect(host.classList).toContain('night-lit');
+    // Where it put them is shared, for the greeting's doors.
+    await fixture.whenStable();
+    const lights = sky.nightLights()!;
+    expect(host.querySelector<HTMLElement>('.window-light')!.style.left).toBe(`${lights.window.x}px`);
+    expect(host.querySelector<HTMLElement>('.campfire')!.style.top).toBe(`${lights.fire.y}px`);
     sky.setLighting('day');
     await fixture.whenStable();
     expect(host.classList).not.toContain('night-lit');
