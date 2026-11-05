@@ -1,0 +1,176 @@
+<app-base-page>
+  <!-- Draft copy: Morgan's to keep or change. -->
+  <app-page-header title="Lab" description="The machines in my office rack and closet, and what they run. No addresses or ports, sorry." />
+
+  <!-- Wide screens and tablets: the rack and the closet drawn in CSS, each machine a toggle button, its spec sheet beside them. -->
+  <div class="hardware-row">
+    <section class="panel hardware" aria-labelledby="lab-hardware">
+      <h2 id="lab-hardware">The hardware <span class="range-label">pick one</span></h2>
+      <div class="stacks">
+        @for (group of stacks; track group.place) {
+          <div class="stack">
+            <span class="group-label" [id]="'lab-group-' + group.place">{{ group.label }}</span>
+            <div [class]="group.place === 'rack' ? 'rack' : 'shelf'" role="group" [attr.aria-labelledby]="'lab-group-' + group.place">
+              @for (machine of group.machines; track machine.id) {
+                <ng-container [ngTemplateOutlet]="faceplate" [ngTemplateOutletContext]="{ $implicit: machine }" />
+              }
+            </div>
+          </div>
+        }
+      </div>
+      <div class="out-front" role="group" aria-labelledby="lab-group-edge">
+        <span class="group-label" id="lab-group-edge">{{ edge.label }}</span>
+        @for (machine of edge.machines; track machine.id) {
+          <ng-container [ngTemplateOutlet]="faceplate" [ngTemplateOutletContext]="{ $implicit: machine }" />
+        }
+      </div>
+    </section>
+
+    @let machine = selected();
+    <section class="panel sheet" id="lab-sheet" aria-labelledby="lab-sheet-title">
+      <h2 id="lab-sheet-title">{{ machine.name }} <span class="range-label">{{ machine.role }}</span></h2>
+      <div class="sheet-body">
+        <dl class="specs">
+          @for (spec of machine.specs; track spec.term) {
+            <dt>{{ spec.term }}</dt>
+            <dd>{{ spec.detail }}</dd>
+          }
+        </dl>
+        <div class="photo">[ a photo of {{ machine.name }}, taken by Morgan ]</div>
+      </div>
+      <div class="sheet-runs">
+        <span class="group-label" id="lab-sheet-runs">runs</span>
+        <ul class="chips" aria-labelledby="lab-sheet-runs">
+          @for (job of machine.runs; track job) {
+            <li class="chip">{{ job }}</li>
+          }
+        </ul>
+      </div>
+    </section>
+  </div>
+
+  <ng-template #faceplate let-machine>
+    <button
+      type="button"
+      class="unit"
+      [class.tall]="machine.height === 2"
+      [attr.aria-pressed]="selectedId() === machine.id"
+      aria-controls="lab-sheet"
+      (click)="pick(machine.id)">
+      <span class="led" [class.amber]="machine.led === 'amber'" aria-hidden="true"></span>
+      <span class="unit-name">{{ machine.label }} <span class="sub">{{ machine.sub }}</span></span>
+      @switch (machine.face) {
+        @case ('vent') { <span class="vent" aria-hidden="true"></span> }
+        @case ('bays') { <span class="bays" aria-hidden="true"><i></i><i></i><i></i><i></i></span> }
+        @case ('ports') { <span class="ports" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span> }
+        @default { <span></span> }
+      }
+    </button>
+  </ng-template>
+
+  <!-- Phones (and short landscape windows): the machines as a list; the open one shows its sheet beneath it. -->
+  <section class="machine-list" aria-labelledby="lab-machines">
+    <h2 id="lab-machines" class="visually-hidden">The hardware</h2>
+    @for (group of groups; track group.place) {
+      <span class="group-label" [id]="'lab-list-' + group.place">{{ group.label }}</span>
+      <div class="list-group" role="group" [attr.aria-labelledby]="'lab-list-' + group.place">
+        @for (item of group.machines; track item.id) {
+          @let isOpen = open() && selectedId() === item.id;
+          <button
+            type="button"
+            class="unit row"
+            [class.open]="isOpen"
+            [attr.aria-expanded]="isOpen"
+            [attr.aria-controls]="isOpen ? 'lab-fold-' + item.id : null"
+            (click)="toggle(item.id)">
+            <span class="led" [class.amber]="item.led === 'amber'" aria-hidden="true"></span>
+            <span class="unit-name">{{ item.label }} <span class="sub">{{ item.sub }}</span></span>
+            <span class="chevron" aria-hidden="true">{{ isOpen ? '−' : '+' }}</span>
+          </button>
+          @if (isOpen) {
+            <div class="fold" [id]="'lab-fold-' + item.id">
+              <p class="fold-role">{{ item.name }}, {{ item.role }}</p>
+              <dl class="specs">
+                @for (spec of item.specs; track spec.term) {
+                  <dt>{{ spec.term }}</dt>
+                  <dd>{{ spec.detail }}</dd>
+                }
+              </dl>
+              <ul class="chips" aria-label="Runs">
+                @for (job of item.runs; track job) {
+                  <li class="chip">{{ job }}</li>
+                }
+              </ul>
+            </div>
+          }
+        }
+      </div>
+    }
+  </section>
+
+  <div class="lower">
+    <section class="panel air" aria-labelledby="lab-air">
+      <h2 id="lab-air">On the air <span class="range-label">for friends &amp; family</span></h2>
+      <ul class="air-list">
+        @for (item of onAir; track item.name) {
+          <li>
+            @if (item.url) {
+              <a class="air-row" [href]="item.url" target="_blank" rel="noopener noreferrer">
+                <ng-container [ngTemplateOutlet]="airRow" [ngTemplateOutletContext]="{ $implicit: item }" />
+              </a>
+            } @else {
+              <div class="air-row">
+                <ng-container [ngTemplateOutlet]="airRow" [ngTemplateOutletContext]="{ $implicit: item }" />
+              </div>
+            }
+          </li>
+        }
+      </ul>
+      @if (checkedAgo(); as ago) {
+        <p class="note">Up or down is checked from outside every few minutes; last {{ ago }}.</p>
+      }
+    </section>
+
+    <section class="panel running" aria-labelledby="lab-running">
+      <h2 id="lab-running">Everything I'm running <span class="range-label">{{ runningSummary }}</span></h2>
+      <ul class="runs">
+        @for (service of services; track service.name) {
+          <li [class.later]="service.state === 'under-construction'">
+            <span class="icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path [attr.d]="service.icon" /></svg>
+            </span>
+            <span class="what"><b>{{ service.name }}</b><span class="line">{{ service.what }}</span></span>
+            @if (service.state === 'running') {
+              <span class="where">{{ service.where }}</span>
+            } @else {
+              <span class="wip small">under construction</span>
+            }
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+
+  <ng-template #airRow let-item>
+    <span class="air-text">
+      <span class="air-name">{{ item.name }}@if (item.url) {<span aria-hidden="true"> ↗</span>}</span>
+      <span class="air-what">{{ item.what }}</span>
+    </span>
+    @if (item.state === 'live') {
+      @if (stateOf(item.statusId); as state) {
+        <span class="state" [class.down]="state === 'down'"><span class="led" aria-hidden="true"></span>{{ state }}</span>
+      }
+    } @else {
+      <span class="wip">under construction</span>
+    }
+  </ng-template>
+
+  <section class="house" aria-labelledby="lab-house">
+    <h2 id="lab-house" class="group-label">also around the house</h2>
+    <ul class="chips">
+      @for (thing of aroundTheHouse; track thing) {
+        <li class="chip">{{ thing }}</li>
+      }
+    </ul>
+  </section>
+</app-base-page>

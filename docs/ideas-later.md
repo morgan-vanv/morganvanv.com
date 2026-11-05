@@ -70,7 +70,7 @@ Live since #104, covers in #105 (2026-10-27). Morgan parked these for a later pa
 
 ### Physics simulations
 `L` (each sim is `S`)
-- A `/lab` page (or Interests item) with canvas sims, each ~100–200 lines on top of a shared `SimulationCanvas` component: play/pause/reset, parameter sliders, `requestAnimationFrame` loop, DPR-aware canvas, pauses when off-screen.
+- A `/sims` page (or Interests item) with canvas sims (`/lab` is the homelab now), each ~100–200 lines on top of a shared `SimulationCanvas` component: play/pause/reset, parameter sliders, `requestAnimationFrame` loop, DPR-aware canvas, pauses when off-screen.
 - Candidates, roughly in order of visual payoff: double pendulum (chaos, trails); n-body / orbital mechanics (ties to astrophotography; let visitors fling planets); projectile with drag; wave interference / double slit; spring-mass resonance with a driving-frequency slider; ideal gas / Brownian motion with a temperature knob; Lissajous figures; charged particle in E and B fields; Snell's law ray tracer; Brachistochrone race; Galton board; Rutherford scattering. A Møller-scattering nod would be the deep cut for anyone who reads the Background page.
 - Each sim: a one-paragraph "what you're looking at" in Morgan's voice, with the equation rendered plainly (no MathJax dependency unless it earns it).
 - Share state in the URL (`?g=9.8&drag=0.1`) so a specific configuration can be linked.

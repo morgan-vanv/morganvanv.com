@@ -1,125 +1,177 @@
 @use '../../styles' as *;
-@use '../../shared/shared-styles.scss' as shared;
 
+// The whole window, over the open sky: the hero a little above the middle, so it sits in the sky
+// and leaves the painting (and its two hidden doors) below it.
 :host {
+  position: relative;
   height: 100dvh;
   width: 100%;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
+  box-sizing: border-box;
+  padding-bottom: clamp(0px, 18dvh, 14rem);
+
+  @media (max-height: $breakpoint-short) {
+    padding-bottom: 0;
+  }
 }
 
-.greeting-page-object-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  align-items: center;
-  min-height: 100dvh;
-}
-
-.greeting-page-message-container {
+// Each part is a centred flex item, so it's only as wide as what it shows: the doors measure them
+// to know what they'd be under.
+.hero {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin: auto 0;
   width: 100%;
   box-sizing: border-box;
-  padding: 0 1.5rem;
+  padding: 0 1.25rem;
+  text-align: center;
 }
 
 .title {
   margin: 0;
-  font-weight: normal;
+  font-weight: 700;
   // Bounded by height as well as width, so it fits a landscape phone.
-  font-size: min(10dvw, 11dvh, 4rem);
+  font-size: min(9.5dvw, 11dvh, 3.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
   color: $main-color;
-  text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.7);
-  margin-bottom: 1rem;
-  text-align: center;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6), 2px 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+.tagline {
+  margin: 0.9rem 0 0;
+  max-width: 100%;
+  font-size: clamp(0.95rem, 3.9dvw, 1.2rem);
+  line-height: 1.45;
+  color: rgba($main-color, 0.92);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.7), 1px 1px 4px rgba(0, 0, 0, 0.7);
 
   @media (max-height: $breakpoint-short) {
-    margin-bottom: 0.5rem;
+    margin-top: 0.4rem;
+    font-size: 1rem;
   }
 }
 
-.subtitle {
-  margin: 0;
-  font-size: min(5dvw, 5dvh, 1.5rem);
-  color: $main-color;
-  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
-  margin-bottom: 2rem;
-  text-align: center;
-  min-height: 1.5em;
-  transition: opacity 0.4s ease;
-  animation: gentle-bounce 2s ease-in-out infinite;
+// One grid cell holding every line (invisible) and the typed one: the box keeps the size of the
+// widest and tallest, wrapped at this width.
+.tagline-box {
+  display: grid;
+  justify-items: center;
+  align-items: start;
+}
 
-  // The credit hangs off it, out of the flow, so a credited line doesn't nudge the name;
-  // a minimum width gives it room under a short line (the text stays centred).
-  position: relative;
-  min-width: min(20rem, 100%);
+.tagline-sizer,
+.tagline-typed {
+  grid-area: 1 / 1;
+  white-space: pre-wrap;
+}
 
-  &.hidden {
-    opacity: 0;
-  }
+// Room for the caret after the longest line too.
+.tagline-sizer {
+  visibility: hidden;
 
-  @media (max-height: $breakpoint-short) {
-    margin-bottom: 0.75rem;
+  &::after {
+    content: '';
+    display: inline-block;
+    width: 0.58em;
+    margin-left: 2px;
   }
 }
 
-// A visitor's line: who suggested it, handwritten under it in gold.
+// A gold block caret: blinking while nothing happens, still while it types or erases.
+.caret {
+  display: inline-block;
+  width: 0.58em;
+  height: 1.08em;
+  margin-left: 2px;
+  vertical-align: -0.18em;
+  background: $accent-color;
+  box-shadow: 0 0 8px rgba($accent-color, 0.55);
+
+  &.blink {
+    animation: blink 1.06s steps(1) infinite;
+  }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret.blink {
+    animation: none;
+  }
+}
+
+// A visitor's credit: a fixed slot, so its coming and going moves nothing.
 .credit {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  text-align: right;
+  height: 1.7rem;
+  margin: 0.15rem 0 0;
   font-family: 'Caveat', 'Comic Sans MS', cursive, sans-serif;
   font-weight: bold;
-  font-size: 1.1em;
+  font-size: 1.3rem;
+  line-height: 1.7rem;
+  white-space: nowrap;
   color: $accent-color;
-  line-height: 1.1;
-  transform: translateY(-0.15em) rotate(-3deg);
-  transform-origin: right center;
   // A dark halo, so gold handwriting stays readable over a sunrise or daytime sky too.
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.95), 0 0 8px rgba(0, 0, 0, 0.85), 2px 2px 6px rgba(0, 0, 0, 0.8);
-}
+  opacity: 0;
+  transition: opacity 0.35s ease;
 
-@keyframes gentle-bounce {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-10px); }
-}
+  &.on {
+    opacity: 1;
+  }
 
-// The way in: a glass pill in the navbar's idiom (gold [ ] on hover and
-// focus, the pager's chevron), with a keycap hint for keyboards.
-.enter-prompt {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: clamp(1.5rem, 9dvh, 5rem);
+  @media (max-width: $breakpoint-phone) {
+    font-size: 1.2rem;
+  }
 
   @media (max-height: $breakpoint-short) {
-    gap: 0.375rem;
-    margin-bottom: 0.875rem;
+    height: 1.4rem;
+    line-height: 1.4rem;
+    font-size: 1.15rem;
   }
 }
 
+// The two ways in, side by side (stacked on phones in portrait).
+.ways {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem 1.25rem;
+  margin-top: 0.6rem;
+
+  @media (max-width: $breakpoint-phone) {
+    flex-direction: column;
+  }
+
+  @media (max-height: $breakpoint-short) {
+    flex-direction: row;
+    margin-top: 0.25rem;
+  }
+}
+
+// The way in: a glass pill in the navbar's idiom (gold [ ] on hover and focus, the pager's chevron).
 .enter {
-  @include shared.surface;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   min-height: 3rem;
   padding: 0 1.25rem;
-  border-color: rgba($main-color, 0.22);
+  box-sizing: border-box;
+  border: 1px solid rgba($main-color, 0.5);
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(6px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
   color: $main-color;
   font-size: $font-size-prose;
+  font-weight: 700;
   letter-spacing: 0.02em;
   text-decoration: none;
   transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease, transform 0.15s ease;
@@ -132,7 +184,7 @@
 
   &:hover,
   &:focus-visible {
-    border-color: rgba($accent-color, 0.6);
+    border-color: rgba($accent-color, 0.7);
     background: rgba($accent-color, 0.12);
     color: $accent-color;
 
@@ -162,20 +214,59 @@
   50% { transform: translateX(3px); }
 }
 
+// The other way: no page at all, just the sky (the ☾ menu's look up).
+.look-up {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  min-height: 44px;
+  padding: 0 0.5rem;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  color: $main-color;
+  font: inherit;
+  font-size: $font-size-small;
+  opacity: 0.75;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+  cursor: pointer;
+  transition: opacity 0.2s ease, color 0.2s ease;
+
+  &:hover,
+  &:focus-visible {
+    opacity: 1;
+    color: $accent-color;
+  }
+
+  &:focus-visible {
+    outline: 2px solid $accent-color;
+    outline-offset: 2px;
+  }
+}
+
+.moon {
+  font-size: 1.1em;
+  line-height: 1;
+}
+
 // Keyboards only: touch screens just tap.
 .hint {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin: 0;
+  margin: 0.5rem 0 0;
   color: $main-color;
   font-size: $font-size-meta;
-  opacity: 0.6;
+  opacity: 0.55;
   text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.7);
   user-select: none;
 
   @media (hover: none) and (pointer: coarse) {
     display: none;
+  }
+
+  @media (max-height: $breakpoint-short) {
+    margin-top: 0.25rem;
   }
 }
 

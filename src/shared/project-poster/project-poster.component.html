@@ -31,6 +31,22 @@
           <span class="mini-ring">‹ prev · hotline webring ↗ · next ›</span>
         </div>
       </div>
+    } @else if (rack(); as art) {
+      <div class="rack" role="img" [attr.aria-label]="art.alt">
+        <div class="rack-frame" aria-hidden="true">
+          @for (unit of art.units; track unit.name) {
+            <div class="unit" [class.u2]="unit.height === 2" [class.bays]="unit.face === 'bays'">
+              <span class="led" [class.amber]="unit.led === 'amber'"></span>
+              <span class="unit-name">{{ unit.name }}</span>
+              @if (unit.face === 'vent') {
+                <span class="vent"></span>
+              } @else if (unit.face === 'bays') {
+                <span class="drive-bays"><span></span><span></span><span></span><span></span></span>
+              }
+            </div>
+          }
+        </div>
+      </div>
     }
 
     <app-project-art-link [project]="project()" />

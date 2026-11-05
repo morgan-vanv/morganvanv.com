@@ -49,6 +49,11 @@ export const SITE_CONFIG = {
   campfireUrl: 'https://campfire.morganvanv.workers.dev',
   /** Ask Morgan: a Cloudflare Worker (morganvanv.com-backend/ask) that forwards the Contact form and star names to Discord. */
   askMorganSubmitUrl: 'https://ask.morganvanv.workers.dev/submit',
+  /**
+   * The lab's status: a Cloudflare Worker (morganvanv.com-backend) that checks from outside every few
+   * minutes whether the things on /lab's "On the air" are up. Answers `{ checkedAt, services: { vtt, jellyfin } }`.
+   */
+  labStatusUrl: 'https://lab-status.morganvanv.workers.dev/status',
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',
   forecastPageUrl: 'https://forecast.weather.gov/MapClick.php?lat=39.1&lon=-84.51',

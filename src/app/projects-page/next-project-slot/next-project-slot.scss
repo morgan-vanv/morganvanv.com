@@ -1,0 +1,100 @@
+@use 'sass:color';
+@use '../../../styles' as *;
+@use '../../../shared/project-poster/poster-shell';
+
+// Fills the rest of the last row on wide screens (the page sets --slot-span); one column like the
+// rest on tablets and phones.
+:host {
+  grid-column: span var(--slot-span, 1);
+
+  @media (max-width: $breakpoint-mobile) {
+    grid-column: auto;
+  }
+}
+
+// The poster's shape, but empty: a dashed edge, no shadow, no lift.
+.slot {
+  background: rgba(0, 0, 0, 0.15);
+  border: 1px dashed rgba($main-color, 0.28);
+  box-shadow: none;
+
+  @media (hover: hover) {
+    &:hover,
+    &:focus-within {
+      transform: none;
+      box-shadow: none;
+      border-color: rgba($accent-color, 0.45);
+    }
+  }
+
+  .art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // Faint stripes on an opaque ground, which the sign's screen blend needs (over the card's
+    // see-through glass it would keep its black box).
+    background:
+      repeating-linear-gradient(-45deg, rgba($accent-color, 0.08) 0 14px, transparent 14px 28px),
+      color.mix(#000, $background-color, 30%);
+
+    &::after {
+      display: none;
+    }
+  }
+
+  .plate {
+    border-style: dashed;
+  }
+
+  .name {
+    color: rgba($main-color, 0.7);
+    text-shadow: none;
+  }
+
+  .description {
+    opacity: 0.7;
+  }
+}
+
+// The site's under-construction sign, chunky: kept clear of the title plate, its black ground
+// screened away so the stripes show through.
+.sign {
+  display: block;
+  width: auto;
+  height: min(175px, 70%);
+  margin-bottom: 1rem;
+  image-rendering: pixelated;
+  mix-blend-mode: screen;
+}
+
+.words {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+// A full row: lie down, the art a column wide beside the words, the plate on the art's edge.
+@media (width > $breakpoint-mobile) {
+  :host(.strip) {
+    .slot {
+      flex-direction: row;
+    }
+
+    .art {
+      flex: none;
+      width: calc((100% - 2.5rem) / 3);
+      aspect-ratio: auto;
+      min-height: 10rem;
+    }
+
+    .sign {
+      margin-bottom: 0;
+    }
+
+    .plate {
+      align-self: flex-start;
+      margin: 0.875rem 0.875rem 0 -1.5rem;
+    }
+  }
+}

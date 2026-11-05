@@ -32,11 +32,12 @@ export interface SideRoute extends MainRoute {
 }
 
 /**
- * Pages off the navbar, each reached from one main page (the colophon from the site's poster on
- * Projects). They keep their parent's place in the nav and in arrow-key order, and slide in beside it.
+ * Pages off the navbar, each reached from one main page (the colophon and the lab from their
+ * posters on Projects). They keep their parent's place in the nav and in arrow-key order, and slide in beside it.
  */
 export const SIDE_ROUTES = [
   { path: 'colophon', title: 'Colophon', description: 'How morganvanv.com is built: Angular prerendered to static HTML, what powers each live panel, and what stays in your browser.', parent: 'projects' },
+  { path: 'lab', title: 'Lab', description: 'The machines in my office rack and closet, and what they run: specs, services, and what\'s up right now.', parent: 'projects' },
 ] as const satisfies readonly SideRoute[];
 
 export type SideRoutePath = (typeof SIDE_ROUTES)[number]['path'];

@@ -1,23 +1,31 @@
-<div class="greeting-page-object-container">
+<div #hero class="hero">
+  <h1 class="title">Morgan Van Valkenburgh</h1>
 
-  <div class="greeting-page-message-container">
-    <h1 class="title">Morgan Van Valkenburgh</h1>
-    <p class="subtitle" [class.hidden]="!subtitleVisible()">
-      {{ subtitle().text }}
-      @if (subtitle().credit; as credit) {
-        <span class="credit">{{ credit }}</span>
+  <!-- The tagline, typed. Screen readers get the whole line once (not a live region); the typing and
+       the caret are hidden from them. Every line sits invisibly in the same grid cell, so the box is
+       as wide and as tall as the longest one at this width, and nothing moves as it types. -->
+  <p class="tagline">
+    <span class="visually-hidden">{{ line().text }}@if (line().credit; as credit) { {{ credit }}}</span>
+    <span class="tagline-box" aria-hidden="true">
+      @for (sizer of subtitles(); track $index) {
+        <span class="tagline-sizer">{{ sizer.text }}</span>
       }
-    </p>
-  </div>
+      <span class="tagline-typed">{{ typed() }}<span class="caret" [class.blink]="blinking()"></span></span>
+    </span>
+  </p>
+  <!-- A visitor's line: who suggested it, handwritten under it in gold (its slot keeps its height). -->
+  <p class="credit" [class.on]="creditOn()" aria-hidden="true">{{ line().credit }}</p>
 
-  <div class="enter-prompt">
+  <div class="ways">
     <a class="enter" routerLink="/home">
       <span class="bracket" aria-hidden="true">[</span>
       <span>come on in</span>
       <app-icon name="chevron-right" class="enter-arrow" />
       <span class="bracket" aria-hidden="true">]</span>
     </a>
-    <p class="hint">or press <kbd>→</kbd></p>
+    <button type="button" class="look-up" (click)="lookUp()">or just look up <span class="moon" aria-hidden="true">☾</span></button>
   </div>
-
+  <p class="hint">or press <kbd>→</kbd></p>
 </div>
+
+<app-greeting-doors [hero]="hero" />

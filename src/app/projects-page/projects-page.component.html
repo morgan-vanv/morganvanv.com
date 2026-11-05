@@ -1,9 +1,10 @@
 <app-base-page>
   <app-page-header title="Projects" [description]="'Things I\'ve built or am building. ' + countLine" />
 
-  <section class="posters" aria-label="Projects">
+  <section class="posters" aria-label="Projects" [style.--columns]="columns">
     @for (project of projects; track project.id) {
       <app-project-poster [project]="project" />
     }
+    <app-next-project-slot [span]="slotSpan" [columns]="columns" />
   </section>
 </app-base-page>
