@@ -10,8 +10,8 @@ export interface LabStatus {
   services: Record<LabStatusId, 'up' | 'down'>;
 }
 
-/** Re-asked at most every two minutes; the Worker itself only looks every few. */
-export const LAB_STATUS_TTL_MS = 2 * 60 * 1000;
+/** Asked again this often while `/lab` is open and visible; the Worker itself looks at most every two minutes. */
+export const LAB_STATUS_POLL_MS = 2 * 60 * 1000;
 
 const STATUS_IDS: readonly LabStatusId[] = ['vtt', 'jellyfin'];
 const ISO_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;

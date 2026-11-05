@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, computed, signal } from '@angular/core';
+import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
@@ -6,10 +6,7 @@ import {
   LAB_AROUND_THE_HOUSE, LAB_DEFAULT_MACHINE, LAB_MACHINES, LAB_ON_AIR, LAB_SERVICES, LabMachine, LabMachineId, LabPlace,
   LabStatusId, runningSummary,
 } from '../../shared/constants/lab.const';
-import { SITE_CONFIG } from '../../shared/config/site.config';
-import { cachedJson } from '../../shared/services/cached-json';
-import { relativeTime } from '../../shared/services/relative-time';
-import { LAB_STATUS_TTL_MS, toLabStatus } from './lab-status';
+import { LabStatusService } from './lab-status.service';
 
 interface MachineGroup {
   place: LabPlace;
@@ -31,6 +28,7 @@ const groupOf = (place: LabPlace): MachineGroup =>
 @Component({
   selector: 'app-lab-page',
   imports: [BasePageComponent, PageHeaderComponent, NgTemplateOutlet],
+  providers: [LabStatusService],
   templateUrl: './lab-page.component.html',
   styleUrl: './lab-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -51,12 +49,9 @@ export class LabPageComponent {
   protected readonly open = signal(true);
   protected readonly selected = computed(() => LAB_MACHINES.find(m => m.id === this.selectedId()) ?? LAB_MACHINES[0]);
 
-  private readonly status = cachedJson(SITE_CONFIG.labStatusUrl, LAB_STATUS_TTL_MS, toLabStatus);
+  private readonly labStatus = inject(LabStatusService);
   /** "3 minutes ago", once there's a status to go by. */
-  protected readonly checkedAgo = computed(() => {
-    const status = this.status();
-    return status ? relativeTime(Date.parse(status.checkedAt)) : '';
-  });
+  protected readonly checkedAgo = this.labStatus.checkedAgo;
 
   /** A machine pressed in the rack: show its sheet. */
   protected pick(id: LabMachineId): void {
@@ -75,6 +70,6 @@ export class LabPageComponent {
 
   /** "up" or "down" from the status Worker, or null (no pill) until it has answered properly. */
   protected stateOf(id: LabStatusId): 'up' | 'down' | null {
-    return this.status()?.services[id] ?? null;
+    return this.labStatus.stateOf(id);
   }
 }

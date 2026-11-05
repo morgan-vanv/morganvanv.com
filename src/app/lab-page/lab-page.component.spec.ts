@@ -7,6 +7,7 @@ import { ApiCacheService } from '../../shared/services/api-cache.service';
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { LAB_MACHINES, LAB_SERVICES } from '../../shared/constants/lab.const';
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
+import { LAB_STATUS_POLL_MS } from './lab-status';
 
 describe('LabPageComponent', () => {
   let fixture: ComponentFixture<LabPageComponent>;
@@ -165,6 +166,29 @@ describe('LabPageComponent', () => {
     await render(throwError(() => new Error('offline')));
     expect(pills()).toEqual([]);
     expect(el().querySelector('.air .note')).toBeNull();
+  });
+
+  it('asks again every couple of minutes while it stays open, and the "checked" time keeps up', async () => {
+    // Only the intervals: Angular's own scheduling keeps real timers.
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      let checkedAt = new Date(Date.now() - 60_000).toISOString();
+      await render(new Observable(subscriber => {
+        subscriber.next({ checkedAt, services: { vtt: 'up', jellyfin: 'up' } });
+        subscriber.complete();
+      }));
+      expect(get).toHaveBeenCalledTimes(1);
+      expect(get).toHaveBeenCalledWith(SITE_CONFIG.labStatusUrl, 0);
+      expect(pills()).toEqual(['up', 'up']);
+
+      checkedAt = new Date(Date.now() + LAB_STATUS_POLL_MS).toISOString();
+      vi.advanceTimersByTime(LAB_STATUS_POLL_MS);
+      await fixture.whenStable();
+      expect(get).toHaveBeenCalledTimes(2);
+      expect(text('.air .note')).toContain('just now');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('ends with the other computers around the house', async () => {
