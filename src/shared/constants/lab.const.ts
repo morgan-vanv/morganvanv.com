@@ -126,11 +126,11 @@ export type LabOnAir = {
 } & ({ state: 'live'; statusId: LabStatusId } | { state: 'under-construction' });
 
 export const LAB_ON_AIR: readonly LabOnAir[] = [
-  { name: 'vtt.morganvanv.com', what: 'Foundry VTT, my Vampire: The Masquerade table', url: 'https://vtt.morganvanv.com/', state: 'live', statusId: 'vtt' },
-  { name: 'Jellyfin', what: 'movies and shows', state: 'live', statusId: 'jellyfin' },
+  { name: 'Foundry VTT', what: 'my Vampire: The Masquerade table', state: 'live', statusId: 'vtt' },
+  { name: 'Jellyfin', what: 'my movies and shows', state: 'live', statusId: 'jellyfin' },
   { name: 'VideoJoker', what: 'the Discord bot, always on', state: 'under-construction' },
   { name: 'a forever world', what: 'an always-on Minecraft server', state: 'under-construction' },
-  { name: 'a retro library', what: 'old games, played in the browser', state: 'under-construction' },
+  { name: 'my retro library', what: 'my collection of old games, dumped, and playable via browser', state: 'under-construction' },
 ];
 
 /**
