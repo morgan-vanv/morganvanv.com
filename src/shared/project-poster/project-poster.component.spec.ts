@@ -116,6 +116,36 @@ describe('ProjectPosterComponent', () => {
     ]);
   });
 
+  it('draws a server rack, a faceplate per machine with its light, and links to a page here', async () => {
+    await mount({
+      ...base, liveUrl: undefined, repo: undefined, more: { label: 'the lab', route: '/lab' },
+      art: {
+        kind: 'rack', alt: 'A server rack',
+        units: [
+          { name: 'BIG', height: 2, face: 'vent' },
+          { name: 'NAS', height: 2, face: 'bays' },
+          { name: 'PI', height: 1 },
+          { name: 'UPS', height: 1, led: 'amber' },
+        ],
+      },
+    });
+    http.expectNone(REPO_URL);
+    const rack = el().querySelector('.rack');
+    expect(rack?.getAttribute('role')).toBe('img');
+    expect(rack?.getAttribute('aria-label')).toBe('A server rack');
+    expect(rack?.querySelector('.rack-frame')?.getAttribute('aria-hidden')).toBe('true');
+    expect(el().querySelector('img.shot')).toBeNull();
+    const units = [...el().querySelectorAll('.unit')];
+    expect(units.map(u => u.querySelector('.unit-name')?.textContent)).toEqual(['BIG', 'NAS', 'PI', 'UPS']);
+    expect(units.map(u => u.classList.contains('u2'))).toEqual([true, true, false, false]);
+    expect(units[0].querySelector('.vent')).not.toBeNull();
+    expect(units[1].querySelectorAll('.drive-bays > span').length).toBe(4);
+    expect(units.map(u => u.querySelector('.led')?.classList.contains('amber'))).toEqual([false, false, false, true]);
+    expect(el().querySelector('.art a.art-link')?.getAttribute('href')).toBe('/lab');
+    expect(links()).toEqual([['[\u00a0the lab ›\u00a0] (Thing)', '/lab']]);
+    expect(text()).not.toContain('updated');
+  });
+
   it('a hosted project with no repo gets no Source link, no date and no GitHub call', async () => {
     await mount({ ...base, repo: undefined, liveLabel: 'The table', liveUrl: 'https://vtt.example/' });
     http.expectNone(REPO_URL);

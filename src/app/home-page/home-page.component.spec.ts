@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { HomePageComponent } from './home-page.component';
@@ -42,5 +42,29 @@ describe('HomePageComponent', () => {
     const headings = [...el.querySelectorAll('.home-panels .panel h2')].map(h => h.textContent?.trim());
     expect(headings).toEqual(["What's going on here?", 'Contact']);
     expect(el.querySelector('.contact app-ask-morgan-form')).toBeTruthy();
+  });
+});
+
+describe('HomePageComponent, arriving at #home-contact', () => {
+  it('scrolls the Contact panel into view', async () => {
+    const scrolled: Element[] = [];
+    const original = Element.prototype.scrollIntoView;
+    Element.prototype.scrollIntoView = function (this: Element) { scrolled.push(this); };
+    try {
+      await TestBed.configureTestingModule({
+        imports: [HomePageComponent],
+        providers: [
+          provideRouter([]), provideHttpClient(), provideHttpClientTesting(),
+          { provide: ActivatedRoute, useValue: { snapshot: { fragment: 'home-contact' } } },
+        ],
+      }).compileComponents();
+      const fixture = TestBed.createComponent(HomePageComponent);
+      document.body.appendChild(fixture.nativeElement);
+      await fixture.whenStable();
+      expect(scrolled.map(el => el.className)).toEqual(['panel contact']);
+      fixture.nativeElement.remove();
+    } finally {
+      Element.prototype.scrollIntoView = original;
+    }
   });
 });
