@@ -93,6 +93,30 @@ export const PROJECTS: readonly Project[] = [
     ribbon: 'new · v5',
   },
   {
+    id: 'homelab',
+    name: 'The Homelab',
+    subtitle: 'my closet',
+    status: 'humming',
+    // Morgan's words (2026-11-05).
+    description: 'A Proxmox server, a Synology NAS, and all sorts of other stuff (including Raspberry Pis!). This hosts my apps '
+      + 'for me, as well as family and friends.',
+    // Draft, from his infra docs; Morgan keeps it or cuts it.
+    quote: 'Each box does one job it is good at.',
+    art: {
+      kind: 'rack',
+      alt: 'A server rack drawn in lines: four machines with their lights on',
+      units: [
+        { name: 'BIG HOSS', height: 2, face: 'vent' },
+        { name: 'FALKENBURGHNAS', height: 2, face: 'bays' },
+        { name: 'PI-HOLE', height: 1 },
+        { name: 'UPS', height: 1, led: 'amber' },
+      ],
+    },
+    // The infra repo is private: no source link, no "updated".
+    more: { label: 'the lab', route: '/lab' },
+    tags: ['Proxmox', 'Synology', 'Tailscale', 'Caddy'],
+  },
+  {
     id: 'videojoker',
     name: 'VideoJoker',
     subtitle: 'a Discord bot, with friends',
@@ -116,19 +140,6 @@ export const PROJECTS: readonly Project[] = [
     tags: ['Python', 'discord.py', 'SQLite', 'Docker'],
   },
   {
-    id: 'morganvanv-com',
-    name: 'morganvanv.com',
-    subtitle: 'this site',
-    status: 'you\'re on it',
-    // Approved by Morgan (2026-10-28).
-    description: 'the thing you\'re looking at.',
-    quote: 'Built with: Angular, TypeScript, SCSS',
-    art: { kind: 'site', alt: 'A miniature of this website: the glass card over the night sky' },
-    more: { label: 'colophon', route: '/colophon' },
-    repo: { owner: 'morgan-vanv', name: 'morganvanv.com' },
-    tags: ['Angular', 'TypeScript', 'SCSS', 'Cloudflare'],
-  },
-  {
     id: 'vtt',
     name: 'vtt.morganvanv.com',
     subtitle: 'the table',
@@ -146,28 +157,17 @@ export const PROJECTS: readonly Project[] = [
     tags: ['Foundry VTT', 'Vampire: The Masquerade', 'D&D'],
   },
   {
-    id: 'homelab',
-    name: 'The Homelab',
-    subtitle: 'my closet',
-    status: 'humming',
-    // Morgan's words (2026-11-05).
-    description: 'A Proxmox server, a Synology NAS, and all sorts of other stuff (including Raspberry Pis!). This hosts my apps '
-      + 'for me, as well as family and friends.',
-    // Draft, from his infra docs; Morgan keeps it or cuts it.
-    quote: 'Each box does one job it is good at.',
-    art: {
-      kind: 'rack',
-      alt: 'A server rack drawn in lines: four machines with their lights on',
-      units: [
-        { name: 'BIG HOSS', height: 2, face: 'vent' },
-        { name: 'FALKENBURGHNAS', height: 2, face: 'bays' },
-        { name: 'PI-HOLE', height: 1 },
-        { name: 'UPS', height: 1, led: 'amber' },
-      ],
-    },
-    // The infra repo is private: no source link, no "updated".
-    more: { label: 'the lab', route: '/lab' },
-    tags: ['Proxmox', 'Synology', 'Tailscale', 'Caddy'],
+    id: 'morganvanv-com',
+    name: 'morganvanv.com',
+    subtitle: 'this site',
+    status: 'you\'re on it',
+    // Approved by Morgan (2026-10-28).
+    description: 'the thing you\'re looking at.',
+    quote: 'Built with: Angular, TypeScript, SCSS',
+    art: { kind: 'site', alt: 'A miniature of this website: the glass card over the night sky' },
+    more: { label: 'colophon', route: '/colophon' },
+    repo: { owner: 'morgan-vanv', name: 'morganvanv.com' },
+    tags: ['Angular', 'TypeScript', 'SCSS', 'Cloudflare'],
   },
 ];
 

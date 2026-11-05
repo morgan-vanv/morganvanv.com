@@ -108,12 +108,14 @@ describe('NowPageComponent', () => {
 
   it('a Building row under Lately names whichever project repo was pushed to last, once GitHub answers, linking to its commits', async () => {
     const now = Date.now();
+    // A project with a repo that isn't the first, so the newest push isn't simply the pinned one's.
+    const recent = PROJECTS.filter(p => p.repo)[1];
     const requests = http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
     // One request per project with a repo (the pinned card's is shared through the cache).
     expect(requests.length).toBe(PROJECTS.filter(p => p.repo).length);
     for (const req of requests) {
       const name = decodeURIComponent(new URL(req.request.url).pathname.split('/').pop() ?? '');
-      const hoursAgo = name === PROJECTS[1].repo?.name ? 1 : 24;
+      const hoursAgo = name === recent.repo?.name ? 1 : 24;
       req.flush({ html_url: `https://github.com/x/${name}`, pushed_at: new Date(now - hoursAgo * 3_600_000).toISOString() });
     }
     await fixture.whenStable();
@@ -122,9 +124,9 @@ describe('NowPageComponent', () => {
     const words = row.textContent?.replace(/\s+/g, ' ') ?? '';
     expect(words).toContain('Building');
     expect(words).toContain('1 hour ago');
-    expect(row.querySelector('.title')?.textContent).toBe(PROJECTS[1].name);
-    expect(row.textContent).toContain(PROJECTS[1].subtitle!);
-    expect(row.getAttribute('href')).toBe(`https://github.com/${PROJECTS[1].repo!.owner}/${PROJECTS[1].repo!.name}/commits`);
+    expect(row.querySelector('.title')?.textContent).toBe(recent.name);
+    expect(row.textContent).toContain(recent.subtitle!);
+    expect(row.getAttribute('href')).toBe(`https://github.com/${recent.repo!.owner}/${recent.repo!.name}/commits`);
     expect(row.getAttribute('target')).toBe('_blank');
   });
 

@@ -104,7 +104,7 @@ describe('LabPageComponent', () => {
     await click(button(listButtons(), 'PI-HOLE'));
     expect(button(listButtons(), 'PI-HOLE').getAttribute('aria-expanded')).toBe('true');
     expect(button(listButtons(), 'BIG HOSS').getAttribute('aria-expanded')).toBe('false');
-    expect(text('#lab-fold-pihole')).toContain('[TODO: Morgan]');
+    expect(text('#lab-fold-pihole')).toContain('Raspberry Pi 2');
     expect(el().querySelector('#lab-fold-hoss')).toBeNull();
     // The same selection as the rack's.
     expect(text('#lab-sheet-title')).toBe('Pi-hole DNS for my devices');
@@ -136,7 +136,7 @@ describe('LabPageComponent', () => {
     expect(link?.rel).toContain('noopener');
     expect(el().querySelectorAll('.air .wip').length).toBe(3);
     const rows = [...el().querySelectorAll('.air-row')].map(r => [r.querySelector('.air-name')?.textContent, r.querySelector('.air-what')?.textContent]);
-    expect(rows[1]).toEqual(['Jellyfin', 'movies and shows, invite only']);
+    expect(rows[1]).toEqual(['Jellyfin', 'movies and shows']);
     expect(rows.length).toBe(5);
   });
 
