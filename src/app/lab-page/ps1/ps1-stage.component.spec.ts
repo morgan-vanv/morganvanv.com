@@ -65,16 +65,15 @@ describe('Ps1StageComponent', () => {
     vi.useRealTimers();
   });
 
-  it('is an image named for the machine, at a fixed size, with the hint beside it hidden from screen readers', async () => {
+  it('is an image named for the machine, at a fixed size, with no text over it', async () => {
     stubBrowser();
     await mount();
     expect(canvas().getAttribute('role')).toBe('img');
     expect(canvas().getAttribute('aria-label')).toBe('BIG HOSS, a low-poly model turning slowly');
     expect([canvas().width, canvas().height]).toEqual([110, 84]);
     expect(canvas().hasAttribute('tabindex')).toBe(false);
-    const hint = (fixture.nativeElement as HTMLElement).querySelector('.hint')!;
-    expect(hint.getAttribute('aria-hidden')).toBe('true');
-    expect(hint.textContent).toContain('[ drag to spin it ]');
+    // Morgan, 2026-11-05: cleaner without a hint; the grab cursor says it can be dragged.
+    expect((fixture.nativeElement as HTMLElement).textContent?.trim()).toBe('');
   });
 
   it('draws the first frame after render, then turns at 15 frames a second', async () => {
