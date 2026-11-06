@@ -26,6 +26,8 @@ import { PageWeightBadgeComponent } from '../../shared/badges/page-weight-badge/
 import { BuildBadgeComponent } from '../../shared/badges/build-badge/build-badge.component';
 import { NoCookiesBadgeComponent } from '../../shared/badges/no-cookies-badge/no-cookies-badge.component';
 import { OwnButtonBadgeComponent } from '../../shared/badges/own-button-badge/own-button-badge.component';
+import { FriendButtonComponent } from '../../shared/badges/friend-button/friend-button.component';
+import { FRIENDS } from '../../shared/constants/friends.const';
 import { LetterboxdService } from '../../shared/letterboxd/letterboxd.service';
 import { watchedWhen } from '../../shared/letterboxd/letterboxd';
 import { StarsComponent } from '../../shared/stars/stars.component';
@@ -85,7 +87,8 @@ export function clip(text: string, max: number): string {
   selector: 'app-now-page',
   imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent, StarsComponent,
     WeatherBadgeComponent, MoonBadgeComponent, UpTonightBadgeComponent,
-    OwnButtonBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent, PageWeightBadgeComponent, LighthouseBadgeComponent, BuildBadgeComponent],
+    OwnButtonBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent, PageWeightBadgeComponent, LighthouseBadgeComponent, BuildBadgeComponent,
+    FriendButtonComponent],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -101,6 +104,7 @@ export class NowPageComponent {
   /** The one card under Building; the rest are on /projects. */
   readonly pinnedProject = PINNED_PROJECT;
   readonly projectCount = PROJECTS.length;
+  readonly friends = FRIENDS;
 
   private readonly github = inject(GitHubService);
 
