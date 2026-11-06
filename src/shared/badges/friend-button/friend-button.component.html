@@ -1,0 +1,9 @@
+<!-- Their Referer is left on (no noreferrer), so they can see who sent them, as the webring does. -->
+<a class="friend" [href]="friend().href" target="_blank" rel="noopener" [attr.aria-label]="label()">
+  <picture>
+    @if (friend().still; as still) {
+      <source media="(prefers-reduced-motion: reduce)" [attr.srcset]="still" />
+    }
+    <img [src]="friend().image" width="88" height="31" [alt]="friend().name" loading="lazy" decoding="async" />
+  </picture>
+</a>

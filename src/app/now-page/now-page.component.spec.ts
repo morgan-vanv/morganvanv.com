@@ -73,13 +73,15 @@ describe('NowPageComponent', () => {
   it('puts the 88×31 buttons in their own panel, one labelled row per cluster', () => {
     const panel = (fixture.nativeElement as HTMLElement).querySelector('.buttons-panel');
     expect(panel?.querySelector('h2')?.textContent).toContain('Buttons');
-    expect([...panel!.querySelectorAll('.cluster-label')].map(h => h.textContent?.trim())).toEqual(['tonight', 'this site']);
+    expect([...panel!.querySelectorAll('.cluster-label')].map(h => h.textContent?.trim())).toEqual(['tonight', 'this site', 'my friends']);
     // Morgan's order, left to right.
     const rows = [...panel!.querySelectorAll('.strip')].map(strip => [...strip.children].map(badge => badge.tagName.toLowerCase()));
     expect(rows).toEqual([
       ['app-weather-badge', 'app-moon-badge', 'app-up-tonight-badge'],
       ['app-own-button-badge', 'app-angular-badge', 'app-no-cookies-badge', 'app-page-weight-badge', 'app-lighthouse-badge', 'app-build-badge'],
+      ['app-friend-button', 'app-friend-button'],
     ]);
+    expect([...panel!.querySelectorAll('app-friend-button a')].map(a => a.getAttribute('href'))).toEqual(['https://nickdeda.com', 'https://harryrosenberg.net']);
     // The ones whose data ships with the site are there from the start; the Lighthouse badge waits for its report.
     expect(panel?.querySelector('app-own-button-badge .badge')).not.toBeNull();
     expect(panel?.querySelector('app-lighthouse-badge .badge')).toBeNull();
