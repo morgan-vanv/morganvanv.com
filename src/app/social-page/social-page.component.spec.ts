@@ -5,6 +5,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { SocialPageComponent, photoMailto } from './social-page.component';
 import { COMMUNITY_PHOTOS, photoCountLabel } from '../../shared/constants/community-photos.const';
+import { FRIENDS } from '../../shared/constants/friends.const';
 
 describe('SocialPageComponent', () => {
   let component: SocialPageComponent;
@@ -67,8 +68,17 @@ describe('SocialPageComponent', () => {
       .toEqual(['mailbag', 'shoutbox']);
     expect(top.querySelector('app-mailbag h2')?.textContent).toContain('You Asked');
     expect(top.querySelector('.shoutbox h2')?.textContent).toContain('Shoutbox');
-    // The wall comes after, outside the top row.
+    // The wall comes after, outside the top row, and my friends last.
     expect(top.nextElementSibling?.matches('.wall-panel')).toBe(true);
+    expect(top.nextElementSibling?.nextElementSibling?.matches('.friends-panel')).toBe(true);
+    expect([...el.querySelectorAll('.panel')].at(-1)?.matches('.friends-panel')).toBe(true);
+  });
+
+  it("ends with my friends' 88×31s, in the same order as on /now", () => {
+    const panel = (fixture.nativeElement as HTMLElement).querySelector('.friends-panel')!;
+    expect(panel.querySelector('h2')?.textContent).toContain('My Friends');
+    expect([...panel.querySelectorAll('app-friend-button a')].map(a => a.getAttribute('href')))
+      .toEqual(FRIENDS.map(f => f.href));
   });
 
   it('puts the live shoutbox in its panel, above the way into IRC', () => {

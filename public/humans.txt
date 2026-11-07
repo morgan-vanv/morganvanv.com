@@ -12,7 +12,7 @@
   The IndieWeb, Web Revival, and neocities — for the reminder that websites can be fun
 
 /* SITE */
-  Built with: Angular, TypeScript, SCSS, and a mild amount of spite
+  Built with: Angular, TypeScript, SCSS
   Hosting: GitHub Pages
   Fonts: JetBrains Mono, Caveat
   Standards: HTML5, CSS3, arrow keys
