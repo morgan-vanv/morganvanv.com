@@ -44,6 +44,22 @@
   }
 }
 
+// Friends' buttons, under the wall: one row of 88×31s that wraps, the gap /now's strip uses.
+.friends-panel {
+  margin-top: 1.25rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    margin-top: 0.875rem;
+  }
+}
+
+.friends {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  padding: 0.125rem 0.125rem 0.25rem;
+}
+
 .shoutbox {
   display: flex;
   flex-direction: column;
