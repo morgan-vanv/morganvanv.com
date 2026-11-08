@@ -40,11 +40,9 @@
     </div>
 
     <div class="foot">
-      @if (v.summary.invite) {
-        <a class="join" [href]="v.summary.invite" target="_blank" rel="noopener noreferrer" [attr.aria-label]="v.joinLabel">
-          <span class="bracket" aria-hidden="true">[</span> pull up a chair › <span class="bracket" aria-hidden="true">]</span>
-        </a>
-      }
+      <a class="join" [href]="invite" target="_blank" rel="noopener noreferrer" [attr.aria-label]="v.joinLabel">
+        <span class="bracket" aria-hidden="true">[</span> pull up a chair › <span class="bracket" aria-hidden="true">]</span>
+      </a>
       <p class="tagline">{{ tagline }}</p>
     </div>
   </section>

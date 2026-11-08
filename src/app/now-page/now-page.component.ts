@@ -156,14 +156,14 @@ export class NowPageComponent {
     };
   });
 
-  /** Hanging out: the Discord server, live, linking to its invite. Counts only, never people. */
+  /** Hanging out: the Discord server, live, linking to its permanent invite. Counts only, never people. */
   private readonly hangingOut = computed<NowRow | null>(() => {
     const summary = this.discord.summary();
-    if (!summary?.invite) return null;
+    if (!summary) return null;
     return {
       key: 'hanging-out', label: 'Hanging out', iconUrl: null, iconStyle: 'pixel', glyph: '#',
       title: summary.name, detail: discordDetail(summary),
-      when: 'right now', href: summary.invite, live: true,
+      when: 'right now', href: SITE_CONFIG.discord.inviteUrl, live: true,
     };
   });
 
