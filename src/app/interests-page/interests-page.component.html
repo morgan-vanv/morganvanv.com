@@ -10,7 +10,14 @@
   <div class="interests-wrapper">
     <app-vertical-nav-container #nav>
 
-      <app-vertical-nav-item title="🎵 Music">
+      <!-- The tiles' words (subtitle, status, inside, openLabel) are drafts for Morgan to edit. -->
+      <app-vertical-nav-item
+        title="🎵 Music"
+        subtitle="stats.fm · discogs"
+        [status]="topAlbum() ? '#1 this month' : null"
+        [inside]="['top songs this week', 'top albums this month', 'top artists, all time']"
+        openLabel="put it on">
+        <app-music-sleeve art [album]="topAlbum()" />
         <span description>
           What I've been listening to lately on Spotify, pulled live from
           <a [href]="statsFmProfileUrl" target="_blank" rel="noopener noreferrer" class="pill">stats.fm</a>.
@@ -101,9 +108,14 @@
 
       </app-vertical-nav-item>
 
-      <app-vertical-nav-item 
-        title="Old School RuneScape" 
-        iconUrl="/osrs/osrs-icon.webp">
+      <app-vertical-nav-item
+        title="Old School RuneScape"
+        iconUrl="/osrs/osrs-icon.webp"
+        [subtitle]="womUsername"
+        [status]="osrsCombat()"
+        [inside]="['skills and progress', 'boss kills and pets', 'recent drops and achievements']"
+        openLabel="log in">
+        <app-osrs-art art />
         <span description>
           Live stats for my OSRS character, {{ womUsername }}. Powered by:
           @for (link of poweredByLinks; track link.label) {
@@ -114,12 +126,17 @@
         <app-osrs-stats />
       </app-vertical-nav-item>
 
-      <app-vertical-nav-item 
-        title="📺 Favorite Media" 
+      <app-vertical-nav-item
+        title="📺 Favorite Media"
         description="Movies, TV shows, books, and albums I love."
+        subtitle="picked by hand · letterboxd"
+        [status]="mediaPicks"
+        [inside]="['films · tv · books · albums', 'my Letterboxd diary']"
+        openLabel="browse the shelf"
         [isUnderConstruction]="mediaUnderConstruction">
+        <app-media-fan art />
         @if (mediaUnderConstruction) {
-          <p preview class="tile-construction">🚧 under construction 🚧</p>
+          <p preview class="tile-construction">Coming soon to the shelf.</p>
         } @else {
           <div preview><app-media-preview /></div>
         }
@@ -129,12 +146,18 @@
         }
       </app-vertical-nav-item>
 
-      <app-vertical-nav-item 
-        title="📸 My Photos" 
+      <app-vertical-nav-item
+        title="📸 My Photos"
         description="Photography and memories."
+        subtitle="photography and memories"
+        [status]="photosUnderConstruction ? 'developing' : null"
+        openLabel="peek in"
         [isUnderConstruction]="photosUnderConstruction">
         @if (photosUnderConstruction) {
-          <p preview class="tile-construction">🚧 under construction 🚧</p>
+          <app-photos-art art />
+        }
+        @if (photosUnderConstruction) {
+          <p preview class="tile-construction">Nothing's developed yet.</p>
         }
       </app-vertical-nav-item>
 

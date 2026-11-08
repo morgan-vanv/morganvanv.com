@@ -1,41 +1,36 @@
-<div class="item-card-wrapper" 
+<div class="item-card-wrapper"
      [attr.role]="isExpanded() ? null : 'button'"
      [attr.tabindex]="isExpanded() ? -1 : 0"
      (keydown.enter)="onClick()"
      (keydown.space)="onClick(); $event.preventDefault()"
      [attr.aria-expanded]="isExpanded() ? 'true' : 'false'"
      [class.highlighted]="isHighlighted()"
-     [class.expanded]="isExpanded()">
+     [class.expanded]="isExpanded()"
+     [class.unfinished]="isUnderConstruction()">
 
-  <div class="item-card" #cardEl [appScrollRegion]="isExpanded()">
-    @if (isExpanded()) {
+  @if (isExpanded()) {
+    <div class="item-card" #cardEl [appScrollRegion]="true">
       <button type="button" class="close-button" aria-label="Close section" [class.active]="isEscapeActive()" (click)="onClose($event)">
         <span>Esc</span>
       </button>
-    }
 
-    <div class="item-header">
-      <div class="title-container">
-        <h2>
-          <span>
-            @if (iconUrl(); as icon) {
-              <img [src]="icon" alt="" class="item-icon" width="96" height="96" />
-            }
-            {{ title() }}
-          </span>
-        </h2>
+      <div class="item-header">
+        <div class="title-container">
+          <h2>
+            <span>
+              @if (iconUrl(); as icon) {
+                <img [src]="icon" alt="" class="item-icon" width="96" height="96" />
+              }
+              {{ title() }}
+            </span>
+          </h2>
+        </div>
+        @if (description(); as text) {
+          <p class="item-description">{{ text }}</p>
+        }
+        <ng-content select="[description]" />
       </div>
-      @if (description(); as text) {
-        <p class="item-description">{{ text }}</p>
-      }
-      <ng-content select="[description]" />
-    </div>
 
-    @if (!isExpanded()) {
-      <div class="item-preview"><ng-content select="[preview]" /></div>
-    }
-
-    @if (isExpanded()) {
       <div class="item-content">
         @if (isUnderConstruction()) {
           <div class="construction-notice">
@@ -45,10 +40,45 @@
           <ng-content />
         }
       </div>
-    }
-  </div>
+    </div>
 
-  @if (isExpanded()) {
     <app-scroll-hint [scrollEl]="cardEl" />
+  } @else {
+    <!-- Collapsed: a poster, like the ones on Projects. The art, the title plate, one live line, what's
+         inside, and what pressing it does. The links in the description wait for the open section. -->
+    <div class="tile">
+      <div class="tile-art">
+        @if (status(); as text) {
+          <span class="status"><span class="dot" aria-hidden="true"></span>{{ text }}</span>
+        }
+        <ng-content select="[art]" />
+      </div>
+
+      <div class="tile-side">
+        <div class="plate">
+          <h2 class="name">
+            @if (iconUrl(); as icon) {
+              <img [src]="icon" alt="" class="plate-icon" width="96" height="96" />
+            }
+            {{ title() }}
+          </h2>
+          @if (subtitle(); as text) {
+            <span class="subtitle">{{ text }}</span>
+          }
+        </div>
+
+        <div class="tile-live"><ng-content select="[preview]" /></div>
+
+        @if (inside().length) {
+          <ul class="tile-inside" aria-label="Inside">
+            @for (line of inside(); track line) {
+              <li>{{ line }}</li>
+            }
+          </ul>
+        }
+
+        <span class="tile-open"><span class="bracket" aria-hidden="true">[&nbsp;</span>{{ openLabel() }} ›<span class="bracket" aria-hidden="true">&nbsp;]</span></span>
+      </div>
+    </div>
   }
 </div>

@@ -7,7 +7,12 @@ import { VerticalNavItemComponent } from './vertical-nav-item.component';
   imports: [VerticalNavContainerComponent, VerticalNavItemComponent],
   template: `
     <app-vertical-nav-container>
-      <app-vertical-nav-item title="One"><p>one</p></app-vertical-nav-item>
+      <app-vertical-nav-item title="One" subtitle="first sub" status="live" [inside]="['songs', 'albums']" openLabel="put it on">
+        <span art class="one-art"></span>
+        <span preview>first preview</span>
+        <span description>first <a href="#">link</a></span>
+        <p>one</p>
+      </app-vertical-nav-item>
       <app-vertical-nav-item title="Two"><p>two</p></app-vertical-nav-item>
       <app-vertical-nav-item title="Three" [isUnderConstruction]="true" />
     </app-vertical-nav-container>
@@ -36,6 +41,35 @@ describe('Vertical nav', () => {
   it('starts with the first item highlighted and nothing expanded', () => {
     expect(container.highlightedIndex()).toBe(0);
     expect(container.isExpanded()).toBe(false);
+  });
+
+  it('shows a collapsed item as a poster: art, plate, status, live line, what is inside and what pressing does', () => {
+    const tile = (fixture.nativeElement as HTMLElement).querySelector('app-vertical-nav-item')!;
+    expect(tile.querySelector('.tile-art .one-art')).not.toBeNull();
+    expect(tile.querySelector('.status')?.textContent?.trim()).toBe('live');
+    expect(tile.querySelector('.plate .name')?.textContent?.trim()).toBe('One');
+    expect(tile.querySelector('.plate .subtitle')?.textContent?.trim()).toBe('first sub');
+    expect(tile.querySelector('.tile-live')?.textContent?.trim()).toBe('first preview');
+    expect([...tile.querySelectorAll('.tile-inside li')].map(li => li.textContent?.trim())).toEqual(['songs', 'albums']);
+    expect(tile.querySelector('.tile-open')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('[ put it on › ]');
+    // Its links wait for the open section: nothing focusable inside the tile, which is itself the button.
+    expect(tile.querySelector('a')).toBeNull();
+    expect(tile.textContent).not.toContain('first link');
+  });
+
+  it('leaves out the status pill and the inside list when an item has none', () => {
+    const tiles = (fixture.nativeElement as HTMLElement).querySelectorAll('app-vertical-nav-item');
+    expect(tiles[1].querySelector('.status')).toBeNull();
+    expect(tiles[1].querySelector('.tile-inside')).toBeNull();
+    expect(tiles[1].querySelector('.tile-open')?.textContent).toContain('open ›');
+  });
+
+  it('shows the description and its links once open, and the poster no more', async () => {
+    keydown('Enter');
+    await fixture.whenStable();
+    const tile = (fixture.nativeElement as HTMLElement).querySelector('app-vertical-nav-item')!;
+    expect(tile.querySelector('.item-header a')?.textContent).toBe('link');
+    expect(tile.querySelector('.tile')).toBeNull();
   });
 
   it('moves the highlight with Up/Down and clamps at the ends', () => {

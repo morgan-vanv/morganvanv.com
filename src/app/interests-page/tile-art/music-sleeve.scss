@@ -1,0 +1,60 @@
+@use '../../../styles' as *;
+@use 'tile-art';
+
+// The sleeve and the record, sized by the smaller side of the art box (`--s`, the sleeve's side) and
+// centred together: the record shows 0.62 of a sleeve past its edge.
+.sleeve,
+.record {
+  --s: min(70cqh, 52cqw);
+  position: absolute;
+  top: calc(50cqh - var(--s) / 2);
+  left: calc(50cqw - var(--s) * 0.78);
+}
+
+.sleeve {
+  z-index: 1;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 3px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #3a5560, #1c2a30);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.6);
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.record {
+  top: calc(50cqh - var(--s) * 0.47);
+  left: calc(50cqw - var(--s) * 0.16);
+  width: calc(var(--s) * 0.94);
+  height: calc(var(--s) * 0.94);
+  border-radius: 50%;
+  background: repeating-radial-gradient(circle, #0d0d0d 0 2px, #191919 2px 3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.35s ease;
+
+  // The label, with its spindle hole.
+  &::before {
+    content: '';
+    width: 33%;
+    height: 33%;
+    border-radius: 50%;
+    background: radial-gradient(circle, $background-color 0 9%, $accent-color 9%);
+  }
+
+  :host-context(.highlighted) & {
+    transform: translateX(16%);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

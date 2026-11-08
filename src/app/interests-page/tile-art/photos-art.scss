@@ -1,0 +1,31 @@
+@use 'tile-art';
+
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8cqw;
+}
+
+// Lamp-lit cream, not white (pillar 6), with nothing developed on it yet.
+.polaroid {
+  box-sizing: border-box;
+  display: flex;
+  height: min(62cqh, 6.5rem, 42cqw);
+  aspect-ratio: 6 / 7;
+  padding: 0.4rem 0.4rem 1.4rem;
+  background: #efe7d6;
+  border-radius: 2px;
+  transform: rotate(-4deg);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.55);
+
+  span {
+    flex: 1;
+    background: linear-gradient(160deg, #2a3a3c, #0c1617);
+  }
+}
+
+.sign {
+  width: auto;
+  height: min(46cqh, 4.5rem, 30cqw);
+}

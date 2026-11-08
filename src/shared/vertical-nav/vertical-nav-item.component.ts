@@ -22,6 +22,17 @@ export class VerticalNavItemComponent {
   readonly isUnderConstruction = input(false);
   readonly iconUrl = input<string>();
 
+  // The collapsed tile is a poster: these fill it (the art and the live line are projected as
+  // `[art]` and `[preview]`).
+  /** Under the title on the plate: where the data comes from, or what it is. */
+  readonly subtitle = input<string>();
+  /** The pill in the art's corner. Hidden while empty (a live value that hasn't arrived). */
+  readonly status = input<string | null>();
+  /** What's inside, a line each, so it's clear there's more than the tile shows. */
+  readonly inside = input<readonly string[]>([]);
+  /** What pressing the tile does, in the tile's own words ("put it on"). */
+  readonly openLabel = input('open');
+
   readonly isEscapeActive = signal(false);
 
   private container = inject(VerticalNavContainerComponent);

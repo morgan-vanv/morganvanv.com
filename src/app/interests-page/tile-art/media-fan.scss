@@ -1,0 +1,35 @@
+@use 'tile-art';
+
+:host {
+  background: radial-gradient(ellipse at 50% 100%, #1d2f33 0%, #070f10 75%);
+}
+
+// Up to four covers (`--c` wide), each half a cover along from the last, centred, fanned out a little
+// more when the tile is highlighted.
+.cover {
+  --c: min(30cqw, 40cqh);
+  position: absolute;
+  top: calc(50cqh - var(--c) * 0.75);
+  left: calc(50cqw - var(--c) * 1.25);
+  width: var(--c);
+  height: calc(var(--c) * 1.5);
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.6);
+  transform: rotate(var(--r));
+  transition: transform 0.3s ease;
+
+  &:nth-child(1) { --r: -10deg; }
+  &:nth-child(2) { --r: -4deg; margin-left: calc(var(--c) * 0.5); }
+  &:nth-child(3) { --r: 3deg; margin-left: calc(var(--c) * 1); }
+  &:nth-child(4) { --r: 9deg; margin-left: calc(var(--c) * 1.5); }
+
+  :host-context(.highlighted) & {
+    transform: rotate(calc(var(--r) * 1.4));
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+}

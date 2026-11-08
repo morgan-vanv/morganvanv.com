@@ -1,4 +1,5 @@
-import { Component, inject, ChangeDetectionStrategy, signal } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, signal, computed } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { AsyncPipe } from '@angular/common';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { VerticalNavContainerComponent } from '../../shared/vertical-nav/vertical-nav-container.component';
@@ -14,6 +15,12 @@ import { SITE_CONFIG } from '../../shared/config/site.config';
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 import { FavoriteMediaComponent } from './favorite-media/favorite-media';
 import { MediaPreviewComponent } from './favorite-media/media-preview/media-preview';
+import { MusicSleeveComponent } from './tile-art/music-sleeve';
+import { OsrsArtComponent } from './tile-art/osrs-art';
+import { MediaFanComponent } from './tile-art/media-fan';
+import { PhotosArtComponent } from './tile-art/photos-art';
+import { WiseOldManService } from '../../shared/services/wise-old-man.service';
+import { FAVORITE_MEDIA } from '../../shared/constants/favorite-media.const';
 
 const STATSFM_USERNAME = SITE_CONFIG.handles.statsFm;
 const STATS_DISPLAY_LIMIT = 8;
@@ -23,7 +30,7 @@ export type MusicList = 'songs' | 'albums' | 'artists';
 @Component({
   selector: 'app-interests-page',
   imports: [BasePageComponent, AsyncPipe, OsrsStatsComponent, VerticalNavContainerComponent, VerticalNavItemComponent, LastListenedComponent, PageHeaderComponent, OsrsPreviewComponent,
-    FavoriteMediaComponent, MediaPreviewComponent],
+    FavoriteMediaComponent, MediaPreviewComponent, MusicSleeveComponent, OsrsArtComponent, MediaFanComponent, PhotosArtComponent],
   templateUrl: './interests-page.component.html',
   styleUrl: './interests-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -58,6 +65,19 @@ export class InterestsPageComponent {
     map(items => items.slice(0, STATS_DISPLAY_LIMIT)),
     catchError(() => of([]))
   );
+
+  // The tiles. Same calls as the open sections (cached), so opening one costs nothing extra.
+  /** The Music tile's sleeve: this month's top album. */
+  readonly topAlbum = toSignal(this.topAlbums$.pipe(map(albums => albums[0] ?? null)), { initialValue: null });
+  private readonly osrsPlayer = toSignal(
+    inject(WiseOldManService).getPlayer(WOM_USERNAME).pipe(catchError(() => of(null))),
+    { initialValue: null },
+  );
+  readonly osrsCombat = computed(() => {
+    const level = this.osrsPlayer()?.combatLevel;
+    return level ? `combat ${level}` : null;
+  });
+  readonly mediaPicks = `${FAVORITE_MEDIA.length} picks`;
 
   /** "210 hrs", "1 hr", "45 min" — whole units only, so it fits in a list row. */
   formatPlaytime(ms: number): string {

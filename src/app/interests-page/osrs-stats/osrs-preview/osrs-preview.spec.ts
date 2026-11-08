@@ -12,7 +12,7 @@ describe('OsrsPreviewComponent', () => {
     });
   });
 
-  it('shows combat, total, 99s and EHP once the player loads', async () => {
+  it('shows total, 99s, EHP and EHB once the player loads', async () => {
     const fixture = TestBed.createComponent(OsrsPreviewComponent);
     await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
@@ -26,7 +26,7 @@ describe('OsrsPreviewComponent', () => {
     await fixture.whenStable();
 
     const stats = [...el.querySelectorAll('.stat')].map(s => `${s.querySelector('dt')?.textContent} ${s.querySelector('dd')?.textContent}`);
-    expect(stats).toEqual(['Combat 124', 'Total 2,240', '99s 1', 'EHP 817']);
+    expect(stats).toEqual(['Total 2,240', '99s 1', 'EHP 817', 'EHB 294']);
   });
 
   it('renders nothing if the request fails', async () => {

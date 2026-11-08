@@ -38,6 +38,41 @@ describe('InterestsPageComponent', () => {
     expect(component.formatPlaytime(45 * 60_000)).toBe('45 min');
   });
 
+  it("puts this month's most-played album on the Music tile's sleeve", async () => {
+    const album = (name: string, streams: number) => ({
+      position: 0, streams, playedMs: 0, album: { id: streams, name, image: `https://img.test/${name}.jpg`, artists: [{ name: 'Band' }] },
+    });
+    http.match(r => r.url.includes('/top/albums') && r.url.includes('range=months'))
+      .forEach(req => req.flush({ items: [album('Second', 40), album('First', 103)] }));
+    await fixture.whenStable();
+
+    const el = fixture.nativeElement as HTMLElement;
+    const sleeve = el.querySelector<HTMLImageElement>('app-music-sleeve img')!;
+    expect(sleeve.src).toBe('https://img.test/First.jpg');
+    expect(sleeve.alt).toBe('My top album this month: First, Band');
+    const musicTile = [...el.querySelectorAll('app-vertical-nav-item')].find(t => t.textContent?.includes('Music'))!;
+    expect(musicTile.querySelector('.status')?.textContent?.trim()).toBe('#1 this month');
+  });
+
+  it('keeps a blank sleeve and no status pill when stats.fm has no albums', async () => {
+    http.match(r => r.url.includes('/top/albums')).forEach(req => req.flush({ items: [] }));
+    await fixture.whenStable();
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('app-music-sleeve .sleeve')).not.toBeNull();
+    expect(el.querySelector('app-music-sleeve img')).toBeNull();
+    const musicTile = [...el.querySelectorAll('app-vertical-nav-item')].find(t => t.textContent?.includes('Music'))!;
+    expect(musicTile.querySelector('.status')).toBeNull();
+  });
+
+  it("shows the OSRS character's combat level in the tile's status pill", async () => {
+    http.match(r => r.url.includes('/players/')).forEach(req => req.flush({
+      combatLevel: 124, ehp: 1, ehb: 1, latestSnapshot: { data: { skills: { overall: { level: 2240 } }, bosses: {}, activities: {} } },
+    }));
+    await fixture.whenStable();
+    const osrsTile = [...(fixture.nativeElement as HTMLElement).querySelectorAll('app-vertical-nav-item')].find(t => t.textContent?.includes('RuneScape'))!;
+    expect(osrsTile.querySelector('.status')?.textContent?.trim()).toBe('combat 124');
+  });
+
   it('numbers the top songs and highlights the top three', async () => {
     // Open the Music section so its content renders.
     document.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
