@@ -20,7 +20,6 @@ export class AngularBadgeComponent {
       { label: 'Angular', value: VERSION.full },
       { label: 'Rendering', value: 'prerendered, zoneless' },
     ],
-    note: 'and a mild amount of spite',
     cta: 'view source ↗',
   };
 

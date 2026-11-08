@@ -11,6 +11,8 @@ import { PINNED_PROJECT, PROJECTS } from '../../shared/constants/projects.const'
 import { LETTERBOXD_DIARY_URL } from '../../shared/letterboxd/letterboxd.service';
 import { parseLetterboxdRss } from '../../shared/letterboxd/letterboxd';
 import { LETTERBOXD_FEED_FIXTURE } from '../../shared/letterboxd/letterboxd-feed.fixture';
+import { SITE_CONFIG } from '../../shared/config/site.config';
+import { DISCORD_FEED_FIXTURE } from '../../shared/discord/discord-feed.fixture';
 
 /** Matches RuneProfile activity requests by parsed host and path, not by substring. */
 function isRuneProfileActivities(req: { url: string }): boolean {
@@ -239,6 +241,28 @@ describe('NowPageComponent', () => {
     flushDiary({ ...diary, entries: [] });
     await fixture.whenStable();
     expect(rowKeys()).not.toContain('watched');
+  });
+
+  const flushDiscord = (body: object) => {
+    for (const req of http.match(r => r.url === SITE_CONFIG.discord.widgetUrl)) req.flush(body);
+  };
+
+  it('adds Hanging out from the Discord, after Playing and before Watched, linking to the invite', async () => {
+    flushDiary(diary);
+    flushDiscord(DISCORD_FEED_FIXTURE);
+    await fixture.whenStable();
+    expect(rowKeys()).toEqual(['hanging-out', 'watched', 'community', 'site']);
+    expect(fixture.componentInstance.rows()[0]).toMatchObject({
+      label: 'Hanging out', title: 'Ugandan Commandos', detail: '7 online · 1 in voice · 2 on RuneLite',
+      href: 'https://discord.com/invite/jUwYdRCy', live: true, glyph: '#',
+    });
+    for (const member of DISCORD_FEED_FIXTURE.members) expect(text()).not.toContain(member.username);
+  });
+
+  it('skips Hanging out with no invite to link to', async () => {
+    flushDiscord({ ...DISCORD_FEED_FIXTURE, instant_invite: null });
+    await fixture.whenStable();
+    expect(rowKeys()).not.toContain('hanging-out');
   });
 
   it('skips Playing when RuneProfile fails', async () => {

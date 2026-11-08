@@ -8,6 +8,10 @@ import { COMMUNITY_PHOTOS, CommunityPhoto, photoCountLabel } from '../../shared/
 import { CampfireService } from '../../shared/services/campfire.service';
 import { MailbagComponent } from './mailbag/mailbag';
 import { ShoutboxComponent } from './shoutbox/shoutbox';
+import { FriendButtonComponent } from '../../shared/badges/friend-button/friend-button.component';
+import { FRIENDS } from '../../shared/constants/friends.const';
+import { DiscordService } from '../../shared/discord/discord.service';
+import { DiscordPanelComponent } from './discord-panel/discord-panel';
 
 /** The wall's open slot: an email with the subject set and a nudge for a caption. Copy approved by Morgan (2026-10-28). */
 export function photoMailto(email: string): string {
@@ -18,7 +22,9 @@ export function photoMailto(email: string): string {
 
 @Component({
   selector: 'app-social-page',
-  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, ShoutboxComponent, A11yModule, MailbagComponent],
+  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, ShoutboxComponent, A11yModule, MailbagComponent, FriendButtonComponent, DiscordPanelComponent],
+  // The Discord's poller lives as long as the page.
+  providers: [DiscordService],
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -46,6 +52,13 @@ export class SocialPageComponent {
 
   /** The real photos only, oldest first; the wall ends with one open slot rather than a row of empty ones. */
   readonly photos = COMMUNITY_PHOTOS;
+
+  /** Friends' 88×31s, as on /now. */
+  readonly friends = FRIENDS;
+
+  /** Whether Discord has answered: until then my friends have the last row to themselves. */
+  private readonly discord = inject(DiscordService);
+  readonly discordUp = computed(() => this.discord.summary() !== null);
 
   openFullscreen(photo: CommunityPhoto) {
     this.lastFocusedElement = document.activeElement as HTMLElement;

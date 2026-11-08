@@ -54,6 +54,13 @@ export const SITE_CONFIG = {
    * minutes whether the things on /lab's "On the air" are up. Answers `{ checkedAt, services: { vtt, jellyfin } }`.
    */
   labStatusUrl: 'https://lab-status.morganvanv.workers.dev/status',
+  /**
+   * Morgan's Discord server: its public widget feed (counts, voice, what's being played, an invite),
+   * read straight from the browser on /social and /now. Turned on in the server's settings (Widget).
+   */
+  discord: {
+    widgetUrl: 'https://discord.com/api/guilds/269944360014053388/widget.json',
+  },
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',
   forecastPageUrl: 'https://forecast.weather.gov/MapClick.php?lat=39.1&lon=-84.51',

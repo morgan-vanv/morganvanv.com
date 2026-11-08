@@ -31,6 +31,8 @@ import { FRIENDS } from '../../shared/constants/friends.const';
 import { LetterboxdService } from '../../shared/letterboxd/letterboxd.service';
 import { watchedWhen } from '../../shared/letterboxd/letterboxd';
 import { StarsComponent } from '../../shared/stars/stars.component';
+import { DiscordService } from '../../shared/discord/discord.service';
+import { discordDetail } from '../../shared/discord/discord';
 
 export interface NowRow {
   key: string;
@@ -89,6 +91,8 @@ export function clip(text: string, max: number): string {
     WeatherBadgeComponent, MoonBadgeComponent, UpTonightBadgeComponent,
     OwnButtonBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent, PageWeightBadgeComponent, LighthouseBadgeComponent, BuildBadgeComponent,
     FriendButtonComponent],
+  // The Discord's poller (the Hanging out row) lives as long as the page.
+  providers: [DiscordService],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -97,6 +101,7 @@ export class NowPageComponent {
   private readonly recentStream = inject(RecentStreamService);
   private readonly runeProfile = inject(RuneProfileService);
   private readonly letterboxd = inject(LetterboxdService);
+  private readonly discord = inject(DiscordService);
 
   /** Morgan's note; hidden, along with its date, while it has no paragraphs. */
   private readonly content = inject(NOW_CONTENT_TOKEN);
@@ -151,6 +156,17 @@ export class NowPageComponent {
     };
   });
 
+  /** Hanging out: the Discord server, live, linking to its invite. Counts only, never people. */
+  private readonly hangingOut = computed<NowRow | null>(() => {
+    const summary = this.discord.summary();
+    if (!summary?.invite) return null;
+    return {
+      key: 'hanging-out', label: 'Hanging out', iconUrl: null, iconStyle: 'pixel', glyph: '#',
+      title: summary.name, detail: discordDetail(summary),
+      when: 'right now', href: summary.invite, live: true,
+    };
+  });
+
   private readonly watched = computed<NowRow | null>(() => {
     const entry = this.letterboxd.latest();
     if (!entry) return null;
@@ -197,7 +213,7 @@ export class NowPageComponent {
   } : null;
 
   readonly rows = computed(() =>
-    [this.listening(), this.playing(), this.watched(), this.building(), this.community, this.site].filter((row): row is NowRow => row !== null)
+    [this.listening(), this.playing(), this.hangingOut(), this.watched(), this.building(), this.community, this.site].filter((row): row is NowRow => row !== null)
   );
 
   private latestActivity(types: readonly RpActivity['type'][]) {
