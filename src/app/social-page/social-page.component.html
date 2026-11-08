@@ -2,7 +2,7 @@
 
   <app-page-header title="Social" description="the room where it happens" />
 
-  <!-- Conversation first: the mailbag beside the shoutbox, then the wall, then my friends. -->
+  <!-- Conversation first: the mailbag beside the shoutbox, then the wall, then the Discord and my friends. -->
   <div class="talk">
     <app-mailbag />
 
@@ -72,13 +72,18 @@
     }
   </section>
 
-  <!-- Last: friends' own 88×31s, the same row as /now's Buttons. -->
-  <section class="panel friends-panel" aria-labelledby="social-friends">
-    <h2 id="social-friends">My Friends <span class="range-label">go say hi</span></h2>
-    <div class="friends">
-      @for (friend of friends; track friend.href) {
-        <app-friend-button [friend]="friend" />
-      }
-    </div>
-  </section>
+  <!-- Last, where people hang out: the Discord (once it has answered) beside my friends' 88×31s. -->
+  <div class="hangouts" [class.with-discord]="discordUp()">
+    @if (discordUp()) {
+      <app-discord-panel />
+    }
+    <section class="panel friends-panel" aria-labelledby="social-friends">
+      <h2 id="social-friends">My Friends <span class="range-label">go say hi</span></h2>
+      <div class="friends">
+        @for (friend of friends; track friend.href) {
+          <app-friend-button [friend]="friend" />
+        }
+      </div>
+    </section>
+  </div>
 </app-base-page>

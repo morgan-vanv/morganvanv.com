@@ -1,0 +1,51 @@
+@if (view(); as v) {
+  <section class="panel discord" aria-labelledby="social-discord">
+    <h2 id="social-discord">The Discord <span class="range-label">live</span></h2>
+
+    <div class="body">
+      <div class="presence">
+        <p class="server">{{ v.summary.name }}</p>
+        <p class="big"><span class="count">{{ v.summary.online }}</span> online right now</p>
+        <div class="bar" role="img" [attr.aria-label]="v.statusLabel">
+          <span class="seg around" [style.width.%]="v.shares.online"></span>
+          <span class="seg idle" [style.width.%]="v.shares.idle"></span>
+          <span class="seg busy" [style.width.%]="v.shares.dnd"></span>
+        </div>
+        <ul class="legend" aria-hidden="true">
+          <li><span class="dot around"></span>{{ v.summary.status.online }} around</li>
+          <li><span class="dot idle"></span>{{ v.summary.status.idle }} idle</li>
+          <li><span class="dot busy"></span>{{ v.summary.status.dnd }} busy</li>
+        </ul>
+        <p class="voice">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" /><path d="M16.5 8.5a5 5 0 0 1 0 7" /></svg>
+          {{ v.voice }}
+        </p>
+      </div>
+
+      <div class="playing">
+        <h3 class="label">Playing right now</h3>
+        @if (v.games.length) {
+          <ul class="games">
+            @for (game of v.games; track game.name) {
+              <li [class.osrs]="game.name === 'RuneLite'"><span class="game">{{ game.name }}</span><span class="n">{{ game.count }}</span></li>
+            }
+            @if (v.moreGames) {
+              <li class="more">+ {{ v.moreGames }} more</li>
+            }
+          </ul>
+        } @else {
+          <p class="quiet">nothing, for once</p>
+        }
+      </div>
+    </div>
+
+    <div class="foot">
+      @if (v.summary.invite) {
+        <a class="join" [href]="v.summary.invite" target="_blank" rel="noopener noreferrer" [attr.aria-label]="v.joinLabel">
+          <span class="bracket" aria-hidden="true">[</span> pull up a chair › <span class="bracket" aria-hidden="true">]</span>
+        </a>
+      }
+      <p class="tagline">{{ tagline }}</p>
+    </div>
+  </section>
+}

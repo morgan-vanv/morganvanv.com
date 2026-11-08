@@ -44,14 +44,26 @@
   }
 }
 
-// Friends' buttons, under the wall: one row of 88×31s that wraps, the gap /now's strip uses.
-.friends-panel {
+// Under the wall: the Discord (once it has answered) beside my friends, 1.7 : 1; my friends alone take
+// the row until then. Stacked on tablets and phones, the Discord first.
+.hangouts {
+  @include shared.panel-grid(minmax(0, 1fr));
   margin-top: 1.25rem;
+
+  &.with-discord {
+    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  }
 
   @media (max-width: $breakpoint-mobile) {
     margin-top: 0.875rem;
+
+    &.with-discord {
+      grid-template-columns: minmax(0, 1fr);
+    }
   }
 }
+
+// Friends' buttons: one row of 88×31s that wraps, the gap /now's strip uses.
 
 .friends {
   display: flex;

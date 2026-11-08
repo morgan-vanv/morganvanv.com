@@ -2,10 +2,12 @@ import { existsSync } from 'node:fs';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
-import { provideHttpClientTesting } from '@angular/common/http/testing';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { SocialPageComponent, photoMailto } from './social-page.component';
 import { COMMUNITY_PHOTOS, photoCountLabel } from '../../shared/constants/community-photos.const';
 import { FRIENDS } from '../../shared/constants/friends.const';
+import { SITE_CONFIG } from '../../shared/config/site.config';
+import { DISCORD_FEED_FIXTURE } from '../../shared/discord/discord-feed.fixture';
 
 describe('SocialPageComponent', () => {
   let component: SocialPageComponent;
@@ -68,10 +70,35 @@ describe('SocialPageComponent', () => {
       .toEqual(['mailbag', 'shoutbox']);
     expect(top.querySelector('app-mailbag h2')?.textContent).toContain('You Asked');
     expect(top.querySelector('.shoutbox h2')?.textContent).toContain('Shoutbox');
-    // The wall comes after, outside the top row, and my friends last.
+    // The wall comes after, outside the top row, and the last row is where people hang out.
     expect(top.nextElementSibling?.matches('.wall-panel')).toBe(true);
-    expect(top.nextElementSibling?.nextElementSibling?.matches('.friends-panel')).toBe(true);
+    expect(top.nextElementSibling?.nextElementSibling?.matches('.hangouts')).toBe(true);
     expect([...el.querySelectorAll('.panel')].at(-1)?.matches('.friends-panel')).toBe(true);
+  });
+
+  it('has my friends to themselves in the last row until Discord answers, then the Discord beside them', async () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const row = el.querySelector('.hangouts')!;
+    expect(row.classList.contains('with-discord')).toBe(false);
+    expect(row.querySelector('app-discord-panel')).toBeNull();
+
+    const http = TestBed.inject(HttpTestingController);
+    for (const req of http.match(r => r.url === SITE_CONFIG.discord.widgetUrl)) req.flush(DISCORD_FEED_FIXTURE);
+    await fixture.whenStable();
+
+    expect(row.classList.contains('with-discord')).toBe(true);
+    expect([...row.children].map(c => c.matches('app-discord-panel') ? 'discord' : c.matches('.friends-panel') ? 'friends' : '?'))
+      .toEqual(['discord', 'friends']);
+    expect(row.querySelector('app-discord-panel h2')?.textContent).toContain('The Discord');
+    // Counts, never people.
+    for (const member of DISCORD_FEED_FIXTURE.members) expect(row.textContent).not.toContain(member.username);
+  });
+
+  it("keeps my friends alone when Discord's feed fails", async () => {
+    const http = TestBed.inject(HttpTestingController);
+    for (const req of http.match(r => r.url === SITE_CONFIG.discord.widgetUrl)) req.flush('nope', { status: 503, statusText: 'Unavailable' });
+    await fixture.whenStable();
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-discord-panel')).toBeNull();
   });
 
   it("ends with my friends' 88×31s, in the same order as on /now", () => {

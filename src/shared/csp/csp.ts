@@ -24,6 +24,8 @@ export const CONNECT_ORIGINS: readonly string[] = [
   'https://campfire.morganvanv.workers.dev',
   'https://ask.morganvanv.workers.dev',
   'https://lab-status.morganvanv.workers.dev',
+  // Discord's public widget feed for Morgan's server (the panel on /social, a row on /now).
+  'https://discord.com',
 ];
 
 /** The policy for one page, given the `'sha256-…'` sources of its inline scripts. */
