@@ -19,14 +19,11 @@
   position: relative;
 }
 
+// The live line of a tile that's still under construction.
 .tile-construction {
   margin: 0;
-  padding: 0.5rem 0.75rem;
-  border-radius: 10px;
-  @include shared.surface;
-  font-size: $font-size-meta;
-  text-align: center;
-  opacity: 0.75;
+  font-size: $font-size-small;
+  opacity: 0.72;
 }
 
 // ── Music ──────────────────────────────────────────────────────────────────

@@ -1,18 +1,11 @@
-@use 'sass:color';
 @use '../../styles' as *;
 @use '../shared-styles.scss' as shared;
+// The status pill and the title plate (on their own so the Interests tiles can use them too).
+@use 'poster-plate';
 
 // The poster's shell, shared by every poster and by the Projects page's "next project" slot (each
 // component @uses it, so the rules land under its own encapsulation): the surface, the art box, the
 // status pill, the bevelled title plate, the ledger and its links. The art itself is the poster's.
-
-// The title plate: the night ground a shade lighter, with the 88×31 bevel's lit and shaded edges,
-// and the lettering as gold warmed toward white (gold on the plate alone fails contrast).
-$plate-face: color.mix($main-color, $background-color, 5%);
-$plate-edge: color.mix($main-color, $background-color, 18%);
-$plate-lit: color.mix($main-color, $background-color, 38%);
-$plate-shade: color.mix(#000, $background-color, 45%);
-$plate-text: color.mix($main-color, $accent-color, 45%);
 
 :host {
   display: block;
@@ -78,55 +71,6 @@ $plate-text: color.mix($main-color, $accent-color, 45%);
   }
 }
 
-// "live" · "resurrected" · "you're on it", in the art's corner.
-.status {
-  position: absolute;
-  top: 0.625rem;
-  left: 0.625rem;
-  z-index: 2; // over the art link
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.1875rem 0.5625rem;
-  border-radius: 999px;
-  background: rgba($background-color, 0.7);
-  border: 1px solid rgba($main-color, 0.16);
-  font-size: $font-size-label;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-
-  .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: $accent-color;
-    box-shadow: 0 0 8px $accent-color;
-  }
-}
-
-// The title plate: the 88×31 bevel (lit top-left), gold lettering, pulled up over the art's edge.
-.plate {
-  position: relative;
-  z-index: 1;
-  margin: -1.625rem 0.75rem 0;
-  padding: 0.5rem 0.75rem;
-  background: $plate-face;
-  border: 1px solid $plate-edge;
-  border-top-color: $plate-lit;
-  border-left-color: $plate-lit;
-  border-bottom-color: $plate-shade;
-  border-right-color: $plate-shade;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
-}
-
-.name {
-  margin: 0;
-  font-size: $font-size-panel-title;
-  line-height: 1.2;
-  color: $plate-text;
-  text-shadow: 0 0 10px rgba($accent-color, 0.35);
-}
-
 // Under the name: the subtitle on the left, "updated N ago" quietly on the right. Here rather than by
 // the links, so every footer lines up; and one line tall whether or not GitHub has answered yet, so
 // the posters match. Too long to share the line, the date is cut rather than wrapped.
@@ -137,13 +81,6 @@ $plate-text: color.mix($main-color, $accent-color, 45%);
   gap: 0.75rem;
   min-height: 1.1rem;
   margin-top: 0.125rem;
-}
-
-.subtitle {
-  @include shared.label;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .updated {

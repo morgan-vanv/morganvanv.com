@@ -106,25 +106,31 @@
   opacity: 0.75;
 }
 
-// The small version on the Interests tile.
+// The small version on the Interests tile: one line in the poster's ledger, no surface of its own and
+// no art (the tile's art is the top album).
 :host(.preview) {
   .last-listened {
-    justify-content: center;
-    gap: 0.875rem;
+    display: block;
     margin: 0;
-    padding: 0.5rem 0.75rem;
-    border-radius: 10px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
   }
 
   .art {
-    width: 44px;
-    height: 44px;
-    border-radius: 6px;
-    box-shadow: none;
+    display: none;
+  }
+
+  .label {
+    white-space: nowrap;
   }
 
   .track {
     font-size: $font-size-body;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .artist {

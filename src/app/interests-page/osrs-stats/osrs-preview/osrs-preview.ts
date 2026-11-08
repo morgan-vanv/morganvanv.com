@@ -6,7 +6,7 @@ import { WOM_USERNAME } from '../../../../shared/constants/osrs-stats.const';
 import { formatNumber, maxedSkills } from '../osrs-format';
 
 /**
- * The headline numbers on the collapsed OSRS tile. Same Wise Old Man call as
+ * The headline numbers on the collapsed OSRS tile (its status pill has the combat level). Same Wise Old Man call as
  * the open section (cached), so opening it costs nothing extra. Renders
  * nothing until the data arrives or if it fails.
  */
@@ -36,10 +36,10 @@ export class OsrsPreviewComponent {
     if (!p || !skills) return null;
     const { maxed } = maxedSkills(skills);
     return [
-      { label: 'Combat', value: String(p.combatLevel) },
       { label: 'Total', value: formatNumber(skills['overall']?.level ?? 0) },
       { label: '99s', value: String(maxed) },
       { label: 'EHP', value: formatNumber(p.ehp) },
+      { label: 'EHB', value: formatNumber(p.ehb) },
     ];
   });
 }

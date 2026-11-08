@@ -1,0 +1,7 @@
+// Every tile's art fills the tile's art box, and sizes itself by that box (container units).
+:host {
+  position: absolute;
+  inset: 0;
+  display: block;
+  container-type: size;
+}

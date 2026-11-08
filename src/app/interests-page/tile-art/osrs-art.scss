@@ -1,0 +1,40 @@
+@use 'tile-art';
+
+// OSRS's own warm brown, like a lit cave, rather than the site's teal: this is the game's corner.
+:host {
+  background: radial-gradient(ellipse at 50% 85%, #3a2d18 0%, #120d07 70%);
+}
+
+.wall {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 1.75rem);
+  justify-content: center;
+  align-content: center;
+  gap: 0.4rem;
+  padding: 2.5rem 0.75rem 0.75rem;
+  overflow: hidden;
+  opacity: 0.16;
+  transition: opacity 0.3s ease;
+
+  img {
+    width: 1.625rem;
+    height: 1.625rem;
+    image-rendering: pixelated;
+  }
+
+  :host-context(.highlighted) & {
+    opacity: 0.26;
+  }
+}
+
+.character {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: auto;
+  height: 88cqh;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.7));
+}
