@@ -60,6 +60,11 @@ export const SITE_CONFIG = {
    */
   discord: {
     widgetUrl: 'https://discord.com/api/guilds/269944360014053388/widget.json',
+    /**
+     * The way in: a permanent invite Morgan made (no expiry, checked 2026-11-08). Not the widget's own
+     * `instant_invite`, which Discord makes for a day at a time.
+     */
+    inviteUrl: 'https://discord.gg/Cgxk3Ya',
   },
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',

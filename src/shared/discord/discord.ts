@@ -1,13 +1,12 @@
 /**
  * Discord's public widget feed for Morgan's server (`SITE_CONFIG.discord.widgetUrl`), boiled down to
  * what the site shows: how many are on, how they're split, how many are in voice and what's being
- * played. Usernames, avatars and channel names are dropped here, so nothing past this file ever sees
+ * played. The feed's own invite (`instant_invite`) only lasts a day, so it's ignored: the way in is the
+ * permanent `SITE_CONFIG.discord.inviteUrl`. Usernames, avatars and channel names are dropped here, so nothing past this file ever sees
  * them: the site shows counts, never people.
  */
 export interface DiscordSummary {
   name: string;
-  /** The widget's own invite, or null when the server's widget has none (then there's no join link). */
-  invite: string | null;
   /** Everyone online, by Discord's count. */
   online: number;
   /** How they're split, scaled to `online` (Discord lists at most about a hundred members). */
@@ -33,7 +32,6 @@ export interface DiscordGame {
 export const DISCORD_POLL_MS = 5 * 60 * 1000;
 
 const STATUSES = ['online', 'idle', 'dnd'] as const;
-const INVITE = /^https:\/\/(discord\.com\/invite|discord\.gg)\/[A-Za-z0-9-]{2,32}$/;
 /** Bots tend to "play" their own website ("bot.wiseoldman.net"): that's not a game. */
 const LOOKS_LIKE_A_DOMAIN = /^[\w-]+(\.[\w-]+)+(\/\S*)?$/;
 const MAX_NAME = 60;
@@ -80,8 +78,6 @@ export function toDiscordSummary(value: unknown): DiscordSummary | null {
   const members = value['members'];
   if (!name || typeof online !== 'number' || !Number.isInteger(online) || online < 0 || !Array.isArray(members)) return null;
 
-  const invite = typeof value['instant_invite'] === 'string' && INVITE.test(value['instant_invite']) ? value['instant_invite'] : null;
-
   const listed: DiscordStatusCounts = { online: 0, idle: 0, dnd: 0 };
   const played = new Map<string, number>();
   let inVoice = 0;
@@ -97,7 +93,7 @@ export function toDiscordSummary(value: unknown): DiscordSummary | null {
   const games = [...played].map(([game, count]) => ({ name: game, count }))
     .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 
-  return { name, invite, online, status: scaleStatus(listed, online), inVoice, games };
+  return { name, online, status: scaleStatus(listed, online), inVoice, games };
 }
 
 /** "69 online · 1 in voice · 5 on RuneLite": the /now row's line. */

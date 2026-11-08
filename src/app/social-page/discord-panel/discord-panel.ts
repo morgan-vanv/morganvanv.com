@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DiscordService } from '../../../shared/discord/discord.service';
 import { DiscordSummary } from '../../../shared/discord/discord';
+import { SITE_CONFIG } from '../../../shared/config/site.config';
 
 /** Games listed by name; the rest are "+ N more". */
 export const GAMES_SHOWN = 4;
@@ -38,6 +39,7 @@ export class DiscordPanelComponent {
 
   readonly summary = this.discord.summary;
   readonly tagline = DISCORD_TAGLINE;
+  readonly invite = SITE_CONFIG.discord.inviteUrl;
 
   readonly view = computed(() => {
     const summary = this.summary();

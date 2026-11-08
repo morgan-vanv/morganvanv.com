@@ -247,22 +247,22 @@ describe('NowPageComponent', () => {
     for (const req of http.match(r => r.url === SITE_CONFIG.discord.widgetUrl)) req.flush(body);
   };
 
-  it('adds Hanging out from the Discord, after Playing and before Watched, linking to the invite', async () => {
+  it('adds Hanging out from the Discord, after Playing and before Watched, linking to the permanent invite', async () => {
     flushDiary(diary);
     flushDiscord(DISCORD_FEED_FIXTURE);
     await fixture.whenStable();
     expect(rowKeys()).toEqual(['hanging-out', 'watched', 'community', 'site']);
     expect(fixture.componentInstance.rows()[0]).toMatchObject({
       label: 'Hanging out', title: 'Ugandan Commandos', detail: '7 online · 1 in voice · 2 on RuneLite',
-      href: 'https://discord.com/invite/jUwYdRCy', live: true, glyph: '#',
+      href: 'https://discord.gg/Cgxk3Ya', live: true, glyph: '#',
     });
     for (const member of DISCORD_FEED_FIXTURE.members) expect(text()).not.toContain(member.username);
   });
 
-  it('skips Hanging out with no invite to link to', async () => {
+  it('still has Hanging out when the feed has no invite of its own (the permanent one is ours)', async () => {
     flushDiscord({ ...DISCORD_FEED_FIXTURE, instant_invite: null });
     await fixture.whenStable();
-    expect(rowKeys()).not.toContain('hanging-out');
+    expect(fixture.componentInstance.rows().find(r => r.key === 'hanging-out')?.href).toBe('https://discord.gg/Cgxk3Ya');
   });
 
   it('skips Playing when RuneProfile fails', async () => {

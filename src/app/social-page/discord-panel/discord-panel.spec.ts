@@ -53,23 +53,16 @@ describe('DiscordPanelComponent', () => {
     expect(el().querySelector('.quiet')).not.toBeNull();
   });
 
-  it("joins through the widget's invite in a new tab, and carries Morgan's line", async () => {
+  it("joins through the permanent invite in a new tab, and carries Morgan's line", async () => {
     summary.set(fromFeed);
     await fixture.whenStable();
     const join = el().querySelector<HTMLAnchorElement>('a.join')!;
-    expect(join.getAttribute('href')).toBe('https://discord.com/invite/jUwYdRCy');
+    expect(join.getAttribute('href')).toBe('https://discord.gg/Cgxk3Ya');
     expect(join.getAttribute('target')).toBe('_blank');
     expect(join.getAttribute('rel')).toBe('noopener noreferrer');
     expect(join.getAttribute('aria-label')).toMatch(/^Pull up a chair/);
     expect(el().querySelector('.tagline')?.textContent?.trim()).toBe(DISCORD_TAGLINE);
     expect(DISCORD_TAGLINE).toBe("home to the world's greatest gaming prodigies");
-  });
-
-  it('has no join link without an invite', async () => {
-    summary.set({ ...fromFeed, invite: null });
-    await fixture.whenStable();
-    expect(el().querySelector('a.join')).toBeNull();
-    expect(el().querySelector('.tagline')).not.toBeNull();
   });
 });
 

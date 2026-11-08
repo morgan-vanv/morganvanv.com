@@ -1,11 +1,11 @@
 import { DISCORD_FEED_FIXTURE } from './discord-feed.fixture';
 import { discordDetail, scaleStatus, toDiscordSummary } from './discord';
+import { SITE_CONFIG } from '../config/site.config';
 
 describe('toDiscordSummary', () => {
   it('boils the feed down to counts and games', () => {
     expect(toDiscordSummary(DISCORD_FEED_FIXTURE)).toEqual({
       name: 'Ugandan Commandos',
-      invite: 'https://discord.com/invite/jUwYdRCy',
       online: 7,
       status: { online: 4, idle: 2, dnd: 1 },
       inVoice: 1,
@@ -30,13 +30,14 @@ describe('toDiscordSummary', () => {
     expect(toDiscordSummary(DISCORD_FEED_FIXTURE)?.games.map(g => g.name)).not.toContain('bot.example.net');
   });
 
-  it('only trusts a Discord invite', () => {
-    const invite = (instant_invite: unknown) => toDiscordSummary({ ...DISCORD_FEED_FIXTURE, instant_invite })?.invite;
-    expect(invite('https://discord.gg/abc123')).toBe('https://discord.gg/abc123');
-    expect(invite(null)).toBeNull();
-    expect(invite('https://evil.example/invite/abc')).toBeNull();
-    expect(invite('javascript:alert(1)')).toBeNull();
-    expect(invite('https://discord.com/invite/abc?x=1')).toBeNull();
+  it("ignores the feed's own invite, which only lasts a day", () => {
+    expect(toDiscordSummary(DISCORD_FEED_FIXTURE)).not.toHaveProperty('invite');
+    expect(JSON.stringify(toDiscordSummary(DISCORD_FEED_FIXTURE))).not.toContain(DISCORD_FEED_FIXTURE.instant_invite);
+  });
+
+  it('joins through a permanent invite on Discord itself', () => {
+    expect(SITE_CONFIG.discord.inviteUrl).toMatch(/^https:\/\/discord\.gg\/[A-Za-z0-9-]+$/);
+    expect(SITE_CONFIG.discord.inviteUrl).not.toBe(DISCORD_FEED_FIXTURE.instant_invite);
   });
 
   it('cleans names: no control or direction characters, one line, capped', () => {
