@@ -1,0 +1,123 @@
+@use '../../../styles' as *;
+@use '../../../shared/shared-styles.scss' as shared;
+
+:host {
+  display: block;
+  margin-bottom: 1.25rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    margin-bottom: 0.875rem;
+  }
+}
+
+// The same panel as the rest of the Lab's.
+.panel {
+  @include shared.panel;
+  padding: 1rem 1.125rem 0.875rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 0.875rem 0.75rem 0.75rem;
+  }
+
+  h2 {
+    @include shared.panel-heading;
+    margin: 0 0 0.875rem;
+  }
+}
+
+// The terminal: one dark surface inside the panel, a little vignette, nothing else drawn on it.
+.term {
+  box-sizing: border-box;
+  padding: 0.7rem 1rem 0.55rem;
+  border: 1px solid rgba($main-color, 0.14);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(0, 0, 0, 0.5);
+  font-size: $font-size-small;
+  line-height: 1.75;
+}
+
+.cmd {
+  margin: 0 0 0.2rem;
+  opacity: 0.55;
+
+  b {
+    color: $accent-color;
+  }
+}
+
+.lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  li {
+    opacity: var(--fade, 1);
+    overflow-wrap: anywhere;
+  }
+
+  // Lines wrap on phones, so a little air keeps one entry apart from the next.
+  @media (max-width: $breakpoint-phone) {
+    li + li {
+      margin-top: 0.35rem;
+    }
+  }
+}
+
+.resting {
+  margin: 0.3rem 0 0;
+  opacity: 0.55;
+}
+
+// The landing's gold block caret, resting after the last line.
+.caret {
+  display: inline-block;
+  width: 0.58em;
+  height: 1.08em;
+  margin-left: 2px;
+  vertical-align: -0.18em;
+  background: $accent-color;
+  box-shadow: 0 0 8px rgba($accent-color, 0.55);
+  animation: blink 1.06s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret {
+    animation: none;
+  }
+}
+
+.foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0 0.75rem;
+  margin: 0.15rem 0.3rem 0;
+  font-size: $font-size-meta;
+  opacity: 0.8;
+}
+
+// The way into the whole log: a text button in the site's gold brackets, tall enough to tap.
+.more {
+  min-height: 44px;
+  padding: 0 0.3rem;
+  border: 0;
+  background: none;
+  color: $accent-color;
+  font: inherit;
+  cursor: pointer;
+
+  b {
+    font-weight: 700;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $main-color;
+  }
+}
