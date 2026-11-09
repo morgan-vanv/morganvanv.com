@@ -29,19 +29,25 @@
 
   <div class="home-panels">
 
-    <section class="panel prose" aria-labelledby="home-about">
-      <h2 id="home-about">What's going on here?</h2>
-      <p>
-        This website originally started as a simple project to showcase my projects and experience in a professional context - a classic portfolio website.
-        After some time, this began to feel uninspired, and limiting to me. I lost motivation and put the project down for a while.
-      </p>
-      <p>
-        However, I have recently become reinspired by the IndieWeb movement, Web Revival, neocities, and the like. So I decided to re-approach this project with those inspirations in mind.
-      </p>
-      <p>
-        This is still a work in progress, so be sure to check back in sometime and see what has changed!
-        And if you are here for professional reasons, don't worry - all of that information is still here.
-      </p>
+    <!-- The way in: Morgan's words (2026-11-09), then every page, each with its line. -->
+    <section class="panel welcome" aria-labelledby="home-welcome">
+      <h2 id="home-welcome" class="visually-hidden">Welcome</h2>
+      <div class="prose">
+        <p>welcome to my website! this started as my portfolio website, but it has sort of morphed into my personal replacement for social media (inspired by the IndieWeb, Neocities, etc.).</p>
+        <p>you'll find all sorts of stuff here, so feel free to poke around and check back in, things are always changing.</p>
+      </div>
+      <nav aria-label="Every page">
+        <ul class="stops">
+          @for (stop of stops; track stop.path) {
+            <li>
+              <a class="stop" [routerLink]="stop.path">
+                <span class="pill">{{ stop.name }}</span>
+                <span class="line">{{ stop.line }}@if (stop.wip) {<span class="wip">under construction</span>}</span>
+              </a>
+            </li>
+          }
+        </ul>
+      </nav>
     </section>
 
     <section class="panel contact" aria-labelledby="home-contact">
@@ -51,5 +57,7 @@
     </section>
 
   </div>
+
+  <app-home-porch />
 
 </app-base-page>

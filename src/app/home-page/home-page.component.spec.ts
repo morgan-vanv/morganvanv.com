@@ -2,7 +2,9 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute, provideRouter } from '@angular/router';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { HomePageComponent } from './home-page.component';
+import { HOME_STOPS, HomePageComponent } from './home-page.component';
+import { MAIN_ROUTES, SIDE_ROUTES } from '../../shared/main-routes';
+import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 
 describe('HomePageComponent', () => {
   let component: HomePageComponent;
@@ -37,11 +39,37 @@ describe('HomePageComponent', () => {
     }
   });
 
-  it('puts the intro and contact in panels, with the form in Contact', () => {
+  it('puts the welcome and Contact side by side, with the form in Contact', () => {
     const el = fixture.nativeElement as HTMLElement;
-    const headings = [...el.querySelectorAll('.home-panels .panel h2')].map(h => h.textContent?.trim());
-    expect(headings).toEqual(["What's going on here?", 'Contact']);
+    const headings = [...el.querySelectorAll('.home-panels .panel > h2')].map(h => h.textContent?.trim());
+    expect(headings).toEqual(['Welcome', 'Contact']);
+    expect(el.querySelector('.welcome h2')?.classList).toContain('visually-hidden');
     expect(el.querySelector('.contact app-ask-morgan-form')).toBeTruthy();
+  });
+
+  it('lists every page in the welcome, in the nav\'s order with the Lab after Projects, each a link with its line', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const rows = [...el.querySelectorAll<HTMLAnchorElement>('.welcome .stop')];
+    expect(rows.map(a => a.getAttribute('href'))).toEqual(HOME_STOPS.map(stop => stop.path));
+    expect(rows.map(a => a.querySelector('.pill')?.textContent?.trim())).toEqual(HOME_STOPS.map(stop => stop.name));
+    expect(rows.every(a => a.querySelector('.line')?.textContent?.trim())).toBe(true);
+
+    const pages = MAIN_ROUTES.filter(route => route.path !== 'home').map(route => `/${route.path}`);
+    const known = [...pages, ...SIDE_ROUTES.map(route => `/${route.path}`)];
+    expect(HOME_STOPS.every(stop => known.includes(stop.path))).toBe(true);
+    expect(HOME_STOPS.map(stop => stop.path).filter(path => pages.includes(path))).toEqual(pages);
+    expect(HOME_STOPS.findIndex(stop => stop.path === '/lab')).toBe(HOME_STOPS.findIndex(stop => stop.path === '/projects') + 1);
+  });
+
+  it('marks the blog under construction while it is', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const wip = [...el.querySelectorAll('.welcome .stop')].filter(a => a.querySelector('.wip'));
+    expect(wip.map(a => a.getAttribute('href'))).toEqual(isUnderConstruction('blog') ? ['/blog'] : []);
+  });
+
+  it('ends with the porch', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.home-panels + app-home-porch')).toBeTruthy();
   });
 });
 
