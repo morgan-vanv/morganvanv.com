@@ -7,6 +7,7 @@ describe('toDiscordSummary', () => {
     expect(toDiscordSummary(DISCORD_FEED_FIXTURE)).toEqual({
       name: 'Ugandan Commandos',
       online: 7,
+      botOnline: false,
       status: { online: 4, idle: 2, dnd: 1 },
       inVoice: 1,
       games: [
@@ -24,6 +25,21 @@ describe('toDiscordSummary', () => {
       expect(json).not.toContain(member.avatar_url);
     }
     for (const channel of DISCORD_FEED_FIXTURE.channels) expect(json).not.toContain(channel.name);
+  });
+
+  it('says whether the bot is on: listed, missing from a complete list, or missing from a capped one', () => {
+    const bot = { ...DISCORD_FEED_FIXTURE.members[6], id: '7', username: 'my-bot' };
+    const withBot = { ...DISCORD_FEED_FIXTURE, members: [...DISCORD_FEED_FIXTURE.members, bot], presence_count: 8 };
+    expect(toDiscordSummary(withBot, 'my-bot')?.botOnline).toBe(true);
+    expect(toDiscordSummary({ ...withBot, members: [...DISCORD_FEED_FIXTURE.members, { ...bot, status: 'offline' }] }, 'my-bot')?.botOnline).toBe(false);
+    // Everyone is listed and the bot isn't among them.
+    expect(toDiscordSummary(DISCORD_FEED_FIXTURE, 'my-bot')?.botOnline).toBe(false);
+    // Discord capped the list: its absence proves nothing.
+    expect(toDiscordSummary({ ...DISCORD_FEED_FIXTURE, presence_count: 120 }, 'my-bot')?.botOnline).toBeNull();
+    // The name goes in, never out.
+    expect(JSON.stringify(toDiscordSummary(withBot, 'my-bot'))).not.toContain('my-bot');
+    // By default it looks for the account VideoJoker runs as.
+    expect(SITE_CONFIG.discord.botName).toBe('botmaster12');
   });
 
   it("leaves out a bot's website as a game", () => {

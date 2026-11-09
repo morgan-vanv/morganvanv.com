@@ -1,4 +1,4 @@
-import { LAB_AROUND_THE_HOUSE, LAB_DEFAULT_MACHINE, LAB_MACHINES, LAB_ON_AIR, LAB_SERVICES, runningSummary } from './lab.const';
+import { LAB_AROUND_THE_HOUSE, LAB_DEFAULT_MACHINE, LAB_MACHINES, LAB_ON_AIR, LAB_PARKED_MACHINES, LAB_SERVICES, runningSummary } from './lab.const';
 import { isPs1ModelKey } from '../../app/lab-page/ps1/ps1-models';
 
 /** Every string in the lab's data, except the icons' SVG paths (numbers and letters by design). */
@@ -10,7 +10,7 @@ function strings(value: unknown, key = ''): string[] {
 }
 
 describe('the lab\'s data', () => {
-  const all = strings([LAB_MACHINES, LAB_ON_AIR, LAB_SERVICES, LAB_AROUND_THE_HOUSE]);
+  const all = strings([LAB_MACHINES, LAB_PARKED_MACHINES, LAB_ON_AIR, LAB_SERVICES, LAB_AROUND_THE_HOUSE]);
 
   it('never says where anything is: no addresses, ports, MACs or local names', () => {
     expect(all.length).toBeGreaterThan(100);
@@ -34,21 +34,34 @@ describe('the lab\'s data', () => {
   });
 
   it('has one of each machine, and the default among them', () => {
-    const ids = LAB_MACHINES.map(m => m.id);
+    const ids = [...LAB_MACHINES, ...LAB_PARKED_MACHINES].map(m => m.id);
     expect(new Set(ids).size).toBe(ids.length);
     expect(ids).toContain(LAB_DEFAULT_MACHINE);
     expect(LAB_MACHINES.filter(m => m.place === 'edge').map(m => m.label)).toEqual(['THE VPS']);
-    for (const machine of LAB_MACHINES) {
+    for (const machine of [...LAB_MACHINES, ...LAB_PARKED_MACHINES]) {
       expect(machine.specs.length, machine.id).toBeGreaterThan(0);
       expect(machine.runs.length, machine.id).toBeGreaterThan(0);
     }
   });
 
+  it('keeps the Pi parked, its faceplate and model ready to come back', () => {
+    expect(LAB_PARKED_MACHINES.map(m => m.id)).toEqual(['pihole']);
+    expect(LAB_MACHINES.map(m => m.id)).not.toContain('pihole');
+    expect(isPs1ModelKey('pihole')).toBe(true);
+  });
+
   it('gives every machine a PS1 model that exists, the UPSes sharing one', () => {
-    for (const machine of LAB_MACHINES) expect(isPs1ModelKey(machine.model), machine.id).toBe(true);
+    for (const machine of [...LAB_MACHINES, ...LAB_PARKED_MACHINES]) expect(isPs1ModelKey(machine.model), machine.id).toBe(true);
     expect(Object.fromEntries(LAB_MACHINES.map(m => [m.id, m.model]))).toEqual({
-      hoss: 'hoss', switch: 'switch', ups1: 'ups', nas: 'nas', pihole: 'pihole', ups2: 'ups', vps: 'vps',
+      hoss: 'hoss', switch: 'switch', jetkvm: 'jetkvm', ups1: 'ups', nas: 'nas', ups2: 'ups', vps: 'vps',
     });
+  });
+
+  it('puts the bot on the air by its Discord status, the rest by the status Worker', () => {
+    const live = LAB_ON_AIR.filter(item => item.state === 'live');
+    expect(live.map(item => [item.name, 'via' in item ? item.via : item.statusId])).toEqual([
+      ['Foundry VTT', 'vtt'], ['Jellyfin', 'jellyfin'], ['VideoJoker', 'discord'],
+    ]);
   });
 
   it('keeps BIG HOSS at 64 GB with the 2 TB NVMe', () => {
@@ -58,7 +71,7 @@ describe('the lab\'s data', () => {
   });
 
   it('counts what runs, and on how many boxes', () => {
-    expect(runningSummary()).toBe('12 things, on four boxes');
+    expect(runningSummary()).toBe('14 things, on three boxes');
     const running = LAB_SERVICES.filter(s => s.state === 'running');
     expect(runningSummary(running.slice(0, 1))).toBe('1 thing, on one box');
     expect(runningSummary(running.filter(s => s.name === 'Tailscale'))).toBe('1 thing, on no boxes');

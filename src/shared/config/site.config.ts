@@ -65,6 +65,11 @@ export const SITE_CONFIG = {
      * `instant_invite`, which Discord makes for a day at a time.
      */
     inviteUrl: 'https://discord.gg/Cgxk3Ya',
+    /**
+     * The Discord account VideoJoker runs as. The widget lists it like any member, so the Lab reads whether the
+     * bot is online from the same feed; the name itself never leaves the parser (`toDiscordSummary`).
+     */
+    botName: 'botmaster12',
   },
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',

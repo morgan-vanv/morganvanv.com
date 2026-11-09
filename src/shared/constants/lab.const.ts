@@ -7,7 +7,7 @@
 
 import type { Ps1ModelKey } from '../../app/lab-page/ps1/ps1-models';
 
-export type LabMachineId = 'hoss' | 'switch' | 'ups1' | 'nas' | 'pihole' | 'ups2' | 'vps';
+export type LabMachineId = 'hoss' | 'switch' | 'jetkvm' | 'ups1' | 'nas' | 'pihole' | 'ups2' | 'vps';
 
 /** Where a machine lives: the office rack, the closet shelf, or out front (the one public door). */
 export type LabPlace = 'rack' | 'closet' | 'edge';
@@ -26,7 +26,7 @@ export interface LabMachine {
   /** Rack units, roughly: a 2U faceplate is taller. */
   height: 1 | 2;
   /** What's drawn on the faceplate's right end. */
-  face?: 'vent' | 'bays' | 'ports';
+  face?: 'vent' | 'bays' | 'ports' | 'screen';
   /** Power gear shows amber, everything else green. */
   led: 'green' | 'amber';
   /** Its low-poly model on the spec sheet's stage (`src/app/lab-page/ps1/ps1-models.ts`). */
@@ -48,10 +48,10 @@ export const LAB_MACHINES: readonly LabMachine[] = [
       { term: 'gpu', detail: 'GTX 1660' },
       { term: 'storage', detail: '2 × 12 TB HGST in a ZFS mirror; 512 GB + 2 TB NVMe' },
       { term: 'board', detail: 'Gigabyte X399 Designare EX' },
-      { term: 'extras', detail: 'an LSI SAS HBA in IT mode' },
+      { term: 'extras', detail: 'an LSI SAS HBA in IT mode; a JetKVM on the console' },
       { term: 'power', detail: 'the rack UPS, shuts down in order' },
     ],
-    runs: ['a handful of VMs and containers', 'nightly guest backups', 'the subnet route', 'Uptime Kuma'],
+    runs: ['five guests, one job each', 'nightly guest backups', 'the subnet route', 'Uptime Kuma', 'Pi-hole'],
   },
   {
     id: 'switch', place: 'rack', label: 'FLEX MINI', sub: 'the office switch', height: 1, face: 'ports', led: 'green', model: 'switch',
@@ -64,10 +64,22 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     runs: ['the office end of the network'],
   },
   {
+    id: 'jetkvm', place: 'rack', label: 'JETKVM', sub: 'the KVM', height: 1, face: 'screen', led: 'green', model: 'jetkvm',
+    name: 'JetKVM', role: 'the console, from anywhere',
+    specs: [
+      { term: 'is', detail: 'a small open-source IP KVM with a little screen' },
+      { term: 'plugs into', detail: 'HDMI from the GPU, USB to the host' },
+      { term: 'ATX board', detail: 'wired to the case\'s power and reset buttons' },
+      { term: 'power', detail: 'its own charger, on the rack UPS' },
+      { term: 'since', detail: 'November 2026' },
+    ],
+    runs: ['the console, BIOS included', 'a remote power button'],
+  },
+  {
     id: 'ups1', place: 'rack', label: 'UPS', sub: 'CyberPower 1500', height: 1, led: 'amber', model: 'ups',
     name: 'CyberPower CP1500', role: 'the rack UPS',
     specs: [
-      { term: 'keeps up', detail: 'BIG HOSS, the switch, a Wi-Fi node' },
+      { term: 'keeps up', detail: 'BIG HOSS, the switch, a Wi-Fi node, the KVM' },
       { term: 'talks to', detail: 'BIG HOSS over USB (NUT)' },
       { term: 'on outage', detail: 'guests stop in order, then the host' },
     ],
@@ -83,22 +95,13 @@ export const LAB_MACHINES: readonly LabMachine[] = [
       { term: 'backups', detail: 'snapshots, a nightly USB drive, and off-site' },
       { term: 'power', detail: 'the closet UPS' },
     ],
-    runs: ['Jellyfin', 'Foundry VTT (for now)', 'the backup hub'],
-  },
-  {
-    id: 'pihole', place: 'closet', label: 'PI-HOLE', sub: 'Raspberry Pi 2', height: 1, led: 'green', model: 'pihole',
-    name: 'Pi-hole', role: 'DNS for my devices',
-    specs: [
-      { term: 'board', detail: 'Raspberry Pi 2' },
-      { term: 'does', detail: 'DNS and ad blocking for my own devices' },
-    ],
-    runs: ['Pi-hole'],
+    runs: ['Jellyfin', 'the backup hub'],
   },
   {
     id: 'ups2', place: 'closet', label: 'UPS', sub: 'APC 600', height: 1, led: 'amber', model: 'ups',
     name: 'APC Back-UPS 600', role: 'the closet UPS',
     specs: [
-      { term: 'keeps up', detail: 'the NAS, the modem, a Wi-Fi node, the Pi-hole' },
+      { term: 'keeps up', detail: 'the NAS, the modem, a Wi-Fi node' },
       { term: 'talks to', detail: 'the NAS over USB' },
     ],
     runs: ['an ordered shutdown'],
@@ -115,24 +118,45 @@ export const LAB_MACHINES: readonly LabMachine[] = [
   },
 ];
 
+/**
+ * Machines that are off the page for now but coming back, their faceplates and PS1 models kept (Morgan: the Pi is
+ * "one of my favorites to look at"). The Pi 2 was the Pi-hole until November 2026, when Pi-hole moved into a
+ * container on BIG HOSS; the board is between jobs. Move one back into `LAB_MACHINES` when it has a job again.
+ */
+export const LAB_PARKED_MACHINES: readonly LabMachine[] = [
+  {
+    id: 'pihole', place: 'closet', label: 'PI-HOLE', sub: 'Raspberry Pi 2', height: 1, led: 'green', model: 'pihole',
+    name: 'Pi-hole', role: 'DNS for my devices',
+    specs: [
+      { term: 'board', detail: 'Raspberry Pi 2' },
+      { term: 'does', detail: 'DNS and ad blocking for my own devices' },
+    ],
+    runs: ['Pi-hole'],
+  },
+];
+
 /** The machine selected when the page loads (and in the prerendered HTML). */
 export const LAB_DEFAULT_MACHINE: LabMachineId = 'hoss';
 
 /** What the status Worker reports on (`SITE_CONFIG.labStatusUrl`). */
 export type LabStatusId = 'vtt' | 'jellyfin';
 
-/** "On the air": what friends and family can reach. A live one gets an up/down pill from the status Worker. */
+/**
+ * "On the air": what friends and family can reach. A live one gets an up/down pill: from the status Worker
+ * (`statusId`), or, for the Discord bot, from whether it's online in the server's widget feed (`via: 'discord'`,
+ * `DiscordSummary.botOnline`).
+ */
 export type LabOnAir = {
   name: string;
   what: string;
   /** Where it opens, for the ones a visitor can open. */
   url?: string;
-} & ({ state: 'live'; statusId: LabStatusId } | { state: 'under-construction' });
+} & ({ state: 'live'; statusId: LabStatusId } | { state: 'live'; via: 'discord' } | { state: 'under-construction' });
 
 export const LAB_ON_AIR: readonly LabOnAir[] = [
   { name: 'Foundry VTT', what: 'my Vampire: The Masquerade table', state: 'live', statusId: 'vtt' },
   { name: 'Jellyfin', what: 'my movies and shows', state: 'live', statusId: 'jellyfin' },
-  { name: 'VideoJoker', what: 'the Discord bot, always on', state: 'under-construction' },
+  { name: 'VideoJoker', what: 'the Discord bot, always on', state: 'live', via: 'discord' },
   { name: 'a forever world', what: 'an always-on Minecraft server', state: 'under-construction' },
   { name: 'my retro library', what: 'my collection of old games, dumped, and playable via browser', state: 'under-construction' },
 ];
@@ -152,9 +176,9 @@ export const LAB_SERVICES: readonly LabService[] = [
     icon: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01' },
   { name: 'Jellyfin', what: 'movies and shows for friends and family', state: 'running', where: 'the NAS', box: 'nas',
     icon: 'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM10 8.5l5 3.5l-5 3.5z' },
-  { name: 'Foundry VTT', what: 'my Vampire: The Masquerade table', state: 'running', where: 'the NAS', box: 'nas',
+  { name: 'Foundry VTT', what: 'my Vampire: The Masquerade table', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M12 2l9 5v10l-9 5l-9-5V7zM12 22V12M21 7l-9 5L3 7' },
-  { name: 'Pi-hole', what: 'DNS and ad blocking for my devices', state: 'running', where: 'a Pi 2', box: 'pihole',
+  { name: 'Pi-hole', what: 'DNS and ad blocking for my devices', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M12 3l8 3v6c0 4.5-3.4 8.2-8 9c-4.6-.8-8-4.5-8-9V6z' },
   { name: 'Syncthing', what: 'my notes, synced between my devices', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9M18 3v4h-4M6 21v-4h4' },
@@ -170,11 +194,11 @@ export const LAB_SERVICES: readonly LabService[] = [
     icon: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4' },
   { name: 'NUT', what: 'tells everything when the power goes', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M3 8h15v8H3zM21 11v2M7 11h4' },
-  { name: 'Claude Code', what: 'runs my weekly health checks', state: 'running', where: 'BIG HOSS', box: 'hoss',
+  { name: 'Claude Code', what: 'does the lab\'s chores and writes me a daily digest', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M7 8h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM12 4v4M9.5 13h.01M14.5 13h.01' },
-  { name: 'Authentik', what: 'one login for friends and family', state: 'under-construction',
+  { name: 'Authentik', what: 'one login for friends and family', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M14 10a4 4 0 1 0-4 4M10 14l-7 7M6 18l2 2M14 10h7v4' },
-  { name: 'VideoJoker', what: 'the Discord bot, always on', state: 'under-construction',
+  { name: 'VideoJoker', what: 'the Discord bot, always on; ships its own releases', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M4 5h16v11H9l-5 4z' },
   { name: 'Minecraft', what: 'a forever world', state: 'under-construction',
     icon: 'M12 2l9 5v10l-9 5l-9-5V7zM12 12l9-5M12 12L3 7M12 12v10' },
@@ -192,7 +216,7 @@ export const LAB_AROUND_THE_HOUSE: readonly string[] = [
 
 const COUNT_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
 
-/** "12 things, on four boxes": the running rows, and the machines they run on (Tailscale, everywhere, adds none). */
+/** "14 things, on three boxes": the running rows, and the machines they run on (Tailscale, everywhere, adds none). */
 export function runningSummary(services: readonly LabService[] = LAB_SERVICES): string {
   const running = services.filter(s => s.state === 'running');
   const boxes = new Set(running.map(s => s.box).filter(box => box !== null)).size;
