@@ -259,6 +259,17 @@ $down-text: color.mix($danger-color, $main-color, 70%);
   }
 }
 
+// The JetKVM's little screen: a lit rectangle, its light the same green as the LEDs, dimmed.
+.screen {
+  display: block;
+  width: 1.5rem;
+  height: 0.75rem;
+  border: 1px solid $rack-edge;
+  border-radius: 1px;
+  background: rgba($led-green, 0.28);
+  box-shadow: inset 0 0 4px rgba($led-green, 0.45);
+}
+
 // The stacks sit in the middle of whatever height the sheet beside them sets; the VPS stays at the foot.
 .hardware {
   display: flex;

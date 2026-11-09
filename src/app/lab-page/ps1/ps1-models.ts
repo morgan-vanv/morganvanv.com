@@ -6,7 +6,7 @@
  * From the approved PS1 looks mockup (look C, 2026-11-05); change them only with a new mockup.
  */
 
-export type Ps1ModelKey = 'hoss' | 'nas' | 'pihole' | 'switch' | 'ups' | 'vps';
+export type Ps1ModelKey = 'hoss' | 'nas' | 'pihole' | 'switch' | 'jetkvm' | 'ups' | 'vps';
 
 /** A box: its centre, its size along each axis, its colour. */
 export interface Ps1Box {
@@ -85,6 +85,18 @@ export const PS1_MODELS: Readonly<Record<Ps1ModelKey, Ps1Model>> = {
       box(0, 0, 0, 1.05, 0.26, 0.78, '#e6e9eb'),
       ...[-0.36, -0.18, 0, 0.18, 0.36].map(x => box(x, -0.02, -0.4, 0.13, 0.11, 0.03, '#26292b')),
       box(0.43, 0.08, -0.4, 0.04, 0.04, 0.02, LED_GREEN, true), box(0, 0.135, 0, 0.5, 0.01, 0.35, '#d4d8db'),
+    ],
+  },
+  // The JetKVM: a small black slab, its little screen lit on top, two ports and a light on the back, the ATX
+  // board's flat lead trailing off one side.
+  jetkvm: {
+    scale: 1.3, phase: 0.6, bobs: false,
+    parts: [
+      box(0, 0, 0, 0.78, 0.3, 0.56, '#1a1c1e'), box(0, 0.16, 0, 0.72, 0.02, 0.5, '#26292c'),
+      box(0, 0.175, -0.04, 0.5, 0.01, 0.3, '#0b0d0e'), box(0, 0.185, -0.04, 0.44, 0.01, 0.24, '#5fb3a1', true),
+      box(0.18, -0.02, 0.29, 0.14, 0.07, 0.03, '#b9c0c4'), box(-0.22, -0.02, 0.29, 0.09, 0.06, 0.03, '#b9c0c4'),
+      box(0.33, 0.1, 0.2, 0.04, 0.04, 0.02, LED_GREEN, true),
+      box(0.55, -0.1, 0.05, 0.32, 0.03, 0.14, '#3a3f43'),
     ],
   },
   // A UPS: a little green screen, an amber light, two vents.

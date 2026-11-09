@@ -95,7 +95,8 @@ export const PROJECTS: readonly Project[] = [
   {
     id: 'homelab',
     name: 'The Homelab',
-    subtitle: 'my closet',
+    // Draft (2026-11-09): BIG HOSS and the rack are upstairs in the office, the NAS downstairs in a closet. Morgan's to keep or change.
+    subtitle: 'a rack upstairs, a closet downstairs',
     status: 'humming',
     // Morgan's words (2026-11-05).
     description: 'A Proxmox server, a Synology NAS, and all sorts of other stuff (including Raspberry Pis!). This hosts my apps '
@@ -108,7 +109,7 @@ export const PROJECTS: readonly Project[] = [
       units: [
         { name: 'BIG HOSS', height: 2, face: 'vent' },
         { name: 'FALKENBURGHNAS', height: 2, face: 'bays' },
-        { name: 'PI-HOLE', height: 1 },
+        { name: 'JETKVM', height: 1 },
         { name: 'UPS', height: 1, led: 'amber' },
       ],
     },
@@ -120,7 +121,7 @@ export const PROJECTS: readonly Project[] = [
     id: 'videojoker',
     name: 'VideoJoker',
     subtitle: 'a Discord bot, with friends',
-    status: 'resurrected',
+    status: 'live',
     // From the README; approved by Morgan (2026-10-28).
     description: 'A Discord bot named after the Video Jokers of Uganda, who dub over bootleg action films with their own '
       + 'commentary. It roasts, flips coins, deals Three Card Monte and pays out in Ugandan Shillings.',

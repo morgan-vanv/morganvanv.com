@@ -40,7 +40,7 @@ export class DiscordService {
         ? interval(DISCORD_POLL_MS).pipe(
           startWith(0),
           switchMap(() => this.api.get<unknown>(SITE_CONFIG.discord.widgetUrl, 0).pipe(
-            map(toDiscordSummary),
+            map(feed => toDiscordSummary(feed)),
             catchError(() => of(null)),
           )),
         )

@@ -27,7 +27,7 @@ const onlyBox = (emissive: boolean): Ps1Model => ({
 
 describe('renderPs1', () => {
   it('has the six models, each made of triangles', () => {
-    expect([...PS1_MODEL_KEYS].sort()).toEqual(['hoss', 'nas', 'pihole', 'switch', 'ups', 'vps']);
+    expect([...PS1_MODEL_KEYS].sort()).toEqual(['hoss', 'jetkvm', 'nas', 'pihole', 'switch', 'ups', 'vps']);
     for (const key of PS1_MODEL_KEYS) {
       expect(isPs1ModelKey(key)).toBe(true);
       expect(ps1Triangles(PS1_MODELS[key]).length).toBeGreaterThan(10);
