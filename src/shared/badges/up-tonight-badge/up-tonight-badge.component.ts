@@ -2,23 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { BadgeComponent, BadgePopover } from '../badge/badge.component';
 import { CINCINNATI_TIME_ZONE, SkyService } from '../../sky/sky.service';
 import { TonightPlanet, TonightWindow } from '../../sky/sky-tonight';
+import { clock } from '../../sky/sky-clock';
 
 /** A height above the horizon in whole degrees, short and spelled out; anything up at all is at least 1. */
 function degreesUp(alt: number): { short: string; long: string } {
   const n = Math.max(1, Math.round(alt));
   return { short: `${n}° up`, long: `${n} degree${n === 1 ? '' : 's'} up` };
-}
-
-const FIVE_MINUTES = 5 * 60_000;
-
-/** "9:10 pm", "8 am": to the nearest five minutes, on the sky's own clock (Cincinnati's, or the browser's). */
-export function clock(date: Date, timeZone?: string): string {
-  const rounded = new Date(Math.round(date.getTime() / FIVE_MINUTES) * FIVE_MINUTES);
-  return new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', timeZone })
-    .format(rounded)
-    .replace(/\s/g, ' ')
-    .replace(':00 ', ' ')
-    .toLowerCase();
 }
 
 /**

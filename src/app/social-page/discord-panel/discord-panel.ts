@@ -1,13 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DiscordService } from '../../../shared/discord/discord.service';
-import { DiscordSummary } from '../../../shared/discord/discord';
+import { DISCORD_TAGLINE, DiscordSummary } from '../../../shared/discord/discord';
 import { SITE_CONFIG } from '../../../shared/config/site.config';
 
 /** Games listed by name; the rest are "+ N more". */
 export const GAMES_SHOWN = 4;
 
-/** The line under the join button. Morgan's words (2026-11-08). */
-export const DISCORD_TAGLINE = "home to the world's greatest gaming prodigies";
 
 /** "1 in voice", "nobody in voice". */
 export function voiceLabel(n: number): string {

@@ -1,5 +1,6 @@
 import { TestBed } from '@angular/core/testing';
-import { UpTonightBadgeComponent, clock } from './up-tonight-badge.component';
+import { UpTonightBadgeComponent } from './up-tonight-badge.component';
+import { clock } from '../../sky/sky-clock';
 import { SkyService } from '../../sky/sky.service';
 import { Tonight, TonightMoon, TonightPlanet, TonightStar } from '../../sky/sky-tonight';
 import { UpNow } from '../../sky/sky-up-now';

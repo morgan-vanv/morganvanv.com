@@ -110,6 +110,9 @@ export function toDiscordSummary(value: unknown, botName: string = SITE_CONFIG.d
 }
 
 /** "69 online · 1 in voice · 5 on RuneLite": the /now row's line. */
+/** The server's line, under `/social`'s join button and on Home before the feed answers. Morgan's words (2026-11-08). */
+export const DISCORD_TAGLINE = "home to the world's greatest gaming prodigies";
+
 export function discordDetail(summary: DiscordSummary): string {
   const top = summary.games[0];
   return [

@@ -1,6 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { DiscordPanelComponent, DISCORD_TAGLINE, statusShares, voiceLabel } from './discord-panel';
+import { DiscordPanelComponent, statusShares, voiceLabel } from './discord-panel';
+import { DISCORD_TAGLINE } from '../../../shared/discord/discord';
 import { DiscordService } from '../../../shared/discord/discord.service';
 import { DiscordSummary, toDiscordSummary } from '../../../shared/discord/discord';
 import { DISCORD_FEED_FIXTURE } from '../../../shared/discord/discord-feed.fixture';

@@ -1,0 +1,82 @@
+<section class="porch" aria-labelledby="porch-heading">
+  <h2 id="porch-heading" class="visually-hidden">Around the place, right now</h2>
+
+  <div class="spot record">
+    <h3 class="label">
+      @if (record()?.playing) {<span class="dot" aria-hidden="true"></span>}
+      on the record player
+    </h3>
+    <div class="item">
+      @if (record()?.cover; as cover) {
+        <img class="thumb" [src]="cover" alt="" width="48" height="48" loading="lazy" decoding="async" />
+      } @else {
+        <span class="thumb glyph" aria-hidden="true">♪</span>
+      }
+      <p class="text">
+        @if (record(); as record) {
+          <span class="title" [title]="record.title">{{ record.title }}</span>
+          <span class="detail">{{ record.artist }}@if (record.when) { · {{ record.when }}}</span>
+        } @else {
+          <span class="title">the needle's up</span>
+          <span class="detail">check back in a bit</span>
+        }
+      </p>
+    </div>
+    <a class="go" routerLink="/interests"><span class="b" aria-hidden="true">[</span>interests ›<span class="b" aria-hidden="true">]</span></a>
+  </div>
+
+  <div class="spot sky">
+    <h3 class="label">{{ skyLabel() }}</h3>
+    <div class="item">
+      <svg class="thumb moon" width="48" height="48" viewBox="0 0 40 40" aria-hidden="true">
+        <circle cx="20" cy="20" r="15" class="moon-dark" />
+        @if (tonight()?.path; as path) {
+          <path [attr.d]="path" class="moon-lit" [attr.transform]="tonight()?.southern ? 'translate(40 0) scale(-1 1)' : null" />
+        }
+      </svg>
+      <p class="text">
+        @if (tonight(); as tonight) {
+          <span class="title">{{ tonight.moon ?? 'the Moon' }}</span>
+          <span class="detail">{{ tonight.planets ?? 'and whatever else is up' }}</span>
+        } @else {
+          <span class="title">the sky behind this page</span>
+          <span class="detail">is the real one, tonight</span>
+        }
+      </p>
+    </div>
+    <button type="button" class="go" (click)="lookUp()"><span class="b" aria-hidden="true">[</span>look up ☾<span class="b" aria-hidden="true">]</span></button>
+  </div>
+
+  <div class="spot discord">
+    <h3 class="label">
+      @if (hangingOut()) {<span class="dot" aria-hidden="true"></span>}
+      <span>hanging out@if (hangingOut()) {<span class="when"> · right now</span>}</span>
+    </h3>
+    <div class="item">
+      <span class="thumb glyph" aria-hidden="true">#</span>
+      <p class="text">
+        @if (hangingOut(); as discord) {
+          <span class="title" [title]="discord.name">{{ discord.name }}</span>
+          <span class="detail">{{ discord.detail }}</span>
+        } @else {
+          <span class="title">the Discord</span>
+          <span class="detail">{{ tagline }}</span>
+        }
+      </p>
+    </div>
+    <a class="go" routerLink="/social"><span class="b" aria-hidden="true">[</span>tap in ›<span class="b" aria-hidden="true">]</span></a>
+  </div>
+
+  <div class="spot lab">
+    <h3 class="label">on the air</h3>
+    <ul class="air">
+      @for (line of onAir(); track line.name) {
+        <li>
+          <span class="led" [class.up]="line.state === 'up'" [class.down]="line.state === 'down'" aria-hidden="true"></span>
+          {{ line.name }}@if (line.state) {<span class="visually-hidden">, {{ line.state }}</span>}
+        </li>
+      }
+    </ul>
+    <a class="go" routerLink="/lab"><span class="b" aria-hidden="true">[</span>the lab ›<span class="b" aria-hidden="true">]</span></a>
+  </div>
+</section>
