@@ -7,6 +7,7 @@ import { SIDE_ROUTES } from '../../shared/main-routes';
 import { ApiCacheService } from '../../shared/services/api-cache.service';
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { LAB_MACHINES, LAB_SERVICES } from '../../shared/constants/lab.const';
+import { LAB_LOG, LAB_LOG_TAIL } from '../../shared/constants/lab-log.const';
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
 import { LAB_STATUS_POLL_MS } from './lab-status';
 import { Ps1StageComponent } from './ps1/ps1-stage.component';
@@ -247,8 +248,12 @@ describe('LabPageComponent', () => {
     expect(pills()).toEqual([]);
   });
 
-  it('ends with the other computers around the house', async () => {
+  it('keeps the lab log under the services, its last lines showing, then ends with the other computers around the house', async () => {
     await render();
+    const log = el().querySelector('app-lab-log')!;
+    expect(log.previousElementSibling?.classList.contains('lower')).toBe(true);
+    expect(log.nextElementSibling?.classList.contains('house')).toBe(true);
+    expect([...log.querySelectorAll('.lines li')].map(li => li.textContent?.trim())).toEqual(LAB_LOG.slice(-LAB_LOG_TAIL));
     expect([...el().querySelectorAll('.house .chip')].map(c => c.textContent)).toEqual([
       'battlestation · Ryzen 7, RTX 3070', 'Bambu Lab P1S', 'ThinkPad X220, waiting for a job', '4 × Pi Zero',
     ]);

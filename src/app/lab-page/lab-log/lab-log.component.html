@@ -1,0 +1,21 @@
+<section class="panel" aria-labelledby="lab-log">
+  <!-- Draft copy: Morgan's to keep or change. -->
+  <h2 id="lab-log">Lab log <span class="range-label">what I've been doing in here</span></h2>
+  <div class="term">
+    <p class="cmd" aria-hidden="true"><b>$</b> tail -f lab.log</p>
+    <ol class="lines" id="lab-log-lines">
+      @for (entry of shown(); track $index) {
+        <li [style.--fade]="fade($index)">{{ entry }}</li>
+      }
+    </ol>
+    <p class="resting" aria-hidden="true">waiting for the next thing to break<span class="caret"></span></p>
+  </div>
+  <div class="foot">
+    <span class="count">{{ countLine() }}</span>
+    @if (folded()) {
+      <button type="button" class="more" [attr.aria-expanded]="all()" aria-controls="lab-log-lines" (click)="toggle()">
+        [ <b>{{ all() ? 'just the latest' : 'the whole log' }}</b> › ]
+      </button>
+    }
+  </div>
+</section>

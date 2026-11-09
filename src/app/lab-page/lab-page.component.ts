@@ -9,6 +9,7 @@ import {
 import { LabStatusService } from './lab-status.service';
 import { Ps1StageComponent } from './ps1/ps1-stage.component';
 import { DiscordService } from '../../shared/discord/discord.service';
+import { LabLogComponent } from './lab-log/lab-log.component';
 
 interface MachineGroup {
   place: LabPlace;
@@ -25,12 +26,13 @@ const groupOf = (place: LabPlace): MachineGroup =>
  * /lab, off the homelab's poster on Projects: the machines in Morgan's office rack and closet (drawn in
  * CSS, each a button that shows its spec sheet, with the machine turning as a PS1-style model on a little
  * stage), what's on the air with live up/down pills (from the status Worker, or for the Discord bot from the
- * server's widget feed), and everything they run. On phones the machines are a list whose selected one opens
- * its sheet beneath it (an accordion); both layouts share one selection, BIG HOSS by default.
+ * server's widget feed), everything they run, and the lab log (`app-lab-log`, Morgan's one-liners as a
+ * terminal tail). On phones the machines are a list whose selected one opens its sheet beneath it (an
+ * accordion); both layouts share one selection, BIG HOSS by default.
  */
 @Component({
   selector: 'app-lab-page',
-  imports: [BasePageComponent, PageHeaderComponent, NgTemplateOutlet, Ps1StageComponent],
+  imports: [BasePageComponent, PageHeaderComponent, NgTemplateOutlet, Ps1StageComponent, LabLogComponent],
   providers: [LabStatusService, DiscordService],
   templateUrl: './lab-page.component.html',
   styleUrl: './lab-page.component.scss',
