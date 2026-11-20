@@ -11,6 +11,9 @@ import { ShoutboxComponent } from './shoutbox/shoutbox';
 import { FriendButtonComponent } from '../../shared/badges/friend-button/friend-button.component';
 import { FRIENDS } from '../../shared/constants/friends.const';
 import { DiscordService } from '../../shared/discord/discord.service';
+import { ServerPanelComponent } from './server-panel/server-panel';
+import { LabStatusService } from '../../shared/lab-status/lab-status.service';
+import { scrollToFragmentOnLoad } from '../../shared/services/fragment-scroll';
 import { DiscordPanelComponent } from './discord-panel/discord-panel';
 
 /** The wall's open slot: an email with the subject set and a nudge for a caption. Copy approved by Morgan (2026-10-28). */
@@ -22,9 +25,9 @@ export function photoMailto(email: string): string {
 
 @Component({
   selector: 'app-social-page',
-  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, ShoutboxComponent, A11yModule, MailbagComponent, FriendButtonComponent, DiscordPanelComponent],
-  // The Discord's poller lives as long as the page.
-  providers: [DiscordService],
+  imports: [BasePageComponent, PageHeaderComponent, UnderConstructionComponent, ShoutboxComponent, A11yModule, MailbagComponent, FriendButtonComponent, DiscordPanelComponent, ServerPanelComponent],
+  // The Discord's poller and the status Worker's (the server's count) live as long as the page.
+  providers: [DiscordService, LabStatusService],
   templateUrl: './social-page.component.html',
   styleUrl: './social-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +62,11 @@ export class SocialPageComponent {
   /** Whether Discord has answered: until then my friends have the last row to themselves. */
   private readonly discord = inject(DiscordService);
   readonly discordUp = computed(() => this.discord.summary() !== null);
+
+  constructor() {
+    // The rest of the site links the server's panel (/social#server).
+    scrollToFragmentOnLoad();
+  }
 
   openFullscreen(photo: CommunityPhoto) {
     this.lastFocusedElement = document.activeElement as HTMLElement;

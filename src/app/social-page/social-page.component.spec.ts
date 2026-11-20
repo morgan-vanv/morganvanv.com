@@ -76,22 +76,41 @@ describe('SocialPageComponent', () => {
     expect([...el.querySelectorAll('.panel')].at(-1)?.matches('.friends-panel')).toBe(true);
   });
 
-  it('has my friends to themselves in the last row until Discord answers, then the Discord beside them', async () => {
+  it('has the server alone in the hangouts row until Discord answers, then the Discord beside it; my friends after', async () => {
     const el = fixture.nativeElement as HTMLElement;
     const row = el.querySelector('.hangouts')!;
     expect(row.classList.contains('with-discord')).toBe(false);
     expect(row.querySelector('app-discord-panel')).toBeNull();
+    expect([...row.children].map(c => c.tagName.toLowerCase())).toEqual(['app-server-panel']);
 
     const http = TestBed.inject(HttpTestingController);
     for (const req of http.match(r => r.url === SITE_CONFIG.discord.widgetUrl)) req.flush(DISCORD_FEED_FIXTURE);
     await fixture.whenStable();
 
     expect(row.classList.contains('with-discord')).toBe(true);
-    expect([...row.children].map(c => c.matches('app-discord-panel') ? 'discord' : c.matches('.friends-panel') ? 'friends' : '?'))
-      .toEqual(['discord', 'friends']);
+    expect([...row.children].map(c => c.tagName.toLowerCase())).toEqual(['app-discord-panel', 'app-server-panel']);
     expect(row.querySelector('app-discord-panel h2')?.textContent).toContain('The Discord');
+    expect(row.nextElementSibling?.querySelector('.friends-panel')).not.toBeNull();
     // Counts, never people.
     for (const member of DISCORD_FEED_FIXTURE.members) expect(row.textContent).not.toContain(member.username);
+  });
+
+  it('shows the server by its address, the editions and the modes before any feed, and its count once the Worker answers', async () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const panel = el.querySelector('#server')!;
+    expect(panel.querySelector('h2')?.textContent).toContain('The Server');
+    expect(panel.querySelector('.address')?.textContent).toBe('mc.morganvanv.com');
+    expect([...panel.querySelectorAll('.edition-name')].map(e => e.textContent)).toEqual(['Java Edition', 'Bedrock Edition']);
+    expect([...panel.querySelectorAll('.mode-name')].map(e => e.textContent)).toEqual(['Factions', 'Anarchy', 'Minigames', 'Creative']);
+    expect(panel.querySelector('.count')).toBeNull();
+    expect(panel.querySelector('img.icon')?.getAttribute('alt')).toContain('mc.morganvanv.com');
+
+    const http = TestBed.inject(HttpTestingController);
+    for (const req of http.match(r => r.url === SITE_CONFIG.labStatusUrl)) {
+      req.flush({ checkedAt: '2026-11-20T15:00:00.000Z', services: { vtt: 'up', jellyfin: 'up', minecraft: 'up' }, players: { minecraft: 0 } });
+    }
+    await fixture.whenStable();
+    expect(panel.querySelector('.count')?.textContent?.trim()).toBe('0 online');
   });
 
   it("keeps my friends alone when Discord's feed fails", async () => {

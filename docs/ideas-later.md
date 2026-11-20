@@ -70,7 +70,7 @@ Live since #104, covers in #105 (2026-10-27). Morgan parked these for a later pa
 
 ### Physics simulations
 `L` (each sim is `S`)
-- A `/sims` page (or Interests item) with canvas sims (`/lab` is the homelab now), each ~100–200 lines on top of a shared `SimulationCanvas` component: play/pause/reset, parameter sliders, `requestAnimationFrame` loop, DPR-aware canvas, pauses when off-screen.
+- A `/sims` page (or Interests item) with canvas sims (`/homelab` is the homelab now), each ~100–200 lines on top of a shared `SimulationCanvas` component: play/pause/reset, parameter sliders, `requestAnimationFrame` loop, DPR-aware canvas, pauses when off-screen.
 - Candidates, roughly in order of visual payoff: double pendulum (chaos, trails); n-body / orbital mechanics (ties to astrophotography; let visitors fling planets); projectile with drag; wave interference / double slit; spring-mass resonance with a driving-frequency slider; ideal gas / Brownian motion with a temperature knob; Lissajous figures; charged particle in E and B fields; Snell's law ray tracer; Brachistochrone race; Galton board; Rutherford scattering. A Møller-scattering nod would be the deep cut for anyone who reads the Background page.
 - Each sim: a one-paragraph "what you're looking at" in Morgan's voice, with the equation rendered plainly (no MathJax dependency unless it earns it).
 - Share state in the URL (`?g=9.8&drag=0.1`) so a specific configuration can be linked.
@@ -170,7 +170,7 @@ Grouped by the design pillars.
 - **A members-only directory** (Morgan, 2026-11-05) — `M`/`L` — A section of the site for the people Morgan invites: they sign in through Authentik (the homelab's planned one login for friends and family, Phase 3½ in the infra repo) and see a directory of every service they can join (the table, Jellyfin, the Minecraft world, the retro library…), each with how to get in. Public pages name these services without addresses or links (the table and Jellyfin were anonymized on `/projects` and `/lab` for this reason), so this is where the addresses would live. Open questions for when Authentik is built: the site is static on GitHub Pages, so the directory's contents can't ship in the public bundle; it needs a Worker (or Authentik's own app portal) that checks the session and serves the list, and the site only links to it.
 
 ### Blog (currently 🚧)
-- **The lab log in the feed.** `S` — The log on `/lab` (`LAB_LOG`, a plain ordered array, no dates by Morgan's choice) is the first thing on the site worth following. If a feed ever carries it, entries need a date for `<updated>`: add one per entry then (kept out of the page), or date them by the commit that added each line (`git log` at build time, as the Build badge reads history). The same shape (one file or line per entry, Markdown-free) would suit the "notes" microblog below.
+- **The lab log in the feed.** `S` — The log on `/homelab` (`LAB_LOG`, a plain ordered array, no dates by Morgan's choice) is the first thing on the site worth following. If a feed ever carries it, entries need a date for `<updated>`: add one per entry then (kept out of the page), or date them by the commit that added each line (`git log` at build time, as the Build badge reads history). The same shape (one file or line per entry, Markdown-free) would suit the "notes" microblog below.
 - `M`/`L` — Markdown posts in `src/content/`, converted at build time (`marked` in a Node script, not at runtime) to JSON + prerendered routes. **RSS/Atom feed is non-negotiable** for the IndieWeb crowd. Reading time, tags, a `/blog/feed.xml`. Consider a "notes" microblog format (short, frequent) alongside or instead of long posts — it fits the voice better.
 
 ## 5. Patterns worth establishing
@@ -185,3 +185,8 @@ Grouped by the design pillars.
 - Light theme — explicitly against the vibe doc. (A "darker mode" joke toggle is fine.)
 - Full CMS / Analog / Astro rewrite — the Angular setup is working; the blog can be a build script.
 - Analytics — if ever, something cookieless and self-respecting (Plausible, GoatCounter), and a `/colophon` note about it.
+
+## The Minecraft server (2026-11-20)
+
+- **Players per mode.** `S`/`M` — VideoJoker's booth already counts players per mode (Factions, Anarchy, …), but it's tailnet-only; the Server List Ping the status Worker uses only gives the network's total. Showing "2 in Factions, 1 in Anarchy" would need the booth to publish counts somewhere public (counts only, never names).
+- **The minigames' and Creative's tags.** `S` — `MINECRAFT_MODES` says Minigames "soon" and Creative "later"; flip them to "open" as each opens (the infra roadmap's Next 2 and 4).

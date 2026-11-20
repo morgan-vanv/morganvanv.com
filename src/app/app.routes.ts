@@ -8,12 +8,12 @@ const lazyRouteComponents: Record<MainRoutePath, Route['loadComponent']> = {
   social: () => import('./social-page/social-page.component').then(m => m.SocialPageComponent),
   interests: () => import('./interests-page/interests-page.component').then(m => m.InterestsPageComponent),
   projects: () => import('./projects-page/projects-page.component').then(m => m.ProjectsPageComponent),
+  homelab: () => import('./lab-page/lab-page.component').then(m => m.LabPageComponent),
   blog: () => import('./blog-page/blog-page.component').then(m => m.BlogPageComponent),
 };
 
 const lazySideRouteComponents: Record<SideRoutePath, Route['loadComponent']> = {
   colophon: () => import('./colophon-page/colophon-page.component').then(m => m.ColophonPageComponent),
-  lab: () => import('./lab-page/lab-page.component').then(m => m.LabPageComponent),
 };
 
 export const routes: Routes = [
@@ -36,6 +36,8 @@ export const routes: Routes = [
     title: route.title,
     data: { animation: getSideRouteAnimation(route.path), description: route.description },
   })),
+  // The Homelab lived at /lab while it was a side page (2026-11-05 to 11-20); old links still land there.
+  { path: 'lab', redirectTo: 'homelab', pathMatch: 'full' },
   {
     path: '**',
     redirectTo: GREETING_ROUTE_PATH,

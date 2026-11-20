@@ -47,9 +47,9 @@ describe('HomePageComponent', () => {
     expect(el.querySelector('.contact app-ask-morgan-form')).toBeTruthy();
   });
 
-  it('lists every page in the welcome, in the nav\'s order with the Lab after Projects, each a link with its line', () => {
+  it('lists every page in the welcome, in the nav\'s order, each a link with its line', () => {
     const el = fixture.nativeElement as HTMLElement;
-    const rows = [...el.querySelectorAll<HTMLAnchorElement>('.welcome .stop')];
+    const rows = [...el.querySelectorAll<HTMLAnchorElement>('.welcome .stops .stop')];
     expect(rows.map(a => a.getAttribute('href'))).toEqual(HOME_STOPS.map(stop => stop.path));
     expect(rows.map(a => a.querySelector('.pill')?.textContent?.trim())).toEqual(HOME_STOPS.map(stop => stop.name));
     expect(rows.every(a => a.querySelector('.line')?.textContent?.trim())).toBe(true);
@@ -58,12 +58,22 @@ describe('HomePageComponent', () => {
     const known = [...pages, ...SIDE_ROUTES.map(route => `/${route.path}`)];
     expect(HOME_STOPS.every(stop => known.includes(stop.path))).toBe(true);
     expect(HOME_STOPS.map(stop => stop.path).filter(path => pages.includes(path))).toEqual(pages);
-    expect(HOME_STOPS.findIndex(stop => stop.path === '/lab')).toBe(HOME_STOPS.findIndex(stop => stop.path === '/projects') + 1);
+    expect(HOME_STOPS.findIndex(stop => stop.path === '/homelab')).toBe(HOME_STOPS.findIndex(stop => stop.path === '/projects') + 1);
+  });
+
+  it('ends the welcome with the front desk: the one link to the hosted apps, in a new tab', () => {
+    const el = fixture.nativeElement as HTMLElement;
+    const desk = el.querySelector<HTMLAnchorElement>('.welcome a.desk');
+    expect(desk?.getAttribute('href')).toBe('https://services.morganvanv.com');
+    expect(desk?.getAttribute('target')).toBe('_blank');
+    expect(desk?.getAttribute('rel')).toContain('noopener');
+    expect(desk?.closest('.stops')).toBeNull();
+    expect(desk?.textContent).toContain('front desk');
   });
 
   it('marks the blog under construction while it is', () => {
     const el = fixture.nativeElement as HTMLElement;
-    const wip = [...el.querySelectorAll('.welcome .stop')].filter(a => a.querySelector('.wip'));
+    const wip = [...el.querySelectorAll('.welcome .stops .stop')].filter(a => a.querySelector('.wip'));
     expect(wip.map(a => a.getAttribute('href'))).toEqual(isUnderConstruction('blog') ? ['/blog'] : []);
   });
 

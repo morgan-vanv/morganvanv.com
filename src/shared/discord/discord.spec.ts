@@ -30,16 +30,27 @@ describe('toDiscordSummary', () => {
   it('says whether the bot is on: listed, missing from a complete list, or missing from a capped one', () => {
     const bot = { ...DISCORD_FEED_FIXTURE.members[6], id: '7', username: 'my-bot' };
     const withBot = { ...DISCORD_FEED_FIXTURE, members: [...DISCORD_FEED_FIXTURE.members, bot], presence_count: 8 };
-    expect(toDiscordSummary(withBot, 'my-bot')?.botOnline).toBe(true);
-    expect(toDiscordSummary({ ...withBot, members: [...DISCORD_FEED_FIXTURE.members, { ...bot, status: 'offline' }] }, 'my-bot')?.botOnline).toBe(false);
+    expect(toDiscordSummary(withBot, ['my-bot'])?.botOnline).toBe(true);
+    expect(toDiscordSummary({ ...withBot, members: [...DISCORD_FEED_FIXTURE.members, { ...bot, status: 'offline' }] }, ['my-bot'])?.botOnline).toBe(false);
     // Everyone is listed and the bot isn't among them.
-    expect(toDiscordSummary(DISCORD_FEED_FIXTURE, 'my-bot')?.botOnline).toBe(false);
+    expect(toDiscordSummary(DISCORD_FEED_FIXTURE, ['my-bot'])?.botOnline).toBe(false);
     // Discord capped the list: its absence proves nothing.
-    expect(toDiscordSummary({ ...DISCORD_FEED_FIXTURE, presence_count: 120 }, 'my-bot')?.botOnline).toBeNull();
+    expect(toDiscordSummary({ ...DISCORD_FEED_FIXTURE, presence_count: 120 }, ['my-bot'])?.botOnline).toBeNull();
     // The name goes in, never out.
-    expect(JSON.stringify(toDiscordSummary(withBot, 'my-bot'))).not.toContain('my-bot');
-    // By default it looks for the account VideoJoker runs as.
-    expect(SITE_CONFIG.discord.botName).toBe('botmaster12');
+    expect(JSON.stringify(toDiscordSummary(withBot, ['my-bot']))).not.toContain(['my-bot']);
+    // By default it looks for the names VideoJoker shows under: its nickname first, its account name as a fallback.
+    expect(SITE_CONFIG.discord.botNames).toEqual(['VJ', 'botmaster12']);
+  });
+
+  it('finds the bot under any of its names (the widget shows its server nickname, "VJ" since November 2026)', () => {
+    for (const username of ['VJ', 'botmaster12']) {
+      const bot = { ...DISCORD_FEED_FIXTURE.members[6], id: '7', username };
+      const feed = { ...DISCORD_FEED_FIXTURE, members: [...DISCORD_FEED_FIXTURE.members, bot], presence_count: 8 };
+      expect(toDiscordSummary(feed)?.botOnline, username).toBe(true);
+    }
+    // Someone else whose name merely contains it is not the bot.
+    const lookalike = { ...DISCORD_FEED_FIXTURE.members[6], id: '7', username: 'VJ fan' };
+    expect(toDiscordSummary({ ...DISCORD_FEED_FIXTURE, members: [...DISCORD_FEED_FIXTURE.members, lookalike], presence_count: 8 })?.botOnline).toBe(false);
   });
 
   it("leaves out a bot's website as a game", () => {

@@ -33,6 +33,9 @@ import { watchedWhen } from '../../shared/letterboxd/letterboxd';
 import { StarsComponent } from '../../shared/stars/stars.component';
 import { DiscordService } from '../../shared/discord/discord.service';
 import { discordDetail } from '../../shared/discord/discord';
+import { LabStatusService } from '../../shared/lab-status/lab-status.service';
+import { SERVER_ICON_URL, onlineLine } from '../../shared/minecraft/minecraft';
+import { MinecraftBadgeComponent } from '../../shared/badges/minecraft-badge/minecraft-badge.component';
 
 export interface NowRow {
   key: string;
@@ -47,9 +50,10 @@ export interface NowRow {
   /** Gold stars ahead of the detail (Letterboxd's 0.5–5). */
   rating?: number;
   when?: string;
-  /** External link, or an in-site path when `internal`. */
+  /** External link, or an in-site path when `internal` (with the panel to scroll to, if any). */
   href?: string;
   internal?: boolean;
+  fragment?: string;
   live?: boolean;
 }
 
@@ -89,10 +93,10 @@ export function clip(text: string, max: number): string {
   selector: 'app-now-page',
   imports: [BasePageComponent, PageHeaderComponent, RouterLink, NgTemplateOutlet, ProjectCardComponent, StarsComponent,
     WeatherBadgeComponent, MoonBadgeComponent, UpTonightBadgeComponent,
-    OwnButtonBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent, PageWeightBadgeComponent, LighthouseBadgeComponent, BuildBadgeComponent,
+    OwnButtonBadgeComponent, MinecraftBadgeComponent, AngularBadgeComponent, NoCookiesBadgeComponent, PageWeightBadgeComponent, LighthouseBadgeComponent, BuildBadgeComponent,
     FriendButtonComponent],
-  // The Discord's poller (the Hanging out row) lives as long as the page.
-  providers: [DiscordService],
+  // The Discord's poller (Hanging out) and the status Worker's (On the server, and its 88×31) live as long as the page.
+  providers: [DiscordService, LabStatusService],
   templateUrl: './now-page.component.html',
   styleUrl: './now-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -102,6 +106,7 @@ export class NowPageComponent {
   private readonly runeProfile = inject(RuneProfileService);
   private readonly letterboxd = inject(LetterboxdService);
   private readonly discord = inject(DiscordService);
+  private readonly labStatus = inject(LabStatusService);
 
   /** Morgan's note; hidden, along with its date, while it has no paragraphs. */
   private readonly content = inject(NOW_CONTENT_TOKEN);
@@ -167,6 +172,21 @@ export class NowPageComponent {
     };
   });
 
+  /**
+   * On the server: the Minecraft network, live, by its public address and how many are on (a count from the status
+   * Worker, never a name; "0 online" when nobody is). Links to its panel on /social. Shows once the Worker has
+   * counted, so not while the server is down.
+   */
+  private readonly onTheServer = computed<NowRow | null>(() => {
+    const count = this.labStatus.minecraftOnline();
+    if (count === null) return null;
+    return {
+      key: 'minecraft', label: 'On the server', iconUrl: SERVER_ICON_URL, iconStyle: 'cover', glyph: '▦',
+      title: SITE_CONFIG.minecraftAddress, detail: `${onlineLine(count)} · Java and Bedrock`,
+      when: 'right now', href: '/social', fragment: 'server', internal: true, live: true,
+    };
+  });
+
   private readonly watched = computed<NowRow | null>(() => {
     const entry = this.letterboxd.latest();
     if (!entry) return null;
@@ -212,8 +232,10 @@ export class NowPageComponent {
     href: `${SITE_CONFIG.repoUrl}/commit/${BUILD_INFO.sha}`,
   } : null;
 
+  /** Morgan's order (2026-11-20): listening, the Discord, the server, OSRS, Letterboxd, the latest push, the wall, the site. */
   readonly rows = computed(() =>
-    [this.listening(), this.playing(), this.hangingOut(), this.watched(), this.building(), this.community, this.site].filter((row): row is NowRow => row !== null)
+    [this.listening(), this.hangingOut(), this.onTheServer(), this.playing(), this.watched(), this.building(), this.community, this.site]
+      .filter((row): row is NowRow => row !== null)
   );
 
   private latestActivity(types: readonly RpActivity['type'][]) {

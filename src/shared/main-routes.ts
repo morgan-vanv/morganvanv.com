@@ -18,7 +18,8 @@ export const MAIN_ROUTES = [
   { path: 'background', title: 'Background', description: 'A bit about Morgan: physics and applied math at Ohio University, software engineering, and Ada the cat.' },
   { path: 'social', title: 'Social', description: 'The community photo wall, and the mailbag: questions visitors asked, answered.' },
   { path: 'interests', title: 'Interests', description: 'Live stats on what Morgan is listening to and what his Old School RuneScape character is up to.' },
-  { path: 'projects', title: 'Projects', description: 'Things Morgan has built or is building: a browser game, a Discord bot, and this site.' },
+  { path: 'projects', title: 'Projects', description: 'Things Morgan has built or is building: a browser game, a Discord bot, a Minecraft server, and this site.' },
+  { path: 'homelab', title: 'Homelab', description: 'The machines in Morgan\'s office rack and closet, what they run, and what\'s up right now.' },
   { path: 'blog', title: 'Blog', description: 'Writing from Morgan, eventually. Under construction.' },
 ] as const satisfies readonly MainRoute[];
 
@@ -32,12 +33,11 @@ export interface SideRoute extends MainRoute {
 }
 
 /**
- * Pages off the navbar, each reached from one main page (the colophon and the lab from their
- * posters on Projects). They keep their parent's place in the nav and in arrow-key order, and slide in beside it.
+ * Pages off the navbar, each reached from one main page (the colophon, from this site's poster on Projects).
+ * They keep their parent's place in the nav and in arrow-key order, and slide in beside it.
  */
 export const SIDE_ROUTES = [
   { path: 'colophon', title: 'Colophon', description: 'How morganvanv.com is built: Angular prerendered to static HTML, what powers each live panel, and what stays in your browser.', parent: 'projects' },
-  { path: 'lab', title: 'Lab', description: 'The machines in my office rack and closet, and what they run: specs, services, and what\'s up right now.', parent: 'projects' },
 ] as const satisfies readonly SideRoute[];
 
 export type SideRoutePath = (typeof SIDE_ROUTES)[number]['path'];

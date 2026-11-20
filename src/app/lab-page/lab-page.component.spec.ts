@@ -3,13 +3,13 @@ import { By } from '@angular/platform-browser';
 import { provideRouter } from '@angular/router';
 import { Observable, NEVER, of, throwError } from 'rxjs';
 import { LabPageComponent } from './lab-page.component';
-import { SIDE_ROUTES } from '../../shared/main-routes';
+import { MAIN_ROUTES, SIDE_ROUTES } from '../../shared/main-routes';
 import { ApiCacheService } from '../../shared/services/api-cache.service';
 import { SITE_CONFIG } from '../../shared/config/site.config';
 import { LAB_MACHINES, LAB_SERVICES } from '../../shared/constants/lab.const';
 import { LAB_LOG, LAB_LOG_TAIL } from '../../shared/constants/lab-log.const';
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
-import { LAB_STATUS_POLL_MS } from './lab-status';
+import { LAB_STATUS_POLL_MS } from '../../shared/lab-status/lab-status';
 import { Ps1StageComponent } from './ps1/ps1-stage.component';
 import { DISCORD_FEED_FIXTURE } from '../../shared/discord/discord-feed.fixture';
 
@@ -31,7 +31,7 @@ describe('LabPageComponent', () => {
   const statusCalls = () => get.mock.calls.filter(([url]) => url === SITE_CONFIG.labStatusUrl);
 
   /** The bot's account, as the widget lists any member; nothing else about it is real. */
-  const bot = { id: '7', username: SITE_CONFIG.discord.botName, discriminator: '0000', avatar: null, status: 'online', avatar_url: 'https://cdn.discordapp.com/widget-avatars/o/p' };
+  const bot = { id: '7', username: SITE_CONFIG.discord.botNames[0], discriminator: '0000', avatar: null, status: 'online', avatar_url: 'https://cdn.discordapp.com/widget-avatars/o/p' };
 
   /** The page with the status Worker's answer and the Discord widget's (each NEVER answers by default). */
   async function render(response: Observable<unknown> = NEVER, widget: Observable<unknown> = NEVER) {
@@ -53,7 +53,7 @@ describe('LabPageComponent', () => {
     await render();
     const headings = el().querySelectorAll('h1');
     expect(headings.length).toBe(1);
-    expect(headings[0].textContent?.trim()).toBe('Lab');
+    expect(headings[0].textContent?.trim()).toBe('Homelab');
   });
 
   it('is no longer under construction', async () => {
@@ -62,8 +62,12 @@ describe('LabPageComponent', () => {
     expect(isUnderConstruction('blog')).toBe(true);
   });
 
-  it('is a side page off Projects', () => {
-    expect(SIDE_ROUTES.find(r => r.path === 'lab')).toEqual(expect.objectContaining({ title: 'Lab', parent: 'projects' }));
+  it('is a main page, Homelab, between Projects and Blog', () => {
+    const paths = MAIN_ROUTES.map(r => r.path);
+    expect(MAIN_ROUTES.find(r => r.path === 'homelab')).toEqual(expect.objectContaining({ title: 'Homelab' }));
+    expect(paths.indexOf('homelab')).toBe(paths.indexOf('projects') + 1);
+    expect(paths.indexOf('blog')).toBe(paths.indexOf('homelab') + 1);
+    expect(SIDE_ROUTES.map(r => r.path)).not.toContain('homelab');
   });
 
   it('draws every machine as a faceplate button, in the rack, the closet and out front', async () => {
@@ -115,7 +119,7 @@ describe('LabPageComponent', () => {
     await click(button(rackButtons(), 'THE VPS'));
     expect(text('#lab-sheet-title')).toBe('The VPS the front door');
     expect(stages()[0]).toEqual(['sheet', 'vps', 'large', 'The VPS, a low-poly model turning slowly']);
-    expect([...el().querySelectorAll('.sheet .chip')].map(c => c.textContent)).toEqual(['Caddy', 'CrowdSec', 'a game relay, later']);
+    expect([...el().querySelectorAll('.sheet .chip')].map(c => c.textContent)).toEqual(['Caddy', 'HAProxy', 'the game relay', 'CrowdSec', 'LiveKit']);
     await click(button(rackButtons(), 'UPS'));
     expect(stages()[0]).toEqual(['sheet', 'ups', 'large', 'CyberPower CP1500, a low-poly model turning slowly']);
   });
@@ -150,29 +154,48 @@ describe('LabPageComponent', () => {
 
   it('lists everything running, counted, and what is still under construction', async () => {
     await render();
-    expect(text('#lab-running')).toBe('Everything I\'m running 14 things, on three boxes');
+    expect(text('#lab-running')).toBe('Everything I\'m running 18 things, on three boxes');
     const rows = [...el().querySelectorAll('.runs li')];
     expect(rows.length).toBe(LAB_SERVICES.length);
     expect(rows.filter(r => !r.classList.contains('later')).map(r => r.querySelector('.where')?.textContent)).toContain('everywhere');
     const later = rows.filter(r => r.classList.contains('later'));
-    expect(later.map(r => r.querySelector('b')?.textContent)).toEqual(['Minecraft', 'RomM']);
+    expect(later.map(r => r.querySelector('b')?.textContent)).toEqual(['RomM']);
     const where = (name: string) => rows.find(r => r.querySelector('b')?.textContent === name)?.querySelector('.where')?.textContent;
-    // Foundry, the bot, Authentik and Pi-hole all live on BIG HOSS now; nothing names a guest or an address.
-    for (const name of ['Foundry VTT', 'VideoJoker', 'Authentik', 'Pi-hole']) expect(where(name), name).toBe('BIG HOSS');
+    // Foundry, the bot, Authentik, Pi-hole, Minecraft and Homarr all live on BIG HOSS; nothing names a guest or an address.
+    for (const name of ['Foundry VTT', 'VideoJoker', 'Authentik', 'Pi-hole', 'Minecraft', 'Homarr']) expect(where(name), name).toBe('BIG HOSS');
+    for (const name of ['HAProxy', 'LiveKit', 'Caddy', 'CrowdSec']) expect(where(name), name).toBe('the VPS');
     expect(later.every(r => r.querySelector('.wip')?.textContent === 'under construction' && !r.querySelector('.where'))).toBe(true);
     expect(rows.every(r => r.querySelector('svg path')?.getAttribute('d'))).toBe(true);
   });
 
-  it('puts the table, Jellyfin and the bot on the air with no links or addresses, and the rest under construction', async () => {
+  it('opens on the air with the front desk, the one door it links; the table and Jellyfin sit behind it, unlinked', async () => {
     await render();
-    expect(el().querySelector('.air a')).toBeNull();
-    expect(el().querySelectorAll('.air .wip').length).toBe(2);
-    const rows = [...el().querySelectorAll('.air-row')].map(r => [r.querySelector('.air-name')?.textContent, r.querySelector('.air-what')?.textContent]);
-    expect(rows[0]).toEqual(['Foundry VTT', 'my Vampire: The Masquerade table']);
-    expect(rows[1]).toEqual(['Jellyfin', 'my movies and shows']);
-    expect(rows[2]).toEqual(['VideoJoker', 'the Discord bot, always on']);
-    expect(rows[4]).toEqual(['my retro library', 'my collection of old games, dumped, and playable via browser']);
-    expect(rows.length).toBe(5);
+    const desk = el().querySelector<HTMLAnchorElement>('.air a.desk');
+    expect(desk?.getAttribute('href')).toBe(SITE_CONFIG.frontDeskUrl);
+    expect(desk?.getAttribute('target')).toBe('_blank');
+    // The only other link on the air is the server's way to its panel on Social.
+    expect([...el().querySelectorAll('.air-list a')].map(a => a.getAttribute('href'))).toEqual(['/social#server']);
+    expect(el().querySelectorAll('.air .wip').length).toBe(1);
+    const rows = [...el().querySelectorAll('.air-row')].map(r => [
+      r.querySelector('.air-name')?.childNodes[0]?.textContent?.trim(), r.querySelector('.behind') !== null, r.querySelector('.air-what')?.textContent?.trim(),
+    ]);
+    expect(rows).toEqual([
+      ['Foundry VTT', true, 'my Vampire: The Masquerade table'],
+      ['Jellyfin', true, 'my movies and shows'],
+      ['VideoJoker', false, 'the Discord bot, always on'],
+      ['Minecraft:', false, 'my Minecraft network, open to anyone: Java or Bedrock · more on Social ›'],
+      ['my retro library', false, 'my collection of old games, dumped, and playable via browser'],
+    ]);
+  });
+
+  it('shows the server by its public address, with a copy button, and how many are on while it\'s up', async () => {
+    const checkedAt = new Date(Date.now() - 60_000).toISOString();
+    await render(of({ checkedAt, services: { vtt: 'up', jellyfin: 'up', desk: 'up', minecraft: 'up' }, players: { minecraft: 0 } }));
+    const server = el().querySelector('.air-row.server');
+    expect(server?.querySelector('.address')?.textContent).toBe(SITE_CONFIG.minecraftAddress);
+    expect(server?.querySelector('app-copy-button button')?.getAttribute('aria-label')).toBe(`Copy the server address ${SITE_CONFIG.minecraftAddress}`);
+    expect(server?.querySelector('.state')?.textContent?.trim()).toBe('0 online');
+    expect(el().querySelector('.desk .state')?.textContent?.trim()).toBe('up');
   });
 
   it('shows no status pills and no "checked" line until the status arrives', async () => {
@@ -185,10 +208,12 @@ describe('LabPageComponent', () => {
   it('shows up and down from the status Worker, in words', async () => {
     const checkedAt = new Date(Date.now() - 3 * 60_000).toISOString();
     await render(of({ checkedAt, services: { vtt: 'up', jellyfin: 'down' } }));
+    // An older Worker (no desk, no server): their lights just don't show.
     expect(pills()).toEqual(['up', 'down']);
     expect(el().querySelector('.air-row .state')?.classList.contains('down')).toBe(false);
     expect(el().querySelectorAll('.air .state.down').length).toBe(1);
-    expect(text('.air .note')).toBe("Up or down is checked from outside every few minutes (the bot, by whether it's on Discord); last 3 minutes ago.");
+    expect(text('.air .note')).toBe('Checked from outside every couple of minutes (the bot, by whether it\'s on Discord); last 3 minutes ago. '
+      + 'The server is the one exception to "no addresses": that one\'s meant to be shared.');
   });
 
   it('shows nothing for a status it cannot trust, or a failed request', async () => {
@@ -231,7 +256,7 @@ describe('LabPageComponent', () => {
     expect(pills()).toEqual(['up']);
     const botRow = [...el().querySelectorAll('.air-row')].find(r => r.querySelector('.air-name')?.textContent === 'VideoJoker')!;
     expect(botRow.querySelector('.state')?.textContent?.trim()).toBe('up');
-    expect(el().textContent).not.toContain(SITE_CONFIG.discord.botName);
+    for (const name of SITE_CONFIG.discord.botNames) expect(el().textContent).not.toContain(name);
     for (const member of DISCORD_FEED_FIXTURE.members) expect(el().textContent).not.toContain(member.username);
     // The Worker hasn't answered: no "checked" line yet, and no pills for the table or Jellyfin.
     expect(el().querySelector('.air .note')).toBeNull();

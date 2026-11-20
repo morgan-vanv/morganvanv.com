@@ -4,7 +4,7 @@
       <span class="enter"><span class="bracket">[</span> {{ label() }} › <span class="bracket">]</span></span>
     </a>
   } @else {
-    <a class="art-link" [routerLink]="target.route" tabindex="-1" aria-hidden="true">
+    <a class="art-link" [routerLink]="target.route" [fragment]="target.fragment ?? undefined" tabindex="-1" aria-hidden="true">
       <span class="enter"><span class="bracket">[</span> {{ label() }} › <span class="bracket">]</span></span>
     </a>
   }

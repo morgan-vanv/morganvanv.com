@@ -1,5 +1,5 @@
 /**
- * The lab log, for /lab: one-liners about what happened in the homelab, in Morgan's words, oldest first and
+ * The lab log, for /homelab: one-liners about what happened in the homelab, in Morgan's words, oldest first and
  * the newest last, the way a terminal's `tail` reads. The page shows the last few (`LAB_LOG_TAIL`) until the
  * whole log is asked for.
  *
@@ -9,7 +9,7 @@
  * `lab.const.spec.ts` does for the rest of the Lab. Add an entry as one line at the end.
  */
 
-/** How many entries the Lab shows until "the whole log" is asked for. */
+/** How many entries the Homelab shows until "the whole log" is asked for. */
 export const LAB_LOG_TAIL = 8;
 
 // Every line is a draft, written from the infra repo's record for Morgan to rewrite in his own words.
@@ -24,6 +24,11 @@ export const LAB_LOG: readonly string[] = [
   'VideoJoker and Authentik moved in. Foundry left the NAS for a VM of its own.',
   'the bot ships itself: tag a release on GitHub and it\'s running.',
   'started keeping this log.',
+  'everyone got one login. the front desk is open.',
+  'the Pi retired for real. Pi-hole lives on BIG HOSS now.',
+  'a Minecraft network went up. the old Factions world came along, everyone\'s progress included.',
+  'Java and Bedrock both get in, through the same front door.',
+  'the worlds nap when nobody\'s on, and wake when someone joins.',
 ];
 
 /** The last `count` entries, in order; all of them when `count` is left out. */

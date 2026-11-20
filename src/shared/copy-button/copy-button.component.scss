@@ -1,0 +1,38 @@
+@use '../../styles' as *;
+
+:host {
+  display: inline-flex;
+}
+
+// A quiet pill beside the address, the gold of the site's other ways in; 44px tall, as every tap target.
+.copy {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0 0.95rem;
+  border-radius: 999px;
+  border: 1px solid rgba($accent-color, 0.75);
+  background: rgba($accent-color, 0.1);
+  color: #f4d78a;
+  font: inherit;
+  font-size: $font-size-meta;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($accent-color, 0.2);
+    color: #fff;
+  }
+
+  &.done {
+    border-color: rgba(#7bd389, 0.7);
+    color: #9fe0a8;
+  }
+
+  svg {
+    flex: none;
+  }
+}

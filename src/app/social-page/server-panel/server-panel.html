@@ -1,0 +1,43 @@
+<section class="panel server" id="server" aria-labelledby="social-server">
+  <h2 id="social-server">The Server <span class="range-label">Minecraft, open to anyone</span></h2>
+
+  <div class="top">
+    <img class="icon" [src]="icon" [alt]="iconAlt" width="264" height="264" loading="lazy" decoding="async" />
+    <div class="way-in">
+      <p class="label">my Minecraft network</p>
+      <div class="address-row">
+        <code class="address">{{ address }}</code>
+        <app-copy-button [value]="address" text="copy" [label]="'Copy the server address ' + address" />
+      </div>
+      @if (online(); as line) {
+        <p class="count"><span class="led" aria-hidden="true"></span>{{ line }}</p>
+      } @else if (down()) {
+        <p class="count down"><span class="led" aria-hidden="true"></span>down right now</p>
+      }
+    </div>
+  </div>
+
+  <ul class="editions" aria-label="Ways in">
+    @for (edition of editions; track edition.name) {
+      <li class="edition">
+        <span class="edition-name">{{ edition.name }}</span>
+        <span class="edition-line">{{ edition.devices }} · {{ edition.line }}</span>
+        <span class="how">{{ edition.menu }} › <b>{{ edition.button }}</b></span>
+      </li>
+    }
+  </ul>
+  <p class="both">everyone lands in the same worlds, whichever edition and version they're on.</p>
+
+  <h3 class="label modes-label">Modes</h3>
+  <ul class="modes">
+    @for (mode of modes; track mode.name) {
+      <li class="mode">
+        <span class="mode-name">{{ mode.name }}</span>
+        <span [class]="'tag ' + mode.state">{{ mode.state }}</span>
+        <span class="mode-line">{{ mode.line }}</span>
+      </li>
+    }
+  </ul>
+
+  <p class="foot">same crew as the Discord: the bot carries shouts and first joins between the two.</p>
+</section>

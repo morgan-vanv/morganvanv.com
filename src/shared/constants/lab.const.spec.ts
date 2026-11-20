@@ -60,8 +60,11 @@ describe('the lab\'s data', () => {
   it('puts the bot on the air by its Discord status, the rest by the status Worker', () => {
     const live = LAB_ON_AIR.filter(item => item.state === 'live');
     expect(live.map(item => [item.name, 'via' in item ? item.via : item.statusId])).toEqual([
-      ['Foundry VTT', 'vtt'], ['Jellyfin', 'jellyfin'], ['VideoJoker', 'discord'],
+      ['Foundry VTT', 'vtt'], ['Jellyfin', 'jellyfin'], ['VideoJoker', 'discord'], ['Minecraft', 'minecraft'],
     ]);
+    // Signed into through the front desk: the table and Jellyfin, and nothing else.
+    expect(LAB_ON_AIR.filter(item => item.behindDesk).map(item => item.name)).toEqual(['Foundry VTT', 'Jellyfin']);
+    expect(LAB_ON_AIR.filter(item => item.server).map(item => item.name)).toEqual(['Minecraft']);
   });
 
   it('keeps BIG HOSS at 64 GB with the 2 TB NVMe', () => {
@@ -71,7 +74,7 @@ describe('the lab\'s data', () => {
   });
 
   it('counts what runs, and on how many boxes', () => {
-    expect(runningSummary()).toBe('14 things, on three boxes');
+    expect(runningSummary()).toBe('18 things, on three boxes');
     const running = LAB_SERVICES.filter(s => s.state === 'running');
     expect(runningSummary(running.slice(0, 1))).toBe('1 thing, on one box');
     expect(runningSummary(running.filter(s => s.name === 'Tailscale'))).toBe('1 thing, on no boxes');

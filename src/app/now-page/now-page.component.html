@@ -33,7 +33,7 @@
         @for (row of rows(); track row.key) {
           <li>
             @if (row.internal) {
-              <a class="now-row" [routerLink]="row.href">
+              <a class="now-row" [routerLink]="row.href" [fragment]="row.fragment">
                 <ng-container *ngTemplateOutlet="rowBody; context: { $implicit: row }" />
               </a>
             } @else {
@@ -69,6 +69,7 @@
       <h3 class="cluster-label">this site</h3>
       <div class="strip">
         <app-own-button-badge />
+        <app-minecraft-badge />
         <app-angular-badge />
         <app-no-cookies-badge />
         <app-page-weight-badge />

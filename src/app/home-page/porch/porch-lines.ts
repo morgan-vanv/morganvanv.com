@@ -2,6 +2,7 @@ import { Tonight } from '../../../shared/sky/sky-tonight';
 import { clock } from '../../../shared/sky/sky-clock';
 import { phaseName } from '../../../shared/badges/moon-badge/moon-phase';
 import { LAB_ON_AIR, LabStatusId } from '../../../shared/constants/lab.const';
+import { onlineLine } from '../../../shared/minecraft/minecraft';
 
 /** "waxing gibbous · 81% lit", from the sky's own numbers. */
 export function moonLine(moon: { readonly illuminated: number; readonly phase: number }): string {
@@ -29,21 +30,25 @@ export interface OnAirLine {
   readonly name: string;
   /** Null until it's known (the status Worker or Discord hasn't answered): no light. */
   readonly state: 'up' | 'down' | null;
+  /** The server's "3 online", while it's up and counted; null for everything else. */
+  readonly count: string | null;
 }
 
 /**
- * The Lab's "On the air" entries that are live, each with its state: the status Worker's for the
+ * The Homelab's "On the air" entries that are live, each with its state: the status Worker's for the
  * ones it checks, the Discord feed's yes-or-no for the bot (`via: 'discord'`; `null` when Discord
- * capped its member list, since absence then proves nothing).
+ * capped its member list, since absence then proves nothing), and for the server, how many are on.
  */
 export function onAirLines(
   stateOf: (id: LabStatusId) => 'up' | 'down' | null,
   botOnline: boolean | null,
+  minecraftOnline: number | null = null,
 ): OnAirLine[] {
   return LAB_ON_AIR.flatMap(entry => {
     if (entry.state !== 'live') return [];
     const state = 'statusId' in entry ? stateOf(entry.statusId)
       : botOnline === null ? null : botOnline ? 'up' : 'down';
-    return [{ name: entry.name, state }];
+    const count = entry.server && state === 'up' && minecraftOnline !== null ? onlineLine(minecraftOnline) : null;
+    return [{ name: entry.name, state, count }];
   });
 }
