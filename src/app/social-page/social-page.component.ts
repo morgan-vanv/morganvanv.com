@@ -43,6 +43,8 @@ export class SocialPageComponent {
   private readonly campfire = inject(CampfireService);
   readonly shoutboxLive = this.campfire.configured;
   /** "3 by the fire", once the campfire has said who's here. */
+  /** The longest the count reads, held (invisibly) in its place until it's known. */
+  readonly hereReserve = 'just you by the fire';
   readonly hereLabel = computed(() => {
     const here = this.campfire.shoutLog()?.here;
     if (!here) return null;
@@ -58,10 +60,6 @@ export class SocialPageComponent {
 
   /** Friends' 88×31s, as on /now. */
   readonly friends = FRIENDS;
-
-  /** Whether Discord has answered: until then my friends have the last row to themselves. */
-  private readonly discord = inject(DiscordService);
-  readonly discordUp = computed(() => this.discord.summary() !== null);
 
   constructor() {
     // The rest of the site links the server's panel (/social#server).

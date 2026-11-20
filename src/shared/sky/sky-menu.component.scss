@@ -206,7 +206,12 @@ legend,
   50% { box-shadow: 0 0 0 6px rgba($accent-color, 0), 0 0 18px 4px rgba($accent-color, 0.3); }
 }
 
+// Out of flow, where the column would put it (under the button, right-aligned), so the menu's box
+// doesn't grow when it appears: that counted as a layout shift.
 .sky-hint {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
   margin: 0;
   padding: 0.4rem 0.75rem;
   border-radius: 999px;

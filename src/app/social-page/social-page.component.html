@@ -7,7 +7,8 @@
     <app-mailbag />
 
     <section class="panel shoutbox" aria-labelledby="social-shoutbox">
-      <h2 id="social-shoutbox">Shoutbox <span class="range-label">{{ irc.channel }}@if (hereLabel(); as here) { · {{ here }}}</span></h2>
+      <!-- The count's space is kept from first paint (hidden until it's known), so the label wraps, or doesn't, once. -->
+      <h2 id="social-shoutbox">Shoutbox <span class="range-label">{{ irc.channel }}<span class="here" [class.unknown]="!hereLabel()"> · {{ hereLabel() ?? hereReserve }}</span></span></h2>
       @if (shoutboxLive) {
         <app-shoutbox />
         <!-- With the live shoutbox above it, the way into real IRC is one quiet line. -->
@@ -72,11 +73,9 @@
     }
   </section>
 
-  <!-- Where people hang out: the Discord (once it has answered) beside the Minecraft server, then my friends' 88×31s. -->
-  <div class="hangouts" [class.with-discord]="discordUp()">
-    @if (discordUp()) {
-      <app-discord-panel />
-    }
+  <!-- Where people hang out: the Discord beside the Minecraft server, then my friends' 88×31s. -->
+  <div class="hangouts">
+    <app-discord-panel />
     <app-server-panel />
   </div>
   <div class="friends-row">

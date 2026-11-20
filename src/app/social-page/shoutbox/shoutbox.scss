@@ -1,6 +1,11 @@
 @use '../../../styles' as *;
 @use '../../../shared/shared-styles.scss' as shared;
 
+// The log's height, which the waiting line takes too, so nothing moves when the shouts arrive.
+$log-height: 16rem;
+$log-height-mobile: 13rem;
+$log-padding: 0.625rem 0.75rem;
+
 :host {
   display: flex;
   flex-direction: column;
@@ -14,13 +19,27 @@
   font-size: $font-size-meta;
   opacity: 0.65;
   text-align: center;
+
+  // Until the first answer: exactly the log's box (its height, padding and border), the line in its middle.
+  &.waiting {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: $log-height;
+    padding: $log-padding;
+    border: 1px solid transparent;
+
+    @media (max-width: $breakpoint-mobile) {
+      height: $log-height-mobile;
+    }
+  }
 }
 
 // An old client's scrollback: monospace lines, newest at the bottom.
 .log {
   @include shared.scrollbar-styled;
-  padding: 0.625rem 0.75rem;
-  height: 16rem;
+  padding: $log-padding;
+  height: $log-height;
   overflow-y: auto;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.4);
@@ -35,7 +54,7 @@
   }
 
   @media (max-width: $breakpoint-mobile) {
-    height: 13rem;
+    height: $log-height-mobile;
   }
 }
 
