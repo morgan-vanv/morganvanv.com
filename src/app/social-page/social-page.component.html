@@ -7,8 +7,9 @@
     <app-mailbag />
 
     <section class="panel shoutbox" aria-labelledby="social-shoutbox">
-      <!-- The count's space is kept from first paint (hidden until it's known), so the label wraps, or doesn't, once. -->
-      <h2 id="social-shoutbox">Shoutbox <span class="range-label">{{ irc.channel }}<span class="here" [class.unknown]="!hereLabel()"> · {{ hereLabel() ?? hereReserve }}</span></span></h2>
+      <!-- The count sits in a slot as wide as its longest form, there from first paint (hidden until it's known), so
+           the label wraps, or doesn't, once: a count going 1 ↔ 2 on a poll never moves the page. -->
+      <h2 id="social-shoutbox">Shoutbox <span class="range-label">{{ irc.channel }}<span class="here" [class.unknown]="!hereLabel()"> · <span class="here-slot"><span class="here-text">{{ hereLabel() ?? hereReserve }}</span><span class="here-reserve" aria-hidden="true">{{ hereReserve }}</span></span></span></span></h2>
       @if (shoutboxLive) {
         <app-shoutbox />
         <!-- With the live shoutbox above it, the way into real IRC is one quiet line. -->

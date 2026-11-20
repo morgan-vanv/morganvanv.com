@@ -47,7 +47,7 @@ export class DiscordPanelComponent {
 
   readonly joinLabel = computed(() => {
     const name = this.summary()?.name;
-    return `Pull up a chair: join ${name ? `${name} on Discord` : 'the Discord'} (opens Discord in a new tab)`;
+    return `Tap in: join ${name ? `${name} on Discord` : 'the Discord'} (opens Discord in a new tab)`;
   });
 
   readonly view = computed(() => {

@@ -78,8 +78,22 @@
   display: flex;
   flex-direction: column;
 
-  // Holds the "by the fire" count's place until the campfire answers (and hides it from screen readers).
+  // The "by the fire" count: hidden (screen readers too) until the campfire answers, and always in a slot as wide
+  // as its longest form, so a new count never re-wraps the heading and moves the page.
   .here.unknown {
+    visibility: hidden;
+  }
+
+  .here-slot {
+    display: inline-grid;
+    justify-items: start;
+
+    > * {
+      grid-area: 1 / 1;
+    }
+  }
+
+  .here-reserve {
     visibility: hidden;
   }
 

@@ -29,7 +29,7 @@ describe('DiscordPanelComponent', () => {
     expect(el().textContent).not.toMatch(/\d/);
     const join = el().querySelector<HTMLAnchorElement>('a.join')!;
     expect(join.getAttribute('href')).toBe('https://discord.gg/Cgxk3Ya');
-    expect(join.getAttribute('aria-label')).toBe('Pull up a chair: join the Discord (opens Discord in a new tab)');
+    expect(join.getAttribute('aria-label')).toBe('Tap in: join the Discord (opens Discord in a new tab)');
     expect(el().querySelector('.tagline')?.textContent?.trim()).toBe(DISCORD_TAGLINE);
   });
 
@@ -70,7 +70,7 @@ describe('DiscordPanelComponent', () => {
     expect(join.getAttribute('href')).toBe('https://discord.gg/Cgxk3Ya');
     expect(join.getAttribute('target')).toBe('_blank');
     expect(join.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(join.getAttribute('aria-label')).toMatch(/^Pull up a chair/);
+    expect(join.getAttribute('aria-label')).toMatch(/^Tap in: join Ugandan Commandos on Discord/);
     expect(el().querySelector('.tagline')?.textContent?.trim()).toBe(DISCORD_TAGLINE);
     expect(DISCORD_TAGLINE).toBe("home to the world's greatest gaming prodigies");
   });

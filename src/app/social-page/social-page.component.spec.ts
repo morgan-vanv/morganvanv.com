@@ -76,16 +76,20 @@ describe('SocialPageComponent', () => {
     expect([...el.querySelectorAll('.panel')].at(-1)?.matches('.friends-panel')).toBe(true);
   });
 
-  it("holds the shoutbox's 'by the fire' count's place, hidden, until the campfire answers", async () => {
+  it("keeps the shoutbox's 'by the fire' count in a slot as wide as its longest form, hidden until the campfire answers", async () => {
     const here = () => (fixture.nativeElement as HTMLElement).querySelector('#social-shoutbox .here')!;
     expect(here().classList.contains('unknown')).toBe(true);
-    expect(here().textContent).toBe(' · just you by the fire');
+    expect(here().querySelector('.here-text')?.textContent).toBe('just you by the fire');
 
     const http = TestBed.inject(HttpTestingController);
     for (const req of http.match(r => r.url.startsWith(`${SITE_CONFIG.campfireUrl}/shouts`))) req.flush({ shouts: [], here: 2, open: true });
     await fixture.whenStable();
     expect(here().classList.contains('unknown')).toBe(false);
-    expect(here().textContent).toBe(' · 2 by the fire');
+    expect(here().querySelector('.here-text')?.textContent).toBe('2 by the fire');
+    // The slot stays as wide as its longest form, hidden from screen readers.
+    const reserve = here().querySelector('.here-reserve')!;
+    expect(reserve.textContent).toBe('just you by the fire');
+    expect(reserve.getAttribute('aria-hidden')).toBe('true');
   });
 
   it('has the Discord beside the server from first paint, its counts once Discord answers; my friends after', async () => {

@@ -43,7 +43,7 @@ export class SocialPageComponent {
   private readonly campfire = inject(CampfireService);
   readonly shoutboxLive = this.campfire.configured;
   /** "3 by the fire", once the campfire has said who's here. */
-  /** The longest the count reads, held (invisibly) in its place until it's known. */
+  /** The longest the count reads ("12 by the fire" is shorter): its slot is always this wide. */
   readonly hereReserve = 'just you by the fire';
   readonly hereLabel = computed(() => {
     const here = this.campfire.shoutLog()?.here;
