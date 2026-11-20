@@ -7,12 +7,13 @@ import { SITE_CONFIG } from '../../../shared/config/site.config';
 import { DiscordService } from '../../../shared/discord/discord.service';
 import { DISCORD_TAGLINE, discordDetail } from '../../../shared/discord/discord';
 import { LabStatusService } from '../../../shared/lab-status/lab-status.service';
-import { moonLine, onAirLines, planetLine } from './porch-lines';
+import { SERVER_ICON_URL } from '../../../shared/minecraft/minecraft';
+import { moonLine, onAirLines, planetLine, serverLine } from './porch-lines';
 
 /**
  * Home's porch: what's going on around the place right now, in Morgan's order (2026-11-09): what's
- * on the record player (stats.fm), tonight's sky (the sky's own numbers), the Discord (as `/now`'s
- * Hanging out row) and what's on the air in the lab. Each one leads somewhere. Nothing waits on a
+ * on the record player (stats.fm), tonight's sky (the sky's own numbers), where people hang out (the
+ * Discord, as `/now`'s Hanging out row, and the Minecraft server's count) and what's on the air in the lab. Each one leads somewhere. Nothing waits on a
  * feed to look finished: until one answers, its spot shows a resting line (prerendered, so
  * hydration matches) and the lab's names show without lights.
  */
@@ -64,17 +65,25 @@ export class HomePorchComponent {
     };
   });
 
-  /** The Discord, counts only (as `/now`'s Hanging out row), or null. */
-  readonly hangingOut = computed(() => {
+  /** The Discord's counts (as `/now`'s Hanging out row), or null until Discord answers. */
+  readonly discordLine = computed(() => {
     const summary = this.discord.summary();
-    return summary ? { name: summary.name, detail: discordDetail(summary) } : null;
+    return summary ? discordDetail(summary) : null;
   });
+
+  /** The Minecraft server, under the Discord: its count while it's up, else its address. */
+  readonly serverIcon = SERVER_ICON_URL;
+  readonly server = computed(() => {
+    const state = this.labStatus.stateOf('minecraft');
+    const online = this.labStatus.minecraftOnline();
+    return { live: state === 'up' && online !== null, detail: serverLine(state, online, SITE_CONFIG.minecraftAddress) };
+  });
+
+  /** "hanging out · right now", with a live dot, once either place has answered. */
+  readonly hangingOutLive = computed(() => this.discordLine() !== null || this.server().live);
 
   readonly onAir = computed(() =>
     onAirLines(id => this.labStatus.stateOf(id), this.discord.summary()?.botOnline ?? null, this.labStatus.minecraftOnline()));
-
-  /** B: the front desk, beside the way to the Homelab (Morgan, 2026-11-20). */
-  readonly frontDeskUrl = SITE_CONFIG.frontDeskUrl;
 
   /** Hides the page, as the greeting's "or just look up" does; focus goes to the ☾ (this button is about to be inert). */
   protected lookUp(): void {

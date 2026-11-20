@@ -49,19 +49,22 @@
 
   <div class="spot discord">
     <h3 class="label">
-      @if (hangingOut()) {<span class="dot" aria-hidden="true"></span>}
-      <span>hanging out@if (hangingOut()) {<span class="when"> · right now</span>}</span>
+      @if (hangingOutLive()) {<span class="dot" aria-hidden="true"></span>}
+      <span>hanging out@if (hangingOutLive()) {<span class="when"> · right now</span>}</span>
     </h3>
+    <!-- Both places from first paint, each with a resting line, so nothing moves when they answer. -->
     <div class="item">
       <span class="thumb glyph" aria-hidden="true">#</span>
       <p class="text">
-        @if (hangingOut(); as discord) {
-          <span class="title" [title]="discord.name">{{ discord.name }}</span>
-          <span class="detail">{{ discord.detail }}</span>
-        } @else {
-          <span class="title">the Discord</span>
-          <span class="detail">{{ tagline }}</span>
-        }
+        <span class="title">Discord Server</span>
+        <span class="detail">{{ discordLine() ?? tagline }}</span>
+      </p>
+    </div>
+    <div class="item server">
+      <img class="thumb" [src]="serverIcon" alt="" width="48" height="48" loading="lazy" decoding="async" />
+      <p class="text">
+        <span class="title">Minecraft Server</span>
+        <span class="detail">{{ server().detail }}</span>
       </p>
     </div>
     <a class="go" routerLink="/social"><span class="b" aria-hidden="true">[</span>tap in ›<span class="b" aria-hidden="true">]</span></a>
@@ -77,9 +80,6 @@
         </li>
       }
     </ul>
-    <div class="gos">
-      <a class="go" routerLink="/homelab"><span class="b" aria-hidden="true">[</span>homelab ›<span class="b" aria-hidden="true">]</span></a>
-      <a class="go desk" [href]="frontDeskUrl" target="_blank" rel="noopener noreferrer">front desk<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
-    </div>
+    <a class="go" routerLink="/homelab"><span class="b" aria-hidden="true">[</span>homelab ›<span class="b" aria-hidden="true">]</span></a>
   </div>
 </section>
