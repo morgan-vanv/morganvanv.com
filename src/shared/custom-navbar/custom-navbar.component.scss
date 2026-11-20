@@ -31,6 +31,11 @@ nav {
   font-size: 0.95rem;
   white-space: nowrap;
 
+  // Eight pages and their reserved brackets fill a small laptop's card: a touch smaller, a touch closer.
+  @media (max-width: $breakpoint-laptop) {
+    font-size: 0.85rem;
+  }
+
   @media (max-width: $breakpoint-mobile) {
     display: none;
   }
@@ -51,6 +56,11 @@ nav {
     flex: 1;
     min-height: 2.75rem;
     padding: 0 0.5rem;
+
+    @media (max-width: $breakpoint-laptop) {
+      padding: 0 0.25rem;
+    }
+
     border-radius: 0.75rem;
     display: flex;
     align-items: center;

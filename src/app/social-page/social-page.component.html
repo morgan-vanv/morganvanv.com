@@ -72,11 +72,14 @@
     }
   </section>
 
-  <!-- Last, where people hang out: the Discord (once it has answered) beside my friends' 88×31s. -->
+  <!-- Where people hang out: the Discord (once it has answered) beside the Minecraft server, then my friends' 88×31s. -->
   <div class="hangouts" [class.with-discord]="discordUp()">
     @if (discordUp()) {
       <app-discord-panel />
     }
+    <app-server-panel />
+  </div>
+  <div class="friends-row">
     <section class="panel friends-panel" aria-labelledby="social-friends">
       <h2 id="social-friends">My Friends <span class="range-label">go say hi</span></h2>
       <div class="friends">

@@ -3,9 +3,10 @@ import { RouterLink } from '@angular/router';
 import { RecentStreamService } from '../../../shared/services/recent-stream.service';
 import { CINCINNATI_TIME_ZONE, SkyService } from '../../../shared/sky/sky.service';
 import { litPath } from '../../../shared/badges/moon-badge/moon-phase';
+import { SITE_CONFIG } from '../../../shared/config/site.config';
 import { DiscordService } from '../../../shared/discord/discord.service';
 import { DISCORD_TAGLINE, discordDetail } from '../../../shared/discord/discord';
-import { LabStatusService } from '../../lab-page/lab-status.service';
+import { LabStatusService } from '../../../shared/lab-status/lab-status.service';
 import { moonLine, onAirLines, planetLine } from './porch-lines';
 
 /**
@@ -70,7 +71,10 @@ export class HomePorchComponent {
   });
 
   readonly onAir = computed(() =>
-    onAirLines(id => this.labStatus.stateOf(id), this.discord.summary()?.botOnline ?? null));
+    onAirLines(id => this.labStatus.stateOf(id), this.discord.summary()?.botOnline ?? null, this.labStatus.minecraftOnline()));
+
+  /** B: the front desk, beside the way to the Homelab (Morgan, 2026-11-20). */
+  readonly frontDeskUrl = SITE_CONFIG.frontDeskUrl;
 
   /** Hides the page, as the greeting's "or just look up" does; focus goes to the ☾ (this button is about to be inert). */
   protected lookUp(): void {

@@ -80,13 +80,15 @@ describe('NowPageComponent', () => {
     const rows = [...panel!.querySelectorAll('.strip')].map(strip => [...strip.children].map(badge => badge.tagName.toLowerCase()));
     expect(rows).toEqual([
       ['app-weather-badge', 'app-moon-badge', 'app-up-tonight-badge'],
-      ['app-own-button-badge', 'app-angular-badge', 'app-no-cookies-badge', 'app-page-weight-badge', 'app-lighthouse-badge', 'app-build-badge'],
+      ['app-own-button-badge', 'app-minecraft-badge', 'app-angular-badge', 'app-no-cookies-badge', 'app-page-weight-badge', 'app-lighthouse-badge', 'app-build-badge'],
       ['app-friend-button', 'app-friend-button'],
     ]);
     expect([...panel!.querySelectorAll('app-friend-button a')].map(a => a.getAttribute('href'))).toEqual(['https://nickdeda.com', 'https://harryrosenberg.net']);
     // The ones whose data ships with the site are there from the start; the Lighthouse badge waits for its report.
     expect(panel?.querySelector('app-own-button-badge .badge')).not.toBeNull();
     expect(panel?.querySelector('app-lighthouse-badge .badge')).toBeNull();
+    // The server's waits for the status Worker.
+    expect(panel?.querySelector('app-minecraft-badge .badge')).toBeNull();
   });
 
   it('pins one project under Building and links to all of them', () => {
@@ -263,6 +265,73 @@ describe('NowPageComponent', () => {
     flushDiscord({ ...DISCORD_FEED_FIXTURE, instant_invite: null });
     await fixture.whenStable();
     expect(fixture.componentInstance.rows().find(r => r.key === 'hanging-out')?.href).toBe('https://discord.gg/Cgxk3Ya');
+  });
+
+  const flushStatus = (body: object) => {
+    for (const req of http.match(r => r.url === SITE_CONFIG.labStatusUrl)) req.flush(body);
+  };
+  const SERVER_UP = {
+    checkedAt: '2026-11-20T15:00:00.000Z', services: { vtt: 'up', jellyfin: 'up', desk: 'up', minecraft: 'up' }, players: { minecraft: 3 },
+  };
+
+  it('adds On the server from the status Worker, after Hanging out: a count, never a name, linking to its panel', async () => {
+    flushDiscord(DISCORD_FEED_FIXTURE);
+    flushStatus(SERVER_UP);
+    await fixture.whenStable();
+    expect(rowKeys()).toEqual(['hanging-out', 'minecraft', 'community', 'site']);
+    expect(fixture.componentInstance.rows()[1]).toMatchObject({
+      label: 'On the server', title: 'mc.morganvanv.com', detail: '3 online · Java and Bedrock',
+      href: '/social', fragment: 'server', internal: true, live: true,
+    });
+    const link = (fixture.nativeElement as HTMLElement).querySelectorAll('.now-row')[1];
+    expect(link.getAttribute('href')).toBe('/social#server');
+  });
+
+  it('says 0 online when nobody is on', async () => {
+    flushStatus({ ...SERVER_UP, players: { minecraft: 0 } });
+    await fixture.whenStable();
+    expect(fixture.componentInstance.rows().find(r => r.key === 'minecraft')?.detail).toBe('0 online · Java and Bedrock');
+  });
+
+  it('has no server row while the server is down, or before the Worker answers', async () => {
+    expect(rowKeys()).not.toContain('minecraft');
+    flushStatus({ ...SERVER_UP, services: { ...SERVER_UP.services, minecraft: 'down' } });
+    await fixture.whenStable();
+    expect(rowKeys()).not.toContain('minecraft');
+  });
+
+  it('keeps Morgan\'s order: listening, the Discord, the server, OSRS, Letterboxd, the latest push, the wall, the site', async () => {
+    lastListened.set({ trackName: 'Song', artistName: 'Band', imageUrl: null, trackUrl: 'https://stats.fm/track/1', isPlaying: true, at: Date.now() });
+    flushDiary(diary);
+    flushDiscord(DISCORD_FEED_FIXTURE);
+    flushStatus(SERVER_UP);
+    flushActivities([], [{ type: 'valuable_drop', createdAt: new Date().toISOString(), data: { itemId: 4151, value: 1_500_000 }, enriched: { itemName: 'Abyssal whip' } }]);
+    for (const req of http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com')) {
+      req.flush({ html_url: '', pushed_at: new Date().toISOString() });
+    }
+    await fixture.whenStable();
+    expect(rowKeys()).toEqual(['listening', 'hanging-out', 'minecraft', 'playing', 'watched', 'building', 'community', 'site']);
+  });
+
+  it('puts the server\'s 88×31 beside the site\'s own: its address, the count, and a press copies the address', async () => {
+    flushStatus(SERVER_UP);
+    await fixture.whenStable();
+    const badge = (fixture.nativeElement as HTMLElement).querySelector('app-minecraft-badge button.badge');
+    expect(badge).not.toBeNull();
+    expect(badge?.getAttribute('aria-label')).toBe('mc.morganvanv.com: 3 online right now. Plays on Java and Bedrock. '
+      + 'Modes: Factions, Anarchy, Minigames. Press to copy the server\'s address.');
+    const pop = (fixture.nativeElement as HTMLElement).querySelector('app-minecraft-badge .popover')!;
+    const rows = [...pop.querySelectorAll('.popover-row')].map(row => [...row.children].map(part => part.textContent?.trim()));
+    expect(rows).toEqual([['On right now', '3'], ['Plays on', 'Java + Bedrock'], ['Modes', 'Factions · Anarchy · Minigames']]);
+    expect(pop.querySelector('.popover-cta')?.textContent?.trim()).toBe('click to copy IP address');
+
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    (badge as HTMLButtonElement).click();
+    await new Promise(resolve => setTimeout(resolve));
+    await fixture.whenStable();
+    expect(writeText).toHaveBeenCalledWith('mc.morganvanv.com');
+    expect((fixture.nativeElement as HTMLElement).querySelector('app-minecraft-badge [role=status]')?.textContent).toBe('Copied mc.morganvanv.com.');
   });
 
   it('skips Playing when RuneProfile fails', async () => {

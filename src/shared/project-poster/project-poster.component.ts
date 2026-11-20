@@ -7,16 +7,21 @@ import { ProjectArtLinkComponent } from '../project-art-link/project-art-link.co
 import { ProjectRibbonComponent } from '../project-ribbon/project-ribbon.component';
 import { GitHubService } from '../services/github.service';
 import { relativeTime } from '../services/relative-time';
+import { CopyButtonComponent } from '../copy-button/copy-button.component';
+import { LabStatusService } from '../lab-status/lab-status.service';
+import { SITE_CONFIG } from '../config/site.config';
+import { SERVER_ICON_URL } from '../minecraft/minecraft';
 
 /**
  * A project as a poster on the Projects page: the art on top with a status in its corner, a bevelled
  * title plate in the 88×31 language sitting on the art's bottom edge, then what it is, the stack, the
  * links and when it was last pushed to (live from GitHub). One surface per project (pillar 9): the art
- * is a real screenshot, a chat log drawn in CSS, a miniature of this site, or a server rack.
+ * is a real screenshot, a chat log drawn in CSS, a miniature of this site, or the game's server list with the
+ * Minecraft server's live count (from `LabStatusService`, when the page provides it).
  */
 @Component({
   selector: 'app-project-poster',
-  imports: [RouterLink, ProjectArtLinkComponent, ProjectRibbonComponent],
+  imports: [RouterLink, ProjectArtLinkComponent, ProjectRibbonComponent, CopyButtonComponent],
   templateUrl: './project-poster.component.html',
   styleUrl: './project-poster.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,7 +35,13 @@ export class ProjectPosterComponent {
   readonly image = computed(() => { const art = this.project().art; return art.kind === 'image' ? art : null; });
   readonly chat = computed(() => { const art = this.project().art; return art.kind === 'chat' ? art : null; });
   readonly site = computed(() => { const art = this.project().art; return art.kind === 'site' ? art : null; });
-  readonly rack = computed(() => { const art = this.project().art; return art.kind === 'rack' ? art : null; });
+  readonly serverList = computed(() => { const art = this.project().art; return art.kind === 'server-list' ? art : null; });
+
+  protected readonly address = SITE_CONFIG.minecraftAddress;
+  protected readonly serverIcon = SERVER_ICON_URL;
+  private readonly labStatus = inject(LabStatusService, { optional: true });
+  /** How many are on the server, once the status Worker says; null (nothing shown) before, or while it's down. */
+  protected readonly online = computed(() => this.labStatus?.minecraftOnline() ?? null);
 
   /** The GitHub link, for a project with a repo. */
   readonly sourceUrl = computed(() => {

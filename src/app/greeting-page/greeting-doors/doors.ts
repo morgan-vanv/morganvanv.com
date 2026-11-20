@@ -1,5 +1,5 @@
 /**
- * The greeting's two hidden doors: the lit farmhouse window goes to /projects, the campfire to /social.
+ * The greeting's two hidden doors: the lit farmhouse window goes to /homelab (it went to /projects until 2026-11-20), the campfire to /social.
  * Each is a 44 px link over its spot in the painting (where the sky puts its window light and its
  * campfire, `SkyService.nightLights`), with a small label that rises above it on hover, focus or a
  * first tap. Pure: where a door goes (or that it hides) and what its label says.
@@ -9,15 +9,15 @@ export type DoorId = 'window' | 'fire';
 export interface Door {
   readonly id: DoorId;
   /** Where it goes. */
-  readonly path: '/projects' | '/social';
+  readonly path: '/homelab' | '/social';
   /** Its accessible name. */
   readonly name: string;
-  /** The gold part of its label: `[ projects › ]`. */
+  /** The gold part of its label: `[ homelab › ]`. */
   readonly label: string;
 }
 
 export const DOORS: readonly Door[] = [
-  { id: 'window', path: '/projects', name: 'Projects', label: 'projects' },
+  { id: 'window', path: '/homelab', name: 'Homelab', label: 'homelab' },
   { id: 'fire', path: '/social', name: 'Social', label: 'social' },
 ];
 
@@ -29,7 +29,7 @@ export function fireLead(here: number | null): string {
   return here && here > 0 ? `${here} around the fire` : 'the fire\'s lit';
 }
 
-/** The whole label as it reads: "the light's on [ projects › ]". */
+/** The whole label as it reads: "the light's on [ homelab › ]". */
 export function labelText(lead: string, door: Door): string {
   return `${lead} [ ${door.label} › ]`;
 }

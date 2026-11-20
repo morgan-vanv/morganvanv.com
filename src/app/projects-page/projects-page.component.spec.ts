@@ -4,6 +4,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { ProjectsPageComponent } from './projects-page.component';
 import { PROJECTS } from '../../shared/constants/projects.const';
+import { SITE_CONFIG } from '../../shared/config/site.config';
 
 describe('ProjectsPageComponent', () => {
   let fixture: ComponentFixture<ProjectsPageComponent>;
@@ -23,6 +24,7 @@ describe('ProjectsPageComponent', () => {
 
   afterEach(() => {
     http.match(r => new URL(r.url, 'http://localhost').hostname === 'api.github.com');
+    http.match(SITE_CONFIG.labStatusUrl);
     http.verify();
   });
 
@@ -56,11 +58,23 @@ describe('ProjectsPageComponent', () => {
     expect(slot.style.getPropertyValue('--slot-span')).toBe('1');
   });
 
-  it('links the homelab poster and its art to /lab', () => {
+  it('has no Homelab poster any more: it\'s a page of its own in the nav', () => {
+    expect(PROJECTS.map(p => p.id)).not.toContain('homelab');
+    expect(PROJECTS.map(p => p.more?.route)).not.toContain('/lab');
+  });
+
+  it('shows the Minecraft server as the game\'s server list, with its live count, linking to its panel on Social', async () => {
     const el = fixture.nativeElement as HTMLElement;
-    const homelab = [...el.querySelectorAll('app-project-poster')].find(p => p.querySelector('h2')?.textContent?.trim() === 'The Homelab');
-    expect(homelab?.querySelector('.rack')?.getAttribute('role')).toBe('img');
-    expect(homelab?.querySelector('.art a.art-link')?.getAttribute('href')).toBe('/lab');
-    expect([...homelab!.querySelectorAll('.links a')].map(a => a.getAttribute('href'))).toEqual(['/lab']);
+    const poster = [...el.querySelectorAll('app-project-poster')].find(p => p.querySelector('h2')?.textContent?.trim() === 'mc.morganvanv.com');
+    expect(poster?.querySelector('.server-list')?.getAttribute('role')).toBe('img');
+    expect(poster?.querySelector('.art a.art-link')?.getAttribute('href')).toBe('/social#server');
+    expect(poster?.querySelector('.count')).toBeNull();
+    http.expectOne(SITE_CONFIG.labStatusUrl).flush({
+      checkedAt: '2026-11-20T15:00:00.000Z',
+      services: { vtt: 'up', jellyfin: 'up', minecraft: 'up' },
+      players: { minecraft: 2 },
+    });
+    await fixture.whenStable();
+    expect(poster?.querySelector('.count')?.textContent).toBe('2 online');
   });
 });

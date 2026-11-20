@@ -1,0 +1,30 @@
+@use '../glyph';
+@use '../../../styles' as *;
+
+@include glyph.colors;
+
+// The grass block's own colours (the game's, a touch darker for the night card), on its glyph only.
+.g-grass { fill: #5fa04e; }
+.g-grass-edge { fill: #4a8a3c; }
+.g-dirt { fill: #8a5a3b; }
+.g-dirt-dark { fill: #6b4630; }
+
+// The face's own text: the address in the gold of a badge's name, but as typed, then the count like any value.
+.mc-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mc-name {
+  font-size: 0.56rem;
+  font-weight: 700;
+  line-height: 1;
+  color: $accent-color;
+}
+
+.mc-value {
+  font-size: $font-size-label;
+  font-weight: 700;
+  line-height: 1.1;
+}

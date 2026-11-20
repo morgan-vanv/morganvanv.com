@@ -73,10 +73,13 @@
       @for (line of onAir(); track line.name) {
         <li>
           <span class="led" [class.up]="line.state === 'up'" [class.down]="line.state === 'down'" aria-hidden="true"></span>
-          {{ line.name }}@if (line.state) {<span class="visually-hidden">, {{ line.state }}</span>}
+          {{ line.name }}@if (line.count) {<span class="visually-hidden">, </span><span class="count">{{ line.count }}</span>} @else if (line.state) {<span class="visually-hidden">, {{ line.state }}</span>}
         </li>
       }
     </ul>
-    <a class="go" routerLink="/lab"><span class="b" aria-hidden="true">[</span>the lab ›<span class="b" aria-hidden="true">]</span></a>
+    <div class="gos">
+      <a class="go" routerLink="/homelab"><span class="b" aria-hidden="true">[</span>homelab ›<span class="b" aria-hidden="true">]</span></a>
+      <a class="go desk" [href]="frontDeskUrl" target="_blank" rel="noopener noreferrer">front desk<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></a>
+    </div>
   </div>
 </section>

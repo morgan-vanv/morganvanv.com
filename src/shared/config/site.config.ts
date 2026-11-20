@@ -50,10 +50,21 @@ export const SITE_CONFIG = {
   /** Ask Morgan: a Cloudflare Worker (morganvanv.com-backend/ask) that forwards the Contact form and star names to Discord. */
   askMorganSubmitUrl: 'https://ask.morganvanv.workers.dev/submit',
   /**
-   * The lab's status: a Cloudflare Worker (morganvanv.com-backend) that checks from outside every few
-   * minutes whether the things on /lab's "On the air" are up. Answers `{ checkedAt, services: { vtt, jellyfin } }`.
+   * The lab's status: a Cloudflare Worker (morganvanv.com-backend/lab-status) that checks from outside every few
+   * minutes whether the things on the Homelab's "On the air" are up, and how many are on the Minecraft server.
+   * Answers `{ checkedAt, services: { vtt, jellyfin, desk, minecraft }, players?: { minecraft } }` (`lab-status.ts`).
    */
   labStatusUrl: 'https://lab-status.morganvanv.workers.dev/status',
+  /**
+   * The front desk: where friends and family sign in (Authentik; this name redirects to its own). The one door
+   * to Morgan's hosted apps the site links (Morgan, 2026-11-20); the apps behind it are named, never linked.
+   */
+  frontDeskUrl: 'https://services.morganvanv.com',
+  /**
+   * The Minecraft network, open to anyone, Java and Bedrock alike, on the games' default ports. Its address is the
+   * one the site shows on purpose (Morgan, 2026-11-20: the Homelab's exception to "no addresses").
+   */
+  minecraftAddress: 'mc.morganvanv.com',
   /**
    * Morgan's Discord server: its public widget feed (counts, voice, what's being played, an invite),
    * read straight from the browser on /social and /now. Turned on in the server's settings (Widget).
@@ -66,10 +77,12 @@ export const SITE_CONFIG = {
      */
     inviteUrl: 'https://discord.gg/Cgxk3Ya',
     /**
-     * The Discord account VideoJoker runs as. The widget lists it like any member, so the Lab reads whether the
-     * bot is online from the same feed; the name itself never leaves the parser (`toDiscordSummary`).
+     * The names VideoJoker shows under in the widget, which lists it like any member (by its server nickname when
+     * it has one), so the Homelab reads whether the bot is online from the same feed. "VJ" since November 2026,
+     * when the bot got that nickname (the site read "offline" until this list learned it, 2026-11-20); its account
+     * name stays as a fallback. The names never leave the parser (`toDiscordSummary`).
      */
-    botName: 'botmaster12',
+    botNames: ['VJ', 'botmaster12'],
   },
   /** The weather badge: Open-Meteo (free, no key) for the numbers, the National Weather Service for people. */
   weatherApiUrl: 'https://api.open-meteo.com/v1/forecast',

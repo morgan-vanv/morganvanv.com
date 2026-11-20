@@ -6,7 +6,7 @@ import { SITE_CONFIG } from '../config/site.config';
  * played. The feed's own invite (`instant_invite`) only lasts a day, so it's ignored: the way in is the
  * permanent `SITE_CONFIG.discord.inviteUrl`. Usernames, avatars and channel names are dropped here, so nothing past this file ever sees
  * them: the site shows counts, never people. The one name looked at is Morgan's own bot's
- * (`SITE_CONFIG.discord.botName`), and only a yes or no about it gets out, for the Lab's "on the air".
+ * (`SITE_CONFIG.discord.botNames`), and only a yes or no about it gets out, for the Homelab's "on the air".
  */
 export interface DiscordSummary {
   name: string;
@@ -14,7 +14,7 @@ export interface DiscordSummary {
   online: number;
   /**
    * Whether VideoJoker is online: true if the bot's account is listed, false if it isn't and the list is complete,
-   * null if it isn't and Discord capped the list (then its absence proves nothing, and the Lab shows no pill).
+   * null if it isn't and Discord capped the list (then its absence proves nothing, and the Homelab shows no pill).
    */
   botOnline: boolean | null;
   /** How they're split, scaled to `online` (Discord lists at most about a hundred members). */
@@ -79,7 +79,7 @@ export function scaleStatus(listed: DiscordStatusCounts, online: number): Discor
 }
 
 /** The feed as the site uses it, or null if it isn't the shape Discord sends (then nothing shows). */
-export function toDiscordSummary(value: unknown, botName: string = SITE_CONFIG.discord.botName): DiscordSummary | null {
+export function toDiscordSummary(value: unknown, botNames: readonly string[] = SITE_CONFIG.discord.botNames): DiscordSummary | null {
   if (!isRecord(value)) return null;
   const name = cleanName(value['name']);
   const online = value['presence_count'];
@@ -94,7 +94,7 @@ export function toDiscordSummary(value: unknown, botName: string = SITE_CONFIG.d
     if (!isRecord(member)) continue;
     const status = member['status'];
     if (status === 'online' || status === 'idle' || status === 'dnd') listed[status]++;
-    if (member['username'] === botName && status !== 'offline') botListed = true;
+    if (typeof member['username'] === 'string' && botNames.includes(member['username']) && status !== 'offline') botListed = true;
     if (typeof member['channel_id'] === 'string' && member['channel_id']) inVoice++;
     const game = isRecord(member['game']) ? cleanName(member['game']['name']) : null;
     if (game && !LOOKS_LIKE_A_DOMAIN.test(game)) played.set(game, (played.get(game) ?? 0) + 1);

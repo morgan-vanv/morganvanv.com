@@ -1,6 +1,6 @@
 <app-base-page>
   <!-- Draft copy: Morgan's to keep or change. -->
-  <app-page-header title="Lab" description="The machines in my office rack and closet, and what they run. No addresses or ports, sorry." />
+  <app-page-header title="Homelab" description="The machines in my office rack and closet, and what they run. No addresses or ports, sorry." />
 
   <!-- Wide screens and tablets: the rack and the closet drawn in CSS, each machine a toggle button, its spec sheet beside them. -->
   <div class="hardware-row">
@@ -112,24 +112,29 @@
 
   <div class="lower">
     <section class="panel air" aria-labelledby="lab-air">
-      <h2 id="lab-air">On the air <span class="range-label">for friends &amp; family</span></h2>
+      <h2 id="lab-air">On the air <span class="range-label">for friends, family, and you</span></h2>
+      <!-- The front desk: the one door to the hosted apps the site links (Morgan, 2026-11-20). Draft copy. -->
+      <a class="desk" [href]="frontDeskUrl" target="_blank" rel="noopener noreferrer">
+        <span class="desk-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M14 10a4 4 0 1 0-4 4M10 14l-7 7M6 18l2 2M14 10h7v4" /></svg>
+        </span>
+        <span class="desk-name">the front desk<span aria-hidden="true"> ↗</span><span class="visually-hidden"> (opens in a new tab)</span></span>
+        @if (deskState(); as state) {
+          <span class="state" [class.down]="state === 'down'"><span class="led" aria-hidden="true"></span>{{ state }}</span>
+        }
+        <span class="desk-what">got an account from me? sign in here, and everything marked <span class="behind">behind the desk</span> opens.</span>
+      </a>
       <ul class="air-list">
         @for (item of onAir; track item.name) {
           <li>
-            @if (item.url) {
-              <a class="air-row" [href]="item.url" target="_blank" rel="noopener noreferrer">
-                <ng-container [ngTemplateOutlet]="airRow" [ngTemplateOutletContext]="{ $implicit: item }" />
-              </a>
-            } @else {
-              <div class="air-row">
-                <ng-container [ngTemplateOutlet]="airRow" [ngTemplateOutletContext]="{ $implicit: item }" />
-              </div>
-            }
+            <div class="air-row" [class.server]="item.server">
+              <ng-container [ngTemplateOutlet]="airRow" [ngTemplateOutletContext]="{ $implicit: item }" />
+            </div>
           </li>
         }
       </ul>
       @if (checkedAgo(); as ago) {
-        <p class="note">Up or down is checked from outside every few minutes (the bot, by whether it's on Discord); last {{ ago }}.</p>
+        <p class="note">Checked from outside every couple of minutes (the bot, by whether it's on Discord); last {{ ago }}. The server is the one exception to "no addresses": that one's meant to be shared.</p>
       }
     </section>
 
@@ -155,12 +160,19 @@
 
   <ng-template #airRow let-item>
     <span class="air-text">
-      <span class="air-name">{{ item.name }}@if (item.url) {<span aria-hidden="true"> ↗</span>}</span>
-      <span class="air-what">{{ item.what }}</span>
+      @if (item.server) {
+        <span class="air-name server-name"><span class="visually-hidden">{{ item.name }}: </span><span class="address">{{ minecraftAddress }}</span>
+          <app-copy-button [value]="minecraftAddress" text="copy" size="small" [label]="'Copy the server address ' + minecraftAddress" />
+        </span>
+        <span class="air-what">{{ item.what }} · <a class="more" routerLink="/social" fragment="server">more on Social ›</a></span>
+      } @else {
+        <span class="air-name">{{ item.name }}@if (item.behindDesk) {<span class="behind">behind the desk</span>}</span>
+        <span class="air-what">{{ item.what }}</span>
+      }
     </span>
     @if (item.state === 'live') {
       @if (stateOf(item); as state) {
-        <span class="state" [class.down]="state === 'down'"><span class="led" aria-hidden="true"></span>{{ state }}</span>
+        <span class="state" [class.down]="state === 'down'"><span class="led" aria-hidden="true"></span>{{ stateWords(item, state) }}</span>
       }
     } @else {
       <span class="wip">under construction</span>

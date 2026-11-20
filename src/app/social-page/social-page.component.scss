@@ -44,14 +44,16 @@
   }
 }
 
-// Under the wall: the Discord (once it has answered) beside my friends, 1.7 : 1; my friends alone take
+// Under the wall: the Discord (once it has answered) beside the Minecraft server, 1 : 1.12; the server alone takes
 // the row until then. Stacked on tablets and phones, the Discord first.
 .hangouts {
   @include shared.panel-grid(minmax(0, 1fr));
   margin-top: 1.25rem;
 
+  // The Discord beside the server, once Discord has answered (both the same height); the server alone until then.
   &.with-discord {
-    grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
+    align-items: stretch;
   }
 
   @media (max-width: $breakpoint-mobile) {
@@ -60,6 +62,15 @@
     &.with-discord {
       grid-template-columns: minmax(0, 1fr);
     }
+  }
+}
+
+// My friends' buttons on a slim row of their own, last.
+.friends-row {
+  margin-top: 1.25rem;
+
+  @media (max-width: $breakpoint-mobile) {
+    margin-top: 0.875rem;
   }
 }
 

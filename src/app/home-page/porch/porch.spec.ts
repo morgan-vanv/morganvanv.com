@@ -6,7 +6,7 @@ import { moonLine, onAirLines, planetLine } from './porch-lines';
 import { DiscordService } from '../../../shared/discord/discord.service';
 import { DISCORD_TAGLINE, DiscordSummary, toDiscordSummary } from '../../../shared/discord/discord';
 import { DISCORD_FEED_FIXTURE } from '../../../shared/discord/discord-feed.fixture';
-import { LabStatusService } from '../../lab-page/lab-status.service';
+import { LabStatusService } from '../../../shared/lab-status/lab-status.service';
 import { LabStatusId } from '../../../shared/constants/lab.const';
 import { LastListened, RecentStreamService } from '../../../shared/services/recent-stream.service';
 import { SkyService } from '../../../shared/sky/sky.service';
@@ -48,14 +48,23 @@ describe('porch lines', () => {
   });
 
   it('lists what\'s live on the air, each lit by its own source: the status Worker, or Discord for the bot', () => {
-    const states: Record<LabStatusId, 'up' | 'down'> = { vtt: 'up', jellyfin: 'down' };
-    expect(onAirLines(id => states[id], true)).toEqual([
-      { name: 'Foundry VTT', state: 'up' },
-      { name: 'Jellyfin', state: 'down' },
-      { name: 'VideoJoker', state: 'up' },
+    const states: Partial<Record<LabStatusId, 'up' | 'down'>> = { vtt: 'up', jellyfin: 'down', minecraft: 'up' };
+    expect(onAirLines(id => states[id] ?? null, true, 3)).toEqual([
+      { name: 'Foundry VTT', state: 'up', count: null },
+      { name: 'Jellyfin', state: 'down', count: null },
+      { name: 'VideoJoker', state: 'up', count: null },
+      { name: 'Minecraft', state: 'up', count: '3 online' },
     ]);
-    expect(onAirLines(() => null, null).map(line => line.state)).toEqual([null, null, null]);
-    expect(onAirLines(() => null, false).at(-1)).toEqual({ name: 'VideoJoker', state: 'down' });
+    expect(onAirLines(() => null, null).map(line => line.state)).toEqual([null, null, null, null]);
+    expect(onAirLines(() => null, false).find(line => line.name === 'VideoJoker')).toEqual({ name: 'VideoJoker', state: 'down', count: null });
+  });
+
+  it('counts the server only while it\'s up, and says 0 when nobody is on', () => {
+    const server = (state: 'up' | 'down' | null, online: number | null) =>
+      onAirLines(id => (id === 'minecraft' ? state : null), null, online).find(line => line.name === 'Minecraft');
+    expect(server('up', 0)?.count).toBe('0 online');
+    expect(server('down', 4)?.count).toBeNull();
+    expect(server('up', null)?.count).toBeNull();
   });
 });
 
@@ -68,12 +77,14 @@ describe('HomePorchComponent', () => {
   const when = signal<string | null>(null);
   const summary = signal<DiscordSummary | null>(null);
   const states = signal<Partial<Record<LabStatusId, 'up' | 'down'>>>({});
+  const online = signal<number | null>(null);
 
   beforeEach(async () => {
     lastListened.set(null);
     when.set(null);
     summary.set(null);
     states.set({});
+    online.set(null);
     TestBed.configureTestingModule({
       imports: [HomePorchComponent],
       providers: [provideRouter([]), { provide: RecentStreamService, useValue: { lastListened, when } }],
@@ -82,7 +93,7 @@ describe('HomePorchComponent', () => {
       set: {
         providers: [
           { provide: DiscordService, useValue: { summary } },
-          { provide: LabStatusService, useValue: { stateOf: (id: LabStatusId) => states()[id] ?? null } },
+          { provide: LabStatusService, useValue: { stateOf: (id: LabStatusId) => states()[id] ?? null, minecraftOnline: () => online() } },
         ],
       },
     });
@@ -93,8 +104,9 @@ describe('HomePorchComponent', () => {
   it('has four spots in Morgan\'s order, each leading somewhere', () => {
     expect(text('.label')).toEqual(['on the record player', 'tonight over Cincinnati', 'hanging out', 'on the air']);
     const links = [...el().querySelectorAll('.go')];
-    expect(links.map(go => go.getAttribute('href'))).toEqual(['/interests', null, '/social', '/lab']);
-    expect(links.map(go => go.textContent?.replace(/\s+/g, ' ').trim())).toEqual(['[interests ›]', '[look up ☾]', '[tap in ›]', '[the lab ›]']);
+    expect(links.map(go => go.getAttribute('href'))).toEqual(['/interests', null, '/social', '/homelab', 'https://services.morganvanv.com']);
+    expect(links.map(go => go.textContent?.replace(/\s+/g, ' ').trim()))
+      .toEqual(['[interests ›]', '[look up ☾]', '[tap in ›]', '[homelab ›]', 'front desk ↗ (opens in a new tab)']);
     expect(links[1].tagName).toBe('BUTTON');
   });
 
@@ -102,7 +114,7 @@ describe('HomePorchComponent', () => {
     expect(text('.record .title')).toEqual(['the needle\'s up']);
     expect(text('.sky .title')).toEqual(['the sky behind this page']);
     expect(text('.discord .detail')).toEqual([DISCORD_TAGLINE]);
-    expect(text('.air li')).toEqual(['Foundry VTT', 'Jellyfin', 'VideoJoker']);
+    expect(text('.air li')).toEqual(['Foundry VTT', 'Jellyfin', 'VideoJoker', 'Minecraft']);
     expect(el().querySelectorAll('.led.up, .led.down').length).toBe(0);
     expect(el().querySelector('.dot')).toBeNull();
   });
@@ -143,12 +155,15 @@ describe('HomePorchComponent', () => {
   });
 
   it('lights what\'s on the air once its source answers, and says it in words', async () => {
-    states.set({ vtt: 'up', jellyfin: 'down' });
+    states.set({ vtt: 'up', jellyfin: 'down', minecraft: 'up' });
+    online.set(2);
     summary.set({ ...toDiscordSummary(DISCORD_FEED_FIXTURE)!, botOnline: true });
     await fixture.whenStable();
     const leds = [...el().querySelectorAll('.air .led')].map(led => led.className.replace('led', '').trim());
-    expect(leds).toEqual(['up', 'down', 'up']);
-    expect(text('.air li')).toEqual(['Foundry VTT, up', 'Jellyfin, down', 'VideoJoker, up']);
+    expect(leds).toEqual(['up', 'down', 'up', 'up']);
+    // The server says how many are on in place of "up".
+    expect(text('.air li')).toEqual(['Foundry VTT, up', 'Jellyfin, down', 'VideoJoker, up', 'Minecraft, 2 online']);
+    expect(text('.air .count')).toEqual(['2 online']);
   });
 
   it('looks up from the sky button', async () => {

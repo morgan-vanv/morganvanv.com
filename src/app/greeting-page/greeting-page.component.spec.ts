@@ -105,7 +105,7 @@ describe('GreetingPageComponent', () => {
     await fixture.whenStable();
     const focusable = [...el().querySelectorAll<HTMLElement>('a[href], button')].filter(item => item.tabIndex >= 0);
     expect(focusable.map(item => item.getAttribute('aria-label') ?? item.textContent?.replace(/\s+/g, ' ').trim()))
-      .toEqual(['[come on in]', 'or just look up ☾', 'Projects', 'Social']);
+      .toEqual(['[come on in]', 'or just look up ☾', 'Homelab', 'Social']);
   });
 });
 

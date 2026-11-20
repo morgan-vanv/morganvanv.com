@@ -2,20 +2,21 @@ import { DestroyRef, Injectable, PLATFORM_ID, computed, inject, signal } from '@
 import { isPlatformBrowser } from '@angular/common';
 import { EMPTY, catchError, filter, fromEvent, interval, map, merge, of, startWith, switchMap } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { SITE_CONFIG } from '../../shared/config/site.config';
-import { ApiCacheService } from '../../shared/services/api-cache.service';
-import { relativeTime } from '../../shared/services/relative-time';
-import { LabStatusId } from '../../shared/constants/lab.const';
+import { SITE_CONFIG } from '../config/site.config';
+import { ApiCacheService } from '../services/api-cache.service';
+import { relativeTime } from '../services/relative-time';
+import { LabStatusId } from '../constants/lab.const';
 import { LAB_STATUS_POLL_MS, LabStatus, toLabStatus } from './lab-status';
 
 /** How often "checked N minutes ago" is recomputed. */
 const CLOCK_TICK_MS = 30_000;
 
 /**
- * The status Worker's answer, kept fresh while `/lab` is open: asked at once, then every
+ * The status Worker's answer, kept fresh while a page that shows it is open: asked at once, then every
  * LAB_STATUS_POLL_MS while the tab is visible, and again whenever it becomes visible; paused while
- * it's hidden (the pattern `RecentStreamService` uses). Provided by the Lab page, so it stops when the
- * page goes. A failed or untrustworthy answer is null, and the page shows no pills for it.
+ * it's hidden (the pattern `RecentStreamService` uses). Provided by the pages that use it (the Homelab,
+ * Home's porch, /social and /now), so it stops when the page goes. A failed or untrustworthy answer is null,
+ * and the page shows no pills (and no player count) for it.
  */
 @Injectable()
 export class LabStatusService {
@@ -67,7 +68,10 @@ export class LabStatusService {
     ).subscribe(() => this.now.set(Date.now()));
   }
 
-  /** "up" or "down", or null (no pill) until the Worker has answered properly. */
+  /** How many are on the Minecraft server: a count while it's up, null while it's down or before an answer. */
+  readonly minecraftOnline = computed(() => this.latest()?.minecraftOnline ?? null);
+
+  /** "up" or "down", or null (no pill) until the Worker has answered properly about this one. */
   stateOf(id: LabStatusId): 'up' | 'down' | null {
     return this.latest()?.services[id] ?? null;
   }

@@ -1,7 +1,8 @@
 /**
- * The homelab, for /lab: the machines in the office rack and the closet, the VPS out front, and what
+ * The homelab, for /homelab: the machines in the office rack and the closet, the VPS out front, and what
  * they run. Facts only (names, models, specs). Never an address, a port, a serial, a hostname inside the
- * house or anything else that locates a machine; `lab.const.spec.ts` looks for the obvious shapes.
+ * house or anything else that locates a machine; `lab.const.spec.ts` looks for the obvious shapes. The two
+ * addresses the page does show on purpose, the front desk's and the Minecraft server's, live in `SITE_CONFIG`.
  * From the approved Lab A2 mockup (2026-11-05); `[TODO: Morgan]` where he hasn't said yet.
  */
 
@@ -51,7 +52,7 @@ export const LAB_MACHINES: readonly LabMachine[] = [
       { term: 'extras', detail: 'an LSI SAS HBA in IT mode; a JetKVM on the console' },
       { term: 'power', detail: 'the rack UPS, shuts down in order' },
     ],
-    runs: ['five guests, one job each', 'nightly guest backups', 'the subnet route', 'Uptime Kuma', 'Pi-hole'],
+    runs: ['six guests, one job each', 'nightly guest backups', 'the subnet route', 'Uptime Kuma', 'Pi-hole', 'the Minecraft network'],
   },
   {
     id: 'switch', place: 'rack', label: 'FLEX MINI', sub: 'the office switch', height: 1, face: 'ports', led: 'green', model: 'switch',
@@ -111,10 +112,10 @@ export const LAB_MACHINES: readonly LabMachine[] = [
     name: 'The VPS', role: 'the front door',
     specs: [
       { term: 'size', detail: '1 GB RAM, 25 GB disk' },
-      { term: 'runs', detail: 'Caddy and CrowdSec' },
+      { term: 'runs', detail: 'Caddy, HAProxy, CrowdSec and LiveKit' },
       { term: 'reaches home', detail: 'over Tailscale, nothing else' },
     ],
-    runs: ['Caddy', 'CrowdSec', 'a game relay, later'],
+    runs: ['Caddy', 'HAProxy', 'the game relay', 'CrowdSec', 'LiveKit'],
   },
 ];
 
@@ -138,26 +139,28 @@ export const LAB_PARKED_MACHINES: readonly LabMachine[] = [
 /** The machine selected when the page loads (and in the prerendered HTML). */
 export const LAB_DEFAULT_MACHINE: LabMachineId = 'hoss';
 
-/** What the status Worker reports on (`SITE_CONFIG.labStatusUrl`). */
-export type LabStatusId = 'vtt' | 'jellyfin';
+/** What the status Worker reports on (`SITE_CONFIG.labStatusUrl`): desk is the front desk (Authentik). */
+export type LabStatusId = 'vtt' | 'jellyfin' | 'desk' | 'minecraft';
 
 /**
- * "On the air": what friends and family can reach. A live one gets an up/down pill: from the status Worker
- * (`statusId`), or, for the Discord bot, from whether it's online in the server's widget feed (`via: 'discord'`,
- * `DiscordSummary.botOnline`).
+ * "On the air": what friends, family and visitors can reach, under the front desk's row (which the page draws from
+ * `SITE_CONFIG.frontDeskUrl`). A live one gets an up/down pill: from the status Worker (`statusId`), or, for the
+ * Discord bot, from whether it's online in the server's widget feed (`via: 'discord'`, `DiscordSummary.botOnline`).
+ * `behindDesk`: signed into through the front desk, so it wears that tag and has no link of its own. `server`: the
+ * Minecraft network, shown by its public address (`SITE_CONFIG.minecraftAddress`) with a copy button and a count.
  */
 export type LabOnAir = {
   name: string;
   what: string;
-  /** Where it opens, for the ones a visitor can open. */
-  url?: string;
+  behindDesk?: true;
+  server?: true;
 } & ({ state: 'live'; statusId: LabStatusId } | { state: 'live'; via: 'discord' } | { state: 'under-construction' });
 
 export const LAB_ON_AIR: readonly LabOnAir[] = [
-  { name: 'Foundry VTT', what: 'my Vampire: The Masquerade table', state: 'live', statusId: 'vtt' },
-  { name: 'Jellyfin', what: 'my movies and shows', state: 'live', statusId: 'jellyfin' },
+  { name: 'Foundry VTT', what: 'my Vampire: The Masquerade table', state: 'live', statusId: 'vtt', behindDesk: true },
+  { name: 'Jellyfin', what: 'my movies and shows', state: 'live', statusId: 'jellyfin', behindDesk: true },
   { name: 'VideoJoker', what: 'the Discord bot, always on', state: 'live', via: 'discord' },
-  { name: 'a forever world', what: 'an always-on Minecraft server', state: 'under-construction' },
+  { name: 'Minecraft', what: 'my Minecraft network, open to anyone: Java or Bedrock', state: 'live', statusId: 'minecraft', server: true },
   { name: 'my retro library', what: 'my collection of old games, dumped, and playable via browser', state: 'under-construction' },
 ];
 
@@ -176,32 +179,38 @@ export const LAB_SERVICES: readonly LabService[] = [
     icon: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01' },
   { name: 'Jellyfin', what: 'movies and shows for friends and family', state: 'running', where: 'the NAS', box: 'nas',
     icon: 'M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18zM10 8.5l5 3.5l-5 3.5z' },
+  { name: 'Minecraft', what: 'Factions, Anarchy and a hub; Java and Bedrock', state: 'running', where: 'BIG HOSS', box: 'hoss',
+    icon: 'M12 2l9 5v10l-9 5l-9-5V7zM12 12l9-5M12 12L3 7M12 12v10' },
   { name: 'Foundry VTT', what: 'my Vampire: The Masquerade table', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M12 2l9 5v10l-9 5l-9-5V7zM12 22V12M21 7l-9 5L3 7' },
+  { name: 'Authentik', what: 'the front desk: one login for friends and family', state: 'running', where: 'BIG HOSS', box: 'hoss',
+    icon: 'M14 10a4 4 0 1 0-4 4M10 14l-7 7M6 18l2 2M14 10h7v4' },
+  { name: 'VideoJoker', what: 'the Discord bot, always on; it talks to the server too', state: 'running', where: 'BIG HOSS', box: 'hoss',
+    icon: 'M4 5h16v11H9l-5 4z' },
   { name: 'Pi-hole', what: 'DNS and ad blocking for my devices', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M12 3l8 3v6c0 4.5-3.4 8.2-8 9c-4.6-.8-8-4.5-8-9V6z' },
   { name: 'Syncthing', what: 'my notes, synced between my devices', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M20 12a8 8 0 0 1-14.3 4.9M4 12a8 8 0 0 1 14.3-4.9M18 3v4h-4M6 21v-4h4' },
   { name: 'Uptime Kuma', what: 'watches everything, pings my Discord', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M3 12h4l2-6l4 12l2-6h6' },
-  { name: 'Tailscale', what: 'the private network between it all', state: 'running', where: 'everywhere', box: null,
-    icon: 'M5 5h.01M12 5h.01M19 5h.01M5 12h.01M12 12h.01M19 12h.01M5 19h.01M12 19h.01M19 19h.01' },
-  { name: 'Caddy', what: 'the front door, HTTPS included', state: 'running', where: 'the VPS', box: 'vps',
-    icon: 'M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M3 21h18M14 12h.01' },
-  { name: 'CrowdSec', what: 'turns away whoever is knocking too hard', state: 'running', where: 'the VPS', box: 'vps',
-    icon: 'M12 3l8 3v6c0 4.5-3.4 8.2-8 9c-4.6-.8-8-4.5-8-9V6zM9.5 9.5l5 5M14.5 9.5l-5 5' },
-  { name: 'Backups', what: 'snapshots, a nightly drive, and off-site', state: 'running', where: 'the NAS', box: 'nas',
-    icon: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4' },
+  { name: 'Homarr', what: 'my own dashboard, only I can reach it', state: 'running', where: 'BIG HOSS', box: 'hoss',
+    icon: 'M4 4h7v7H4zM13 4h7v4h-7zM13 10h7v10h-7zM4 13h7v7H4z' },
   { name: 'NUT', what: 'tells everything when the power goes', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M3 8h15v8H3zM21 11v2M7 11h4' },
   { name: 'Claude Code', what: 'does the lab\'s chores and writes me a daily digest', state: 'running', where: 'BIG HOSS', box: 'hoss',
     icon: 'M7 8h10a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2zM12 4v4M9.5 13h.01M14.5 13h.01' },
-  { name: 'Authentik', what: 'one login for friends and family', state: 'running', where: 'BIG HOSS', box: 'hoss',
-    icon: 'M14 10a4 4 0 1 0-4 4M10 14l-7 7M6 18l2 2M14 10h7v4' },
-  { name: 'VideoJoker', what: 'the Discord bot, always on; ships its own releases', state: 'running', where: 'BIG HOSS', box: 'hoss',
-    icon: 'M4 5h16v11H9l-5 4z' },
-  { name: 'Minecraft', what: 'a forever world', state: 'under-construction',
-    icon: 'M12 2l9 5v10l-9 5l-9-5V7zM12 12l9-5M12 12L3 7M12 12v10' },
+  { name: 'Caddy', what: 'the front door, HTTPS included', state: 'running', where: 'the VPS', box: 'vps',
+    icon: 'M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M3 21h18M14 12h.01' },
+  { name: 'HAProxy', what: 'lets the game in the front door too', state: 'running', where: 'the VPS', box: 'vps',
+    icon: 'M4 7h11l-3-3M20 17H9l3 3' },
+  { name: 'LiveKit', what: 'voice and video at the table', state: 'running', where: 'the VPS', box: 'vps',
+    icon: 'M15 10l5-3v10l-5-3zM3 7h12v10H3z' },
+  { name: 'CrowdSec', what: 'turns away whoever is knocking too hard', state: 'running', where: 'the VPS', box: 'vps',
+    icon: 'M12 3l8 3v6c0 4.5-3.4 8.2-8 9c-4.6-.8-8-4.5-8-9V6zM9.5 9.5l5 5M14.5 9.5l-5 5' },
+  { name: 'Backups', what: 'snapshots, a nightly drive, and off-site', state: 'running', where: 'the NAS', box: 'nas',
+    icon: 'M3 4h18v4H3zM5 8v12h14V8M10 12h4' },
+  { name: 'Tailscale', what: 'the private network between it all', state: 'running', where: 'everywhere', box: null,
+    icon: 'M5 5h.01M12 5h.01M19 5h.01M5 12h.01M12 12h.01M19 12h.01M5 19h.01M12 19h.01M19 19h.01' },
   { name: 'RomM', what: 'a retro library in the browser', state: 'under-construction',
     icon: 'M12 3a3 3 0 1 0 0 6a3 3 0 0 0 0-6zM12 9v6M5 15h14v4H5z' },
 ];

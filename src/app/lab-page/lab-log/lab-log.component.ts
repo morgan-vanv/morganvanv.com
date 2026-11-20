@@ -2,7 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, input, signal } from '@an
 import { LAB_LOG, LAB_LOG_TAIL, labLogTail } from '../../../shared/constants/lab-log.const';
 
 /**
- * The lab log on /lab (look B of the lab-log mockups, "tail -f"): Morgan's one-liners about the homelab as a
+ * The lab log on /homelab (look B of the lab-log mockups, "tail -f"): Morgan's one-liners about the homelab as a
  * terminal tail inside a panel. The last `LAB_LOG_TAIL` lines show, oldest first and the newest last, the
  * two oldest of them faded as if scrolled up to; a gold block caret blinks after a resting line. "[ the whole
  * log › ]" unfolds every entry in place (`aria-expanded`) and becomes "[ just the latest › ]". No dates, no

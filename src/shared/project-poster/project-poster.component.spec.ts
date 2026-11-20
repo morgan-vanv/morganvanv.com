@@ -116,33 +116,25 @@ describe('ProjectPosterComponent', () => {
     ]);
   });
 
-  it('draws a server rack, a faceplate per machine with its light, and links to a page here', async () => {
+  it('draws the game\'s server list, links to the server\'s panel here, and copies the address', async () => {
     await mount({
-      ...base, liveUrl: undefined, repo: undefined, more: { label: 'the lab', route: '/lab' },
-      art: {
-        kind: 'rack', alt: 'A server rack',
-        units: [
-          { name: 'BIG', height: 2, face: 'vent' },
-          { name: 'NAS', height: 2, face: 'bays' },
-          { name: 'PI', height: 1 },
-          { name: 'UPS', height: 1, led: 'amber' },
-        ],
-      },
+      ...base, liveUrl: undefined, repo: undefined,
+      more: { label: 'the server', route: '/social', fragment: 'server' },
+      copy: { text: 'copy the address', label: 'Copy the server address' },
+      art: { kind: 'server-list', alt: 'A server list', motd: [{ text: 'Factions · ', color: 'gray' }, { text: 'soon', color: 'gold' }] },
     });
     http.expectNone(REPO_URL);
-    const rack = el().querySelector('.rack');
-    expect(rack?.getAttribute('role')).toBe('img');
-    expect(rack?.getAttribute('aria-label')).toBe('A server rack');
-    expect(rack?.querySelector('.rack-frame')?.getAttribute('aria-hidden')).toBe('true');
-    expect(el().querySelector('img.shot')).toBeNull();
-    const units = [...el().querySelectorAll('.unit')];
-    expect(units.map(u => u.querySelector('.unit-name')?.textContent)).toEqual(['BIG', 'NAS', 'PI', 'UPS']);
-    expect(units.map(u => u.classList.contains('u2'))).toEqual([true, true, false, false]);
-    expect(units[0].querySelector('.vent')).not.toBeNull();
-    expect(units[1].querySelectorAll('.drive-bays > span').length).toBe(4);
-    expect(units.map(u => u.querySelector('.led')?.classList.contains('amber'))).toEqual([false, false, false, true]);
-    expect(el().querySelector('.art a.art-link')?.getAttribute('href')).toBe('/lab');
-    expect(links()).toEqual([['[\u00a0the lab ›\u00a0] (Thing)', '/lab']]);
+    const list = el().querySelector('.server-list');
+    expect(list?.getAttribute('role')).toBe('img');
+    expect(list?.getAttribute('aria-label')).toBe('A server list');
+    expect(list?.querySelector('.list-frame')?.getAttribute('aria-hidden')).toBe('true');
+    expect(list?.querySelector('.server-name')?.textContent).toBe('mc.morganvanv.com');
+    expect([...list!.querySelectorAll('.motd-line span')].map(s => [s.className, s.textContent])).toEqual([['gray', 'Factions · '], ['gold', 'soon']]);
+    // No status Worker on this page: no count, nothing made up.
+    expect(list?.querySelector('.count')).toBeNull();
+    expect(el().querySelector('.art a.art-link')?.getAttribute('href')).toBe('/social#server');
+    expect(links()).toEqual([['[\u00a0the server ›\u00a0] (Thing)', '/social#server']]);
+    expect(el().querySelector('app-copy-button button')?.getAttribute('aria-label')).toBe('Copy the server address mc.morganvanv.com');
     expect(text()).not.toContain('updated');
   });
 

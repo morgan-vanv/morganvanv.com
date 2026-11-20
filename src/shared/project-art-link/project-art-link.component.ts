@@ -24,8 +24,8 @@ export class ProjectArtLinkComponent {
   /** Where the picture goes: the live site first (in a new tab), else a page on this site. */
   readonly target = computed(() => {
     const p = this.project();
-    if (p.liveUrl) return { href: p.liveUrl, route: null };
-    if (p.more) return { href: null, route: p.more.route };
+    if (p.liveUrl) return { href: p.liveUrl, route: null, fragment: null };
+    if (p.more) return { href: null, route: p.more.route, fragment: p.more.fragment ?? null };
     return null;
   });
 

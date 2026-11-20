@@ -1,0 +1,17 @@
+@if (badge(); as badge) {
+  <app-badge [label]="badge.label" [popover]="badge.popover" (pressed)="copy()">
+    <!-- A grass block, three faces, lit from the top left. -->
+    <svg glyph width="22" height="22" viewBox="0 0 24 24">
+      <path d="M12 3 21 7.5 12 12 3 7.5z" class="g-grass" />
+      <path d="M3 7.5 12 12v9.5L3 17z" class="g-dirt" />
+      <path d="M21 7.5 12 12v9.5l9-4.5z" class="g-dirt-dark" />
+      <path d="M3 7.5 12 12l9-4.5v1.6L12 13.6 3 9.1z" class="g-grass-edge" />
+    </svg>
+    <!-- The address as it's typed (lowercase, untracked, so all 17 characters fit the face), over the count. -->
+    <span text class="mc-text">
+      <span class="mc-name">{{ address }}</span>
+      <span class="mc-value">{{ badge.value }}</span>
+    </span>
+  </app-badge>
+  <span class="visually-hidden" role="status">{{ announced() }}</span>
+}

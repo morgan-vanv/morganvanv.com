@@ -7,12 +7,12 @@ const SCREEN = { width: 1440, height: 900 };
 const WINDOW_LABEL = labelText(WINDOW_LEAD, windowDoor);
 
 describe('the greeting\'s hidden doors', () => {
-  it('are the farmhouse light to Projects and the campfire to Social', () => {
-    expect(DOORS.map(door => [door.id, door.path, door.name])).toEqual([['window', '/projects', 'Projects'], ['fire', '/social', 'Social']]);
+  it('are the farmhouse light to the Homelab and the campfire to Social', () => {
+    expect(DOORS.map(door => [door.id, door.path, door.name])).toEqual([['window', '/homelab', 'Homelab'], ['fire', '/social', 'Social']]);
   });
 
   it('label the window, and the fire with how many are around it, or just that it\'s lit', () => {
-    expect(WINDOW_LABEL).toBe('the light\'s on [ projects › ]');
+    expect(WINDOW_LABEL).toBe('the light\'s on [ homelab › ]');
     expect(labelText(fireLead(3), fireDoor)).toBe('3 around the fire [ social › ]');
     expect(fireLead(1)).toBe('1 around the fire');
     expect(fireLead(0)).toBe('the fire\'s lit');
@@ -20,7 +20,7 @@ describe('the greeting\'s hidden doors', () => {
   });
 
   it('know a label\'s width from its length (0.6 em a character at 0.8 rem, plus padding)', () => {
-    expect(labelWidth(WINDOW_LABEL)).toBe(Math.ceil(29 * 7.68 + 26));
+    expect(labelWidth(WINDOW_LABEL)).toBe(Math.ceil(28 * 7.68 + 26));
   });
 
   it('sit exactly where the sky puts its window light and campfire', () => {

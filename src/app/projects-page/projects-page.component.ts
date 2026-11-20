@@ -4,6 +4,7 @@ import { PageHeaderComponent } from '../../shared/page-header/page-header.compon
 import { PROJECTS } from '../../shared/constants/projects.const';
 import { ProjectPosterComponent } from '../../shared/project-poster/project-poster.component';
 import { NextProjectSlotComponent, nextSlotSpan } from './next-project-slot/next-project-slot';
+import { LabStatusService } from '../../shared/lab-status/lab-status.service';
 
 /** Posters across on wide screens (the grid reads it as --columns). */
 const COLUMNS = 3;
@@ -15,6 +16,8 @@ const COLUMNS = 3;
 @Component({
   selector: 'app-projects-page',
   imports: [BasePageComponent, PageHeaderComponent, ProjectPosterComponent, NextProjectSlotComponent],
+  // The Minecraft poster's live count; it polls only while Projects is open.
+  providers: [LabStatusService],
   templateUrl: './projects-page.component.html',
   styleUrl: './projects-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

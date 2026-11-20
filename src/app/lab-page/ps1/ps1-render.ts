@@ -1,7 +1,7 @@
 import { Ps1Model } from './ps1-models';
 
 /**
- * A tiny PS1-style software renderer for the Lab's stage: a low-resolution RGBA buffer (scaled up with
+ * A tiny PS1-style software renderer for the Homelab's stage: a low-resolution RGBA buffer (scaled up with
  * `image-rendering: pixelated`), vertices snapped to whole pixels (the PS1 wobble), flat shading from one
  * light, a z-buffer, 15-bit colour with a 4×4 ordered dither, and a dithered shadow on the floor. Pure:
  * no DOM, so it's tested like `sky-render.ts`; the component copies the buffer into its canvas.

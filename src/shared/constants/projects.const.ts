@@ -28,19 +28,16 @@ export type ProjectArt =
   | { kind: 'chat'; alt: string; lines: readonly ChatLine[] }
   /** A miniature of this site: the glass card over the sky. */
   | { kind: 'site'; alt: string }
-  /** A server rack drawn in CSS: a faceplate per machine, named on its front (public names only, never addresses or ports). */
-  | { kind: 'rack'; alt: string; units: readonly RackUnit[] };
+  /**
+   * A Minecraft server as the game's own server list shows it, drawn in CSS: its icon, its address, the MOTD's second
+   * line (the first is the address again) and the live player count, from the status Worker.
+   */
+  | { kind: 'server-list'; alt: string; motd: readonly MotdPart[] };
 
-/** One machine in the rack art, top to bottom. */
-export interface RackUnit {
-  /** The name on its faceplate. */
-  name: string;
-  /** 1U or 2U tall. */
-  height: 1 | 2;
-  /** What fills the rest of the faceplate: a vent grille, four drive bays, or nothing. */
-  face?: 'vent' | 'bays';
-  /** Its light: green (the default), or amber for the UPS. */
-  led?: 'green' | 'amber';
+/** A run of MOTD text in one of the game's colours (green, gray, gold: the ones the server's MOTD uses). */
+export interface MotdPart {
+  text: string;
+  color: 'green' | 'gray' | 'gold';
 }
 
 export interface Project {
@@ -59,8 +56,10 @@ export interface Project {
   liveLabel?: string;
   /** The words that rise onto the art on hover (it links where `liveUrl`, else `more`, goes); default: that link's label. */
   artLabel?: string;
-  /** A page on this site to read more, as `[ label › ]`. */
-  more?: { label: string; route: string };
+  /** A page on this site to read more, as `[ label › ]`, and the panel on it to scroll to. */
+  more?: { label: string; route: string; fragment?: string };
+  /** A button that copies the server's address (`SITE_CONFIG.minecraftAddress`): its words and accessible name. */
+  copy?: { text: string; label: string };
   /** GitHub repo, used for the source link and the live "updated N ago"; none for something hosted, not coded. */
   repo?: { owner: string; name: string };
   tags: readonly string[];
@@ -93,29 +92,29 @@ export const PROJECTS: readonly Project[] = [
     ribbon: 'new · v5',
   },
   {
-    id: 'homelab',
-    name: 'The Homelab',
-    // Draft (2026-11-09): BIG HOSS and the rack are upstairs in the office, the NAS downstairs in a closet. Morgan's to keep or change.
-    subtitle: 'a rack upstairs, a closet downstairs',
-    status: 'humming',
-    // Morgan's words (2026-11-05).
-    description: 'A Proxmox server, a Synology NAS, and all sorts of other stuff (including Raspberry Pis!). This hosts my apps '
-      + 'for me, as well as family and friends.',
-    // Draft, from his infra docs; Morgan keeps it or cuts it.
-    quote: 'Each box does one job it is good at.',
+    id: 'minecraft',
+    name: 'mc.morganvanv.com',
+    subtitle: 'a Minecraft network',
+    status: 'open to anyone',
+    // Draft (2026-11-20), from the infra repo: Morgan's to keep or change.
+    description: 'A Minecraft network for my friends and anyone who wanders in. The old Factions world came along with '
+      + 'everyone\'s progress, Anarchy sits beside it, and minigames are on the way. Java or Bedrock, newer or older '
+      + 'versions, all in the same worlds.',
+    // The server's own MOTD (VelocityNavigator's third message).
+    quote: 'Java and Bedrock welcome',
     art: {
-      kind: 'rack',
-      alt: 'A server rack drawn in lines: four machines with their lights on',
-      units: [
-        { name: 'BIG HOSS', height: 2, face: 'vent' },
-        { name: 'FALKENBURGHNAS', height: 2, face: 'bays' },
-        { name: 'JETKVM', height: 1 },
-        { name: 'UPS', height: 1, led: 'amber' },
+      kind: 'server-list',
+      alt: 'The server as Minecraft\'s server list shows it: mc.morganvanv.com, Factions, Anarchy, minigames soon',
+      // The second line of the server's real MOTD (its first message), colours as the game shows them.
+      motd: [
+        { text: 'Factions · Anarchy · ', color: 'gray' },
+        { text: 'minigames soon', color: 'gold' },
       ],
     },
-    // The infra repo is private: no source link, no "updated".
-    more: { label: 'the lab', route: '/lab' },
-    tags: ['Proxmox', 'Synology', 'Tailscale', 'Caddy'],
+    // The network's repo is private: no source link, no "updated". The address is public, so it can be copied.
+    more: { label: 'the server', route: '/social', fragment: 'server' },
+    copy: { text: 'copy the address', label: 'Copy the server address' },
+    tags: ['Paper', 'Velocity', 'Geyser', 'ViaVersion', 'Docker'],
   },
   {
     id: 'videojoker',
@@ -153,8 +152,8 @@ export const PROJECTS: readonly Project[] = [
       url: 'images/projects/foundry-vtt.webp',
       alt: 'Foundry VTT\'s sixth-anniversary art: a glowing orange d20 in a candlelit hall of stained glass',
     },
-    // No public link or address (Morgan, 2026-11-05): the table is for his players, like Jellyfin on /lab.
-    more: { label: 'the lab', route: '/lab' },
+    // No public link or address (Morgan, 2026-11-05): the table is for his players, behind the front desk like Jellyfin.
+    more: { label: 'the homelab', route: '/homelab' },
     tags: ['Foundry VTT', 'Vampire: The Masquerade', 'D&D'],
   },
   {

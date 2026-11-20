@@ -1,15 +1,19 @@
 import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { PageHeaderComponent } from '../../shared/page-header/page-header.component';
 import {
   LAB_AROUND_THE_HOUSE, LAB_DEFAULT_MACHINE, LAB_MACHINES, LAB_ON_AIR, LAB_SERVICES, LabMachine, LabMachineId, LabOnAir,
   LabPlace, runningSummary,
 } from '../../shared/constants/lab.const';
-import { LabStatusService } from './lab-status.service';
+import { LabStatusService } from '../../shared/lab-status/lab-status.service';
 import { Ps1StageComponent } from './ps1/ps1-stage.component';
 import { DiscordService } from '../../shared/discord/discord.service';
 import { LabLogComponent } from './lab-log/lab-log.component';
+import { CopyButtonComponent } from '../../shared/copy-button/copy-button.component';
+import { SITE_CONFIG } from '../../shared/config/site.config';
+import { onlineLine } from '../../shared/minecraft/minecraft';
 
 interface MachineGroup {
   place: LabPlace;
@@ -23,16 +27,17 @@ const groupOf = (place: LabPlace): MachineGroup =>
   ({ place, label: GROUP_LABELS[place], machines: LAB_MACHINES.filter(m => m.place === place) });
 
 /**
- * /lab, off the homelab's poster on Projects: the machines in Morgan's office rack and closet (drawn in
+ * /homelab (a main page since 2026-11-20; /lab redirects here): the machines in Morgan's office rack and closet (drawn in
  * CSS, each a button that shows its spec sheet, with the machine turning as a PS1-style model on a little
  * stage), what's on the air with live up/down pills (from the status Worker, or for the Discord bot from the
- * server's widget feed), everything they run, and the lab log (`app-lab-log`, Morgan's one-liners as a
+ * server's widget feed) under the front desk (the one hosted-apps link), the Minecraft server by its public address
+ * with a copy button and its player count, everything they run, and the lab log (`app-lab-log`, Morgan's one-liners as a
  * terminal tail). On phones the machines are a list whose selected one opens its sheet beneath it (an
  * accordion); both layouts share one selection, BIG HOSS by default.
  */
 @Component({
   selector: 'app-lab-page',
-  imports: [BasePageComponent, PageHeaderComponent, NgTemplateOutlet, Ps1StageComponent, LabLogComponent],
+  imports: [BasePageComponent, PageHeaderComponent, NgTemplateOutlet, RouterLink, Ps1StageComponent, LabLogComponent, CopyButtonComponent],
   providers: [LabStatusService, DiscordService],
   templateUrl: './lab-page.component.html',
   styleUrl: './lab-page.component.scss',
@@ -58,6 +63,13 @@ export class LabPageComponent {
   private readonly discord = inject(DiscordService);
   /** "3 minutes ago", once there's a status to go by. */
   protected readonly checkedAgo = this.labStatus.checkedAgo;
+  /** The front desk's light, once the Worker checks it (lab-status 1.1). */
+  protected readonly deskState = computed(() => this.labStatus.stateOf('desk'));
+  /** How many are on the server, while it's up. */
+  protected readonly minecraftOnline = this.labStatus.minecraftOnline;
+
+  protected readonly frontDeskUrl = SITE_CONFIG.frontDeskUrl;
+  protected readonly minecraftAddress = SITE_CONFIG.minecraftAddress;
 
   /** A machine pressed in the rack: show its sheet. */
   protected pick(id: LabMachineId): void {
@@ -85,5 +97,11 @@ export class LabPageComponent {
       return online === null ? null : online ? 'up' : 'down';
     }
     return this.labStatus.stateOf(item.statusId);
+  }
+
+  /** What a pill says: "up" or "down", or for the server while it's up, how many are on ("3 online"). */
+  protected stateWords(item: LabOnAir, state: 'up' | 'down'): string {
+    const online = this.minecraftOnline();
+    return item.server && state === 'up' && online !== null ? onlineLine(online) : state;
   }
 }

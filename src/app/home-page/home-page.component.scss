@@ -8,7 +8,7 @@ $icon-gap: 10px;
 $icon-gap-phone: 5px;
 $icon-gap-min: 2px;
 
-// The caution tape on "under construction" (as on /lab).
+// The caution tape on "under construction" (as on /homelab).
 $caution: #e2b33a;
 $caution-dark: #14191a;
 $caution-text: #f4d78a;
@@ -299,7 +299,21 @@ app-avatar-says {
   }
 }
 
-// Not built yet: a capsule of caution tape and the words (as on /lab).
+// The front desk: a quiet gold row after the pages, a dashed rule between, so it reads as a door, not a page.
+.desk {
+  margin-top: 0.375rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed rgba($accent-color, 0.45);
+
+  .desk-pill {
+    white-space: nowrap;
+    border-color: rgba($accent-color, 0.75);
+    background: rgba($accent-color, 0.1);
+    color: $caution-text;
+  }
+}
+
+// Not built yet: a capsule of caution tape and the words (as on /homelab).
 .wip {
   display: inline-flex;
   align-items: center;

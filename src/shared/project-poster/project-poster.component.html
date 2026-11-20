@@ -22,7 +22,7 @@
     } @else if (site(); as art) {
       <div class="mini" role="img" [attr.aria-label]="art.alt">
         <div class="mini-card" aria-hidden="true">
-          <div class="mini-nav"><span>Home</span><span>Now</span><span>Background</span><span>Social</span><span>Interests</span><b>[ Projects ]</b><span>Blog</span></div>
+          <div class="mini-nav"><span>Home</span><span>Now</span><span>Background</span><span>Social</span><span>Interests</span><b>[ Projects ]</b><span>Homelab</span><span>Blog</span></div>
           <div class="mini-body">
             <span class="mini-title">Projects</span>
             <span class="mini-line"></span>
@@ -31,20 +31,23 @@
           <span class="mini-ring">‹ prev · hotline webring ↗ · next ›</span>
         </div>
       </div>
-    } @else if (rack(); as art) {
-      <div class="rack" role="img" [attr.aria-label]="art.alt">
-        <div class="rack-frame" aria-hidden="true">
-          @for (unit of art.units; track unit.name) {
-            <div class="unit" [class.u2]="unit.height === 2" [class.bays]="unit.face === 'bays'">
-              <span class="led" [class.amber]="unit.led === 'amber'"></span>
-              <span class="unit-name">{{ unit.name }}</span>
-              @if (unit.face === 'vent') {
-                <span class="vent"></span>
-              } @else if (unit.face === 'bays') {
-                <span class="drive-bays"><span></span><span></span><span></span><span></span></span>
-              }
+    } @else if (serverList(); as art) {
+      <div class="server-list" role="img" [attr.aria-label]="art.alt">
+        <div class="list-frame" aria-hidden="true">
+          <span class="list-title">Play Multiplayer</span>
+          <div class="entry">
+            <img [src]="serverIcon" alt="" class="server-icon" width="264" height="264" loading="lazy" decoding="async" />
+            <div class="motd">
+              <span class="server-name">{{ address }}</span>
+              <span class="motd-line green">{{ address }}</span>
+              <span class="motd-line">@for (part of art.motd; track $index) {<span [class]="part.color">{{ part.text }}</span>}</span>
             </div>
-          }
+            <div class="ping">
+              <span class="bars"><i></i><i></i><i></i><i></i><i></i></span>
+              @if (online() !== null) {<span class="count">{{ online() }} online</span>}
+            </div>
+          </div>
+          <div class="entry ghost"><span class="ghost-icon"></span><span class="motd-line">Minecraft Server</span></div>
         </div>
       </div>
     }
@@ -80,7 +83,10 @@
           <a [href]="liveUrl" target="_blank" rel="noopener noreferrer" class="link link--primary">{{ project().liveLabel ?? 'Open' }} ↗<span class="visually-hidden"> ({{ project().name }})</span></a>
         }
         @if (project().more; as more) {
-          <a [routerLink]="more.route" class="link link--primary"><span aria-hidden="true">[&nbsp;</span>{{ more.label }} ›<span aria-hidden="true">&nbsp;]</span><span class="visually-hidden"> ({{ project().name }})</span></a>
+          <a [routerLink]="more.route" [fragment]="more.fragment" class="link link--primary"><span aria-hidden="true">[&nbsp;</span>{{ more.label }} ›<span aria-hidden="true">&nbsp;]</span><span class="visually-hidden"> ({{ project().name }})</span></a>
+        }
+        @if (project().copy; as copy) {
+          <app-copy-button [value]="address" [text]="copy.text" [label]="copy.label + ' ' + address" />
         }
         @if (sourceUrl(); as sourceUrl) {
           <a [href]="sourceUrl" target="_blank" rel="noopener noreferrer" class="link">Source ↗<span class="visually-hidden"> ({{ project().name }})</span></a>

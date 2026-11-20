@@ -1,11 +1,13 @@
-import { Component, ChangeDetectionStrategy, afterNextRender, inject } from '@angular/core';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { BasePageComponent } from '../../shared/base-page/base-page.component';
 import { SOCIAL_LINKS } from '../../shared/constants/social-links.const';
 import { AskMorganFormComponent } from './ask-morgan-form/ask-morgan-form';
 import { AvatarSaysComponent } from './avatar-says/avatar-says';
 import { HomePorchComponent } from './porch/porch';
 import { isUnderConstruction } from '../../shared/constants/under-construction.const';
+import { scrollToFragmentOnLoad } from '../../shared/services/fragment-scroll';
+import { SITE_CONFIG } from '../../shared/config/site.config';
 
 export interface HomeStop {
   path: string;
@@ -15,14 +17,14 @@ export interface HomeStop {
   wip?: boolean;
 }
 
-/** Every page, in the nav's order with the Lab after its parent, each with Morgan's line for it (2026-11-09). */
+/** Every page, in the nav's order, each with Morgan's line for it (2026-11-09). */
 export const HOME_STOPS: readonly HomeStop[] = [
   { path: '/now', name: 'Now', line: 'what I\'m up to lately, updated live' },
   { path: '/background', name: 'Background', line: 'professional notes, plus info about me' },
   { path: '/social', name: 'Social', line: 'a place for everyone to gather, come kick it' },
   { path: '/interests', name: 'Interests', line: 'the stuff I\'m into, check out my taste in music and media' },
   { path: '/projects', name: 'Projects', line: 'what I\'ve been working on these days' },
-  { path: '/lab', name: 'Lab', line: 'the machines in my office rack and closet' },
+  { path: '/homelab', name: 'Homelab', line: 'the machines in my office rack and closet' },
   { path: '/blog', name: 'Blog', line: 'writing, eventually.', wip: isUnderConstruction('blog') },
 ];
 
@@ -36,16 +38,10 @@ export const HOME_STOPS: readonly HomeStop[] = [
 export class HomePageComponent {
   readonly socialLinks = SOCIAL_LINKS;
   readonly stops = HOME_STOPS;
+  readonly frontDeskUrl = SITE_CONFIG.frontDeskUrl;
 
   constructor() {
-    // A link here with a fragment (Projects' "suggest one ›" goes to #home-contact) brings its panel
-    // into view. The router's anchor scrolling moves the window, but the page scrolls inside the card.
-    const fragment = inject(ActivatedRoute).snapshot.fragment;
-    if (fragment) {
-      afterNextRender(() => {
-        const target = document.getElementById(fragment);
-        (target?.closest('section') ?? target)?.scrollIntoView?.({ block: 'start' });
-      });
-    }
+    // Projects' "suggest one ›" goes to #home-contact.
+    scrollToFragmentOnLoad();
   }
 }
