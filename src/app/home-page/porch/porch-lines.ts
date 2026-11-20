@@ -34,21 +34,41 @@ export interface OnAirLine {
   readonly count: string | null;
 }
 
+/** The porch's On the air, in Morgan's order (2026-11-20), by name in `LAB_ON_AIR`, with the porch's own label where it differs. */
+export const PORCH_ON_AIR: readonly { readonly name: string; readonly label?: string }[] = [
+  { name: 'Minecraft', label: 'Minecraft Server' },
+  { name: 'VideoJoker' },
+  { name: 'Jellyfin' },
+  { name: 'Foundry VTT' },
+];
+
 /**
- * The Homelab's "On the air" entries that are live, each with its state: the status Worker's for the
- * ones it checks, the Discord feed's yes-or-no for the bot (`via: 'discord'`; `null` when Discord
- * capped its member list, since absence then proves nothing), and for the server, how many are on.
+ * The Homelab's live "On the air" entries, in the porch's order (`PORCH_ON_AIR`), each with its state:
+ * the status Worker's for the ones it checks, the Discord feed's yes-or-no for the bot (`via: 'discord'`;
+ * `null` when Discord capped its member list, since absence then proves nothing), and for the server,
+ * how many are on.
  */
 export function onAirLines(
   stateOf: (id: LabStatusId) => 'up' | 'down' | null,
   botOnline: boolean | null,
   minecraftOnline: number | null = null,
 ): OnAirLine[] {
-  return LAB_ON_AIR.flatMap(entry => {
-    if (entry.state !== 'live') return [];
+  return PORCH_ON_AIR.flatMap(({ name, label }) => {
+    const entry = LAB_ON_AIR.find(candidate => candidate.name === name);
+    if (!entry || entry.state !== 'live') return [];
     const state = 'statusId' in entry ? stateOf(entry.statusId)
       : botOnline === null ? null : botOnline ? 'up' : 'down';
     const count = entry.server && state === 'up' && minecraftOnline !== null ? onlineLine(minecraftOnline) : null;
-    return [{ name: entry.name, state, count }];
+    return [{ name: label ?? entry.name, state, count }];
   });
+}
+
+/**
+ * Hanging out's second line, the Minecraft server (drafts): how many are on while it's up, else where to
+ * find it. Always the address, since that's how you join.
+ */
+export function serverLine(state: 'up' | 'down' | null, online: number | null, address: string): string {
+  if (state === 'up' && online !== null) return `${onlineLine(online)} · ${address}`;
+  if (state === 'down') return `down for now · ${address}`;
+  return `${address} · Java and Bedrock`;
 }

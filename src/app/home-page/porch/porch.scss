@@ -180,22 +180,6 @@ $one-column: 34rem;
   }
 }
 
-// "[ homelab › ]" and, beside it, the front desk (B): both at the spot's foot.
-.gos {
-  margin-top: auto;
-  display: flex;
-  flex-wrap: wrap;
-  column-gap: 1rem;
-
-  .go {
-    margin-top: 0;
-  }
-
-  .desk {
-    color: #f4d78a;
-  }
-}
-
 // No light until it's known; up is a green light, down a dim red ring.
 .led {
   flex: none;
