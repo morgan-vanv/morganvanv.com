@@ -5,7 +5,7 @@ import { CampfireService } from '../../../shared/services/campfire.service';
 import { DOORS, Door, DoorId, Rect, Viewport, WINDOW_LEAD, fireLead, labelText, placeDoor } from './doors';
 
 /**
- * The greeting's two hidden doors over the painting: the lit farmhouse window (projects) and the
+ * The greeting's two hidden doors over the painting: the lit farmhouse window (the Homelab) and the
  * campfire (social). Nothing shows at rest; the window and the fire already flicker. On hover or
  * keyboard focus a gold ring and a small label rise; on touch the first tap shows the label (which is
  * itself the link) and a tap elsewhere puts it away. They sit where the sky put its window light and

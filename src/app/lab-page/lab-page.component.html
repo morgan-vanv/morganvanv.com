@@ -162,7 +162,7 @@
     <span class="air-text">
       @if (item.server) {
         <span class="air-name server-name"><span class="visually-hidden">{{ item.name }}: </span><span class="address">{{ minecraftAddress }}</span>
-          <app-copy-button [value]="minecraftAddress" text="copy" [label]="'Copy the server address ' + minecraftAddress" />
+          <app-copy-button [value]="minecraftAddress" text="copy" size="small" [label]="'Copy the server address ' + minecraftAddress" />
         </span>
         <span class="air-what">{{ item.what }} · <a class="more" routerLink="/social" fragment="server">more on Social ›</a></span>
       } @else {

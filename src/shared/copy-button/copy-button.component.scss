@@ -35,4 +35,19 @@
   svg {
     flex: none;
   }
+
+  // Compact beside a small address (the Homelab), but only for a mouse on a wide screen: touch keeps 44px.
+  &.small {
+    @media (hover: hover) and (pointer: fine) and (min-width: $breakpoint-mobile) {
+      gap: 0.3rem;
+      min-height: 1.625rem;
+      padding: 0 0.6rem;
+      font-size: $font-size-label;
+
+      svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
+  }
 }

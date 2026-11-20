@@ -30,6 +30,13 @@ describe('CopyButtonComponent', () => {
     expect(el().querySelector('[role=status]')?.textContent).toBe('');
   });
 
+  it('is normal size unless asked to be small', async () => {
+    expect(el().querySelector('button')?.classList.contains('small')).toBe(false);
+    fixture.componentRef.setInput('size', 'small');
+    await fixture.whenStable();
+    expect(el().querySelector('button')?.classList.contains('small')).toBe(true);
+  });
+
   it('copies the value, says so for a moment, then goes back to its words', async () => {
     const writeText = vi.fn(() => Promise.resolve());
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });

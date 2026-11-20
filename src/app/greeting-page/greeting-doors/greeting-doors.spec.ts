@@ -58,8 +58,8 @@ describe('GreetingDoorsComponent', () => {
     expect(door('window')!.style.left).toBe(`${lights.window.x}px`);
     expect(door('window')!.style.top).toBe(`${lights.window.y}px`);
     expect(door('fire')!.style.left).toBe(`${lights.fire.x}px`);
-    expect(spot('window').getAttribute('aria-label')).toBe('Projects');
-    expect(spot('window').getAttribute('href')).toBe('/projects');
+    expect(spot('window').getAttribute('aria-label')).toBe('Homelab');
+    expect(spot('window').getAttribute('href')).toBe('/homelab');
     expect(spot('fire').getAttribute('aria-label')).toBe('Social');
     expect(spot('fire').getAttribute('href')).toBe('/social');
   });
@@ -70,7 +70,7 @@ describe('GreetingDoorsComponent', () => {
       expect(label.getAttribute('tabindex')).toBe('-1');
       expect(label.getAttribute('aria-hidden')).toBe('true');
     }
-    expect(door('window')!.querySelector('.label')!.textContent!.replace(/\s+/g, ' ').trim()).toBe('the light\'s on [ projects › ]');
+    expect(door('window')!.querySelector('.label')!.textContent!.replace(/\s+/g, ' ').trim()).toBe('the light\'s on [ homelab › ]');
   });
 
   it('counts who\'s around the fire, or says it\'s lit when nobody is (or there\'s no campfire)', async () => {
@@ -120,7 +120,7 @@ describe('GreetingDoorsComponent', () => {
     await showLights();
     const navigate = vi.spyOn(TestBed.inject(Router), 'navigateByUrl').mockResolvedValue(true);
     await press('window', 'mouse');
-    expect(navigate).toHaveBeenCalledWith('/projects');
+    expect(navigate).toHaveBeenCalledWith('/homelab');
     await press('fire', null);
     expect(navigate).toHaveBeenCalledWith('/social');
   });
