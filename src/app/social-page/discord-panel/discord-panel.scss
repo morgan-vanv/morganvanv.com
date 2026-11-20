@@ -169,6 +169,14 @@ $busy: #c97b6a;
   }
 }
 
+// Until Discord answers: one dim line where the counts go.
+.resting {
+  display: block;
+  margin-top: 0;
+  font-size: $font-size-small;
+  opacity: 0.6;
+}
+
 .quiet {
   margin: 0.5rem 0 0;
   font-size: $font-size-small;

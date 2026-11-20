@@ -6,6 +6,9 @@ import { SITE_CONFIG } from '../../../shared/config/site.config';
 /** Games listed by name; the rest are "+ N more". */
 export const GAMES_SHOWN = 4;
 
+/** The body's line until Discord answers, or if it doesn't (draft). */
+export const DISCORD_RESTING = "who's around shows up here once Discord answers.";
+
 
 /** "1 in voice", "nobody in voice". */
 export function voiceLabel(n: number): string {
@@ -23,8 +26,9 @@ export function statusShares(summary: DiscordSummary): { online: number; idle: n
 
 /**
  * The Discord on /social: how many are on, how they're split, who's in voice and what's being played,
- * with a way in. Counts only, never people. Shows nothing until Discord has answered (the page's
- * `DiscordService`), so there are never made-up numbers.
+ * with a way in. Counts only, never people. The frame (heading, the way in, the tagline) is there from
+ * first paint, so nothing beside it moves when Discord answers; the counts wait for the page's
+ * `DiscordService`, with a resting line until then, so there are never made-up numbers.
  */
 @Component({
   selector: 'app-discord-panel',
@@ -38,6 +42,13 @@ export class DiscordPanelComponent {
   readonly summary = this.discord.summary;
   readonly tagline = DISCORD_TAGLINE;
   readonly invite = SITE_CONFIG.discord.inviteUrl;
+  /** Where the counts go until Discord answers (draft). */
+  readonly resting = DISCORD_RESTING;
+
+  readonly joinLabel = computed(() => {
+    const name = this.summary()?.name;
+    return `Tap in: join ${name ? `${name} on Discord` : 'the Discord'} (opens Discord in a new tab)`;
+  });
 
   readonly view = computed(() => {
     const summary = this.summary();
@@ -50,7 +61,6 @@ export class DiscordPanelComponent {
       voice: voiceLabel(summary.inVoice),
       games: summary.games.slice(0, GAMES_SHOWN),
       moreGames: Math.max(0, summary.games.length - GAMES_SHOWN),
-      joinLabel: `Pull up a chair: join ${summary.name} on Discord (opens Discord in a new tab)`,
     };
   });
 }

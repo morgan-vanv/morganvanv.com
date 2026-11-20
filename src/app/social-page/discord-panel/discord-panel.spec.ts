@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { signal } from '@angular/core';
-import { DiscordPanelComponent, statusShares, voiceLabel } from './discord-panel';
+import { DISCORD_RESTING, DiscordPanelComponent, statusShares, voiceLabel } from './discord-panel';
 import { DISCORD_TAGLINE } from '../../../shared/discord/discord';
 import { DiscordService } from '../../../shared/discord/discord.service';
 import { DiscordSummary, toDiscordSummary } from '../../../shared/discord/discord';
@@ -22,14 +22,23 @@ describe('DiscordPanelComponent', () => {
     await fixture.whenStable();
   });
 
-  it('shows nothing until Discord has answered', () => {
-    expect(el().querySelector('section')).toBeNull();
+  it('shows its frame and a resting line until Discord has answered, and never a made-up number', () => {
+    expect(el().querySelector('h2')?.textContent?.trim()).toBe('The Discord');
+    expect(el().querySelector('.resting')?.textContent?.trim()).toBe(DISCORD_RESTING);
+    expect(el().querySelector('.count, .bar, .games')).toBeNull();
+    expect(el().textContent).not.toMatch(/\d/);
+    const join = el().querySelector<HTMLAnchorElement>('a.join')!;
+    expect(join.getAttribute('href')).toBe('https://discord.gg/Cgxk3Ya');
+    expect(join.getAttribute('aria-label')).toBe('Tap in: join the Discord (opens Discord in a new tab)');
+    expect(el().querySelector('.tagline')?.textContent?.trim()).toBe(DISCORD_TAGLINE);
   });
 
   it('shows the server, the count and the split, with the split in words for screen readers', async () => {
     summary.set(fromFeed);
     await fixture.whenStable();
     expect(el().querySelector('h2')?.textContent).toContain('The Discord');
+    expect(el().querySelector('h2 .range-label')?.textContent).toBe('live');
+    expect(el().querySelector('.resting')).toBeNull();
     expect(el().querySelector('.server')?.textContent?.trim()).toBe('Ugandan Commandos');
     expect(el().querySelector('.big')?.textContent?.replace(/\s+/g, ' ').trim()).toBe('7 online right now');
     expect(el().querySelector('.bar')?.getAttribute('aria-label')).toBe('4 around, 2 idle, 1 busy');
@@ -61,7 +70,7 @@ describe('DiscordPanelComponent', () => {
     expect(join.getAttribute('href')).toBe('https://discord.gg/Cgxk3Ya');
     expect(join.getAttribute('target')).toBe('_blank');
     expect(join.getAttribute('rel')).toBe('noopener noreferrer');
-    expect(join.getAttribute('aria-label')).toMatch(/^Pull up a chair/);
+    expect(join.getAttribute('aria-label')).toMatch(/^Tap in: join Ugandan Commandos on Discord/);
     expect(el().querySelector('.tagline')?.textContent?.trim()).toBe(DISCORD_TAGLINE);
     expect(DISCORD_TAGLINE).toBe("home to the world's greatest gaming prodigies");
   });

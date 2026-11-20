@@ -76,20 +76,38 @@ describe('SocialPageComponent', () => {
     expect([...el.querySelectorAll('.panel')].at(-1)?.matches('.friends-panel')).toBe(true);
   });
 
-  it('has the server alone in the hangouts row until Discord answers, then the Discord beside it; my friends after', async () => {
+  it("keeps the shoutbox's 'by the fire' count in a slot as wide as its longest form, hidden until the campfire answers", async () => {
+    const here = () => (fixture.nativeElement as HTMLElement).querySelector('#social-shoutbox .here')!;
+    expect(here().classList.contains('unknown')).toBe(true);
+    expect(here().querySelector('.here-text')?.textContent).toBe('just you by the fire');
+
+    const http = TestBed.inject(HttpTestingController);
+    for (const req of http.match(r => r.url.startsWith(`${SITE_CONFIG.campfireUrl}/shouts`))) req.flush({ shouts: [], here: 2, open: true });
+    await fixture.whenStable();
+    expect(here().classList.contains('unknown')).toBe(false);
+    expect(here().querySelector('.here-text')?.textContent).toBe('2 by the fire');
+    // The slot stays as wide as its longest form, hidden from screen readers.
+    const reserve = here().querySelector('.here-reserve')!;
+    expect(reserve.textContent).toBe('just you by the fire');
+    expect(reserve.getAttribute('aria-hidden')).toBe('true');
+  });
+
+  it('has the Discord beside the server from first paint, its counts once Discord answers; my friends after', async () => {
     const el = fixture.nativeElement as HTMLElement;
     const row = el.querySelector('.hangouts')!;
-    expect(row.classList.contains('with-discord')).toBe(false);
-    expect(row.querySelector('app-discord-panel')).toBeNull();
-    expect([...row.children].map(c => c.tagName.toLowerCase())).toEqual(['app-server-panel']);
+    // Both panels are there before any feed, so nothing in the row moves when Discord answers.
+    expect([...row.children].map(c => c.tagName.toLowerCase())).toEqual(['app-discord-panel', 'app-server-panel']);
+    expect(row.querySelector('app-discord-panel h2')?.textContent).toContain('The Discord');
+    expect(row.querySelector('app-discord-panel .resting')).not.toBeNull();
+    expect(row.querySelector('app-discord-panel .count')).toBeNull();
 
     const http = TestBed.inject(HttpTestingController);
     for (const req of http.match(r => r.url === SITE_CONFIG.discord.widgetUrl)) req.flush(DISCORD_FEED_FIXTURE);
     await fixture.whenStable();
 
-    expect(row.classList.contains('with-discord')).toBe(true);
     expect([...row.children].map(c => c.tagName.toLowerCase())).toEqual(['app-discord-panel', 'app-server-panel']);
-    expect(row.querySelector('app-discord-panel h2')?.textContent).toContain('The Discord');
+    expect(row.querySelector('app-discord-panel .resting')).toBeNull();
+    expect(row.querySelector('app-discord-panel .count')).not.toBeNull();
     expect(row.nextElementSibling?.querySelector('.friends-panel')).not.toBeNull();
     // Counts, never people.
     for (const member of DISCORD_FEED_FIXTURE.members) expect(row.textContent).not.toContain(member.username);
@@ -113,11 +131,14 @@ describe('SocialPageComponent', () => {
     expect(panel.querySelector('.count')?.textContent?.trim()).toBe('0 online');
   });
 
-  it("keeps my friends alone when Discord's feed fails", async () => {
+  it("keeps the Discord's resting line and its way in when the feed fails, with no numbers", async () => {
     const http = TestBed.inject(HttpTestingController);
     for (const req of http.match(r => r.url === SITE_CONFIG.discord.widgetUrl)) req.flush('nope', { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
-    expect((fixture.nativeElement as HTMLElement).querySelector('app-discord-panel')).toBeNull();
+    const panel = (fixture.nativeElement as HTMLElement).querySelector('app-discord-panel')!;
+    expect(panel.querySelector('.resting')).not.toBeNull();
+    expect(panel.querySelector('.count')).toBeNull();
+    expect(panel.querySelector('a.join')?.getAttribute('href')).toBe(SITE_CONFIG.discord.inviteUrl);
   });
 
   it("ends with my friends' 88×31s, in the same order as on /now", () => {

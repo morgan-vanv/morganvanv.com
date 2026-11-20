@@ -1,7 +1,7 @@
-@if (view(); as v) {
-  <section class="panel discord" aria-labelledby="social-discord">
-    <h2 id="social-discord">The Discord <span class="range-label">live</span></h2>
+<section class="panel discord" aria-labelledby="social-discord">
+  <h2 id="social-discord">The Discord @if (view()) {<span class="range-label">live</span>}</h2>
 
+  @if (view(); as v) {
     <div class="body">
       <div class="presence">
         <p class="server">{{ v.summary.name }}</p>
@@ -38,12 +38,14 @@
         }
       </div>
     </div>
+  } @else {
+    <p class="body resting">{{ resting }}</p>
+  }
 
-    <div class="foot">
-      <a class="join" [href]="invite" target="_blank" rel="noopener noreferrer" [attr.aria-label]="v.joinLabel">
-        <span class="bracket" aria-hidden="true">[</span> pull up a chair › <span class="bracket" aria-hidden="true">]</span>
-      </a>
-      <p class="tagline">{{ tagline }}</p>
-    </div>
-  </section>
-}
+  <div class="foot">
+    <a class="join" [href]="invite" target="_blank" rel="noopener noreferrer" [attr.aria-label]="joinLabel()">
+      <span class="bracket" aria-hidden="true">[</span> tap in › <span class="bracket" aria-hidden="true">]</span>
+    </a>
+    <p class="tagline">{{ tagline }}</p>
+  </div>
+</section>

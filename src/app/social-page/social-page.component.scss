@@ -44,24 +44,15 @@
   }
 }
 
-// Under the wall: the Discord (once it has answered) beside the Minecraft server, 1 : 1.12; the server alone takes
-// the row until then. Stacked on tablets and phones, the Discord first.
+// Under the wall: the Discord beside the Minecraft server, 1 : 1.12, both the same height and both there from
+// first paint, so neither moves when the live counts arrive. Stacked on tablets and phones, the Discord first.
 .hangouts {
-  @include shared.panel-grid(minmax(0, 1fr));
+  @include shared.panel-grid(minmax(0, 1fr) minmax(0, 1.12fr));
+  align-items: stretch;
   margin-top: 1.25rem;
-
-  // The Discord beside the server, once Discord has answered (both the same height); the server alone until then.
-  &.with-discord {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.12fr);
-    align-items: stretch;
-  }
 
   @media (max-width: $breakpoint-mobile) {
     margin-top: 0.875rem;
-
-    &.with-discord {
-      grid-template-columns: minmax(0, 1fr);
-    }
   }
 }
 
@@ -86,6 +77,25 @@
 .shoutbox {
   display: flex;
   flex-direction: column;
+
+  // The "by the fire" count: hidden (screen readers too) until the campfire answers, and always in a slot as wide
+  // as its longest form, so a new count never re-wraps the heading and moves the page.
+  .here.unknown {
+    visibility: hidden;
+  }
+
+  .here-slot {
+    display: inline-grid;
+    justify-items: start;
+
+    > * {
+      grid-area: 1 / 1;
+    }
+  }
+
+  .here-reserve {
+    visibility: hidden;
+  }
 
   // Until the campfire is live; kept small so the top row doesn't push the wall off the screen.
   app-under-construction {
