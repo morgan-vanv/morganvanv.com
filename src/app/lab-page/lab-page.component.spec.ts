@@ -212,8 +212,7 @@ describe('LabPageComponent', () => {
     expect(pills()).toEqual(['up', 'down']);
     expect(el().querySelector('.air-row .state')?.classList.contains('down')).toBe(false);
     expect(el().querySelectorAll('.air .state.down').length).toBe(1);
-    expect(text('.air .note')).toBe('Checked from outside every couple of minutes (the bot, by whether it\'s on Discord); last 3 minutes ago. '
-      + 'The server is the one exception to "no addresses": that one\'s meant to be shared.');
+    expect(text('.air .note')).toBe('Checked from outside every couple of minutes (the bot, by whether it\'s on Discord); last 3 minutes ago.');
   });
 
   it('shows nothing for a status it cannot trust, or a failed request', async () => {
